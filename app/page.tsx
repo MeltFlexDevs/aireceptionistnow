@@ -2,422 +2,302 @@
 
 import { useState, useEffect } from "react";
 
-const PauseLogo = () => (
+const PauseLogo = ({ color = "currentColor" }: { color?: string }) => (
   <svg width="7" height="15" viewBox="0 0 7 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect x="0" y="0" width="2.5" height="15" rx="1" fill="currentColor" />
-    <rect x="4.5" y="0" width="2.5" height="15" rx="1" fill="currentColor" />
+    <rect x="0" y="0" width="2.5" height="15" rx="1" fill={color} />
+    <rect x="4.5" y="0" width="2.5" height="15" rx="1" fill={color} />
   </svg>
 );
 
+const StarSvg = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="#a855f7" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+  </svg>
+);
+
+const ChevronRight = () => (
+  <svg width="8" height="13" viewBox="0 0 8 13" fill="none">
+    <path d="M1.5 1.5L6.5 6.5L1.5 11.5" stroke="#999" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const ArrowRight = () => (
+  <svg width="16" height="16" viewBox="0 -960 960 960" fill="none">
+    <path fillRule="evenodd" clipRule="evenodd" d="M640-624 284-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l356-356H280q-17 0-28.5-11.5T240-720q0-17 11.5-28.5T280-760h400q17 0 28.5 11.5T720-720v400q0 17-11.5 28.5T680-280q-17 0-28.5-11.5T640-320v-304Z" fill="currentColor" />
+  </svg>
+);
+
+const logos = [
+  "Dental Pro", "LexGroup", "MedCenter", "Grand Hotel",
+  "AutoHub", "HealthFirst", "CityLaw", "Marriott",
+];
+
+const reviews = [
+  {
+    quote: "Our front desk used to miss calls constantly during patient hours. Since switching to AI Receptionist, every call is answered 24/7, appointments are booked automatically, and our staff can focus on patients.",
+    name: "Dr. Amanda Reyes",
+    role: "Family Medicine Practice",
+    av: "AR",
+  },
+  {
+    quote: "I used to lose clients because I couldn't answer the phone on a job site. AI Receptionist handles every inbound call, qualifies the lead, and texts me a summary. Closed three new clients this month I would have missed.",
+    name: "Mike Donovan",
+    role: "Owner, Plumbing & Drain Services",
+    av: "MD",
+  },
+  {
+    quote: "My front desk was overwhelmed with booking calls. Set up AI Receptionist in less than 20 minutes. Now it handles all appointment scheduling while my team focuses on clients.",
+    name: "Jasmine Torres",
+    role: "Owner, Day Spa",
+    av: "JT",
+  },
+  {
+    quote: "I'm a one-person agency and I can't always pick up. AI Receptionist qualifies every caller, captures their details, and books showings into my calendar. Like having a full-time receptionist at a fraction of the cost.",
+    name: "Brian Callahan",
+    role: "Independent Realtor",
+    av: "BC",
+  },
+];
+
+const faqs = [
+  {
+    q: "How quickly can I get AI Receptionist up and running?",
+    a: "Setup takes under 10 minutes. Describe your business, choose your preferences, and the AI is ready to take calls immediately. No coding or technical skills required.",
+  },
+  {
+    q: "Will callers know they're talking to an AI?",
+    a: "Our AI sounds natural and conversational. Many customers report that callers can't tell the difference. You can also configure the AI to be transparent about being an assistant.",
+  },
+  {
+    q: "What happens if the AI can't handle a call?",
+    a: "The AI makes decisions based on the context you provide, which eliminates most issues. If it can't resolve a situation, it can schedule a callback or transfer the call to you directly.",
+  },
+  {
+    q: "Does it integrate with my existing calendar and CRM?",
+    a: "Yes. AI Receptionist integrates natively with Google Calendar, Outlook, HubSpot, Salesforce, Calendly, and many more. Custom integrations available via our API.",
+  },
+  {
+    q: "Is my data secure?",
+    a: "All call data is encrypted in transit and at rest. We comply with GDPR and HIPAA requirements. Your data is never shared with third parties or used to train AI models.",
+  },
+];
+
 export default function Home() {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [email, setEmail] = useState("");
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 30);
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    const onScroll = () => setIsScrolled(window.scrollY > 30);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const interFont: React.CSSProperties = {
+  const inter: React.CSSProperties = {
     fontFamily: "var(--font-inter), Inter, -apple-system, BlinkMacSystemFont, sans-serif",
     fontWeight: 300,
   };
 
   return (
-    <main style={{ ...interFont, background: "#fff", color: "#333", minHeight: "100vh", overflowX: "hidden" }}>
+    <main style={{ ...inter, background: "#fff", color: "#333", minHeight: "100vh", overflowX: "hidden" }}>
+      <style>{`
+        @keyframes marquee {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        .marquee-inner {
+          display: flex;
+          width: max-content;
+          animation: marquee 28s linear infinite;
+        }
+        @keyframes float-sphere {
+          0%,100% { transform: translateY(0px); }
+          50% { transform: translateY(-18px); }
+        }
+        @keyframes pulse-glow {
+          0%,100% { opacity: 0.65; }
+          50% { opacity: 1; }
+        }
+        @keyframes rainbow-spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
 
       {/* ── HEADER ── */}
-      <header
-        style={{
-          position: "fixed",
-          top: 0, left: 0, right: 0,
-          zIndex: 60,
-          height: "56px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "0 40px",
-          background: isScrolled ? "#fff" : "transparent",
-          boxShadow: isScrolled ? "0 1px 0 rgba(0,0,0,0.07)" : "none",
-          transition: "background 0.3s ease, box-shadow 0.3s ease",
-        }}
-      >
-        {/* Logo */}
+      <header style={{
+        position: "fixed", top: 0, left: 0, right: 0, zIndex: 60,
+        height: "56px", display: "flex", alignItems: "center", justifyContent: "space-between",
+        padding: "0 40px",
+        background: isScrolled ? "#fff" : "transparent",
+        boxShadow: isScrolled ? "0 1px 0 rgba(0,0,0,0.07)" : "none",
+        transition: "background 0.3s, box-shadow 0.3s",
+      }}>
         <div style={{ display: "flex", alignItems: "center", gap: "32px" }}>
-          <a
-            href="/"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-              textDecoration: "none",
-              color: "#000",
-            }}
-          >
-            <PauseLogo />
-            <span
-              style={{
-                fontFamily: "var(--font-inter), Inter, sans-serif",
-                fontWeight: 500,
-                fontSize: "18px",
-                letterSpacing: "-0.02em",
-                color: "#000",
-              }}
-            >
+          <a href="/" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none", color: isScrolled ? "#000" : "#fff" }}>
+            <PauseLogo color={isScrolled ? "#000" : "#fff"} />
+            <span style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontWeight: 500, fontSize: "18px", letterSpacing: "-0.02em" }}>
               AI RECEPTIONIST
             </span>
           </a>
-
-          {/* Desktop nav */}
-          <nav style={{ display: "flex", gap: "24px" }} className="hidden md:flex">
+          <nav style={{ display: "flex", gap: "24px" }}>
             {[
               { label: "Features", href: "#features" },
               { label: "How it works", href: "#how-it-works" },
               { label: "Pricing", href: "#pricing" },
-            ].map((link) => (
-              <a
-                key={link.label}
-                href={link.href}
-                style={{
-                  color: "#333",
-                  fontSize: "14px",
-                  fontWeight: 400,
-                  textDecoration: "none",
-                  transition: "color 0.15s",
-                }}
-                onMouseOver={(e) => (e.currentTarget.style.color = "#000")}
-                onMouseOut={(e) => (e.currentTarget.style.color = "#333")}
-              >
-                {link.label}
+            ].map((l) => (
+              <a key={l.label} href={l.href} style={{ color: isScrolled ? "#333" : "rgba(255,255,255,0.7)", fontSize: "14px", fontWeight: 400, textDecoration: "none", transition: "color 0.15s" }}>
+                {l.label}
               </a>
             ))}
           </nav>
         </div>
-
-        {/* Header CTA */}
-        <a
-          href="#pricing"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            height: "36px",
-            padding: "0 20px",
-            background: "#000",
-            color: "#fff",
-            border: "1.5px solid #000",
-            borderRadius: "20px",
-            fontSize: "12px",
-            fontWeight: 400,
-            textDecoration: "none",
-            letterSpacing: "0.06em",
-            transition: "background 0.2s, color 0.2s",
-          }}
-          onMouseOver={(e) => {
-            e.currentTarget.style.background = "#fff";
-            e.currentTarget.style.color = "#000";
-          }}
-          onMouseOut={(e) => {
-            e.currentTarget.style.background = "#000";
-            e.currentTarget.style.color = "#fff";
-          }}
-        >
+        <a href="#pricing" style={{
+          display: "inline-flex", alignItems: "center", height: "36px", padding: "0 20px",
+          background: isScrolled ? "#000" : "#fff", color: isScrolled ? "#fff" : "#000",
+          border: "1.5px solid", borderColor: isScrolled ? "#000" : "#fff",
+          borderRadius: "20px", fontSize: "12px", fontWeight: 400, textDecoration: "none",
+          letterSpacing: "0.06em", transition: "all 0.25s",
+        }}>
           START FREE TRIAL
         </a>
       </header>
 
       {/* ── HERO ── */}
-      <section style={{ paddingTop: "140px", paddingBottom: "80px", padding: "140px 40px 80px", textAlign: "center" }}>
-        <div style={{ maxWidth: "760px", margin: "0 auto" }}>
+      <section style={{
+        position: "relative", background: "#08090c", minHeight: "100vh",
+        display: "flex", flexDirection: "column", alignItems: "center",
+        paddingTop: "110px", overflow: "hidden",
+      }}>
+        {/* BG blobs */}
+        <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+          <div style={{ position: "absolute", top: "-8%", left: "50%", transform: "translateX(-50%)", width: "860px", height: "860px", background: "radial-gradient(ellipse, rgba(124,58,237,0.18) 0%, transparent 65%)", animation: "pulse-glow 7s ease-in-out infinite" }} />
+          <div style={{ position: "absolute", bottom: "0", left: "-12%", width: "540px", height: "400px", background: "radial-gradient(ellipse, rgba(79,70,229,0.1) 0%, transparent 70%)" }} />
+          <div style={{ position: "absolute", bottom: "0", right: "-12%", width: "480px", height: "360px", background: "radial-gradient(ellipse, rgba(37,99,235,0.09) 0%, transparent 70%)" }} />
+        </div>
+
+        <div style={{ position: "relative", zIndex: 2, width: "100%", maxWidth: "860px", padding: "0 24px", textAlign: "center" }}>
 
           {/* Badge */}
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "8px",
-              background: "#f5f5f5",
-              color: "#777",
-              fontSize: "12px",
-              fontWeight: 400,
-              padding: "5px 14px",
-              borderRadius: "20px",
-              marginBottom: "36px",
-              letterSpacing: "0.01em",
-            }}
-          >
-            <span style={{ width: "6px", height: "6px", background: "#22c55e", borderRadius: "50%", flexShrink: 0 }} />
-            12,000+ businesses already use AI Receptionist
+          <div style={{ marginBottom: "28px" }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.11)", borderRadius: "20px", padding: "6px 16px" }}>
+              <span style={{ width: "6px", height: "6px", background: "#22c55e", borderRadius: "50%", flexShrink: 0 }} />
+              <span style={{ color: "rgba(255,255,255,0.8)", fontSize: "13px", fontWeight: 300 }}>AI calls made easy</span>
+            </div>
           </div>
 
           {/* H1 */}
-          <h1
-            style={{
-              fontFamily: "var(--font-inter), Inter, sans-serif",
-              fontSize: "clamp(40px, 6.5vw, 68px)",
-              fontWeight: 300,
-              letterSpacing: "-0.03em",
-              color: "#111",
-              lineHeight: 1.08,
-              marginBottom: "24px",
-            }}
-          >
-            Never Miss a Business Call Again
+          <h1 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(38px, 6.5vw, 76px)", fontWeight: 300, letterSpacing: "-0.03em", color: "#fff", lineHeight: 1.04, marginBottom: "44px" }}>
+            Let our AI take care<br />of your calls
           </h1>
 
-          {/* Subtitle */}
-          <p
-            style={{
-              fontSize: "17px",
-              color: "#777",
-              fontWeight: 300,
-              lineHeight: 1.7,
-              maxWidth: "520px",
-              margin: "0 auto 40px",
-            }}
-          >
-            Your AI receptionist answers calls, books appointments, and handles
-            customers 24/7 — so you can focus on your work. Set up in under 10 minutes.
-          </p>
-
-          {/* CTAs */}
-          <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap", marginBottom: "64px" }}>
-            <a
-              href="#pricing"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                height: "46px",
-                padding: "0 26px",
-                background: "#000",
-                color: "#fff",
-                border: "1.5px solid #000",
-                borderRadius: "23px",
-                fontSize: "14px",
-                fontWeight: 400,
-                textDecoration: "none",
-                transition: "background 0.2s, color 0.2s",
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.background = "#fff";
-                e.currentTarget.style.color = "#000";
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.background = "#000";
-                e.currentTarget.style.color = "#fff";
-              }}
-            >
-              Start Free Trial →
-            </a>
-            <a
-              href="#how-it-works"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                height: "46px",
-                padding: "0 26px",
-                background: "transparent",
-                color: "#333",
-                border: "1.5px solid #e0e0e0",
-                borderRadius: "23px",
-                fontSize: "14px",
-                fontWeight: 400,
-                textDecoration: "none",
-                transition: "border-color 0.2s, color 0.2s",
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.borderColor = "#aaa";
-                e.currentTarget.style.color = "#000";
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.borderColor = "#e0e0e0";
-                e.currentTarget.style.color = "#333";
-              }}
-            >
-              See How It Works
-            </a>
+          {/* Gradient sphere */}
+          <div style={{ width: "260px", height: "260px", margin: "0 auto 44px", position: "relative", animation: "float-sphere 8s ease-in-out infinite" }}>
+            <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "radial-gradient(circle at 33% 32%, #c084fc 0%, #7c3aed 28%, #4c1d95 58%, #14082e 100%)", boxShadow: "0 0 80px rgba(139,92,246,0.38), 0 0 160px rgba(109,40,217,0.18)" }} />
+            <div style={{ position: "absolute", top: "12%", left: "16%", width: "42%", height: "36%", background: "radial-gradient(circle, rgba(255,255,255,0.32) 0%, transparent 70%)", borderRadius: "50%", filter: "blur(7px)" }} />
           </div>
 
-          {/* Stats */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
-              maxWidth: "380px",
-              margin: "0 auto",
-              paddingTop: "36px",
-              borderTop: "1px solid #f0f0f0",
-            }}
+          {/* CTA Card */}
+          <div style={{ position: "relative", maxWidth: "480px", margin: "0 auto 24px" }}>
+            <div style={{ position: "absolute", inset: "-2px", borderRadius: "18px", background: "conic-gradient(from 0deg, #a855f7, #6366f1, #3b82f6, #06b6d4, #a855f7)", animation: "rainbow-spin 4s linear infinite", filter: "blur(1.5px)", zIndex: 0 }} />
+            <div style={{ position: "relative", zIndex: 1, background: "rgba(12,12,16,0.96)", borderRadius: "16px", padding: "22px" }}>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <input
+                  type="email"
+                  placeholder="Enter your email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  style={{ flex: 1, background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "10px", padding: "13px 16px", color: "#fff", fontSize: "14px", fontWeight: 300, fontFamily: "var(--font-inter), Inter, sans-serif", outline: "none" }}
+                />
+                <button style={{ background: "#fff", color: "#000", border: "none", borderRadius: "10px", padding: "13px 20px", fontSize: "13px", fontWeight: 400, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "var(--font-inter), Inter, sans-serif", letterSpacing: "0.01em", transition: "opacity 0.2s" }}
+                  onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.opacity = "0.85")}
+                  onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.opacity = "1")}
+                >
+                  Start Free Trial
+                </button>
+              </div>
+              <p style={{ color: "rgba(255,255,255,0.28)", fontSize: "11px", textAlign: "center", marginTop: "12px", fontWeight: 300 }}>
+                By signing up, you confirm you have read our{" "}
+                <a href="#" style={{ color: "rgba(255,255,255,0.4)", textDecoration: "underline" }}>privacy policy</a>.
+              </p>
+            </div>
+          </div>
+
+          {/* Book a demo */}
+          <a href="#" style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "rgba(255,255,255,0.5)", fontSize: "14px", fontWeight: 300, textDecoration: "none", marginBottom: "64px", transition: "color 0.2s" }}
+            onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.color = "#fff")}
+            onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.5)")}
           >
-            {[
-              { value: "24/7", label: "Always available" },
-              { value: "4.9★", label: "Average rating" },
-              { value: "10 min", label: "Setup time" },
-            ].map((stat, i) => (
-              <div
-                key={stat.label}
-                style={{
-                  textAlign: "center",
-                  borderLeft: i > 0 ? "1px solid #f0f0f0" : "none",
-                  padding: "0 8px",
-                }}
-              >
-                <div style={{ fontSize: "24px", fontWeight: 500, color: "#111", letterSpacing: "-0.02em" }}>{stat.value}</div>
-                <div style={{ fontSize: "11px", color: "#aaa", marginTop: "4px", fontWeight: 300 }}>{stat.label}</div>
+            Book a demo <ArrowRight />
+          </a>
+
+          {/* Social proof */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "28px", marginBottom: "56px", flexWrap: "wrap" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <div style={{ display: "flex" }}>
+                {[["AR", "#7c3aed"], ["MD", "#4f46e5"], ["JT", "#0891b2"]].map(([init, bg], i) => (
+                  <div key={i} style={{ width: "34px", height: "34px", borderRadius: "50%", background: bg, border: "2px solid #08090c", marginLeft: i > 0 ? "-9px" : "0", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: 500, color: "#fff" }}>
+                    {init}
+                  </div>
+                ))}
+              </div>
+              <div>
+                <div style={{ color: "#fff", fontSize: "14px", fontWeight: 500 }}>9,500+</div>
+                <div style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px" }}>Customers</div>
+              </div>
+            </div>
+            <div style={{ width: "1px", height: "30px", background: "rgba(255,255,255,0.1)" }} />
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <span style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px" }}>Trustpilot</span>
+              <span style={{ color: "#fff", fontSize: "13px", fontWeight: 500 }}>4.9</span>
+              <StarSvg />
+            </div>
+            <div style={{ width: "1px", height: "30px", background: "rgba(255,255,255,0.1)" }} />
+            <div style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px" }}>
+              <span style={{ color: "#fff", fontWeight: 500 }}>#1</span> AI Tool 2026
+            </div>
+          </div>
+        </div>
+
+        {/* Logo marquee */}
+        <div style={{ width: "100%", overflow: "hidden", borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "30px", paddingBottom: "48px" }}>
+          <div className="marquee-inner">
+            {[...logos, ...logos, ...logos, ...logos].map((logo, i) => (
+              <div key={i} style={{ padding: "0 52px", color: "rgba(255,255,255,0.22)", fontSize: "17px", fontWeight: 400, letterSpacing: "-0.01em", flexShrink: 0, whiteSpace: "nowrap", fontFamily: "var(--font-inter), Inter, sans-serif" }}>
+                {logo}
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── DEMO CHAT ── */}
-      <section style={{ padding: "0 40px 64px" }}>
-        <div style={{ maxWidth: "680px", margin: "0 auto" }}>
-          <div
-            style={{
-              background: "#f8f8f8",
-              borderRadius: "20px",
-              padding: "28px 28px",
-              border: "1px solid #ececec",
-              display: "flex",
-              flexDirection: "column",
-              gap: "16px",
-            }}
-          >
-            {[
-              { role: "ai", text: "\"Hello! You've reached Dr. Smith's dental office. I'm your AI assistant — I can book an appointment, answer questions, or connect you to our team. How can I help?\"" },
-              { role: "user", text: "\"I'd like to book a cleaning for next Tuesday morning.\"" },
-              { role: "ai", text: "\"Perfect! I have Tuesday at 9:00 AM and 10:30 AM available. Which works better? I'll send a confirmation to your phone right away.\"" },
-            ].map((msg, i) => (
-              <div
-                key={i}
-                style={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: "10px",
-                  flexDirection: msg.role === "user" ? "row-reverse" : "row",
-                }}
-              >
-                <div
-                  style={{
-                    width: "32px",
-                    height: "32px",
-                    borderRadius: "50%",
-                    background: msg.role === "ai" ? "#111" : "#e8e8e8",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
-                    fontSize: "10px",
-                    fontWeight: 500,
-                    color: msg.role === "ai" ? "#fff" : "#666",
-                    letterSpacing: "0.02em",
-                  }}
-                >
-                  {msg.role === "ai" ? "AI" : "C"}
-                </div>
-                <div
-                  style={{
-                    background: msg.role === "user" ? "#111" : "#fff",
-                    color: msg.role === "user" ? "#fff" : "#444",
-                    borderRadius: msg.role === "user" ? "16px 4px 16px 16px" : "4px 16px 16px 16px",
-                    padding: "11px 15px",
-                    maxWidth: "380px",
-                    fontSize: "13px",
-                    lineHeight: 1.65,
-                    border: msg.role === "user" ? "none" : "1px solid #ececec",
-                    fontWeight: 300,
-                  }}
-                >
-                  {msg.text}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── INDUSTRIES ── */}
-      <section style={{ padding: "40px 40px 64px", textAlign: "center" }}>
-        <p
-          style={{
-            fontSize: "10px",
-            color: "#ccc",
-            textTransform: "uppercase",
-            letterSpacing: "0.1em",
-            fontWeight: 400,
-            marginBottom: "20px",
-          }}
-        >
-          Trusted by businesses in every industry
-        </p>
-        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "6px 28px" }}>
-          {["Dental Clinics", "Law Firms", "Auto Dealers", "Hotels", "Tradespeople", "Medical Practices", "Real Estate", "Restaurants"].map(
-            (industry) => (
-              <span
-                key={industry}
-                style={{ color: "#ccc", fontSize: "13px", fontWeight: 300, transition: "color 0.15s", cursor: "default" }}
-                onMouseOver={(e) => (e.currentTarget.style.color = "#666")}
-                onMouseOut={(e) => (e.currentTarget.style.color = "#ccc")}
-              >
-                {industry}
-              </span>
-            )
-          )}
-        </div>
-      </section>
-
-      {/* ── FEATURES ── */}
-      <section id="features" style={{ padding: "80px 40px", background: "#f8f8f8" }}>
-        <div style={{ maxWidth: "1060px", margin: "0 auto" }}>
+      {/* ── CUSTOMER REVIEWS ── */}
+      <section style={{ padding: "100px 0" }}>
+        <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 40px" }}>
           <div style={{ textAlign: "center", marginBottom: "56px" }}>
-            <h2
-              style={{
-                fontFamily: "var(--font-inter), Inter, sans-serif",
-                fontSize: "clamp(26px, 3.5vw, 38px)",
-                fontWeight: 300,
-                letterSpacing: "-0.025em",
-                color: "#111",
-                marginBottom: "14px",
-              }}
-            >
-              Everything your receptionist does — automated
+            <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#111" }}>
+              Customer reviews
             </h2>
-            <p style={{ fontSize: "15px", color: "#888", fontWeight: 300, maxWidth: "440px", margin: "0 auto", lineHeight: 1.6 }}>
-              Your AI handles the full call flow so customers always get a professional experience.
-            </p>
           </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "12px" }}>
-            {[
-              { icon: "📞", title: "Answers Every Call", desc: "No more missed calls or voicemail. Your AI picks up instantly, 24/7, including weekends and holidays." },
-              { icon: "📅", title: "Books Appointments", desc: "Integrates with your calendar and books meetings during the call — no back-and-forth needed." },
-              { icon: "🔀", title: "Smart Call Routing", desc: "Routes complex calls to the right team member. Handles simple ones on its own." },
-              { icon: "📝", title: "Call Transcripts", desc: "Every call is transcribed and summarized. Get an email recap after each conversation." },
-              { icon: "🌍", title: "Multi-Language", desc: "Speaks 30+ languages fluently. Serve customers in their native language automatically." },
-              { icon: "🔗", title: "CRM Integration", desc: "Connects with HubSpot, Salesforce, Google Calendar, and more via native integrations." },
-            ].map((f) => (
-              <div
-                key={f.title}
-                style={{
-                  background: "#fff",
-                  borderRadius: "14px",
-                  padding: "24px",
-                  border: "1px solid #ececec",
-                  transition: "box-shadow 0.2s, border-color 0.2s",
-                  cursor: "default",
-                }}
-                onMouseOver={(e) => {
-                  (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 20px rgba(0,0,0,0.05)";
-                  (e.currentTarget as HTMLElement).style.borderColor = "#ddd";
-                }}
-                onMouseOut={(e) => {
-                  (e.currentTarget as HTMLElement).style.boxShadow = "none";
-                  (e.currentTarget as HTMLElement).style.borderColor = "#ececec";
-                }}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "16px" }}>
+            {reviews.map((r, i) => (
+              <div key={i} style={{ background: "#fff", border: "1px solid #ebebeb", borderRadius: "18px", padding: "24px", display: "flex", flexDirection: "column", gap: "16px", transition: "box-shadow 0.2s", cursor: "default" }}
+                onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.boxShadow = "0 4px 24px rgba(0,0,0,0.06)")}
+                onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.boxShadow = "none")}
               >
-                <div style={{ fontSize: "22px", marginBottom: "14px" }}>{f.icon}</div>
-                <h3 style={{ fontSize: "14px", fontWeight: 500, color: "#111", marginBottom: "8px" }}>{f.title}</h3>
-                <p style={{ fontSize: "13px", color: "#888", lineHeight: 1.65, fontWeight: 300 }}>{f.desc}</p>
+                <div style={{ display: "flex", gap: "2px" }}>
+                  {[...Array(5)].map((_, j) => <StarSvg key={j} />)}
+                </div>
+                <p style={{ fontSize: "14px", color: "#444", lineHeight: 1.72, fontWeight: 300, flexGrow: 1 }}>"{r.quote}"</p>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "#111", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: 500, flexShrink: 0 }}>
+                    {r.av}
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 500, color: "#111", fontSize: "13px" }}>{r.name}</div>
+                    <div style={{ color: "#aaa", fontSize: "12px", fontWeight: 300 }}>{r.role}</div>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
@@ -425,48 +305,32 @@ export default function Home() {
       </section>
 
       {/* ── HOW IT WORKS ── */}
-      <section id="how-it-works" style={{ padding: "80px 40px" }}>
-        <div style={{ maxWidth: "560px", margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: "56px" }}>
-            <h2
-              style={{
-                fontFamily: "var(--font-inter), Inter, sans-serif",
-                fontSize: "clamp(26px, 3.5vw, 38px)",
-                fontWeight: 300,
-                letterSpacing: "-0.025em",
-                color: "#111",
-                marginBottom: "14px",
-              }}
-            >
-              Set up in 3 simple steps
+      <section id="how-it-works" style={{ padding: "100px 0" }}>
+        <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 40px" }}>
+          <div style={{ textAlign: "center", maxWidth: "640px", margin: "0 auto 56px" }}>
+            <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#111", marginBottom: "16px" }}>
+              Ready to go in under 10 minutes.
             </h2>
-            <p style={{ fontSize: "15px", color: "#888", fontWeight: 300, lineHeight: 1.6 }}>No coding. No technical skills required.</p>
+            <p style={{ fontSize: "16px", color: "#888", fontWeight: 300, lineHeight: 1.6 }}>
+              Anyone can get AI Receptionist up and running — no coding skills required.
+            </p>
           </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "40px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "16px" }}>
             {[
-              { step: "01", title: "Tell us about your business", desc: "Describe your business, services, and how you want calls handled. Takes about 5 minutes." },
-              { step: "02", title: "Get your AI phone number", desc: "We give you a local phone number — or forward your existing number to your AI receptionist." },
-              { step: "03", title: "Start taking calls", desc: "Your AI is live immediately. Customers call, the AI handles it, you get a summary." },
-            ].map((s) => (
-              <div key={s.step} style={{ display: "flex", gap: "24px", alignItems: "flex-start" }}>
-                <div
-                  style={{
-                    fontSize: "38px",
-                    fontWeight: 300,
-                    color: "#e8e8e8",
-                    lineHeight: 1,
-                    flexShrink: 0,
-                    width: "52px",
-                    textAlign: "right",
-                    letterSpacing: "-0.03em",
-                  }}
-                >
-                  {s.step}
+              { num: "01", title: "Create your AI receptionist", desc: "Select a voice, language, and a welcome message tailored to your business.", bg: "#f5f3ff" },
+              { num: "02", title: "Define in-call behavior", desc: "Set up call handling — appointment booking, FAQ answers, routing rules, and post-call summaries.", bg: "#eff6ff" },
+              { num: "03", title: "Let the AI take your calls", desc: "The AI connects to a new number or your existing line. Live immediately, 24/7.", bg: "#f0fdf4" },
+            ].map((s, i) => (
+              <div key={i} style={{ background: s.bg, borderRadius: "20px", padding: "32px", border: "1px solid rgba(0,0,0,0.04)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
+                  <div style={{ width: "36px", height: "36px", background: "#fff", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", fontWeight: 500, color: "#111", boxShadow: "0 1px 4px rgba(0,0,0,0.08)", flexShrink: 0 }}>
+                    {s.num}
+                  </div>
+                  <h3 style={{ fontSize: "15px", fontWeight: 500, color: "#111", lineHeight: 1.35 }}>{s.title}</h3>
                 </div>
-                <div style={{ paddingTop: "4px" }}>
-                  <h3 style={{ fontSize: "15px", fontWeight: 500, color: "#111", marginBottom: "8px" }}>{s.title}</h3>
-                  <p style={{ fontSize: "14px", color: "#888", lineHeight: 1.65, fontWeight: 300 }}>{s.desc}</p>
+                <p style={{ fontSize: "14px", color: "#666", fontWeight: 300, lineHeight: 1.65 }}>{s.desc}</p>
+                <div style={{ marginTop: "28px", height: "148px", background: "rgba(0,0,0,0.04)", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <span style={{ fontSize: "52px", fontWeight: 200, color: "rgba(0,0,0,0.1)", letterSpacing: "-0.04em" }}>{s.num}</span>
                 </div>
               </div>
             ))}
@@ -474,173 +338,111 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── TESTIMONIALS ── */}
-      <section style={{ padding: "80px 40px", background: "#f8f8f8" }}>
-        <div style={{ maxWidth: "1060px", margin: "0 auto" }}>
-          <h2
-            style={{
-              fontFamily: "var(--font-inter), Inter, sans-serif",
-              fontSize: "clamp(26px, 3.5vw, 38px)",
-              fontWeight: 300,
-              letterSpacing: "-0.025em",
-              color: "#111",
-              textAlign: "center",
-              marginBottom: "56px",
-            }}
-          >
-            Businesses love AI Receptionist
-          </h2>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "12px" }}>
+      {/* ── USE CASES (dark) ── */}
+      <section id="features" style={{ background: "#08090c", padding: "100px 0" }}>
+        <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 40px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "40px", marginBottom: "56px", flexWrap: "wrap" }}>
+            <div style={{ maxWidth: "520px" }}>
+              <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#fff", marginBottom: "16px" }}>
+                Use cases
+              </h2>
+              <p style={{ fontSize: "16px", color: "rgba(255,255,255,0.42)", fontWeight: 300, lineHeight: 1.65 }}>
+                Our AI phone assistant adapts flexibly to your needs and integrates with your calendar and CRM. Automated calls that make sense.
+              </p>
+            </div>
+            <a href="#pricing" style={{ display: "inline-flex", alignItems: "center", height: "42px", padding: "0 22px", background: "#fff", color: "#000", borderRadius: "20px", fontSize: "13px", fontWeight: 400, textDecoration: "none", letterSpacing: "0.02em", transition: "opacity 0.2s", flexShrink: 0 }}
+              onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.opacity = "0.85")}
+              onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.opacity = "1")}
+            >
+              Start Free Trial
+            </a>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", background: "rgba(255,255,255,0.05)", borderRadius: "16px", overflow: "hidden", border: "1px solid rgba(255,255,255,0.05)", gap: "1px" }}>
             {[
-              { quote: "My AI receptionist saves me the equivalent of a full-time employee. Every call is answered perfectly, even at 2am.", name: "Martin K.", role: "Owner, Auto Repair Shop" },
-              { quote: "We were missing 30% of calls during busy hours. Now we capture every lead. Revenue up 22% in 3 months.", name: "Dr. Jana P.", role: "Dental Practice Owner" },
-              { quote: "Set it up in 8 minutes. Our customers can't tell it's AI. The booking integration is flawless.", name: "Tomáš R.", role: "Hotel Manager" },
-            ].map((t) => (
-              <div
-                key={t.name}
-                style={{
-                  background: "#fff",
-                  borderRadius: "14px",
-                  padding: "24px",
-                  border: "1px solid #ececec",
-                }}
+              { icon: "💼", title: "Reception & Routing", desc: "Takes incoming calls and forwards them to the appropriate contact person." },
+              { icon: "📝", title: "Call Transcription", desc: "Collects inquiries, transcribes them, and sends you a summary by email." },
+              { icon: "🎧", title: "Customer Service", desc: "Handles customer inquiries around the clock with precisely defined behavior." },
+              { icon: "📅", title: "Appointment Booking", desc: "Schedules appointments during the conversation with instant confirmation." },
+              { icon: "🔁", title: "Order Processing", desc: "Fast 24/7 automated request handling — no waiting, no missed orders." },
+              { icon: "⚡", title: "50+ More Options", desc: "Every business is different. Configure the AI to match your exact workflow." },
+            ].map((uc, i) => (
+              <div key={i} style={{ background: "#0d0e12", padding: "28px 24px", transition: "background 0.2s", cursor: "default" }}
+                onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.background = "#111316")}
+                onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.background = "#0d0e12")}
               >
-                <div style={{ display: "flex", gap: "2px", marginBottom: "14px" }}>
-                  {[...Array(5)].map((_, i) => (
-                    <span key={i} style={{ color: "#f59e0b", fontSize: "12px" }}>★</span>
-                  ))}
-                </div>
-                <p style={{ color: "#666", lineHeight: 1.7, marginBottom: "18px", fontSize: "13px", fontWeight: 300 }}>"{t.quote}"</p>
-                <div>
-                  <div style={{ fontWeight: 500, color: "#111", fontSize: "13px" }}>{t.name}</div>
-                  <div style={{ color: "#bbb", fontSize: "12px", fontWeight: 300, marginTop: "2px" }}>{t.role}</div>
-                </div>
+                <div style={{ fontSize: "22px", marginBottom: "12px" }}>{uc.icon}</div>
+                <h3 style={{ fontSize: "14px", fontWeight: 500, color: "#fff", marginBottom: "8px" }}>{uc.title}</h3>
+                <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.38)", lineHeight: 1.65, fontWeight: 300 }}>{uc.desc}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── INTEGRATIONS ── */}
+      <section style={{ padding: "100px 0" }}>
+        <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 40px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "center" }}>
+            <div>
+              <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#111", marginBottom: "20px" }}>
+                Integrations
+              </h2>
+              <p style={{ fontSize: "16px", color: "#666", fontWeight: 300, lineHeight: 1.7, marginBottom: "28px" }}>
+                AI Receptionist connects with your existing tools — CRMs, calendar apps, and databases — via native integrations or our open API to accurately capture and retrieve data.
+              </p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                {["Google Calendar", "Outlook", "HubSpot", "Salesforce", "Zapier", "Calendly", "Twilio", "REST API"].map((t) => (
+                  <span key={t} style={{ background: "#f5f5f5", border: "1px solid #ebebeb", borderRadius: "20px", padding: "5px 14px", fontSize: "12px", color: "#555", fontWeight: 300 }}>{t}</span>
+                ))}
+              </div>
+            </div>
+            <div style={{ background: "#f8f8f8", borderRadius: "20px", height: "320px", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid #ebebeb" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", padding: "24px" }}>
+                {["Google Calendar", "HubSpot", "Salesforce", "Calendly", "Outlook", "Zapier"].map((t) => (
+                  <div key={t} style={{ background: "#fff", border: "1px solid #ebebeb", borderRadius: "10px", padding: "10px 14px", fontSize: "12px", color: "#444", fontWeight: 300, textAlign: "center" }}>{t}</div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* ── PRICING ── */}
-      <section id="pricing" style={{ padding: "80px 40px" }}>
-        <div style={{ maxWidth: "940px", margin: "0 auto" }}>
+      <section id="pricing" style={{ padding: "100px 0", background: "#f8f8f8" }}>
+        <div style={{ maxWidth: "960px", margin: "0 auto", padding: "0 40px" }}>
           <div style={{ textAlign: "center", marginBottom: "56px" }}>
-            <h2
-              style={{
-                fontFamily: "var(--font-inter), Inter, sans-serif",
-                fontSize: "clamp(26px, 3.5vw, 38px)",
-                fontWeight: 300,
-                letterSpacing: "-0.025em",
-                color: "#111",
-                marginBottom: "14px",
-              }}
-            >
+            <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#111", marginBottom: "14px" }}>
               Simple, transparent pricing
             </h2>
-            <p style={{ fontSize: "15px", color: "#888", fontWeight: 300, lineHeight: 1.6 }}>
+            <p style={{ fontSize: "16px", color: "#888", fontWeight: 300, lineHeight: 1.6 }}>
               Start free. Upgrade when you need more. Cancel anytime.
             </p>
           </div>
-
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "12px" }}>
             {[
-              {
-                name: "Starter",
-                price: "$29",
-                period: "/month",
-                desc: "Perfect for small businesses getting started",
-                features: ["100 calls / month", "Appointment booking", "Email summaries", "1 phone number", "5 languages"],
-                cta: "Start Free Trial",
-                highlight: false,
-              },
-              {
-                name: "Pro",
-                price: "$79",
-                period: "/month",
-                desc: "For growing businesses with high call volume",
-                features: ["500 calls / month", "Everything in Starter", "CRM integration", "3 phone numbers", "30+ languages", "Call routing", "Priority support"],
-                cta: "Start Free Trial",
-                highlight: true,
-              },
-              {
-                name: "Business",
-                price: "$199",
-                period: "/month",
-                desc: "For teams and multi-location businesses",
-                features: ["Unlimited calls", "Everything in Pro", "Custom voice & persona", "10 phone numbers", "API access", "Dedicated support"],
-                cta: "Contact Sales",
-                highlight: false,
-              },
+              { name: "Starter", price: "$29", desc: "Perfect for small businesses getting started", features: ["100 calls / month", "Appointment booking", "Email summaries", "1 phone number", "5 languages"], cta: "Start Free Trial", hi: false },
+              { name: "Pro", price: "$79", desc: "For growing businesses with high call volume", features: ["500 calls / month", "Everything in Starter", "CRM integration", "3 phone numbers", "30+ languages", "Call routing", "Priority support"], cta: "Start Free Trial", hi: true },
+              { name: "Business", price: "$199", desc: "For teams and multi-location businesses", features: ["Unlimited calls", "Everything in Pro", "Custom voice & persona", "10 phone numbers", "API access", "Dedicated support"], cta: "Contact Sales", hi: false },
             ].map((plan) => (
-              <div
-                key={plan.name}
-                style={{
-                  borderRadius: "16px",
-                  padding: "28px",
-                  border: plan.highlight ? "1.5px solid #111" : "1px solid #ececec",
-                  background: plan.highlight ? "#111" : "#fff",
-                }}
-              >
-                {plan.highlight && (
-                  <div
-                    style={{
-                      fontSize: "10px",
-                      fontWeight: 400,
-                      color: "rgba(255,255,255,0.4)",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.1em",
-                      marginBottom: "16px",
-                    }}
-                  >
-                    Most Popular
-                  </div>
-                )}
+              <div key={plan.name} style={{ borderRadius: "16px", padding: "28px", border: plan.hi ? "1.5px solid #111" : "1px solid #ececec", background: plan.hi ? "#111" : "#fff" }}>
+                {plan.hi && <div style={{ fontSize: "10px", fontWeight: 400, color: "rgba(255,255,255,0.38)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "16px" }}>Most Popular</div>}
                 <div style={{ marginBottom: "22px" }}>
-                  <div style={{ fontSize: "12px", fontWeight: 400, color: plan.highlight ? "rgba(255,255,255,0.4)" : "#aaa", marginBottom: "6px", letterSpacing: "0.03em" }}>
-                    {plan.name}
+                  <div style={{ fontSize: "12px", color: plan.hi ? "rgba(255,255,255,0.38)" : "#aaa", marginBottom: "6px", letterSpacing: "0.03em" }}>{plan.name}</div>
+                  <div style={{ fontSize: "36px", fontWeight: 300, letterSpacing: "-0.03em", color: plan.hi ? "#fff" : "#111" }}>
+                    {plan.price}<span style={{ fontSize: "13px", color: plan.hi ? "rgba(255,255,255,0.28)" : "#bbb", fontWeight: 300 }}>/mo</span>
                   </div>
-                  <div style={{ display: "flex", alignItems: "baseline", gap: "4px" }}>
-                    <span style={{ fontSize: "36px", fontWeight: 300, letterSpacing: "-0.03em", color: plan.highlight ? "#fff" : "#111" }}>{plan.price}</span>
-                    <span style={{ fontSize: "13px", color: plan.highlight ? "rgba(255,255,255,0.3)" : "#bbb", fontWeight: 300 }}>{plan.period}</span>
-                  </div>
-                  <p style={{ fontSize: "12px", marginTop: "8px", color: plan.highlight ? "rgba(255,255,255,0.4)" : "#aaa", fontWeight: 300, lineHeight: 1.5 }}>{plan.desc}</p>
+                  <p style={{ fontSize: "12px", marginTop: "8px", color: plan.hi ? "rgba(255,255,255,0.38)" : "#aaa", fontWeight: 300, lineHeight: 1.5 }}>{plan.desc}</p>
                 </div>
-
-                <ul style={{ listStyle: "none", padding: 0, margin: "0 0 26px 0", display: "flex", flexDirection: "column", gap: "9px" }}>
+                <ul style={{ listStyle: "none", padding: 0, margin: "0 0 24px 0", display: "flex", flexDirection: "column", gap: "9px" }}>
                   {plan.features.map((f) => (
-                    <li
-                      key={f}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                        fontSize: "13px",
-                        fontWeight: 300,
-                        color: plan.highlight ? "rgba(255,255,255,0.75)" : "#666",
-                      }}
-                    >
-                      <span style={{ color: plan.highlight ? "rgba(255,255,255,0.35)" : "#22c55e", fontSize: "11px", flexShrink: 0 }}>✓</span>
-                      {f}
+                    <li key={f} style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: 300, color: plan.hi ? "rgba(255,255,255,0.72)" : "#666" }}>
+                      <span style={{ color: plan.hi ? "rgba(255,255,255,0.32)" : "#22c55e", fontSize: "11px", flexShrink: 0 }}>✓</span>{f}
                     </li>
                   ))}
                 </ul>
-
-                <a
-                  href="#"
-                  style={{
-                    display: "block",
-                    textAlign: "center",
-                    padding: "11px 0",
-                    borderRadius: "20px",
-                    fontSize: "13px",
-                    fontWeight: 400,
-                    textDecoration: "none",
-                    background: plan.highlight ? "#fff" : "#000",
-                    color: plan.highlight ? "#000" : "#fff",
-                    transition: "opacity 0.2s",
-                  }}
-                  onMouseOver={(e) => (e.currentTarget.style.opacity = "0.8")}
-                  onMouseOut={(e) => (e.currentTarget.style.opacity = "1")}
+                <a href="#" style={{ display: "block", textAlign: "center", padding: "11px 0", borderRadius: "20px", fontSize: "13px", fontWeight: 400, textDecoration: "none", background: plan.hi ? "#fff" : "#000", color: plan.hi ? "#000" : "#fff", transition: "opacity 0.2s" }}
+                  onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.opacity = "0.8")}
+                  onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.opacity = "1")}
                 >
                   {plan.cta}
                 </a>
@@ -650,148 +452,89 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ── FAQ ── */}
+      <section style={{ padding: "100px 0" }}>
+        <div style={{ maxWidth: "760px", margin: "0 auto", padding: "0 40px" }}>
+          <div style={{ textAlign: "center", marginBottom: "56px" }}>
+            <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#111" }}>
+              Frequently Asked Questions
+            </h2>
+          </div>
+          {faqs.map((faq, i) => (
+            <div key={i} style={{ borderBottom: "1px solid #f0f0f0" }}>
+              <button
+                onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 0", background: "none", border: "none", cursor: "pointer", textAlign: "left", gap: "16px", fontFamily: "var(--font-inter), Inter, sans-serif" }}
+              >
+                <span style={{ fontSize: "15px", fontWeight: 300, color: "#111" }}>{faq.q}</span>
+                <span style={{ flexShrink: 0, transition: "transform 0.2s", transform: openFaq === i ? "rotate(90deg)" : "rotate(0deg)", display: "flex" }}>
+                  <ChevronRight />
+                </span>
+              </button>
+              {openFaq === i && (
+                <div style={{ paddingBottom: "20px" }}>
+                  <p style={{ color: "#666", fontSize: "14px", fontWeight: 300, lineHeight: 1.72, margin: 0 }}>{faq.a}</p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* ── CTA BANNER ── */}
-      <section style={{ padding: "0 40px 80px" }}>
-        <div
-          style={{
-            maxWidth: "760px",
-            margin: "0 auto",
-            background: "#111",
-            borderRadius: "20px",
-            padding: "64px 48px",
-            textAlign: "center",
-          }}
-        >
-          <h2
-            style={{
-              fontFamily: "var(--font-inter), Inter, sans-serif",
-              fontSize: "clamp(24px, 3.5vw, 36px)",
-              fontWeight: 300,
-              letterSpacing: "-0.025em",
-              color: "#fff",
-              marginBottom: "16px",
-            }}
-          >
-            Start answering every call today
-          </h2>
-          <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "15px", fontWeight: 300, lineHeight: 1.65, maxWidth: "440px", margin: "0 auto 36px" }}>
-            Join 12,000+ businesses that never miss a call. Set up in 10 minutes. First 14 days free.
-          </p>
-          <a
-            href="#pricing"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              height: "46px",
-              padding: "0 26px",
-              background: "#fff",
-              color: "#000",
-              borderRadius: "23px",
-              fontSize: "14px",
-              fontWeight: 400,
-              textDecoration: "none",
-              transition: "opacity 0.2s",
-            }}
-            onMouseOver={(e) => (e.currentTarget.style.opacity = "0.88")}
-            onMouseOut={(e) => (e.currentTarget.style.opacity = "1")}
-          >
-            Start Free Trial →
-          </a>
-          <p style={{ color: "rgba(255,255,255,0.2)", fontSize: "12px", marginTop: "14px", fontWeight: 300 }}>No credit card required</p>
+      <section style={{ padding: "0 40px 100px" }}>
+        <div style={{ maxWidth: "1200px", margin: "0 auto", background: "#08090c", borderRadius: "24px", padding: "80px 60px", textAlign: "center", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 50% -10%, rgba(139,92,246,0.22) 0%, transparent 55%)", pointerEvents: "none" }} />
+          <div style={{ position: "relative", zIndex: 1 }}>
+            <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(24px, 3.5vw, 40px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#fff", marginBottom: "16px" }}>
+              Scalable call management with AI Receptionist.
+            </h2>
+            <p style={{ color: "rgba(255,255,255,0.38)", fontSize: "16px", fontWeight: 300, lineHeight: 1.65, maxWidth: "520px", margin: "0 auto 36px" }}>
+              Try AI Receptionist and see how our AI automates your calls to reduce strain on your team — simple, efficient, and around the clock.
+            </p>
+            <a href="#pricing" style={{ display: "inline-flex", alignItems: "center", height: "46px", padding: "0 28px", background: "#fff", color: "#000", borderRadius: "23px", fontSize: "14px", fontWeight: 400, textDecoration: "none", transition: "opacity 0.2s" }}
+              onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.opacity = "0.88")}
+              onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.opacity = "1")}
+            >
+              Start Free Trial →
+            </a>
+            <p style={{ color: "rgba(255,255,255,0.2)", fontSize: "12px", marginTop: "14px", fontWeight: 300 }}>No credit card required.</p>
+          </div>
         </div>
       </section>
 
       {/* ── FOOTER ── */}
-      <footer
-        style={{
-          background: "#000",
-          color: "#fff",
-          fontFamily: "var(--font-inter), Inter, -apple-system, sans-serif",
-          fontWeight: 300,
-        }}
-      >
-        {/* Top */}
+      <footer style={{ background: "#000", color: "#fff", fontFamily: "var(--font-inter), Inter, -apple-system, sans-serif", fontWeight: 300 }}>
         <div style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", padding: "60px 0 50px" }}>
           <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 40px", display: "flex", justifyContent: "space-between", gap: "40px", flexWrap: "wrap" }}>
-
-            {/* Nav columns */}
             <nav style={{ display: "flex", gap: "64px", flexWrap: "wrap" }}>
-              {/* Product */}
               <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                 <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", fontWeight: 400, letterSpacing: "0.08em", textTransform: "uppercase" }}>Product</span>
                 <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
-                  {[
-                    { label: "Features", href: "#features" },
-                    { label: "How it works", href: "#how-it-works" },
-                    { label: "Pricing", href: "#pricing" },
-                    { label: "Integrations", href: "#" },
-                    { label: "API Access", href: "#" },
-                  ].map((l) => (
-                    <li key={l.label}>
-                      <a href={l.href} style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.01em", transition: "color 0.2s" }}
-                        onMouseOver={(e) => (e.currentTarget.style.color = "#fff")}
-                        onMouseOut={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.6)")}
-                      >{l.label}</a>
-                    </li>
+                  {[{ label: "Features", href: "#features" }, { label: "How it works", href: "#how-it-works" }, { label: "Pricing", href: "#pricing" }, { label: "Integrations", href: "#" }, { label: "API Access", href: "#" }].map((l) => (
+                    <li key={l.label}><a href={l.href} style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.01em", transition: "color 0.2s" }} onMouseOver={(e) => (e.currentTarget.style.color = "#fff")} onMouseOut={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.6)")}>{l.label}</a></li>
                   ))}
                 </ul>
               </div>
-
-              {/* Industries */}
               <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                 <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", fontWeight: 400, letterSpacing: "0.08em", textTransform: "uppercase" }}>Industries</span>
                 <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
                   {["Dental Clinics", "Law Firms", "Medical Practices", "Hotels", "Auto Dealers", "Restaurants"].map((l) => (
-                    <li key={l}>
-                      <a href="#" style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.01em", transition: "color 0.2s" }}
-                        onMouseOver={(e) => (e.currentTarget.style.color = "#fff")}
-                        onMouseOut={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.6)")}
-                      >{l}</a>
-                    </li>
+                    <li key={l}><a href="#" style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.01em", transition: "color 0.2s" }} onMouseOver={(e) => (e.currentTarget.style.color = "#fff")} onMouseOut={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.6)")}>{l}</a></li>
                   ))}
                 </ul>
               </div>
-
-              {/* Resources */}
               <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                 <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", fontWeight: 400, letterSpacing: "0.08em", textTransform: "uppercase" }}>Resources</span>
                 <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
-                  {[
-                    { label: "Blog", href: "#" },
-                    { label: "FAQ", href: "#" },
-                    { label: "Contact", href: "#" },
-                    { label: "Documentation", href: "#" },
-                  ].map((l) => (
-                    <li key={l.label}>
-                      <a href={l.href} style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.01em", transition: "color 0.2s" }}
-                        onMouseOver={(e) => (e.currentTarget.style.color = "#fff")}
-                        onMouseOut={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.6)")}
-                      >{l.label}</a>
-                    </li>
+                  {[{ label: "Blog", href: "#" }, { label: "FAQ", href: "#" }, { label: "Contact", href: "#" }, { label: "Documentation", href: "#" }].map((l) => (
+                    <li key={l.label}><a href={l.href} style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.01em", transition: "color 0.2s" }} onMouseOver={(e) => (e.currentTarget.style.color = "#fff")} onMouseOut={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.6)")}>{l.label}</a></li>
                   ))}
                 </ul>
               </div>
             </nav>
-
-            {/* Right side */}
             <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "32px" }}>
-              {/* CTA */}
-              <a
-                href="#pricing"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  height: "36px",
-                  padding: "0 20px",
-                  background: "#fff",
-                  color: "#000",
-                  borderRadius: "20px",
-                  fontSize: "12px",
-                  fontWeight: 400,
-                  textDecoration: "none",
-                  letterSpacing: "0.05em",
-                  transition: "opacity 0.2s",
-                }}
+              <a href="#pricing" style={{ display: "inline-flex", alignItems: "center", height: "36px", padding: "0 20px", background: "#fff", color: "#000", borderRadius: "20px", fontSize: "12px", fontWeight: 400, textDecoration: "none", letterSpacing: "0.05em", transition: "opacity 0.2s" }}
                 onMouseOver={(e) => (e.currentTarget.style.opacity = "0.85")}
                 onMouseOut={(e) => (e.currentTarget.style.opacity = "1")}
               >
@@ -800,49 +543,18 @@ export default function Home() {
             </div>
           </div>
         </div>
-
-        {/* Bottom bar */}
         <div style={{ padding: "28px 0" }}>
-          <div
-            style={{
-              maxWidth: "1200px",
-              margin: "0 auto",
-              padding: "0 40px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              flexWrap: "wrap",
-              gap: "16px",
-            }}
-          >
-            {/* Logo */}
+          <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 40px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
             <a href="/" style={{ display: "flex", alignItems: "center", gap: "9px", textDecoration: "none", color: "#fff" }}>
-              <PauseLogo />
-              <span style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontWeight: 500, fontSize: "16px", letterSpacing: "-0.02em", color: "#fff" }}>
-                AI RECEPTIONIST
-              </span>
+              <PauseLogo color="#fff" />
+              <span style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontWeight: 500, fontSize: "16px", letterSpacing: "-0.02em", color: "#fff" }}>AI RECEPTIONIST</span>
             </a>
-
-            {/* Legal links */}
             <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", gap: "20px", flexWrap: "wrap" }}>
-              {[
-                { label: "Privacy Policy", href: "#" },
-                { label: "Terms & Conditions", href: "#" },
-                { label: "Cookie Policy", href: "#" },
-              ].map((l) => (
-                <li key={l.label}>
-                  <a href={l.href} style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.02em", transition: "color 0.2s" }}
-                    onMouseOver={(e) => (e.currentTarget.style.color = "#fff")}
-                    onMouseOut={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.4)")}
-                  >{l.label}</a>
-                </li>
+              {[{ label: "Privacy Policy", href: "#" }, { label: "Terms & Conditions", href: "#" }, { label: "Cookie Policy", href: "#" }].map((l) => (
+                <li key={l.label}><a href={l.href} style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.02em", transition: "color 0.2s" }} onMouseOver={(e) => (e.currentTarget.style.color = "#fff")} onMouseOut={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.4)")}>{l.label}</a></li>
               ))}
             </ul>
-
-            {/* Copyright */}
-            <p style={{ color: "rgba(255,255,255,0.3)", fontSize: "11px", fontWeight: 300, margin: 0 }}>
-              © 2026 AI Receptionist Now. All rights reserved.
-            </p>
+            <p style={{ color: "rgba(255,255,255,0.3)", fontSize: "11px", fontWeight: 300, margin: 0 }}>© 2026 AI Receptionist Now. All rights reserved.</p>
           </div>
         </div>
       </footer>
