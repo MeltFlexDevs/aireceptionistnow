@@ -21,11 +21,26 @@ const ChevronRight = () => (
   </svg>
 );
 
-const ArrowRight = () => (
-  <svg width="16" height="16" viewBox="0 -960 960 960" fill="none">
-    <path fillRule="evenodd" clipRule="evenodd" d="M640-624 284-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l356-356H280q-17 0-28.5-11.5T240-720q0-17 11.5-28.5T280-760h400q17 0 28.5 11.5T720-720v400q0 17-11.5 28.5T680-280q-17 0-28.5-11.5T640-320v-304Z" fill="currentColor" />
+const PhoneIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02L6.62 10.79z"/>
   </svg>
 );
+
+const countries = [
+  { flag: "🇺🇸", code: "+1", name: "United States" },
+  { flag: "🇬🇧", code: "+44", name: "United Kingdom" },
+  { flag: "🇩🇪", code: "+49", name: "Germany" },
+  { flag: "🇫🇷", code: "+33", name: "France" },
+  { flag: "🇳🇱", code: "+31", name: "Netherlands" },
+  { flag: "🇸🇰", code: "+421", name: "Slovakia" },
+  { flag: "🇨🇿", code: "+420", name: "Czech Republic" },
+  { flag: "🇦🇹", code: "+43", name: "Austria" },
+  { flag: "🇨🇭", code: "+41", name: "Switzerland" },
+  { flag: "🇵🇱", code: "+48", name: "Poland" },
+  { flag: "🇮🇹", code: "+39", name: "Italy" },
+  { flag: "🇪🇸", code: "+34", name: "Spain" },
+];
 
 const logos = [
   "Dental Pro", "LexGroup", "MedCenter", "Grand Hotel",
@@ -86,6 +101,7 @@ export default function Home() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [phone, setPhone] = useState("");
+  const [dialCode, setDialCode] = useState("+1");
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 30);
@@ -181,8 +197,21 @@ export default function Home() {
 
           {/* CTA Card */}
           <div style={{ maxWidth: "480px", margin: "0 auto 64px" }}>
-            <div style={{ background: "#fff", border: "1px solid #e8e8e8", borderRadius: "16px", padding: "22px" }}>
-              <div style={{ display: "flex", gap: "8px" }}>
+            <div style={{ background: "#fff", border: "1px solid #e8e8e8", borderRadius: "16px", padding: "22px", display: "flex", flexDirection: "column", gap: "10px" }}>
+              {/* Phone input row with flag selector */}
+              <div style={{ display: "flex", alignItems: "center", background: "#f8f8f8", border: "1px solid #e8e8e8", borderRadius: "10px", overflow: "hidden" }}>
+                <div style={{ position: "relative", display: "flex", alignItems: "center", flexShrink: 0, borderRight: "1px solid #e8e8e8" }}>
+                  <select
+                    value={dialCode}
+                    onChange={(e) => setDialCode(e.target.value)}
+                    style={{ appearance: "none", WebkitAppearance: "none", background: "transparent", border: "none", padding: "13px 28px 13px 12px", fontSize: "14px", fontWeight: 300, color: "#111", cursor: "pointer", outline: "none", fontFamily: "var(--font-inter), Inter, sans-serif" }}
+                  >
+                    {countries.map((c) => (
+                      <option key={c.code} value={c.code}>{c.flag} {c.code}</option>
+                    ))}
+                  </select>
+                  <span style={{ position: "absolute", right: "8px", pointerEvents: "none", color: "#999", fontSize: "10px" }}>▼</span>
+                </div>
                 <input
                   type="tel"
                   placeholder="Enter phone number"
@@ -190,16 +219,19 @@ export default function Home() {
                   onChange={(e) => setPhone(e.target.value)}
                   inputMode="tel"
                   autoComplete="tel"
-                  style={{ flex: 1, background: "#f8f8f8", border: "1px solid #e8e8e8", borderRadius: "10px", padding: "13px 16px", color: "#111", fontSize: "14px", fontWeight: 300, fontFamily: "var(--font-inter), Inter, sans-serif", outline: "none" }}
+                  style={{ flex: 1, background: "transparent", border: "none", padding: "13px 16px", color: "#111", fontSize: "14px", fontWeight: 300, fontFamily: "var(--font-inter), Inter, sans-serif", outline: "none" }}
                 />
-                <button style={{ background: "#000", color: "#fff", border: "none", borderRadius: "10px", padding: "13px 20px", fontSize: "13px", fontWeight: 400, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "var(--font-inter), Inter, sans-serif", letterSpacing: "0.01em", transition: "opacity 0.2s" }}
-                  onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.opacity = "0.85")}
-                  onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.opacity = "1")}
-                >
-                  Talk to our AI now
-                </button>
               </div>
-              <p style={{ color: "#aaa", fontSize: "11px", textAlign: "center", marginTop: "12px", fontWeight: 300 }}>
+              {/* Button full width */}
+              <button
+                style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", background: "#000", color: "#fff", border: "none", borderRadius: "10px", padding: "14px 20px", fontSize: "14px", fontWeight: 400, cursor: "pointer", fontFamily: "var(--font-inter), Inter, sans-serif", letterSpacing: "0.01em", transition: "opacity 0.2s" }}
+                onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.opacity = "0.85")}
+                onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.opacity = "1")}
+              >
+                <PhoneIcon />
+                Talk to our AI now
+              </button>
+              <p style={{ color: "#aaa", fontSize: "11px", textAlign: "center", marginTop: "2px", fontWeight: 300 }}>
                 By making this call, you consent to being{" "}
                 <a href="/privacy-policy" style={{ color: "#888", textDecoration: "underline" }}>contacted by us</a>
                 {" "}and confirm to have read our{" "}
