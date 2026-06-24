@@ -134,8 +134,8 @@ export default function Home() {
         transition: "background 0.3s, box-shadow 0.3s",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: "32px" }}>
-          <a href="/" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none", color: isScrolled ? "#000" : "#fff" }}>
-            <PauseLogo color={isScrolled ? "#000" : "#fff"} />
+          <a href="/" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none", color: "#000" }}>
+            <PauseLogo color="#000" />
             <span style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontWeight: 500, fontSize: "18px", letterSpacing: "-0.02em" }}>
               AI RECEPTIONIST
             </span>
@@ -146,7 +146,7 @@ export default function Home() {
               { label: "How it works", href: "#how-it-works" },
               { label: "Pricing", href: "#pricing" },
             ].map((l) => (
-              <a key={l.label} href={l.href} style={{ color: isScrolled ? "#333" : "rgba(255,255,255,0.7)", fontSize: "14px", fontWeight: 400, textDecoration: "none", transition: "color 0.15s" }}>
+              <a key={l.label} href={l.href} style={{ color: "#333", fontSize: "14px", fontWeight: 400, textDecoration: "none", transition: "color 0.15s" }}>
                 {l.label}
               </a>
             ))}
@@ -154,8 +154,8 @@ export default function Home() {
         </div>
         <a href="#pricing" style={{
           display: "inline-flex", alignItems: "center", height: "36px", padding: "0 20px",
-          background: isScrolled ? "#000" : "#fff", color: isScrolled ? "#fff" : "#000",
-          border: "1.5px solid", borderColor: isScrolled ? "#000" : "#fff",
+          background: "#000", color: "#fff",
+          border: "1.5px solid #000",
           borderRadius: "20px", fontSize: "12px", fontWeight: 400, textDecoration: "none",
           letterSpacing: "0.06em", transition: "all 0.25s",
         }}>
@@ -165,68 +165,66 @@ export default function Home() {
 
       {/* ── HERO ── */}
       <section style={{
-        position: "relative", background: "#08090c", minHeight: "100vh",
+        position: "relative", background: "#fff", minHeight: "100vh",
         display: "flex", flexDirection: "column", alignItems: "center",
         paddingTop: "110px", overflow: "hidden",
       }}>
-        {/* BG blobs */}
+        {/* Subtle BG tint */}
         <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
-          <div style={{ position: "absolute", top: "-8%", left: "50%", transform: "translateX(-50%)", width: "860px", height: "860px", background: "radial-gradient(ellipse, rgba(124,58,237,0.18) 0%, transparent 65%)", animation: "pulse-glow 7s ease-in-out infinite" }} />
-          <div style={{ position: "absolute", bottom: "0", left: "-12%", width: "540px", height: "400px", background: "radial-gradient(ellipse, rgba(79,70,229,0.1) 0%, transparent 70%)" }} />
-          <div style={{ position: "absolute", bottom: "0", right: "-12%", width: "480px", height: "360px", background: "radial-gradient(ellipse, rgba(37,99,235,0.09) 0%, transparent 70%)" }} />
+          <div style={{ position: "absolute", top: "-5%", left: "50%", transform: "translateX(-50%)", width: "800px", height: "700px", background: "radial-gradient(ellipse, rgba(167,139,250,0.08) 0%, transparent 65%)", animation: "pulse-glow 7s ease-in-out infinite" }} />
         </div>
 
         <div style={{ position: "relative", zIndex: 2, width: "100%", maxWidth: "860px", padding: "0 24px", textAlign: "center" }}>
 
           {/* Badge */}
           <div style={{ marginBottom: "28px" }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.11)", borderRadius: "20px", padding: "6px 16px" }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "#f5f5f5", border: "1px solid #e8e8e8", borderRadius: "20px", padding: "6px 16px" }}>
               <span style={{ width: "6px", height: "6px", background: "#22c55e", borderRadius: "50%", flexShrink: 0 }} />
-              <span style={{ color: "rgba(255,255,255,0.8)", fontSize: "13px", fontWeight: 300 }}>AI calls made easy</span>
+              <span style={{ color: "#555", fontSize: "13px", fontWeight: 300 }}>AI calls made easy</span>
             </div>
           </div>
 
           {/* H1 */}
-          <h1 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(38px, 6.5vw, 76px)", fontWeight: 300, letterSpacing: "-0.03em", color: "#fff", lineHeight: 1.04, marginBottom: "44px" }}>
+          <h1 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(38px, 6.5vw, 76px)", fontWeight: 300, letterSpacing: "-0.03em", color: "#111", lineHeight: 1.04, marginBottom: "44px" }}>
             Let our AI take care<br />of your calls
           </h1>
 
           {/* Gradient sphere */}
           <div style={{ width: "260px", height: "260px", margin: "0 auto 44px", position: "relative", animation: "float-sphere 8s ease-in-out infinite" }}>
-            <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "radial-gradient(circle at 33% 32%, #c084fc 0%, #7c3aed 28%, #4c1d95 58%, #14082e 100%)", boxShadow: "0 0 80px rgba(139,92,246,0.38), 0 0 160px rgba(109,40,217,0.18)" }} />
+            <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "radial-gradient(circle at 33% 32%, #c084fc 0%, #7c3aed 28%, #4c1d95 58%, #14082e 100%)", boxShadow: "0 0 60px rgba(139,92,246,0.25), 0 0 120px rgba(109,40,217,0.12)" }} />
             <div style={{ position: "absolute", top: "12%", left: "16%", width: "42%", height: "36%", background: "radial-gradient(circle, rgba(255,255,255,0.32) 0%, transparent 70%)", borderRadius: "50%", filter: "blur(7px)" }} />
           </div>
 
           {/* CTA Card */}
           <div style={{ position: "relative", maxWidth: "480px", margin: "0 auto 24px" }}>
             <div style={{ position: "absolute", inset: "-2px", borderRadius: "18px", background: "conic-gradient(from 0deg, #a855f7, #6366f1, #3b82f6, #06b6d4, #a855f7)", animation: "rainbow-spin 4s linear infinite", filter: "blur(1.5px)", zIndex: 0 }} />
-            <div style={{ position: "relative", zIndex: 1, background: "rgba(12,12,16,0.96)", borderRadius: "16px", padding: "22px" }}>
+            <div style={{ position: "relative", zIndex: 1, background: "#fff", borderRadius: "16px", padding: "22px" }}>
               <div style={{ display: "flex", gap: "8px" }}>
                 <input
                   type="email"
                   placeholder="Enter your email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  style={{ flex: 1, background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "10px", padding: "13px 16px", color: "#fff", fontSize: "14px", fontWeight: 300, fontFamily: "var(--font-inter), Inter, sans-serif", outline: "none" }}
+                  style={{ flex: 1, background: "#f8f8f8", border: "1px solid #e8e8e8", borderRadius: "10px", padding: "13px 16px", color: "#111", fontSize: "14px", fontWeight: 300, fontFamily: "var(--font-inter), Inter, sans-serif", outline: "none" }}
                 />
-                <button style={{ background: "#fff", color: "#000", border: "none", borderRadius: "10px", padding: "13px 20px", fontSize: "13px", fontWeight: 400, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "var(--font-inter), Inter, sans-serif", letterSpacing: "0.01em", transition: "opacity 0.2s" }}
+                <button style={{ background: "#000", color: "#fff", border: "none", borderRadius: "10px", padding: "13px 20px", fontSize: "13px", fontWeight: 400, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "var(--font-inter), Inter, sans-serif", letterSpacing: "0.01em", transition: "opacity 0.2s" }}
                   onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.opacity = "0.85")}
                   onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.opacity = "1")}
                 >
                   Start Free Trial
                 </button>
               </div>
-              <p style={{ color: "rgba(255,255,255,0.28)", fontSize: "11px", textAlign: "center", marginTop: "12px", fontWeight: 300 }}>
+              <p style={{ color: "#aaa", fontSize: "11px", textAlign: "center", marginTop: "12px", fontWeight: 300 }}>
                 By signing up, you confirm you have read our{" "}
-                <a href="#" style={{ color: "rgba(255,255,255,0.4)", textDecoration: "underline" }}>privacy policy</a>.
+                <a href="#" style={{ color: "#888", textDecoration: "underline" }}>privacy policy</a>.
               </p>
             </div>
           </div>
 
           {/* Book a demo */}
-          <a href="#" style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "rgba(255,255,255,0.5)", fontSize: "14px", fontWeight: 300, textDecoration: "none", marginBottom: "64px", transition: "color 0.2s" }}
-            onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.color = "#fff")}
-            onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.5)")}
+          <a href="#" style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#888", fontSize: "14px", fontWeight: 300, textDecoration: "none", marginBottom: "64px", transition: "color 0.2s" }}
+            onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.color = "#111")}
+            onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.color = "#888")}
           >
             Book a demo <ArrowRight />
           </a>
@@ -236,34 +234,34 @@ export default function Home() {
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
               <div style={{ display: "flex" }}>
                 {[["AR", "#7c3aed"], ["MD", "#4f46e5"], ["JT", "#0891b2"]].map(([init, bg], i) => (
-                  <div key={i} style={{ width: "34px", height: "34px", borderRadius: "50%", background: bg, border: "2px solid #08090c", marginLeft: i > 0 ? "-9px" : "0", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: 500, color: "#fff" }}>
+                  <div key={i} style={{ width: "34px", height: "34px", borderRadius: "50%", background: bg, border: "2px solid #fff", marginLeft: i > 0 ? "-9px" : "0", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: 500, color: "#fff" }}>
                     {init}
                   </div>
                 ))}
               </div>
               <div>
-                <div style={{ color: "#fff", fontSize: "14px", fontWeight: 500 }}>9,500+</div>
-                <div style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px" }}>Customers</div>
+                <div style={{ color: "#111", fontSize: "14px", fontWeight: 500 }}>9,500+</div>
+                <div style={{ color: "#aaa", fontSize: "11px" }}>Customers</div>
               </div>
             </div>
-            <div style={{ width: "1px", height: "30px", background: "rgba(255,255,255,0.1)" }} />
+            <div style={{ width: "1px", height: "30px", background: "#e8e8e8" }} />
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <span style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px" }}>Trustpilot</span>
-              <span style={{ color: "#fff", fontSize: "13px", fontWeight: 500 }}>4.9</span>
+              <span style={{ color: "#666", fontSize: "13px" }}>Trustpilot</span>
+              <span style={{ color: "#111", fontSize: "13px", fontWeight: 500 }}>4.9</span>
               <StarSvg />
             </div>
-            <div style={{ width: "1px", height: "30px", background: "rgba(255,255,255,0.1)" }} />
-            <div style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px" }}>
-              <span style={{ color: "#fff", fontWeight: 500 }}>#1</span> AI Tool 2026
+            <div style={{ width: "1px", height: "30px", background: "#e8e8e8" }} />
+            <div style={{ color: "#666", fontSize: "13px" }}>
+              <span style={{ color: "#111", fontWeight: 500 }}>#1</span> AI Tool 2026
             </div>
           </div>
         </div>
 
         {/* Logo marquee */}
-        <div style={{ width: "100%", overflow: "hidden", borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "30px", paddingBottom: "48px" }}>
+        <div style={{ width: "100%", overflow: "hidden", borderTop: "1px solid #f0f0f0", paddingTop: "30px", paddingBottom: "48px" }}>
           <div className="marquee-inner">
             {[...logos, ...logos, ...logos, ...logos].map((logo, i) => (
-              <div key={i} style={{ padding: "0 52px", color: "rgba(255,255,255,0.22)", fontSize: "17px", fontWeight: 400, letterSpacing: "-0.01em", flexShrink: 0, whiteSpace: "nowrap", fontFamily: "var(--font-inter), Inter, sans-serif" }}>
+              <div key={i} style={{ padding: "0 52px", color: "#ccc", fontSize: "17px", fontWeight: 400, letterSpacing: "-0.01em", flexShrink: 0, whiteSpace: "nowrap", fontFamily: "var(--font-inter), Inter, sans-serif" }}>
                 {logo}
               </div>
             ))}
@@ -338,26 +336,26 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── USE CASES (dark) ── */}
-      <section id="features" style={{ background: "#08090c", padding: "100px 0" }}>
+      {/* ── USE CASES ── */}
+      <section id="features" style={{ background: "#f8f8f8", padding: "100px 0" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 40px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "40px", marginBottom: "56px", flexWrap: "wrap" }}>
             <div style={{ maxWidth: "520px" }}>
-              <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#fff", marginBottom: "16px" }}>
+              <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#111", marginBottom: "16px" }}>
                 Use cases
               </h2>
-              <p style={{ fontSize: "16px", color: "rgba(255,255,255,0.42)", fontWeight: 300, lineHeight: 1.65 }}>
+              <p style={{ fontSize: "16px", color: "#888", fontWeight: 300, lineHeight: 1.65 }}>
                 Our AI phone assistant adapts flexibly to your needs and integrates with your calendar and CRM. Automated calls that make sense.
               </p>
             </div>
-            <a href="#pricing" style={{ display: "inline-flex", alignItems: "center", height: "42px", padding: "0 22px", background: "#fff", color: "#000", borderRadius: "20px", fontSize: "13px", fontWeight: 400, textDecoration: "none", letterSpacing: "0.02em", transition: "opacity 0.2s", flexShrink: 0 }}
+            <a href="#pricing" style={{ display: "inline-flex", alignItems: "center", height: "42px", padding: "0 22px", background: "#000", color: "#fff", borderRadius: "20px", fontSize: "13px", fontWeight: 400, textDecoration: "none", letterSpacing: "0.02em", transition: "opacity 0.2s", flexShrink: 0 }}
               onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.opacity = "0.85")}
               onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.opacity = "1")}
             >
               Start Free Trial
             </a>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", background: "rgba(255,255,255,0.05)", borderRadius: "16px", overflow: "hidden", border: "1px solid rgba(255,255,255,0.05)", gap: "1px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", background: "#e8e8e8", borderRadius: "16px", overflow: "hidden", border: "1px solid #e8e8e8", gap: "1px" }}>
             {[
               { icon: "💼", title: "Reception & Routing", desc: "Takes incoming calls and forwards them to the appropriate contact person." },
               { icon: "📝", title: "Call Transcription", desc: "Collects inquiries, transcribes them, and sends you a summary by email." },
@@ -366,13 +364,13 @@ export default function Home() {
               { icon: "🔁", title: "Order Processing", desc: "Fast 24/7 automated request handling — no waiting, no missed orders." },
               { icon: "⚡", title: "50+ More Options", desc: "Every business is different. Configure the AI to match your exact workflow." },
             ].map((uc, i) => (
-              <div key={i} style={{ background: "#0d0e12", padding: "28px 24px", transition: "background 0.2s", cursor: "default" }}
-                onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.background = "#111316")}
-                onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.background = "#0d0e12")}
+              <div key={i} style={{ background: "#fff", padding: "28px 24px", transition: "background 0.2s", cursor: "default" }}
+                onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.background = "#fafafa")}
+                onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.background = "#fff")}
               >
                 <div style={{ fontSize: "22px", marginBottom: "12px" }}>{uc.icon}</div>
-                <h3 style={{ fontSize: "14px", fontWeight: 500, color: "#fff", marginBottom: "8px" }}>{uc.title}</h3>
-                <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.38)", lineHeight: 1.65, fontWeight: 300 }}>{uc.desc}</p>
+                <h3 style={{ fontSize: "14px", fontWeight: 500, color: "#111", marginBottom: "8px" }}>{uc.title}</h3>
+                <p style={{ fontSize: "13px", color: "#888", lineHeight: 1.65, fontWeight: 300 }}>{uc.desc}</p>
               </div>
             ))}
           </div>
@@ -483,22 +481,22 @@ export default function Home() {
 
       {/* ── CTA BANNER ── */}
       <section style={{ padding: "0 40px 100px" }}>
-        <div style={{ maxWidth: "1200px", margin: "0 auto", background: "#08090c", borderRadius: "24px", padding: "80px 60px", textAlign: "center", position: "relative", overflow: "hidden" }}>
-          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 50% -10%, rgba(139,92,246,0.22) 0%, transparent 55%)", pointerEvents: "none" }} />
+        <div style={{ maxWidth: "1200px", margin: "0 auto", background: "#f8f8f8", border: "1px solid #ebebeb", borderRadius: "24px", padding: "80px 60px", textAlign: "center", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 50% -10%, rgba(139,92,246,0.08) 0%, transparent 55%)", pointerEvents: "none" }} />
           <div style={{ position: "relative", zIndex: 1 }}>
-            <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(24px, 3.5vw, 40px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#fff", marginBottom: "16px" }}>
+            <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(24px, 3.5vw, 40px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#111", marginBottom: "16px" }}>
               Scalable call management with AI Receptionist.
             </h2>
-            <p style={{ color: "rgba(255,255,255,0.38)", fontSize: "16px", fontWeight: 300, lineHeight: 1.65, maxWidth: "520px", margin: "0 auto 36px" }}>
+            <p style={{ color: "#888", fontSize: "16px", fontWeight: 300, lineHeight: 1.65, maxWidth: "520px", margin: "0 auto 36px" }}>
               Try AI Receptionist and see how our AI automates your calls to reduce strain on your team — simple, efficient, and around the clock.
             </p>
-            <a href="#pricing" style={{ display: "inline-flex", alignItems: "center", height: "46px", padding: "0 28px", background: "#fff", color: "#000", borderRadius: "23px", fontSize: "14px", fontWeight: 400, textDecoration: "none", transition: "opacity 0.2s" }}
+            <a href="#pricing" style={{ display: "inline-flex", alignItems: "center", height: "46px", padding: "0 28px", background: "#000", color: "#fff", borderRadius: "23px", fontSize: "14px", fontWeight: 400, textDecoration: "none", transition: "opacity 0.2s" }}
               onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.opacity = "0.88")}
               onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.opacity = "1")}
             >
               Start Free Trial →
             </a>
-            <p style={{ color: "rgba(255,255,255,0.2)", fontSize: "12px", marginTop: "14px", fontWeight: 300 }}>No credit card required.</p>
+            <p style={{ color: "#bbb", fontSize: "12px", marginTop: "14px", fontWeight: 300 }}>No credit card required.</p>
           </div>
         </div>
       </section>
