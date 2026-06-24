@@ -85,7 +85,7 @@ const faqs = [
 export default function Home() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 30);
@@ -180,37 +180,33 @@ export default function Home() {
           </h1>
 
           {/* CTA Card */}
-          <div style={{ maxWidth: "480px", margin: "0 auto 24px" }}>
+          <div style={{ maxWidth: "480px", margin: "0 auto 64px" }}>
             <div style={{ background: "#fff", border: "1px solid #e8e8e8", borderRadius: "16px", padding: "22px" }}>
               <div style={{ display: "flex", gap: "8px" }}>
                 <input
-                  type="email"
-                  placeholder="Enter your email address"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  type="tel"
+                  placeholder="Enter phone number"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  inputMode="tel"
+                  autoComplete="tel"
                   style={{ flex: 1, background: "#f8f8f8", border: "1px solid #e8e8e8", borderRadius: "10px", padding: "13px 16px", color: "#111", fontSize: "14px", fontWeight: 300, fontFamily: "var(--font-inter), Inter, sans-serif", outline: "none" }}
                 />
                 <button style={{ background: "#000", color: "#fff", border: "none", borderRadius: "10px", padding: "13px 20px", fontSize: "13px", fontWeight: 400, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "var(--font-inter), Inter, sans-serif", letterSpacing: "0.01em", transition: "opacity 0.2s" }}
                   onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.opacity = "0.85")}
                   onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.opacity = "1")}
                 >
-                  Start Free Trial
+                  Talk to our AI now
                 </button>
               </div>
               <p style={{ color: "#aaa", fontSize: "11px", textAlign: "center", marginTop: "12px", fontWeight: 300 }}>
-                By signing up, you confirm you have read our{" "}
-                <a href="#" style={{ color: "#888", textDecoration: "underline" }}>privacy policy</a>.
+                By making this call, you consent to being{" "}
+                <a href="/privacy-policy" style={{ color: "#888", textDecoration: "underline" }}>contacted by us</a>
+                {" "}and confirm to have read our{" "}
+                <a href="/privacy-policy" style={{ color: "#888", textDecoration: "underline" }}>privacy policy</a>.
               </p>
             </div>
           </div>
-
-          {/* Book a demo */}
-          <a href="#" style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#888", fontSize: "14px", fontWeight: 300, textDecoration: "none", marginBottom: "64px", transition: "color 0.2s" }}
-            onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.color = "#111")}
-            onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.color = "#888")}
-          >
-            Book a demo <ArrowRight />
-          </a>
 
           {/* Trust bar */}
           <div style={{ display: "flex", alignItems: "center", gap: "20px", padding: "18px 0 4px", marginTop: "12px", marginBottom: "52px", justifyContent: "center", flexWrap: "wrap" }}>
