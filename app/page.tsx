@@ -110,17 +110,11 @@ export default function Home() {
           width: max-content;
           animation: marquee 28s linear infinite;
         }
-        @keyframes float-sphere {
-          0%,100% { transform: translateY(0px); }
-          50% { transform: translateY(-18px); }
-        }
-        @keyframes pulse-glow {
-          0%,100% { opacity: 0.65; }
-          50% { opacity: 1; }
-        }
-        @keyframes rainbow-spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
+        .hero-trust-star.half {
+          background: linear-gradient(90deg, #111 50%, #ddd 50%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
         }
       `}</style>
 
@@ -169,11 +163,6 @@ export default function Home() {
         display: "flex", flexDirection: "column", alignItems: "center",
         paddingTop: "110px", overflow: "hidden",
       }}>
-        {/* Subtle BG tint */}
-        <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
-          <div style={{ position: "absolute", top: "-5%", left: "50%", transform: "translateX(-50%)", width: "800px", height: "700px", background: "radial-gradient(ellipse, rgba(167,139,250,0.08) 0%, transparent 65%)", animation: "pulse-glow 7s ease-in-out infinite" }} />
-        </div>
-
         <div style={{ position: "relative", zIndex: 2, width: "100%", maxWidth: "860px", padding: "0 24px", textAlign: "center" }}>
 
           {/* Badge */}
@@ -189,16 +178,9 @@ export default function Home() {
             Let our AI take care<br />of your calls
           </h1>
 
-          {/* Gradient sphere */}
-          <div style={{ width: "260px", height: "260px", margin: "0 auto 44px", position: "relative", animation: "float-sphere 8s ease-in-out infinite" }}>
-            <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "radial-gradient(circle at 33% 32%, #c084fc 0%, #7c3aed 28%, #4c1d95 58%, #14082e 100%)", boxShadow: "0 0 60px rgba(139,92,246,0.25), 0 0 120px rgba(109,40,217,0.12)" }} />
-            <div style={{ position: "absolute", top: "12%", left: "16%", width: "42%", height: "36%", background: "radial-gradient(circle, rgba(255,255,255,0.32) 0%, transparent 70%)", borderRadius: "50%", filter: "blur(7px)" }} />
-          </div>
-
           {/* CTA Card */}
-          <div style={{ position: "relative", maxWidth: "480px", margin: "0 auto 24px" }}>
-            <div style={{ position: "absolute", inset: "-2px", borderRadius: "18px", background: "conic-gradient(from 0deg, #a855f7, #6366f1, #3b82f6, #06b6d4, #a855f7)", animation: "rainbow-spin 4s linear infinite", filter: "blur(1.5px)", zIndex: 0 }} />
-            <div style={{ position: "relative", zIndex: 1, background: "#fff", borderRadius: "16px", padding: "22px" }}>
+          <div style={{ maxWidth: "480px", margin: "0 auto 24px" }}>
+            <div style={{ background: "#fff", border: "1px solid #e8e8e8", borderRadius: "16px", padding: "22px" }}>
               <div style={{ display: "flex", gap: "8px" }}>
                 <input
                   type="email"
@@ -229,30 +211,42 @@ export default function Home() {
             Book a demo <ArrowRight />
           </a>
 
-          {/* Social proof */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "28px", marginBottom: "56px", flexWrap: "wrap" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-              <div style={{ display: "flex" }}>
-                {[["AR", "#7c3aed"], ["MD", "#4f46e5"], ["JT", "#0891b2"]].map(([init, bg], i) => (
-                  <div key={i} style={{ width: "34px", height: "34px", borderRadius: "50%", background: bg, border: "2px solid #fff", marginLeft: i > 0 ? "-9px" : "0", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: 500, color: "#fff" }}>
-                    {init}
-                  </div>
-                ))}
-              </div>
-              <div>
-                <div style={{ color: "#111", fontSize: "14px", fontWeight: 500 }}>9,500+</div>
-                <div style={{ color: "#aaa", fontSize: "11px" }}>Customers</div>
-              </div>
+          {/* Trust bar */}
+          <div style={{ display: "flex", alignItems: "center", gap: "20px", padding: "18px 0 4px", marginTop: "12px", marginBottom: "52px", justifyContent: "center", flexWrap: "wrap" }}>
+            <div style={{ display: "flex", marginRight: "-4px" }}>
+              {[
+                { src: "/testimonials/maria_sm.webp", alt: "Maria, AI Receptionist user" },
+                { src: "/testimonials/mustafa_sm.webp", alt: "Mustafa, AI Receptionist user" },
+                { src: "/testimonials/saheed_sm.webp", alt: "Saheed, AI Receptionist user" },
+                { src: "/testimonials/delphine_sm.webp", alt: "Delphine, AI Receptionist user" },
+              ].map((av, i) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img key={i} src={av.src} alt={av.alt} width={32} height={32} loading="lazy"
+                  style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover", border: "none", marginRight: i < 3 ? "-8px" : "0" }}
+                />
+              ))}
             </div>
-            <div style={{ width: "1px", height: "30px", background: "#e8e8e8" }} />
-            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <span style={{ color: "#666", fontSize: "13px" }}>Trustpilot</span>
-              <span style={{ color: "#111", fontSize: "13px", fontWeight: 500 }}>4.9</span>
-              <StarSvg />
+            <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
+              <span style={{ fontSize: "14px", fontWeight: 600, color: "#111", letterSpacing: "-0.01em" }}>9,500+ users worldwide</span>
+              <span style={{ fontSize: "12px", fontWeight: 400, color: "#666" }}>Got every call answered 24/7.</span>
             </div>
-            <div style={{ width: "1px", height: "30px", background: "#e8e8e8" }} />
-            <div style={{ color: "#666", fontSize: "13px" }}>
-              <span style={{ color: "#111", fontWeight: 500 }}>#1</span> AI Tool 2026
+            <div style={{ width: "1px", height: "28px", background: "#e0e0e0" }} />
+            <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+              <div style={{ display: "flex", alignItems: "center" }}>
+                <span style={{ fontSize: "12px", color: "#555", lineHeight: 1.4, fontWeight: 400, letterSpacing: "-0.01em" }}>
+                  Rated <strong style={{ fontWeight: 600 }}>top-notch</strong><br />
+                  <strong style={{ fontWeight: 600 }}>1,200+ reviews</strong>
+                </span>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
+                <div style={{ display: "flex", gap: "2px" }}>
+                  {["★", "★", "★", "★"].map((s, i) => (
+                    <span key={i} style={{ fontSize: "20px", color: "#111" }}>{s}</span>
+                  ))}
+                  <span className="hero-trust-star half" style={{ fontSize: "20px" }}>★</span>
+                </div>
+                <span style={{ fontSize: "12px", fontWeight: 400, color: "#666" }}>4.8 out of 5</span>
+              </div>
             </div>
           </div>
         </div>
