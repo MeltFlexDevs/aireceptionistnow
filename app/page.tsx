@@ -184,8 +184,9 @@ export default function Home() {
           {/* Badge */}
           <div style={{ marginBottom: "28px" }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "#f5f5f5", border: "1px solid #e8e8e8", borderRadius: "20px", padding: "6px 16px" }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="https://cdn.prod.website-files.com/66cdd640b6eaf9b4ea2f21c8/67f4f4514fd1d07674f5e8ba_colorful%20verified.webp" alt="" loading="lazy" style={{ width: "18px", height: "18px", objectFit: "contain", filter: "brightness(0)" }} />
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 6L9 17L4 12" stroke="#111" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
               <span style={{ color: "#555", fontSize: "13px", fontWeight: 300 }}>AI calls made easy</span>
             </div>
           </div>
