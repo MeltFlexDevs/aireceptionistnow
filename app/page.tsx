@@ -227,23 +227,22 @@ export default function Home() {
               ))}
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
-              <span style={{ fontSize: "14px", fontWeight: 600, color: "#111", letterSpacing: "-0.01em" }}>9,500+ users worldwide</span>
+              <span style={{ fontSize: "14px", fontWeight: 400, color: "#111", letterSpacing: "-0.01em" }}>9,500+ users worldwide</span>
               <span style={{ fontSize: "12px", fontWeight: 400, color: "#666" }}>Got every call answered 24/7.</span>
             </div>
             <div style={{ width: "1px", height: "28px", background: "#e0e0e0" }} />
             <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
               <div style={{ display: "flex", alignItems: "center" }}>
                 <span style={{ fontSize: "12px", color: "#555", lineHeight: 1.4, fontWeight: 400, letterSpacing: "-0.01em" }}>
-                  Rated <strong style={{ fontWeight: 600 }}>top-notch</strong><br />
-                  <strong style={{ fontWeight: 600 }}>1,200+ reviews</strong>
+                  Rated top-notch<br />
+                  1,200+ reviews
                 </span>
               </div>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
                 <div style={{ display: "flex", gap: "2px" }}>
-                  {["★", "★", "★", "★"].map((s, i) => (
+                  {["★", "★", "★", "★", "★"].map((s, i) => (
                     <span key={i} style={{ fontSize: "20px", color: "#111" }}>{s}</span>
                   ))}
-                  <span className="hero-trust-star half" style={{ fontSize: "20px" }}>★</span>
                 </div>
                 <span style={{ fontSize: "12px", fontWeight: 400, color: "#666" }}>4.8 out of 5</span>
               </div>
