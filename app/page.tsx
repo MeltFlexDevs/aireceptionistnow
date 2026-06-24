@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react";
 
 const PauseLogo = () => (
-  <svg width="14" height="18" viewBox="0 0 14 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect x="0" y="0" width="5" height="18" rx="1.5" fill="currentColor" />
-    <rect x="9" y="0" width="5" height="18" rx="1.5" fill="currentColor" />
+  <svg width="7" height="15" viewBox="0 0 7 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="0" width="2.5" height="15" rx="1" fill="currentColor" />
+    <rect x="4.5" y="0" width="2.5" height="15" rx="1" fill="currentColor" />
   </svg>
 );
 
@@ -106,10 +106,10 @@ export default function Home() {
             color: "#fff",
             border: "1.5px solid #000",
             borderRadius: "20px",
-            fontSize: "13px",
+            fontSize: "12px",
             fontWeight: 400,
             textDecoration: "none",
-            letterSpacing: "0.01em",
+            letterSpacing: "0.06em",
             transition: "background 0.2s, color 0.2s",
           }}
           onMouseOver={(e) => {
@@ -121,7 +121,7 @@ export default function Home() {
             e.currentTarget.style.color = "#fff";
           }}
         >
-          Start Free Trial
+          START FREE TRIAL
         </a>
       </header>
 
@@ -702,55 +702,168 @@ export default function Home() {
       </section>
 
       {/* ── FOOTER ── */}
-      <footer style={{ borderTop: "1px solid #f0f0f0", padding: "32px 40px" }}>
-        <div
-          style={{
-            maxWidth: "1060px",
-            margin: "0 auto",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: "16px",
-          }}
-        >
-          <a
-            href="/"
+      <footer
+        style={{
+          background: "#000",
+          color: "#fff",
+          fontFamily: "var(--font-inter), Inter, -apple-system, sans-serif",
+          fontWeight: 300,
+        }}
+      >
+        {/* Top */}
+        <div style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", padding: "60px 0 50px" }}>
+          <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 40px", display: "flex", justifyContent: "space-between", gap: "40px", flexWrap: "wrap" }}>
+
+            {/* Nav columns */}
+            <nav style={{ display: "flex", gap: "64px", flexWrap: "wrap" }}>
+              {/* Product */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", fontWeight: 400, letterSpacing: "0.08em", textTransform: "uppercase" }}>Product</span>
+                <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
+                  {[
+                    { label: "Features", href: "#features" },
+                    { label: "How it works", href: "#how-it-works" },
+                    { label: "Pricing", href: "#pricing" },
+                    { label: "Integrations", href: "#" },
+                    { label: "API Access", href: "#" },
+                  ].map((l) => (
+                    <li key={l.label}>
+                      <a href={l.href} style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.01em", transition: "color 0.2s" }}
+                        onMouseOver={(e) => (e.currentTarget.style.color = "#fff")}
+                        onMouseOut={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.6)")}
+                      >{l.label}</a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Industries */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", fontWeight: 400, letterSpacing: "0.08em", textTransform: "uppercase" }}>Industries</span>
+                <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
+                  {["Dental Clinics", "Law Firms", "Medical Practices", "Hotels", "Auto Dealers", "Restaurants"].map((l) => (
+                    <li key={l}>
+                      <a href="#" style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.01em", transition: "color 0.2s" }}
+                        onMouseOver={(e) => (e.currentTarget.style.color = "#fff")}
+                        onMouseOut={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.6)")}
+                      >{l}</a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Resources */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", fontWeight: 400, letterSpacing: "0.08em", textTransform: "uppercase" }}>Resources</span>
+                <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
+                  {[
+                    { label: "Blog", href: "#" },
+                    { label: "FAQ", href: "#" },
+                    { label: "Contact", href: "#" },
+                    { label: "Documentation", href: "#" },
+                  ].map((l) => (
+                    <li key={l.label}>
+                      <a href={l.href} style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.01em", transition: "color 0.2s" }}
+                        onMouseOver={(e) => (e.currentTarget.style.color = "#fff")}
+                        onMouseOut={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.6)")}
+                      >{l.label}</a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </nav>
+
+            {/* Right side */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "32px" }}>
+              {/* Social */}
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "12px" }}>
+                <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", fontWeight: 400, letterSpacing: "0.08em", textTransform: "uppercase" }}>Follow us</span>
+                <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "8px", textAlign: "right" }}>
+                  {[
+                    { label: "@Instagram", href: "#" },
+                    { label: "@LinkedIn", href: "#" },
+                    { label: "@Twitter / X", href: "#" },
+                    { label: "@YouTube", href: "#" },
+                  ].map((l) => (
+                    <li key={l.label}>
+                      <a href={l.href} style={{ color: "rgba(255,255,255,0.45)", fontSize: "13px", fontWeight: 300, textDecoration: "none", transition: "color 0.2s" }}
+                        onMouseOver={(e) => (e.currentTarget.style.color = "#fff")}
+                        onMouseOut={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.45)")}
+                      >{l.label}</a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* CTA */}
+              <a
+                href="#pricing"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  height: "36px",
+                  padding: "0 20px",
+                  background: "#fff",
+                  color: "#000",
+                  borderRadius: "20px",
+                  fontSize: "12px",
+                  fontWeight: 400,
+                  textDecoration: "none",
+                  letterSpacing: "0.05em",
+                  transition: "opacity 0.2s",
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.opacity = "0.85")}
+                onMouseOut={(e) => (e.currentTarget.style.opacity = "1")}
+              >
+                START FREE TRIAL
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom bar */}
+        <div style={{ padding: "28px 0" }}>
+          <div
             style={{
+              maxWidth: "1200px",
+              margin: "0 auto",
+              padding: "0 40px",
               display: "flex",
               alignItems: "center",
-              gap: "8px",
-              textDecoration: "none",
-              color: "#000",
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+              gap: "16px",
             }}
           >
-            <PauseLogo />
-            <span
-              style={{
-                fontFamily: "var(--font-inter), Inter, sans-serif",
-                fontWeight: 500,
-                fontSize: "14px",
-                letterSpacing: "-0.02em",
-                color: "#000",
-              }}
-            >
-              AI RECEPTIONIST
-            </span>
-          </a>
-          <div style={{ display: "flex", gap: "20px" }}>
-            {["Privacy", "Terms", "Contact"].map((link) => (
-              <a
-                key={link}
-                href="#"
-                style={{ color: "#bbb", fontSize: "13px", fontWeight: 300, textDecoration: "none", transition: "color 0.15s" }}
-                onMouseOver={(e) => (e.currentTarget.style.color = "#555")}
-                onMouseOut={(e) => (e.currentTarget.style.color = "#bbb")}
-              >
-                {link}
-              </a>
-            ))}
+            {/* Logo */}
+            <a href="/" style={{ display: "flex", alignItems: "center", gap: "9px", textDecoration: "none", color: "#fff" }}>
+              <PauseLogo />
+              <span style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontWeight: 500, fontSize: "16px", letterSpacing: "-0.02em", color: "#fff" }}>
+                AI RECEPTIONIST
+              </span>
+            </a>
+
+            {/* Legal links */}
+            <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", gap: "20px", flexWrap: "wrap" }}>
+              {[
+                { label: "Privacy Policy", href: "#" },
+                { label: "Terms & Conditions", href: "#" },
+                { label: "Cookie Policy", href: "#" },
+              ].map((l) => (
+                <li key={l.label}>
+                  <a href={l.href} style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.02em", transition: "color 0.2s" }}
+                    onMouseOver={(e) => (e.currentTarget.style.color = "#fff")}
+                    onMouseOut={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.4)")}
+                  >{l.label}</a>
+                </li>
+              ))}
+            </ul>
+
+            {/* Copyright */}
+            <p style={{ color: "rgba(255,255,255,0.3)", fontSize: "11px", fontWeight: 300, margin: 0 }}>
+              © 2026 AI Receptionist Now. All rights reserved.
+            </p>
           </div>
-          <p style={{ color: "#ccc", fontSize: "12px", fontWeight: 300 }}>© 2026 AI Receptionist Now. All rights reserved.</p>
         </div>
       </footer>
     </main>
