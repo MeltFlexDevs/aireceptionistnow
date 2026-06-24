@@ -168,7 +168,8 @@ export default function Home() {
           {/* Badge */}
           <div style={{ marginBottom: "28px" }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "#f5f5f5", border: "1px solid #e8e8e8", borderRadius: "20px", padding: "6px 16px" }}>
-              <PauseLogo color="#000" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="https://cdn.prod.website-files.com/66cdd640b6eaf9b4ea2f21c8/67f4f4514fd1d07674f5e8ba_colorful%20verified.webp" alt="" loading="lazy" style={{ width: "18px", height: "18px", objectFit: "contain", filter: "brightness(0)" }} />
               <span style={{ color: "#555", fontSize: "13px", fontWeight: 300 }}>AI calls made easy</span>
             </div>
           </div>
