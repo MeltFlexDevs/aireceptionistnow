@@ -168,7 +168,7 @@ export default function Home() {
           {/* Badge */}
           <div style={{ marginBottom: "28px" }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "#f5f5f5", border: "1px solid #e8e8e8", borderRadius: "20px", padding: "6px 16px" }}>
-              <span style={{ width: "6px", height: "6px", background: "#22c55e", borderRadius: "50%", flexShrink: 0 }} />
+              <PauseLogo color="#000" />
               <span style={{ color: "#555", fontSize: "13px", fontWeight: 300 }}>AI calls made easy</span>
             </div>
           </div>
