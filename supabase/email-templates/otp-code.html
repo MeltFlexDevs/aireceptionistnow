@@ -1,0 +1,54 @@
+<!--
+  Supabase auth email — AI RECEPTIONIST
+  Paste this into Supabase Dashboard → Authentication → Email Templates.
+  The header logo is rebuilt with table cells (not SVG) so it renders in
+  Gmail / Outlook / Apple Mail identically to the site header:
+  two black rounded bars + "AI RECEPTIONIST" wordmark.
+
+  Available variables: {{ .Token }} (6-digit code), {{ .ConfirmationURL }},
+  {{ .SiteURL }}, {{ .Email }}.
+-->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f5f5f5;margin:0;padding:0;">
+  <tr>
+    <td align="center" style="padding:40px 16px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:440px;background:#ffffff;border:1px solid #ededed;border-radius:16px;">
+        <tr>
+          <td style="padding:40px 40px 32px;">
+
+            <!-- ===== Logo (matches site header) ===== -->
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
+              <tr>
+                <td style="vertical-align:middle;">
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                      <td style="width:4px;height:24px;background:#000000;border-radius:2px;font-size:0;line-height:0;mso-line-height-rule:exactly;">&nbsp;</td>
+                      <td style="width:3px;font-size:0;line-height:0;">&nbsp;</td>
+                      <td style="width:4px;height:24px;background:#000000;border-radius:2px;font-size:0;line-height:0;mso-line-height-rule:exactly;">&nbsp;</td>
+                    </tr>
+                  </table>
+                </td>
+                <td style="width:8px;font-size:0;">&nbsp;</td>
+                <td style="vertical-align:middle;font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-weight:500;font-size:18px;letter-spacing:-0.02em;color:#000000;white-space:nowrap;">AI RECEPTIONIST</td>
+              </tr>
+            </table>
+            <!-- ===== /Logo ===== -->
+
+            <p style="margin:36px 0 8px;text-align:center;font-family:Inter,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-weight:300;font-size:22px;text-transform:uppercase;letter-spacing:0.04em;color:#171717;">Your sign-in code</p>
+            <p style="margin:0 0 28px;text-align:center;font-family:Inter,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-weight:300;font-size:13px;letter-spacing:0.3px;color:#737373;">Enter this code to sign in to your AI receptionist.</p>
+
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td align="center" style="padding:20px 0;background:#fafafa;border:1px solid #ededed;border-radius:10px;font-family:Inter,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-weight:300;font-size:34px;letter-spacing:0.32em;color:#171717;">{{ .Token }}</td>
+              </tr>
+            </table>
+
+            <p style="margin:28px 0 0;text-align:center;font-family:Inter,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-weight:300;font-size:12px;letter-spacing:0.3px;color:#a3a3a3;">This code expires in 60 minutes. If you didn't request it, you can ignore this email.</p>
+
+          </td>
+        </tr>
+      </table>
+
+      <p style="margin:20px 0 0;font-family:Inter,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:11px;letter-spacing:0.5px;color:#a3a3a3;">Your data is safe, secure and fully private.</p>
+    </td>
+  </tr>
+</table>
