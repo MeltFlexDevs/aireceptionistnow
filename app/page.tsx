@@ -142,9 +142,9 @@ export default function Home() {
           display: inline-flex;
           align-items: center;
           gap: 8px;
-          background: #f5f5f5;
-          border: 1px solid #e8e8e8;
-          border-radius: 20px;
+          background: #fff;
+          border: 1px solid #111;
+          border-radius: 10px;
           padding: 6px 16px;
         }
         .badge-icon {
@@ -153,7 +153,7 @@ export default function Home() {
           object-fit: contain;
         }
         .badge-text {
-          color: #555;
+          color: #111;
           font-size: 13px;
           font-weight: 300;
           font-family: var(--font-inter), Inter, sans-serif;
