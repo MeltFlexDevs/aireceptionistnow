@@ -206,21 +206,20 @@ export default function Home() {
         display: "flex", flexDirection: "column", alignItems: "center",
         paddingTop: "110px", overflow: "hidden",
       }}>
-        <div style={{ position: "relative", zIndex: 2, width: "100%", maxWidth: "860px", padding: "0 24px", textAlign: "center" }}>
-
-          {/* Badge */}
-          <div style={{ marginBottom: "28px" }}>
-            <div className="badge main-lp">
-              <img src="https://cdn.prod.website-files.com/66cdd640b6eaf9b4ea2f21c8/67f4f4514fd1d07674f5e8ba_colorful%20verified.webp" loading="lazy" alt="" className="icon-old badge-icon" />
-              <h1 className="badge-text">AI calls made easy</h1>
-            </div>
+        {/* Badge */}
+        <div style={{ marginBottom: "28px", position: "relative", zIndex: 2 }}>
+          <div className="badge main-lp">
+            <img src="https://cdn.prod.website-files.com/66cdd640b6eaf9b4ea2f21c8/67f4f4514fd1d07674f5e8ba_colorful%20verified.webp" loading="lazy" alt="" className="icon-old badge-icon" />
+            <h1 className="badge-text">AI calls made easy</h1>
           </div>
+        </div>
 
-          {/* H1 */}
-          <h1 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(38px, 6.5vw, 76px)", fontWeight: 300, letterSpacing: "-0.03em", color: "#111", lineHeight: 1.04, marginBottom: "44px", whiteSpace: "nowrap", width: "fit-content", margin: "0 auto 44px" }}>
-            Let our AI take care of your calls
-          </h1>
+        {/* H1 — direct flex child so section's alignItems:center truly centers it */}
+        <h1 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(38px, 6.5vw, 76px)", fontWeight: 300, letterSpacing: "-0.03em", color: "#111", lineHeight: 1.04, marginBottom: "44px", whiteSpace: "nowrap", position: "relative", zIndex: 2 }}>
+          Let our AI take care of your calls
+        </h1>
 
+        <div style={{ position: "relative", zIndex: 2, width: "100%", maxWidth: "860px", padding: "0 24px", textAlign: "center" }}>
           {/* CTA Card */}
           <div style={{ maxWidth: "480px", margin: "0 auto 64px" }}>
             <div style={{ background: "#fff", border: "1px solid #e8e8e8", borderRadius: "16px", padding: "22px", display: "flex", flexDirection: "column", gap: "10px" }}>
