@@ -143,7 +143,7 @@ export default function Home() {
           align-items: center;
           gap: 8px;
           background: #fff;
-          border: 1px solid #111;
+          border: 1px solid #d0d0d0;
           border-radius: 10px;
           padding: 6px 16px;
         }
