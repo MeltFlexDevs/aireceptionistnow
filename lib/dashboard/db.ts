@@ -261,6 +261,18 @@ export async function updateAssistant(
   if (error) throw error;
 }
 
+/** Replace only the knowledge JSON (used by knowledge-source add/remove). */
+export async function updateAssistantKnowledge(
+  id: string,
+  knowledge: Record<string, unknown>,
+): Promise<void> {
+  const { error } = await db()
+    .from("assistants")
+    .update({ knowledge })
+    .eq("id", id);
+  if (error) throw error;
+}
+
 export async function deleteAssistant(id: string): Promise<void> {
   const { error } = await db()
     .from("assistants")

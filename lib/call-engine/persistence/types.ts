@@ -49,5 +49,5 @@ export interface CallRepository {
   /** Load a finished call's transcript + config for post-call summarization. */
   getCallForSummary(
     callId: string,
-  ): Promise<{ config: NumberConfig; turns: TranscriptTurn[] } | null>;
+  ): Promise<{ config: NumberConfig; turns: TranscriptTurn[]; from: string } | null>;
 }

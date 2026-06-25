@@ -8,12 +8,16 @@ import { CALENDAR_PROVIDERS } from "../../integrations/providers";
 import { LanguageSelect } from "../../numbers/LanguageSelect";
 import { VoiceSelect } from "../../numbers/VoiceSelect";
 import {
+  addPdfKnowledgeAction,
+  addWebsiteKnowledgeAction,
   connectNumberForAssistantAction,
   createNumberForAssistantAction,
+  removeKnowledgeSourceAction,
   testCallAction,
   unlinkNumberAction,
   updateAssistantAction,
 } from "../actions";
+import { readKnowledge } from "@/lib/knowledge/sources";
 import { DeleteAssistant } from "../DeleteAssistant";
 import { TestCallButton } from "../TestCallButton";
 
@@ -47,7 +51,13 @@ export default async function AssistantSettingsPage({
   const ownerId = await currentUserId();
   if (ownerId && assistant.owner_id && assistant.owner_id !== ownerId) notFound();
 
-  const notes = String((assistant.knowledge as { notes?: string })?.notes ?? "");
+  const knowledge = readKnowledge(assistant.knowledge);
+  const notes = knowledge.notes ?? "";
+  const sources = knowledge.sources ?? [];
+  const emailCfg =
+    (assistant.routing as { emailTranscripts?: { enabled?: boolean; to?: string } })?.emailTranscripts ?? {};
+  const crmCfg =
+    (assistant.routing as { crm?: { enabled?: boolean; url?: string; secret?: string } })?.crm ?? {};
   const transferTo = String((assistant.routing as { transferTo?: string })?.transferTo ?? "");
   const smsAlerts = (assistant.routing as { smsAlerts?: boolean })?.smsAlerts ?? true;
   const sttProvider = String((assistant.routing as { sttProvider?: string })?.sttProvider ?? "");
@@ -143,6 +153,78 @@ export default async function AssistantSettingsPage({
         )}
       </SectionCard>
 
+      <SectionCard
+        title="Knowledge sources"
+        subtitle="Import websites and PDFs. Each is processed to Markdown the assistant reads on calls."
+      >
+        <div className="space-y-4">
+          {sources.length > 0 && (
+            <ul className="space-y-2">
+              {sources.map((s) => (
+                <li
+                  key={s.id}
+                  className="flex items-center justify-between gap-3 rounded-lg border border-neutral-200 px-3 py-2.5"
+                >
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-medium text-neutral-800">
+                      {s.kind === "website" ? "🌐" : "📄"} {s.title}
+                    </div>
+                    <div className="truncate text-xs text-neutral-400">
+                      {s.url ?? s.kind} · {(s.charCount / 1000).toFixed(1)}k chars
+                    </div>
+                  </div>
+                  <form action={removeKnowledgeSourceAction}>
+                    <input type="hidden" name="id" value={assistant.id} />
+                    <input type="hidden" name="source_id" value={s.id} />
+                    <button
+                      type="submit"
+                      className="inline-flex h-8 shrink-0 items-center rounded-lg border border-rose-200 bg-white px-3 text-xs font-medium text-rose-600 transition-colors hover:bg-rose-50"
+                    >
+                      Remove
+                    </button>
+                  </form>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <form action={addWebsiteKnowledgeAction} className="flex flex-col gap-2 sm:flex-row sm:items-end">
+            <input type="hidden" name="id" value={assistant.id} />
+            <div className="flex-1">
+              <label htmlFor="kn_url" className={labelCls}>Import from website</label>
+              <input id="kn_url" name="url" type="url" required placeholder="https://yourbusiness.com/about" className={field} />
+            </div>
+            <button
+              type="submit"
+              className="inline-flex h-[38px] shrink-0 items-center justify-center rounded-lg bg-neutral-900 px-4 text-sm font-medium text-white transition-colors hover:bg-neutral-800"
+            >
+              Import
+            </button>
+          </form>
+
+          <form action={addPdfKnowledgeAction} className="flex flex-col gap-2 sm:flex-row sm:items-end">
+            <input type="hidden" name="id" value={assistant.id} />
+            <div className="flex-1">
+              <label htmlFor="kn_pdf" className={labelCls}>Upload a PDF</label>
+              <input
+                id="kn_pdf"
+                name="pdf"
+                type="file"
+                accept="application/pdf"
+                required
+                className={`${field} file:mr-3 file:rounded-md file:border-0 file:bg-neutral-100 file:px-3 file:py-1 file:text-sm file:text-neutral-700`}
+              />
+            </div>
+            <button
+              type="submit"
+              className="inline-flex h-[38px] shrink-0 items-center justify-center rounded-lg border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50"
+            >
+              Upload
+            </button>
+          </form>
+        </div>
+      </SectionCard>
+
       <form action={updateAssistantAction} className="space-y-4">
         <input type="hidden" name="id" value={assistant.id} />
 
@@ -236,6 +318,50 @@ export default async function AssistantSettingsPage({
                   })}
                 </div>
               )}
+            </SectionCard>
+
+            <SectionCard title="Email transcripts" subtitle="Email a recap and full transcript after each call.">
+              <div className="space-y-3">
+                <label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-neutral-200 px-4 py-3 transition-colors hover:border-neutral-300">
+                  <span>
+                    <span className="block text-sm font-medium text-neutral-800">Send email transcripts</span>
+                    <span className="block text-xs text-neutral-400">After every call, email a summary and the full transcript.</span>
+                  </span>
+                  <input type="checkbox" name="email_enabled" defaultChecked={emailCfg.enabled ?? false} className="peer sr-only" />
+                  <span className="relative h-5 w-9 shrink-0 rounded-full bg-neutral-200 transition-colors peer-checked:bg-violet-600 after:absolute after:left-0.5 after:top-0.5 after:h-4 after:w-4 after:rounded-full after:bg-white after:shadow-sm after:transition-all after:content-[''] peer-checked:after:translate-x-4" />
+                </label>
+                <div>
+                  <label htmlFor="email_to" className={labelCls}>Send to</label>
+                  <input id="email_to" name="email_to" type="email" defaultValue={emailCfg.to ?? ""} placeholder="you@business.com" className={field} />
+                  <p className="mt-1.5 text-xs text-neutral-400">
+                    Sending activates once an email provider (RESEND_API_KEY + EMAIL_FROM) is configured on the server.
+                  </p>
+                </div>
+              </div>
+            </SectionCard>
+
+            <SectionCard title="CRM / ERP push" subtitle="POST each completed call to your own system for deeper automation.">
+              <div className="space-y-3">
+                <label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-neutral-200 px-4 py-3 transition-colors hover:border-neutral-300">
+                  <span>
+                    <span className="block text-sm font-medium text-neutral-800">Push calls to a CRM / ERP</span>
+                    <span className="block text-xs text-neutral-400">Sends summary + transcript as JSON to your endpoint (Salesforce, HubSpot, Zapier, n8n, custom).</span>
+                  </span>
+                  <input type="checkbox" name="crm_enabled" defaultChecked={crmCfg.enabled ?? false} className="peer sr-only" />
+                  <span className="relative h-5 w-9 shrink-0 rounded-full bg-neutral-200 transition-colors peer-checked:bg-violet-600 after:absolute after:left-0.5 after:top-0.5 after:h-4 after:w-4 after:rounded-full after:bg-white after:shadow-sm after:transition-all after:content-[''] peer-checked:after:translate-x-4" />
+                </label>
+                <div>
+                  <label htmlFor="crm_url" className={labelCls}>Endpoint URL</label>
+                  <input id="crm_url" name="crm_url" type="url" defaultValue={crmCfg.url ?? ""} placeholder="https://hooks.zapier.com/..." className={field} />
+                </div>
+                <div>
+                  <label htmlFor="crm_secret" className={labelCls}>Signing secret (optional)</label>
+                  <input id="crm_secret" name="crm_secret" defaultValue={crmCfg.secret ?? ""} placeholder="Used to HMAC-sign the payload" className={field} />
+                  <p className="mt-1.5 text-xs text-neutral-400">
+                    When set, we send an <code className="rounded bg-neutral-100 px-1">X-Signature</code> header: HMAC-SHA256 of the request body.
+                  </p>
+                </div>
+              </div>
             </SectionCard>
           </div>
 

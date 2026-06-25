@@ -1,3 +1,4 @@
+import { renderKnowledgeMarkdown } from "../../knowledge/sources";
 import type { IntegrationConfig, NumberConfig } from "../types";
 
 // Builds the system prompt for a call from the number's configuration. The
@@ -55,7 +56,7 @@ function calendarSection(
 }
 
 export function buildSystemPrompt(config: NumberConfig): string {
-  const knowledge = JSON.stringify(config.knowledge ?? {}, null, 0);
+  const knowledge = renderKnowledgeMarkdown(config.knowledge);
   const routing = JSON.stringify(config.routing ?? {}, null, 0);
   const hasCalendar = config.integrations.some((i) => i.type === "calendar");
 
@@ -84,7 +85,10 @@ export function buildSystemPrompt(config: NumberConfig): string {
     "- Transfer to a human with transfer_call when the routing rules require it or the caller insists.",
     "- End the call with end_call once everything is handled and goodbyes are said.",
     "",
-    `BUSINESS KNOWLEDGE (JSON): ${knowledge}`,
+    "",
+    "BUSINESS KNOWLEDGE:",
+    knowledge.trim() ? knowledge : "(none provided yet)",
+    "",
     `ROUTING RULES (JSON): ${routing}`,
   ];
 

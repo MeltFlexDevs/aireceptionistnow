@@ -196,10 +196,10 @@ export class SupabaseCallRepository implements CallRepository {
 
   async getCallForSummary(
     callId: string,
-  ): Promise<{ config: NumberConfig; turns: TranscriptTurn[] } | null> {
+  ): Promise<{ config: NumberConfig; turns: TranscriptTurn[]; from: string } | null> {
     const { data: call, error } = await db()
       .from("calls")
-      .select("to_number")
+      .select("to_number, from_number")
       .eq("id", callId)
       .maybeSingle();
     if (error) throw error;
@@ -216,6 +216,7 @@ export class SupabaseCallRepository implements CallRepository {
 
     return {
       config,
+      from: String(call.from_number ?? ""),
       turns: (turns ?? []).map((t) => ({
         role: t.role as TranscriptTurn["role"],
         text: String(t.text),

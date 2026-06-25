@@ -1,5 +1,6 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { buildConnectResponse } from "@/lib/call-engine/pickup";
@@ -17,7 +18,16 @@ import {
   setNumberAssistant,
   softDeleteNumber,
   updateAssistant,
+  updateAssistantKnowledge,
 } from "@/lib/dashboard/db";
+import { fetchWebsiteMarkdown } from "@/lib/knowledge/website";
+import { parsePdfMarkdown } from "@/lib/knowledge/pdf";
+import {
+  addSource,
+  readKnowledge,
+  removeSource,
+  type KnowledgeSource,
+} from "@/lib/knowledge/sources";
 import {
   buyTwilioNumber,
   ensureTwilioNumber,
@@ -83,6 +93,24 @@ export async function updateAssistantAction(formData: FormData): Promise<void> {
     routing.sttProvider = sttProvider;
   }
 
+  // Email transcripts (optional). Stored even when sending isn't wired yet.
+  const emailTo = String(formData.get("email_to") ?? "").trim();
+  if (formData.get("email_enabled") === "on" && emailTo) {
+    routing.emailTranscripts = { enabled: true, to: emailTo };
+  }
+
+  // CRM / ERP push (optional).
+  const crmUrl = String(formData.get("crm_url") ?? "").trim();
+  if (formData.get("crm_enabled") === "on" && crmUrl) {
+    const crmSecret = String(formData.get("crm_secret") ?? "").trim();
+    routing.crm = { enabled: true, url: crmUrl, ...(crmSecret ? { secret: crmSecret } : {}) };
+  }
+
+  // Preserve any ingested knowledge sources; only the notes field is edited here.
+  const existing = await getAssistant(id).catch(() => null);
+  const knowledge = readKnowledge(existing?.knowledge);
+  knowledge.notes = notes;
+
   try {
     await updateAssistant(id, {
       name: String(formData.get("name") ?? "").trim() || "My assistant",
@@ -90,7 +118,7 @@ export async function updateAssistantAction(formData: FormData): Promise<void> {
       system_prompt: String(formData.get("system_prompt") ?? "").trim(),
       voice_id: String(formData.get("voice_id") ?? "").trim(),
       language: String(formData.get("language") ?? "en").trim() || "en",
-      knowledge: notes ? { notes } : {},
+      knowledge: { ...knowledge },
       routing,
     });
   } catch (err) {
@@ -125,6 +153,105 @@ export async function deleteAssistantAction(formData: FormData): Promise<void> {
     revalidatePath("/dashboard/assistant");
   }
   redirect("/dashboard/assistant");
+}
+
+// ── Knowledge sources (website + PDF → markdown) ────────────────────────────
+
+/** Confirm the signed-in user owns this assistant (when auth is configured). */
+async function ownedAssistantOrRedirect(id: string) {
+  const assistant = await getAssistant(id).catch(() => null);
+  if (!assistant) redirect("/dashboard/assistant");
+  const ownerId = await currentUserId();
+  if (ownerId && assistant.owner_id && assistant.owner_id !== ownerId) {
+    redirect("/dashboard/assistant");
+  }
+  return assistant;
+}
+
+function knowledgeError(id: string, message: string): never {
+  redirect(`/dashboard/assistant/${id}?error=${encodeURIComponent(message)}`);
+}
+
+export async function addWebsiteKnowledgeAction(formData: FormData): Promise<void> {
+  const id = String(formData.get("id") ?? "");
+  if (!id) redirect("/dashboard/assistant");
+  const url = String(formData.get("url") ?? "").trim();
+  if (!url) knowledgeError(id, "Enter a URL to import.");
+
+  const assistant = await ownedAssistantOrRedirect(id);
+
+  let source: KnowledgeSource;
+  try {
+    const result = await fetchWebsiteMarkdown(url);
+    source = {
+      id: randomUUID(),
+      kind: "website",
+      title: result.title,
+      url,
+      markdown: result.markdown,
+      charCount: result.charCount,
+      addedAt: new Date().toISOString(),
+    };
+  } catch (err) {
+    knowledgeError(id, (err as Error).message);
+  }
+
+  const next = addSource(readKnowledge(assistant.knowledge), source);
+  await updateAssistantKnowledge(id, { ...next }).catch((err) =>
+    knowledgeError(id, (err as Error).message),
+  );
+
+  revalidatePath(`/dashboard/assistant/${id}`);
+  redirect(`/dashboard/assistant/${id}?saved=1`);
+}
+
+export async function addPdfKnowledgeAction(formData: FormData): Promise<void> {
+  const id = String(formData.get("id") ?? "");
+  if (!id) redirect("/dashboard/assistant");
+
+  const file = formData.get("pdf");
+  if (!(file instanceof File) || file.size === 0) knowledgeError(id, "Choose a PDF file to upload.");
+  if (file.type && file.type !== "application/pdf") knowledgeError(id, "That file isn't a PDF.");
+
+  const assistant = await ownedAssistantOrRedirect(id);
+
+  let source: KnowledgeSource;
+  try {
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const result = await parsePdfMarkdown(bytes);
+    source = {
+      id: randomUUID(),
+      kind: "pdf",
+      title: file.name.replace(/\.pdf$/i, "") || "Document",
+      markdown: result.markdown,
+      charCount: result.charCount,
+      addedAt: new Date().toISOString(),
+    };
+  } catch (err) {
+    knowledgeError(id, (err as Error).message);
+  }
+
+  const next = addSource(readKnowledge(assistant.knowledge), source);
+  await updateAssistantKnowledge(id, { ...next }).catch((err) =>
+    knowledgeError(id, (err as Error).message),
+  );
+
+  revalidatePath(`/dashboard/assistant/${id}`);
+  redirect(`/dashboard/assistant/${id}?saved=1`);
+}
+
+export async function removeKnowledgeSourceAction(formData: FormData): Promise<void> {
+  const id = String(formData.get("id") ?? "");
+  const sourceId = String(formData.get("source_id") ?? "");
+  if (!id) redirect("/dashboard/assistant");
+  if (!sourceId) redirect(`/dashboard/assistant/${id}`);
+
+  const assistant = await ownedAssistantOrRedirect(id);
+  const next = removeSource(readKnowledge(assistant.knowledge), sourceId);
+  await updateAssistantKnowledge(id, { ...next }).catch(() => {});
+
+  revalidatePath(`/dashboard/assistant/${id}`);
+  redirect(`/dashboard/assistant/${id}?saved=1`);
 }
 
 // ── Phone number for an assistant ───────────────────────────────────────────
