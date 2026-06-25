@@ -17,7 +17,7 @@ const ctaStyle: CSSProperties = {
   background: "#000", color: "#fff", border: "1.5px solid #000",
   borderRadius: "20px", fontSize: "12px", fontWeight: 400, textDecoration: "none",
   letterSpacing: "0.06em", transition: "all 0.25s", cursor: "pointer",
-  fontFamily: "var(--font-inter), Inter, sans-serif",
+  fontFamily: "var(--font-inter), Inter, sans-serif", whiteSpace: "nowrap",
 };
 
 export default function SiteHeader() {
@@ -58,7 +58,7 @@ export default function SiteHeader() {
   }, []);
 
   return (
-    <header style={{
+    <header className="site-header" style={{
       position: "fixed", top: 0, left: 0, right: 0, zIndex: 60,
       height: "56px", display: "flex", alignItems: "center", justifyContent: "space-between",
       padding: "0 40px",
@@ -66,15 +66,28 @@ export default function SiteHeader() {
       boxShadow: "none",
       transition: "background 0.3s, box-shadow 0.3s",
     }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "32px" }}>
+      <style>{`
+        @media (max-width: 600px) {
+          .site-header { padding-left: 14px !important; padding-right: 14px !important; }
+          .site-header-left { gap: 14px !important; }
+          .site-header-logo { font-size: 15px !important; }
+          .site-header-cta { padding: 0 13px !important; letter-spacing: 0.02em !important; }
+          .site-header-signin { padding: 0 8px !important; }
+        }
+        @media (max-width: 380px) {
+          .site-header-pricing { display: none !important; }
+        }
+      `}</style>
+      <div className="site-header-left" style={{ display: "flex", alignItems: "center", gap: "32px" }}>
         <a href="/" style={{ display: "flex", alignItems: "center", gap: "6px", textDecoration: "none", color: "#000" }}>
           <PauseLogo color="#000" />
-          <span style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontWeight: 500, fontSize: "18px", letterSpacing: "-0.02em" }}>
+          <span className="site-header-logo" style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontWeight: 500, fontSize: "18px", letterSpacing: "-0.02em", whiteSpace: "nowrap" }}>
             AI RECEPTIONIST
           </span>
         </a>
         <a
           href="/pricing"
+          className="site-header-pricing"
           style={{
             color: "#000", fontSize: "12px", fontWeight: 400,
             letterSpacing: "0.06em", textDecoration: "none",
@@ -86,7 +99,7 @@ export default function SiteHeader() {
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
         {signedIn ? (
-          <a href="/dashboard" style={ctaStyle}>
+          <a href="/dashboard" className="site-header-cta" style={ctaStyle}>
             DASHBOARD
           </a>
         ) : (
@@ -94,16 +107,17 @@ export default function SiteHeader() {
             <button
               type="button"
               onClick={() => open("login")}
+              className="site-header-signin"
               style={{
                 height: "36px", padding: "0 14px", background: "transparent",
                 border: "none", color: "#000", fontSize: "12px", fontWeight: 400,
-                letterSpacing: "0.06em", cursor: "pointer",
+                letterSpacing: "0.06em", cursor: "pointer", whiteSpace: "nowrap",
                 fontFamily: "var(--font-inter), Inter, sans-serif",
               }}
             >
               SIGN IN
             </button>
-            <button type="button" onClick={() => open("signup")} style={ctaStyle}>
+            <button type="button" onClick={() => open("signup")} className="site-header-cta" style={ctaStyle}>
               START FREE TRIAL
             </button>
           </>
