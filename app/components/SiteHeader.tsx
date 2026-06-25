@@ -28,7 +28,7 @@ export default function SiteHeader() {
       transition: "background 0.3s, box-shadow 0.3s",
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: "32px" }}>
-        <a href="/" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none", color: "#000" }}>
+        <a href="/" style={{ display: "flex", alignItems: "center", gap: "6px", textDecoration: "none", color: "#000" }}>
           <PauseLogo color="#000" />
           <span style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontWeight: 500, fontSize: "18px", letterSpacing: "-0.02em" }}>
             AI RECEPTIONIST
