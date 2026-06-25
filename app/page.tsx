@@ -143,100 +143,155 @@ export default function Home() {
           font-family: var(--font-inter), Inter, sans-serif;
           margin: 0;
         }
-        /* How it works (Fonio 1:1 layout, our font) */
-        .container {
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 0 40px;
+        /* How it works — Fonio 1:1 (exact CSS, our font) */
+        .hiw-vars {
+          --hiw-secondary-text: #555b6e;
+          --hiw-primary-text: #0f0f16;
+          --hiw-secondary-bg: #f7f8fc;
+          --hiw-border: #e1e3f4;
+          --hiw-card-radius: 12px;
+          --hiw-small-radius: 10px;
+          --hiw-max-container: 80rem;
+          --hiw-margin-desktop: 4rem;
         }
-        .section-header.width-40rem {
+        .hiw-vars .container {
+          z-index: 1;
+          width: 100%;
+          max-width: var(--hiw-max-container);
+          padding-left: var(--hiw-margin-desktop);
+          padding-right: var(--hiw-margin-desktop);
+          margin-left: auto;
+          margin-right: auto;
+          display: block;
+        }
+        .hiw-vars .section-header { margin-bottom: 2rem; }
+        .hiw-vars .section-header.align-center { text-align: center; }
+        .hiw-vars .section-header.align-center.width-40rem {
+          width: 40rem;
           max-width: 40rem;
-        }
-        .section-header.align-center {
-          text-align: center;
           margin-left: auto;
           margin-right: auto;
         }
-        .section-header .h2 {
+        .hiw-vars .h2 {
           font-family: var(--font-inter), Inter, sans-serif;
-          font-size: clamp(28px, 3.5vw, 42px);
-          font-weight: 300;
-          letter-spacing: -0.025em;
-          color: #111;
-          margin: 0 0 12px;
-        }
-        .section-header > p {
-          font-size: 16px;
-          color: #888;
-          font-weight: 300;
-          line-height: 1.6;
-          margin: 0;
-        }
-        ._4rem-margin-top { margin-top: 4rem; }
-        ._0-5rem-margin-top { margin-top: 1.25rem; }
-        .grid_3col {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 2rem;
-        }
-        .how-it-works_card {
-          display: flex;
-          flex-direction: column;
-        }
-        .steps-heading_wrapper {
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-          margin-bottom: 0.75rem;
-        }
-        .card-icon_wrapper {
-          width: 2.5rem;
-          height: 2.5rem;
-          border: 1px solid #e6e6e6;
-          border-radius: 0.625rem;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 0.875rem;
-          font-weight: 400;
-          color: #111;
-          flex-shrink: 0;
-        }
-        .text-size-big.inline-text {
-          font-size: 1.125rem;
+          text-wrap: balance;
+          margin-bottom: 1rem;
+          font-size: 2.5rem;
           font-weight: 500;
-          color: #111;
-          line-height: 1.3;
+          line-height: 1.1;
+          color: var(--hiw-primary-text);
+        }
+        .hiw-vars .section-header > p {
+          color: var(--hiw-secondary-text);
           margin: 0;
         }
-        .text-color-secondary {
-          color: #888;
-          font-size: 0.95rem;
-          font-weight: 300;
-          line-height: 1.6;
-          margin: 0;
+        .hiw-vars ._4rem-margin-top { margin-top: 4rem; }
+        .hiw-vars ._0-5rem-margin-top { margin-top: 0.5rem; }
+        .hiw-vars .grid_3col {
+          grid-column-gap: 16px;
+          grid-row-gap: 16px;
+          grid-template-columns: 1fr 1fr 1fr;
+          grid-auto-columns: 1fr;
+          display: grid;
         }
-        .flex-vertical-stretch.space-between {
+        .hiw-vars .how-it-works_card {
+          border: 1px solid var(--hiw-border);
+          border-radius: var(--hiw-card-radius);
+          flex-flow: column;
+          justify-content: space-between;
+          align-items: stretch;
+          height: 100%;
           display: flex;
-          flex-direction: column;
         }
-        .bg-image-frame.is-how-it-works {
-          background: #f4f4f5;
-          border-radius: 0.875rem;
+        .hiw-vars .steps-text_container {
+          grid-column-gap: 0.5rem;
+          grid-row-gap: 0.5rem;
+          flex-flow: column;
+          padding: 2rem 2rem 0;
+          display: flex;
+        }
+        .hiw-vars .steps-heading_wrapper {
+          flex-flow: column;
+          font-weight: 500;
+          display: flex;
+        }
+        .hiw-vars .card-icon_wrapper {
+          border-radius: var(--hiw-small-radius);
+          background-color: var(--hiw-secondary-bg);
+          justify-content: center;
+          align-items: center;
+          width: 2rem;
+          height: 2rem;
+          margin-bottom: 1rem;
+          display: flex;
+        }
+        .hiw-vars .text-size-big {
+          font-size: 1.25rem;
+          line-height: 1.25;
+          margin-bottom: 0;
+        }
+        .hiw-vars .inline-text { display: inline; }
+        .hiw-vars .text-color-secondary { color: var(--hiw-secondary-text); }
+        .hiw-vars .flex-vertical-stretch {
+          grid-column-gap: 1rem;
+          grid-row-gap: 1rem;
+          flex-flow: column;
+          display: flex;
+          position: relative;
+        }
+        .hiw-vars .flex-vertical-stretch.space-between {
+          grid-column-gap: 0;
+          grid-row-gap: 0;
+          justify-content: space-between;
+          height: 100%;
+        }
+        .hiw-vars .bg-image-frame {
+          background-color: var(--hiw-secondary-bg);
+          background-image: url(https://cdn.prod.website-files.com/66cdd640b6eaf9b4ea2f21c8/6989e6db045752228c165493_Half-Circle_BG.webp);
+          background-position: 50% 100%;
+          background-repeat: no-repeat;
+          background-size: 100% 120%;
+          border-radius: 12px;
+          justify-content: center;
+          align-items: center;
+          display: flex;
           overflow: hidden;
-          margin-top: 0.25rem;
         }
-        .bleed-image {
+        .hiw-vars .bg-image-frame.is-how-it-works {
+          background-color: #fff0;
+          flex: 1;
+          min-height: 300px;
           display: block;
-          width: 100%;
-          height: auto;
+          position: relative;
+        }
+        .hiw-vars .bleed-image {
+          border-radius: var(--hiw-card-radius);
+          width: 95%;
+          height: 95%;
+          box-shadow: 0 -2px 9px 0 #393a4d14;
+          object-fit: cover;
+          object-position: 0% 0%;
+          display: block;
+          position: absolute;
+          inset: 2rem -5% -5% auto;
+        }
+        .hiw-vars .bleed-image.is-active-phone-call {
+          border: 3px solid var(--hiw-primary-text);
+          border-radius: 18px;
+          width: auto;
+          height: 120%;
+          margin-left: auto;
+          margin-right: auto;
+          left: 0;
+          right: 0;
         }
         @media (max-width: 991px) {
-          .grid_3col { grid-template-columns: 1fr; gap: 2.5rem; }
+          .hiw-vars .grid_3col { flex-flow: column; display: flex; }
+          .hiw-vars .section-header.align-center.width-40rem { width: auto; }
+          .hiw-vars .h2 { font-size: 1.75rem; line-height: 1.25; }
         }
         @media (max-width: 767px) {
-          .container { padding: 0 16px; }
-          ._4rem-margin-top { margin-top: 2.5rem; }
+          .hiw-vars .container { padding-left: 5%; padding-right: 5%; }
         }
         .reviews-masonry {
           columns: 4;
@@ -418,7 +473,7 @@ export default function Home() {
       </section>
 
       {/* ── HOW IT WORKS ── */}
-      <section id="how-it-works" style={{ padding: "100px 0" }}>
+      <section id="how-it-works" className="section hiw-vars" style={{ padding: "100px 0" }}>
         <div className="container">
           <div className="section-header align-center width-40rem">
             <h2 className="h2">Ready to go in under 10 minutes.</h2>
