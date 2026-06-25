@@ -34,16 +34,6 @@ export default function SiteHeader() {
             AI RECEPTIONIST
           </span>
         </a>
-        <nav style={{ display: "flex", gap: "24px" }}>
-          {[
-            { label: "Features", href: "/#features" },
-            { label: "How it works", href: "/#how-it-works" },
-          ].map((l) => (
-            <a key={l.label} href={l.href} style={{ color: "#333", fontSize: "14px", fontWeight: 400, textDecoration: "none", transition: "color 0.15s" }}>
-              {l.label}
-            </a>
-          ))}
-        </nav>
       </div>
       <a href="/dashboard" style={{
         display: "inline-flex", alignItems: "center", height: "36px", padding: "0 20px",

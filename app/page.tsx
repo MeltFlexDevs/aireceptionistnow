@@ -130,24 +130,44 @@ const reviews = [
 
 const faqs = [
   {
-    q: "How quickly can I get AI Receptionist up and running?",
-    a: "Setup takes under 10 minutes. Describe your business, choose your preferences, and the AI is ready to take calls immediately. No coding or technical skills required.",
+    q: "What is an AI receptionist?",
+    a: "An AI receptionist is a virtual phone assistant that answers your business calls automatically, 24/7. It greets callers in a natural voice, answers questions, qualifies leads, books appointments, and sends you a summary of every call — so you never miss a customer, even after hours or during busy periods.",
+  },
+  {
+    q: "How does an AI phone answering service work?",
+    a: "AI Receptionist connects to a dedicated phone number or your existing business line. When someone calls, the AI picks up instantly, holds a natural conversation, and follows the instructions you set up — answering FAQs, capturing caller details, routing the call, or scheduling appointments directly into your calendar. You get a transcript and summary by email or text after each call.",
+  },
+  {
+    q: "Can the AI receptionist answer calls 24/7?",
+    a: "Yes. AI Receptionist answers every call around the clock — nights, weekends, holidays, and during call overflow — with no hold times and no voicemail. Businesses that switch typically stop losing leads to missed and after-hours calls within the first week.",
+  },
+  {
+    q: "How quickly can I set up AI Receptionist?",
+    a: "Setup takes under 10 minutes. Describe your business, choose a voice and language, set how calls should be handled, and the AI is ready to take calls the same day. No coding or technical skills required.",
   },
   {
     q: "Will callers know they're talking to an AI?",
-    a: "Our AI sounds natural and conversational. Many customers report that callers can't tell the difference. You can also configure the AI to be transparent about being an assistant.",
+    a: "The AI sounds natural and conversational, and many callers can't tell the difference. You stay in control: you can have the AI introduce itself as a virtual assistant or keep the experience seamless — whatever fits your brand.",
+  },
+  {
+    q: "Can it book appointments and integrate with my calendar and CRM?",
+    a: "Yes. AI Receptionist books appointments during the call and integrates natively with Google Calendar, Outlook, HubSpot, Salesforce, and Calendly, plus thousands of apps through Zapier. Custom integrations are available via our open API, so caller data flows straight into the tools you already use.",
+  },
+  {
+    q: "What languages does the AI receptionist support?",
+    a: "The AI handles calls in 30+ languages and can switch languages mid-conversation based on the caller — ideal for businesses that serve multilingual customers and want every caller to feel understood.",
   },
   {
     q: "What happens if the AI can't handle a call?",
-    a: "The AI makes decisions based on the context you provide, which eliminates most issues. If it can't resolve a situation, it can schedule a callback or transfer the call to you directly.",
+    a: "The AI makes decisions from the context you provide, which resolves the vast majority of calls on its own. If a request falls outside its scope, it can capture the details, schedule a callback, or transfer the call to you or a team member in real time.",
   },
   {
-    q: "Does it integrate with my existing calendar and CRM?",
-    a: "Yes. AI Receptionist integrates natively with Google Calendar, Outlook, HubSpot, Salesforce, Calendly, and many more. Custom integrations available via our API.",
+    q: "How much does an AI receptionist cost?",
+    a: "You can start for free and only upgrade when you need more calls or features. An AI receptionist costs a fraction of hiring front-desk staff or an answering service, while answering every call 24/7 — most businesses recover the cost from the extra booked jobs and recovered missed calls.",
   },
   {
     q: "Is my data secure?",
-    a: "All call data is encrypted in transit and at rest. We comply with GDPR and HIPAA requirements. Your data is never shared with third parties or used to train AI models.",
+    a: "Yes. All call data is encrypted in transit and at rest. We comply with GDPR and HIPAA requirements, and your data is never sold, shared with third parties, or used to train external AI models.",
   },
 ];
 
@@ -644,6 +664,20 @@ export default function Home() {
 
       {/* ── FAQ ── */}
       <section style={{ padding: "100px 0" }}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "FAQPage",
+              mainEntity: faqs.map((faq) => ({
+                "@type": "Question",
+                name: faq.q,
+                acceptedAnswer: { "@type": "Answer", text: faq.a },
+              })),
+            }),
+          }}
+        />
         <div style={{ maxWidth: "760px", margin: "0 auto", padding: "0 40px" }}>
           <div style={{ textAlign: "center", marginBottom: "56px" }}>
             <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#111" }}>
