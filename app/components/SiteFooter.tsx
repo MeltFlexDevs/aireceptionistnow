@@ -16,7 +16,7 @@ export default function SiteFooter() {
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
               <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", fontWeight: 400, letterSpacing: "0.08em", textTransform: "uppercase" }}>Product</span>
               <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
-                {[{ label: "Features", href: "/#features" }, { label: "How it works", href: "/#how-it-works" }, { label: "Pricing", href: "/#pricing" }, { label: "Integrations", href: "#" }, { label: "API Access", href: "#" }].map((l) => (
+                {[{ label: "Features", href: "/#features" }, { label: "How it works", href: "/#how-it-works" }, { label: "API Access", href: "#" }].map((l) => (
                   <li key={l.label}><a href={l.href} style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.01em" }}>{l.label}</a></li>
                 ))}
               </ul>
@@ -39,7 +39,7 @@ export default function SiteFooter() {
             </div>
           </nav>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "32px" }}>
-            <a href="/#pricing" style={{ display: "inline-flex", alignItems: "center", height: "36px", padding: "0 20px", background: "#fff", color: "#000", borderRadius: "20px", fontSize: "12px", fontWeight: 400, textDecoration: "none", letterSpacing: "0.05em" }}>
+            <a href="/dashboard" style={{ display: "inline-flex", alignItems: "center", height: "36px", padding: "0 20px", background: "#fff", color: "#000", borderRadius: "20px", fontSize: "12px", fontWeight: 400, textDecoration: "none", letterSpacing: "0.05em" }}>
               START FREE TRIAL
             </a>
           </div>

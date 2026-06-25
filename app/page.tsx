@@ -595,7 +595,7 @@ export default function Home() {
                 Our AI phone assistant adapts flexibly to your needs and integrates with your calendar and CRM. Automated calls that make sense.
               </p>
             </div>
-            <a href="#pricing" style={{ display: "inline-flex", alignItems: "center", height: "42px", padding: "0 22px", background: "#fff", color: "#000", borderRadius: "20px", fontSize: "13px", fontWeight: 400, textDecoration: "none", letterSpacing: "0.02em", transition: "opacity 0.2s", flexShrink: 0 }}
+            <a href="/dashboard" style={{ display: "inline-flex", alignItems: "center", height: "42px", padding: "0 22px", background: "#fff", color: "#000", borderRadius: "20px", fontSize: "13px", fontWeight: 400, textDecoration: "none", letterSpacing: "0.02em", transition: "opacity 0.2s", flexShrink: 0 }}
               onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.opacity = "0.85")}
               onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.opacity = "1")}
             >
@@ -621,91 +621,18 @@ export default function Home() {
                   if (arrow) { arrow.style.opacity = "0"; arrow.style.transform = "translate(0, 0)"; }
                 }}
               >
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "18px" }}>
-                  <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: "rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "14px" }}>
+                  <div style={{ width: "44px", height: "44px", flexShrink: 0, borderRadius: "12px", background: "rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
                     <UseCaseIcon name={uc.icon} />
                   </div>
+                  <h3 style={{ fontSize: "15px", fontWeight: 500, color: "#fff", letterSpacing: "-0.01em", margin: 0 }}>{uc.title}</h3>
                   {uc.link && (
-                    <span data-arrow style={{ display: "inline-flex", color: "#fff", opacity: 0, transform: "translate(0, 0)", transition: "opacity 0.2s, transform 0.2s" }}>
+                    <span data-arrow style={{ display: "inline-flex", marginLeft: "auto", color: "#fff", opacity: 0, transform: "translate(0, 0)", transition: "opacity 0.2s, transform 0.2s" }}>
                       <svg width="18" height="18" viewBox="0 -960 960 960" fill="currentColor"><path d="M640-624 284-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l356-356H280q-17 0-28.5-11.5T240-720q0-17 11.5-28.5T280-760h400q17 0 28.5 11.5T720-720v400q0 17-11.5 28.5T680-280q-17 0-28.5-11.5T640-320v-304Z" /></svg>
                     </span>
                   )}
                 </div>
-                <h3 style={{ fontSize: "15px", fontWeight: 500, color: "#fff", marginBottom: "8px", letterSpacing: "-0.01em" }}>{uc.title}</h3>
                 <p style={{ fontSize: "13px", color: "#888", lineHeight: 1.65, fontWeight: 300 }}>{uc.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── INTEGRATIONS ── */}
-      <section style={{ padding: "100px 0" }}>
-        <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 40px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "center" }}>
-            <div>
-              <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#111", marginBottom: "20px" }}>
-                Integrations
-              </h2>
-              <p style={{ fontSize: "16px", color: "#666", fontWeight: 300, lineHeight: 1.7, marginBottom: "28px" }}>
-                AI Receptionist connects with your existing tools — CRMs, calendar apps, and databases — via native integrations or our open API to accurately capture and retrieve data.
-              </p>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-                {["Google Calendar", "Outlook", "HubSpot", "Salesforce", "Zapier", "Calendly", "Twilio", "REST API"].map((t) => (
-                  <span key={t} style={{ background: "#f5f5f5", border: "1px solid #ebebeb", borderRadius: "20px", padding: "5px 14px", fontSize: "12px", color: "#555", fontWeight: 300 }}>{t}</span>
-                ))}
-              </div>
-            </div>
-            <div style={{ background: "#f8f8f8", borderRadius: "20px", height: "320px", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid #ebebeb" }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", padding: "24px" }}>
-                {["Google Calendar", "HubSpot", "Salesforce", "Calendly", "Outlook", "Zapier"].map((t) => (
-                  <div key={t} style={{ background: "#fff", border: "1px solid #ebebeb", borderRadius: "10px", padding: "10px 14px", fontSize: "12px", color: "#444", fontWeight: 300, textAlign: "center" }}>{t}</div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── PRICING ── */}
-      <section id="pricing" style={{ padding: "100px 0", background: "#f8f8f8" }}>
-        <div style={{ maxWidth: "960px", margin: "0 auto", padding: "0 40px" }}>
-          <div style={{ textAlign: "center", marginBottom: "56px" }}>
-            <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#111", marginBottom: "14px" }}>
-              Simple, transparent pricing
-            </h2>
-            <p style={{ fontSize: "16px", color: "#888", fontWeight: 300, lineHeight: 1.6 }}>
-              Start free. Upgrade when you need more. Cancel anytime.
-            </p>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "12px" }}>
-            {[
-              { name: "Starter", price: "$29", desc: "Perfect for small businesses getting started", features: ["100 calls / month", "Appointment booking", "Email summaries", "1 phone number", "5 languages"], cta: "Start Free Trial", hi: false },
-              { name: "Pro", price: "$79", desc: "For growing businesses with high call volume", features: ["500 calls / month", "Everything in Starter", "CRM integration", "3 phone numbers", "30+ languages", "Call routing", "Priority support"], cta: "Start Free Trial", hi: true },
-              { name: "Business", price: "$199", desc: "For teams and multi-location businesses", features: ["Unlimited calls", "Everything in Pro", "Custom voice & persona", "10 phone numbers", "API access", "Dedicated support"], cta: "Contact Sales", hi: false },
-            ].map((plan) => (
-              <div key={plan.name} style={{ borderRadius: "16px", padding: "28px", border: plan.hi ? "1.5px solid #111" : "1px solid #ececec", background: plan.hi ? "#111" : "#fff" }}>
-                {plan.hi && <div style={{ fontSize: "10px", fontWeight: 400, color: "rgba(255,255,255,0.38)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "16px" }}>Most Popular</div>}
-                <div style={{ marginBottom: "22px" }}>
-                  <div style={{ fontSize: "12px", color: plan.hi ? "rgba(255,255,255,0.38)" : "#aaa", marginBottom: "6px", letterSpacing: "0.03em" }}>{plan.name}</div>
-                  <div style={{ fontSize: "36px", fontWeight: 300, letterSpacing: "-0.03em", color: plan.hi ? "#fff" : "#111" }}>
-                    {plan.price}<span style={{ fontSize: "13px", color: plan.hi ? "rgba(255,255,255,0.28)" : "#bbb", fontWeight: 300 }}>/mo</span>
-                  </div>
-                  <p style={{ fontSize: "12px", marginTop: "8px", color: plan.hi ? "rgba(255,255,255,0.38)" : "#aaa", fontWeight: 300, lineHeight: 1.5 }}>{plan.desc}</p>
-                </div>
-                <ul style={{ listStyle: "none", padding: 0, margin: "0 0 24px 0", display: "flex", flexDirection: "column", gap: "9px" }}>
-                  {plan.features.map((f) => (
-                    <li key={f} style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: 300, color: plan.hi ? "rgba(255,255,255,0.72)" : "#666" }}>
-                      <span style={{ color: plan.hi ? "rgba(255,255,255,0.32)" : "#22c55e", fontSize: "11px", flexShrink: 0 }}>✓</span>{f}
-                    </li>
-                  ))}
-                </ul>
-                <a href="#" style={{ display: "block", textAlign: "center", padding: "11px 0", borderRadius: "20px", fontSize: "13px", fontWeight: 400, textDecoration: "none", background: plan.hi ? "#fff" : "#000", color: plan.hi ? "#000" : "#fff", transition: "opacity 0.2s" }}
-                  onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.opacity = "0.8")}
-                  onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.opacity = "1")}
-                >
-                  {plan.cta}
-                </a>
               </div>
             ))}
           </div>
@@ -743,22 +670,20 @@ export default function Home() {
 
       {/* ── CTA BANNER ── */}
       <section style={{ padding: "0 40px 100px" }}>
-        <div style={{ maxWidth: "1200px", margin: "0 auto", background: "#f8f8f8", border: "1px solid #ebebeb", borderRadius: "24px", padding: "80px 60px", textAlign: "center", position: "relative", overflow: "hidden" }}>
-          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 50% -10%, rgba(139,92,246,0.08) 0%, transparent 55%)", pointerEvents: "none" }} />
-          <div style={{ position: "relative", zIndex: 1 }}>
+        <div style={{ maxWidth: "1200px", margin: "0 auto", background: "#fff", borderRadius: "24px", padding: "80px 60px", textAlign: "center" }}>
+          <div>
             <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(24px, 3.5vw, 40px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#111", marginBottom: "16px" }}>
               Scalable call management with AI Receptionist.
             </h2>
-            <p style={{ color: "#888", fontSize: "16px", fontWeight: 300, lineHeight: 1.65, maxWidth: "520px", margin: "0 auto 36px" }}>
-              Try AI Receptionist and see how our AI automates your calls to reduce strain on your team — simple, efficient, and around the clock.
+            <p style={{ color: "#888", fontSize: "16px", fontWeight: 300, lineHeight: 1.65, maxWidth: "560px", margin: "0 auto 36px" }}>
+              Try AI Receptionist and see how our AI phone assistant automates your calls to reduce strain on your team. It&apos;s simple, efficient, and around the clock.
             </p>
-            <a href="#pricing" style={{ display: "inline-flex", alignItems: "center", height: "46px", padding: "0 28px", background: "#000", color: "#fff", borderRadius: "23px", fontSize: "14px", fontWeight: 400, textDecoration: "none", transition: "opacity 0.2s" }}
+            <a href="/dashboard" style={{ display: "inline-flex", alignItems: "center", height: "46px", padding: "0 28px", background: "#000", color: "#fff", borderRadius: "23px", fontSize: "14px", fontWeight: 400, textDecoration: "none", transition: "opacity 0.2s" }}
               onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.opacity = "0.88")}
               onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.opacity = "1")}
             >
-              Start Free Trial →
+              Create your own AI now
             </a>
-            <p style={{ color: "#bbb", fontSize: "12px", marginTop: "14px", fontWeight: 300 }}>No credit card required.</p>
           </div>
         </div>
       </section>

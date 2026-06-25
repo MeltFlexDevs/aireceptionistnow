@@ -38,7 +38,6 @@ export default function SiteHeader() {
           {[
             { label: "Features", href: "/#features" },
             { label: "How it works", href: "/#how-it-works" },
-            { label: "Pricing", href: "/#pricing" },
           ].map((l) => (
             <a key={l.label} href={l.href} style={{ color: "#333", fontSize: "14px", fontWeight: 400, textDecoration: "none", transition: "color 0.15s" }}>
               {l.label}
@@ -46,7 +45,7 @@ export default function SiteHeader() {
           ))}
         </nav>
       </div>
-      <a href="/#pricing" style={{
+      <a href="/dashboard" style={{
         display: "inline-flex", alignItems: "center", height: "36px", padding: "0 20px",
         background: "#000", color: "#fff",
         border: "1.5px solid #000",
