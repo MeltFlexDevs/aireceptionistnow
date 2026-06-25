@@ -199,7 +199,7 @@ export default function Home() {
 
           {/* H1 */}
           <h1 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(38px, 6.5vw, 76px)", fontWeight: 300, letterSpacing: "-0.03em", color: "#111", lineHeight: 1.04, marginBottom: "44px" }}>
-            Let our AI take care<br />of your calls
+            Let our AI take care of your calls
           </h1>
 
           {/* CTA Card */}
