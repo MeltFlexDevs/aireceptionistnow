@@ -205,7 +205,6 @@ export default function Home() {
           align-items: center;
           gap: 8px;
           background: #fff;
-          border: 1px solid #d0d0d0;
           border-radius: 10px;
           padding: 6px 16px;
         }
@@ -390,7 +389,7 @@ export default function Home() {
         <div style={{ marginBottom: "28px", position: "relative", zIndex: 2 }}>
           <div className="badge main-lp">
             <svg className="badge-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <path fill="#9a9a9a" d="M12 1.5l2.39 1.74 2.95-.02 .9 2.8 2.39 1.73-.92 2.81.92 2.81-2.39 1.73-.9 2.8-2.95-.02L12 22.5l-2.39-1.74-2.95.02-.9-2.8-2.39-1.73.92-2.81L3.37 8.55l2.39-1.73.9-2.8 2.95.02L12 1.5z" />
+              <path fill="#111" d="M12 1.5l2.39 1.74 2.95-.02 .9 2.8 2.39 1.73-.92 2.81.92 2.81-2.39 1.73-.9 2.8-2.95-.02L12 22.5l-2.39-1.74-2.95.02-.9-2.8-2.39-1.73.92-2.81L3.37 8.55l2.39-1.73.9-2.8 2.95.02L12 1.5z" />
               <path d="M8.5 12.2l2.3 2.3 4.7-4.7" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
             </svg>
             <h1 className="badge-text">AI calls made easy</h1>
