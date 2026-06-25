@@ -29,11 +29,10 @@ const SELECT =
 
 // Numbers we provisioned, mapped to when they became ours. The same e164 may
 // have a call history from a previous owner; we only own calls on/after this.
-async function fetchOwnedNumbers(businessId: string): Promise<Map<string, number>> {
+async function fetchAllNumbers(): Promise<Map<string, number>> {
   const { data, error } = await serviceClient()
     .from("phone_numbers")
-    .select("e164,created_at")
-    .eq("business_id", businessId);
+    .select("e164,created_at");
   if (error) throw error;
   const owned = new Map<string, number>();
   for (const r of data ?? []) {
@@ -152,7 +151,7 @@ export async function getCallLog(
     }
     numberIds = ownerNumbers.map((n) => n.id);
   } else {
-    owned = await fetchOwnedNumbers(businessId);
+    owned = await fetchAllNumbers();
     numberIds = undefined;
   }
 

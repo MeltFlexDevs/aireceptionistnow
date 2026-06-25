@@ -38,7 +38,7 @@ export class SupabaseCallRepository implements CallRepository {
   async resolveInboundNumber(toE164: string): Promise<NumberConfig | null> {
     const { data: num, error } = await db()
       .from("phone_numbers")
-      .select("*, businesses(name), assistant:assistants(*)")
+      .select("*, assistant:assistants(*, business:businesses(id, name))")
       .eq("e164", toE164)
       .eq("enabled", true)
       .is("deleted_at", null)
@@ -46,24 +46,41 @@ export class SupabaseCallRepository implements CallRepository {
     if (error) throw error;
     if (!num) return null;
 
+    // All call config lives on the linked assistant; the number only carries its
+    // e164 + Twilio info. Business comes from the assistant, falling back to the
+    // first business when the number is unassigned.
+    const cfg = (num.assistant as Record<string, unknown> | null) ?? {};
+    const cfgBiz = (cfg.business as { id?: string; name?: string } | null) ?? null;
+    let businessId = cfgBiz?.id ? String(cfgBiz.id) : "";
+    let businessName = cfgBiz?.name ?? "our business";
+    if (!businessId) {
+      const { data: biz } = await db()
+        .from("businesses")
+        .select("id, name")
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      if (biz) {
+        businessId = String(biz.id);
+        businessName = (biz.name as string) ?? businessName;
+      }
+    }
+
     const { data: integrations } = await db()
       .from("integrations")
       .select("*")
-      .eq("business_id", num.business_id)
+      .eq("business_id", businessId)
       .eq("enabled", true);
 
-    const business = num.businesses as { name?: string } | null;
-    // Prefer the linked assistant's config; fall back to the number's own.
-    const cfg = (num.assistant as Record<string, unknown> | null) ?? num;
     return {
       numberId: String(num.id),
-      businessId: String(num.business_id),
-      businessName: business?.name ?? "our business",
-      label: String(num.label),
+      businessId,
+      businessName,
+      label: String(cfg.name ?? businessName),
       e164: String(num.e164),
-      greeting: String(cfg.greeting ?? num.greeting),
+      greeting: String(cfg.greeting ?? "Hello, thanks for calling. How can I help?"),
       systemPrompt: String(cfg.system_prompt ?? ""),
-      voiceId: String(cfg.voice_id ?? ""),
+      voiceId: String(cfg.voice_id ?? "21m00Tcm4TlvDq8ikWAM"),
       language: String(cfg.language ?? "en"),
       knowledge: (cfg.knowledge as Record<string, unknown>) ?? {},
       routing: (cfg.routing as Record<string, unknown>) ?? {},

@@ -1,7 +1,7 @@
--- AI Receptionist — full schema.
+-- AI Receptionist — full schema (single migration).
 -- Apply with the Supabase CLI:  supabase db push  (or paste into the SQL editor).
--- The call-engine server connects with the service-role key and bypasses RLS;
--- dashboard/client access policies are added once auth is wired up.
+-- The call-engine + billing server connect with the service-role key and bypass
+-- RLS; dashboard/client policies are added as auth is wired up.
 
 create extension if not exists "pgcrypto";
 
@@ -16,9 +16,8 @@ create table if not exists businesses (
 );
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- Assistants — the voice + behavior config, independent of a phone number.
--- A phone number links to an assistant; the engine builds the call config from
--- the linked assistant (falling back to the number's own columns).
+-- Assistants — the voice + behavior config. A phone number links to an assistant
+-- and the engine builds the entire call config from it.
 -- ─────────────────────────────────────────────────────────────────────────────
 create table if not exists assistants (
   id            uuid primary key default gen_random_uuid(),
@@ -40,28 +39,21 @@ create index if not exists assistants_owner_idx on assistants (owner_id);
 create index if not exists assistants_active_idx on assistants (business_id) where deleted_at is null;
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- Phone numbers the AI answers. label = Home | Work | Organization | Personal...
--- Links to an assistant; keeps its own config columns as a fallback.
+-- Phone numbers the AI answers. Only the number + its Twilio info + the assistant
+-- it's assigned to; all behavior/voice config lives on the assistant, and the
+-- business is derived through that assistant.
 -- ─────────────────────────────────────────────────────────────────────────────
 create table if not exists phone_numbers (
   id            uuid primary key default gen_random_uuid(),
-  business_id   uuid not null references businesses(id) on delete cascade,
   assistant_id  uuid references assistants(id) on delete set null,
-  label         text not null default 'Work',
   e164          text not null unique,          -- +14155550142
   twilio_sid    text,                          -- PNxx␣ from Twilio
-  greeting      text not null default 'Hello, thanks for calling. How can I help?',
-  system_prompt text not null default '',
-  voice_id      text not null default '',
-  language      text not null default 'en',
-  knowledge     jsonb not null default '{}'::jsonb,
-  routing       jsonb not null default '{}'::jsonb,
   enabled       boolean not null default true,
   deleted_at    timestamptz,
   created_at    timestamptz not null default now()
 );
-create index if not exists phone_numbers_business_idx on phone_numbers (business_id);
-create index if not exists phone_numbers_active_idx on phone_numbers (business_id) where deleted_at is null;
+create index if not exists phone_numbers_assistant_idx on phone_numbers (assistant_id);
+create index if not exists phone_numbers_active_idx on phone_numbers (assistant_id) where deleted_at is null;
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Third-party integrations (calendar, CRM, webhook). Provider-agnostic.
@@ -130,16 +122,8 @@ create table if not exists call_actions (
 );
 create index if not exists call_actions_call_idx on call_actions (call_id);
 
--- Backfill columns on databases that were created before these were added
--- (no-ops on a fresh database, where the columns already exist above).
-alter table businesses    add column if not exists owner_id uuid references auth.users(id) on delete set null;
-alter table assistants    add column if not exists owner_id uuid references auth.users(id) on delete set null;
-alter table assistants    add column if not exists deleted_at timestamptz;
-alter table phone_numbers add column if not exists assistant_id uuid references assistants(id) on delete set null;
-alter table phone_numbers add column if not exists deleted_at timestamptz;
-
 -- Enable RLS; the server uses the service role (bypasses RLS). Dashboard
--- policies are added later once auth is wired up.
+-- policies are added as auth is wired up.
 alter table businesses     enable row level security;
 alter table assistants     enable row level security;
 alter table phone_numbers  enable row level security;
@@ -147,3 +131,138 @@ alter table integrations   enable row level security;
 alter table calls          enable row level security;
 alter table call_turns     enable row level security;
 alter table call_actions   enable row level security;
+
+-- ============================================================================
+-- Stripe billing — subscription tracking + webhook idempotency. Self-contained.
+-- Every writer is SECURITY DEFINER with EXECUTE revoked from anon/authenticated,
+-- so it can only be called with the service-role key from trusted server code.
+-- ============================================================================
+
+create table if not exists public.user_billing (
+  user_id                uuid primary key references auth.users (id) on delete cascade,
+  stripe_customer_id     text unique,
+  stripe_subscription_id text,
+  plan                   text,           -- 'solo' | 'team' | null (no subscription)
+  billing_cycle          text,           -- 'monthly' | 'annual' | null
+  status                 text,           -- Stripe subscription status, or null
+  current_period_end     timestamptz,    -- when the paid period ends / renews
+  updated_at             timestamptz not null default now()
+);
+alter table public.user_billing enable row level security;
+
+drop policy if exists "user_billing self read" on public.user_billing;
+create policy "user_billing self read"
+  on public.user_billing for select
+  to authenticated
+  using (user_id = (select auth.uid()));
+
+create table if not exists public.stripe_events (
+  id           text primary key,        -- Stripe event id (evt_…)
+  processed_at timestamptz not null default now()
+);
+alter table public.stripe_events enable row level security;  -- no policies: server-only
+
+create or replace function public.set_customer(p_user uuid, p_customer text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.user_billing (user_id, stripe_customer_id, updated_at)
+  values (p_user, p_customer, now())
+  on conflict (user_id) do update
+    set stripe_customer_id = excluded.stripe_customer_id,
+        updated_at = now();
+end;
+$$;
+
+create or replace function public.set_subscription(
+  p_user uuid,
+  p_customer text,
+  p_subscription text,
+  p_plan text,
+  p_cycle text,
+  p_status text,
+  p_current_period_end timestamptz
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.user_billing (
+    user_id, stripe_customer_id, stripe_subscription_id,
+    plan, billing_cycle, status, current_period_end, updated_at
+  )
+  values (
+    p_user, p_customer, p_subscription,
+    p_plan, p_cycle, p_status, p_current_period_end, now()
+  )
+  on conflict (user_id) do update
+    set stripe_customer_id     = coalesce(excluded.stripe_customer_id, public.user_billing.stripe_customer_id),
+        stripe_subscription_id = excluded.stripe_subscription_id,
+        plan                   = excluded.plan,
+        billing_cycle          = excluded.billing_cycle,
+        status                 = excluded.status,
+        current_period_end     = excluded.current_period_end,
+        updated_at             = now();
+end;
+$$;
+
+create or replace function public.get_billing(p_user uuid)
+returns setof public.user_billing
+language sql
+security definer
+set search_path = public
+as $$
+  select * from public.user_billing where user_id = p_user;
+$$;
+
+create or replace function public.get_user_by_customer(p_customer text)
+returns table (user_id uuid)
+language sql
+security definer
+set search_path = public
+as $$
+  select user_id from public.user_billing where stripe_customer_id = p_customer;
+$$;
+
+create or replace function public.claim_stripe_event(p_event_id text)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.stripe_events (id) values (p_event_id);
+  return true;
+exception
+  when unique_violation then
+    return false;
+end;
+$$;
+
+create or replace function public.release_stripe_event(p_event_id text)
+returns void
+language sql
+security definer
+set search_path = public
+as $$
+  delete from public.stripe_events where id = p_event_id;
+$$;
+
+revoke all on function public.set_customer(uuid, text) from public, anon, authenticated;
+revoke all on function public.set_subscription(uuid, text, text, text, text, text, timestamptz) from public, anon, authenticated;
+revoke all on function public.get_billing(uuid) from public, anon, authenticated;
+revoke all on function public.get_user_by_customer(text) from public, anon, authenticated;
+revoke all on function public.claim_stripe_event(text) from public, anon, authenticated;
+revoke all on function public.release_stripe_event(text) from public, anon, authenticated;
+
+grant execute on function public.set_customer(uuid, text) to service_role;
+grant execute on function public.set_subscription(uuid, text, text, text, text, text, timestamptz) to service_role;
+grant execute on function public.get_billing(uuid) to service_role;
+grant execute on function public.get_user_by_customer(text) to service_role;
+grant execute on function public.claim_stripe_event(text) to service_role;
+grant execute on function public.release_stripe_event(text) to service_role;

@@ -52,10 +52,6 @@ export default async function NumbersPage({
 
       <SectionCard title="Add a number" subtitle="Create a new AI phone number in one click.">
         <form action={buyNumberAction} className="flex flex-col gap-3 sm:flex-row sm:items-end">
-          <div className="sm:w-40">
-            <label htmlFor="buy_label" className="mb-1.5 block text-sm font-medium text-neutral-700">Label</label>
-            <input id="buy_label" name="buy_label" defaultValue="Work" className={field} />
-          </div>
           <div className="sm:w-48">
             <label htmlFor="country" className="mb-1.5 block text-sm font-medium text-neutral-700">Country</label>
             <select id="country" name="country" defaultValue="US" className={field}>
@@ -95,7 +91,7 @@ export default async function NumbersPage({
               className="group rounded-2xl border border-neutral-200 bg-white p-5 transition-colors hover:border-neutral-300 hover:bg-neutral-50"
             >
               <div className="flex items-center justify-between gap-2">
-                <span className="rounded-md bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-600">{n.label}</span>
+                <span className="text-base font-medium tracking-tight text-neutral-900">{n.e164}</span>
                 <span
                   className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${
                     n.enabled ? "bg-emerald-50 text-emerald-600" : "bg-neutral-100 text-neutral-500"
@@ -105,10 +101,8 @@ export default async function NumbersPage({
                   {n.enabled ? "Live" : "Off"}
                 </span>
               </div>
-              <div className="mt-3 text-base font-medium tracking-tight text-neutral-900">{n.e164}</div>
-              <p className="mt-1 line-clamp-2 text-sm text-neutral-500">{n.greeting}</p>
               <div className="mt-3 text-xs text-neutral-400">
-                {n.voice_id ? "Voice configured" : "No voice set"} · {n.language.toUpperCase()}
+                {n.assistant_id ? "Assigned to an assistant" : "Unassigned"}
               </div>
             </Link>
           ))}

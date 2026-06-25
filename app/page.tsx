@@ -176,6 +176,33 @@ export default function Home() {
   const [phone, setPhone] = useState("");
   const [dialCode, setDialCode] = useState("+1");
   const [flagOpen, setFlagOpen] = useState(false);
+  const [calling, setCalling] = useState(false);
+  const [callMsg, setCallMsg] = useState<string | null>(null);
+
+  async function placeTestCall() {
+    const to = `${dialCode}${phone.replace(/[^\d]/g, "")}`;
+    if (!/^\+[1-9]\d{6,15}$/.test(to)) {
+      setCallMsg("Enter a valid phone number.");
+      return;
+    }
+    setCalling(true);
+    setCallMsg(null);
+    try {
+      const res = await fetch("/api/test-call", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ to }),
+      });
+      const data = (await res.json()) as { ok: boolean; error?: string };
+      setCallMsg(
+        data.ok ? "Calling you now, pick up your phone!" : data.error || "Couldn't place the call.",
+      );
+    } catch {
+      setCallMsg("Couldn't place the call. Try again.");
+    } finally {
+      setCalling(false);
+    }
+  }
 
   const inter: React.CSSProperties = {
     fontFamily: "var(--font-inter), Inter, -apple-system, BlinkMacSystemFont, sans-serif",
@@ -443,13 +470,18 @@ export default function Home() {
               </div>
               {/* Button full width */}
               <button
-                style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", background: "#000", color: "#fff", border: "none", borderRadius: "10px", padding: "14px 20px", fontSize: "14px", fontWeight: 400, cursor: "pointer", fontFamily: "var(--font-inter), Inter, sans-serif", letterSpacing: "0.01em", transition: "opacity 0.2s" }}
-                onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.opacity = "0.85")}
-                onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.opacity = "1")}
+                onClick={placeTestCall}
+                disabled={calling}
+                style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", background: "#000", color: "#fff", border: "none", borderRadius: "10px", padding: "14px 20px", fontSize: "14px", fontWeight: 400, cursor: calling ? "default" : "pointer", opacity: calling ? 0.7 : 1, fontFamily: "var(--font-inter), Inter, sans-serif", letterSpacing: "0.01em", transition: "opacity 0.2s" }}
+                onMouseOver={(e) => { if (!calling) (e.currentTarget as HTMLElement).style.opacity = "0.85"; }}
+                onMouseOut={(e) => { if (!calling) (e.currentTarget as HTMLElement).style.opacity = "1"; }}
               >
                 <PhoneIcon />
-                Talk to our AI now
+                {calling ? "Calling..." : "Talk to our AI now"}
               </button>
+              {callMsg && (
+                <p style={{ color: "#444", fontSize: "12px", textAlign: "center", fontWeight: 300, margin: 0 }}>{callMsg}</p>
+              )}
               <p style={{ color: "#aaa", fontSize: "11px", textAlign: "center", marginTop: "2px", fontWeight: 300 }}>
                 By making this call, you consent to being{" "}
                 <a href="/privacy-policy" style={{ color: "#888", textDecoration: "underline" }}>contacted by us</a>

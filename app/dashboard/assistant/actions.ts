@@ -9,6 +9,7 @@ import {
   createTestCall,
   setCallTwilioSid,
   deleteAssistant,
+  ensureBusinessId,
   getAssistant,
   getAssistantNumber,
   getAssistantNumbers,
@@ -45,7 +46,7 @@ export async function createAssistantAction(formData: FormData): Promise<void> {
   // can be added from its settings).
   try {
     const bought = await buyTwilioNumber({ country });
-    await createNumber({ label: name, e164: bought.e164, twilioSid: bought.sid, assistantId: id });
+    await createNumber({ e164: bought.e164, twilioSid: bought.sid, assistantId: id });
   } catch (err) {
     console.error("[assistant] number provisioning", err);
   }
@@ -134,7 +135,7 @@ export async function createNumberForAssistantAction(formData: FormData): Promis
   if (!assistantId) redirect("/dashboard/assistant");
   try {
     const bought = await buyTwilioNumber({ country });
-    await createNumber({ label: "Assistant line", e164: bought.e164, twilioSid: bought.sid, assistantId });
+    await createNumber({ e164: bought.e164, twilioSid: bought.sid, assistantId });
   } catch (err) {
     redirect(`/dashboard/assistant/${assistantId}?error=${encodeURIComponent((err as Error).message)}`);
   }
@@ -153,7 +154,7 @@ export async function connectNumberForAssistantAction(formData: FormData): Promi
   }
   try {
     const result = await ensureTwilioNumber(e164);
-    await createNumber({ label: "Assistant line", e164, twilioSid: result.sid ?? undefined, assistantId });
+    await createNumber({ e164, twilioSid: result.sid ?? undefined, assistantId });
   } catch (err) {
     redirect(`/dashboard/assistant/${assistantId}?error=${encodeURIComponent((err as Error).message)}`);
   }
@@ -187,14 +188,15 @@ export async function testCallAction(formData: FormData): Promise<void> {
   }
 
   try {
+    const businessId = await ensureBusinessId();
     const callId = await createTestCall({
-      businessId: number.business_id,
+      businessId,
       numberId: number.id,
       e164: number.e164,
     });
     const twiml = buildConnectResponse(mediaWsUrl, {
       callId,
-      businessId: number.business_id,
+      businessId,
       numberId: number.id,
       from: number.e164,
       to: number.e164,

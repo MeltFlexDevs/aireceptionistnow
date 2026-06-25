@@ -10,14 +10,12 @@ import { VoiceSelect } from "../../numbers/VoiceSelect";
 import {
   connectNumberForAssistantAction,
   createNumberForAssistantAction,
-  registerCnamAction,
   testCallAction,
   unlinkNumberAction,
   updateAssistantAction,
 } from "../actions";
 import { DeleteAssistant } from "../DeleteAssistant";
 import { TestCallButton } from "../TestCallButton";
-import { sanitizeCnam } from "@/lib/dashboard/cnam";
 
 export const dynamic = "force-dynamic";
 
@@ -37,10 +35,10 @@ export default async function AssistantSettingsPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ saved?: string; error?: string; cnam?: string }>;
+  searchParams: Promise<{ saved?: string; error?: string }>;
 }) {
   const { id } = await params;
-  const { saved, error, cnam } = await searchParams;
+  const { saved, error } = await searchParams;
 
   const assistant = await getAssistant(id).catch(() => null);
   if (!assistant) notFound();
@@ -66,7 +64,6 @@ export default async function AssistantSettingsPage({
   }
 
   const number = await getAssistantNumber(assistant.id).catch(() => null);
-  const cnamName = sanitizeCnam(assistant.name);
 
   return (
     <div className="space-y-6">
@@ -85,11 +82,6 @@ export default async function AssistantSettingsPage({
       )}
       {error && (
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>
-      )}
-      {cnam && (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-          CNAM &quot;{cnam}&quot; submitted for review. Allow 48-72h to show on calls.
-        </div>
       )}
 
       <SectionCard title="Phone number" subtitle="The number callers dial to reach this assistant.">
@@ -149,33 +141,6 @@ export default async function AssistantSettingsPage({
             </details>
           </div>
         )}
-      </SectionCard>
-
-      <SectionCard
-        title="Caller ID name (CNAM)"
-        subtitle="Show your business name on the recipient's phone for outbound calls."
-      >
-        <form action={registerCnamAction} className="space-y-3">
-          <input type="hidden" name="id" value={assistant.id} />
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <div className="text-xs uppercase tracking-wide text-neutral-400">Display name (max 15 chars)</div>
-              <div className="mt-0.5 text-lg font-medium tracking-tight text-neutral-900">
-                {cnamName || "Name the assistant first"}
-              </div>
-            </div>
-            <button
-              type="submit"
-              disabled={!cnamName}
-              className="inline-flex h-9 items-center rounded-lg bg-neutral-900 px-4 text-sm font-medium text-white transition-colors hover:bg-neutral-800 disabled:opacity-50"
-            >
-              Register CNAM
-            </button>
-          </div>
-          <p className="text-xs text-neutral-400">
-            US long-code numbers only. Requires an approved Trust Hub business profile. Allow 48-72h to propagate.
-          </p>
-        </form>
       </SectionCard>
 
       <form action={updateAssistantAction} className="space-y-4">

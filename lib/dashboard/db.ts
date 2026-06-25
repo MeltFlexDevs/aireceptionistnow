@@ -26,38 +26,20 @@ export type NumberLabel = "Home" | "Work" | "Organization" | "Personal";
 
 export interface PhoneNumber {
   id: string;
-  business_id: string;
-  label: string;
   e164: string;
   twilio_sid: string | null;
-  greeting: string;
-  system_prompt: string;
-  voice_id: string;
-  language: string;
-  knowledge: Record<string, unknown>;
-  routing: Record<string, unknown>;
   enabled: boolean;
   assistant_id: string | null;
   created_at: string;
 }
 
 export interface CreateNumberInput {
-  label: string;
   e164: string;
   twilioSid?: string;
   assistantId?: string;
 }
 
 export interface UpdateNumberInput {
-  label: string;
-  e164: string;
-  twilio_sid: string;
-  language: string;
-  voice_id: string;
-  greeting: string;
-  system_prompt: string;
-  knowledge: Record<string, unknown>;
-  routing: Record<string, unknown>;
   enabled: boolean;
 }
 
@@ -101,22 +83,17 @@ export async function getNumber(id: string): Promise<PhoneNumber | null> {
   return (data as PhoneNumber) ?? null;
 }
 
-// Defaults applied to a freshly created number so it can take a call right away.
+// Defaults applied to a freshly created assistant so it can take a call right away.
 const DEFAULT_VOICE_ID = "21m00Tcm4TlvDq8ikWAM"; // ElevenLabs "Rachel"
 const DEFAULT_ROUTING = { sttProvider: "elevenlabs" };
 
 export async function createNumber(input: CreateNumberInput): Promise<string> {
-  const businessId = await ensureBusinessId();
   const { data, error } = await db()
     .from("phone_numbers")
     .insert({
-      business_id: businessId,
-      label: input.label,
       e164: input.e164,
       twilio_sid: input.twilioSid ?? null,
       assistant_id: input.assistantId ?? null,
-      voice_id: DEFAULT_VOICE_ID,
-      routing: DEFAULT_ROUTING,
     })
     .select("id")
     .single();
@@ -130,18 +107,7 @@ export async function updateNumber(
 ): Promise<void> {
   const { error } = await db()
     .from("phone_numbers")
-    .update({
-      label: patch.label,
-      e164: patch.e164,
-      twilio_sid: patch.twilio_sid || null,
-      language: patch.language,
-      voice_id: patch.voice_id,
-      greeting: patch.greeting,
-      system_prompt: patch.system_prompt,
-      knowledge: patch.knowledge,
-      routing: patch.routing,
-      enabled: patch.enabled,
-    })
+    .update({ enabled: patch.enabled })
     .eq("id", id);
   if (error) throw error;
 }
@@ -415,4 +381,26 @@ export async function getOwnedNumbers(ownerId: string): Promise<OwnedNumber[]> {
     e164: String(n.e164),
     created_at: String(n.created_at),
   }));
+}
+
+/** First active Twilio-backed number, used as the caller ID for landing test
+ *  calls. Prefers a number linked to an assistant (so its config resolves). */
+export async function getDefaultCallableNumber(): Promise<{
+  id: string;
+  e164: string;
+  businessId: string;
+} | null> {
+  const sel = () =>
+    db()
+      .from("phone_numbers")
+      .select("id,e164")
+      .is("deleted_at", null)
+      .eq("enabled", true)
+      .not("twilio_sid", "is", null)
+      .order("created_at", { ascending: true });
+
+  const linked = await sel().not("assistant_id", "is", null).limit(1).maybeSingle();
+  const row = linked.data ?? (await sel().limit(1).maybeSingle()).data;
+  if (!row) return null;
+  return { id: String(row.id), e164: String(row.e164), businessId: await ensureBusinessId() };
 }
