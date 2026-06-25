@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import SiteHeader from "../components/SiteHeader";
+import SiteFooter from "../components/SiteFooter";
 
 export const metadata: Metadata = {
   title: "Privacy Policy | AI Receptionist",
@@ -9,18 +10,7 @@ export const metadata: Metadata = {
 export default function PrivacyPolicyPage() {
   return (
     <div className="policy-page">
-      {/* Header */}
-      <header className="policy-header">
-        <Link href="/" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none", color: "#000" }}>
-          <svg width="7" height="15" viewBox="0 0 7 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="0" y="0" width="2.5" height="15" rx="1" fill="#000" />
-            <rect x="4.5" y="0" width="2.5" height="15" rx="1" fill="#000" />
-          </svg>
-          <span style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontWeight: 500, fontSize: "17px", letterSpacing: "-0.02em" }}>
-            AI RECEPTIONIST
-          </span>
-        </Link>
-      </header>
+      <SiteHeader />
 
       <main className="policy-main">
         <div className="policy-container">
@@ -206,6 +196,7 @@ export default function PrivacyPolicyPage() {
           </div>
         </div>
       </main>
+      <SiteFooter />
     </div>
   );
 }

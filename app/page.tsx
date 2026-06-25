@@ -1,13 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import SiteHeader from "./components/SiteHeader";
+import SiteFooter from "./components/SiteFooter";
 
-const PauseLogo = ({ color = "currentColor" }: { color?: string }) => (
-  <svg width="7" height="15" viewBox="0 0 7 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect x="0" y="0" width="2.5" height="15" rx="1" fill={color} />
-    <rect x="4.5" y="0" width="2.5" height="15" rx="1" fill={color} />
-  </svg>
-);
 
 const StarSvg = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="#a855f7" xmlns="http://www.w3.org/2000/svg">
@@ -104,17 +100,10 @@ const faqs = [
 ];
 
 export default function Home() {
-  const [isScrolled, setIsScrolled] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [phone, setPhone] = useState("");
   const [dialCode, setDialCode] = useState("+1");
   const [flagOpen, setFlagOpen] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => setIsScrolled(window.scrollY > 30);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
   const inter: React.CSSProperties = {
     fontFamily: "var(--font-inter), Inter, -apple-system, BlinkMacSystemFont, sans-serif",
@@ -163,43 +152,7 @@ export default function Home() {
       `}</style>
 
       {/* ── HEADER ── */}
-      <header style={{
-        position: "fixed", top: 0, left: 0, right: 0, zIndex: 60,
-        height: "56px", display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "0 40px",
-        background: isScrolled ? "#fff" : "transparent",
-        boxShadow: isScrolled ? "0 1px 0 rgba(0,0,0,0.07)" : "none",
-        transition: "background 0.3s, box-shadow 0.3s",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "32px" }}>
-          <a href="/" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none", color: "#000" }}>
-            <PauseLogo color="#000" />
-            <span style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontWeight: 500, fontSize: "18px", letterSpacing: "-0.02em" }}>
-              AI RECEPTIONIST
-            </span>
-          </a>
-          <nav style={{ display: "flex", gap: "24px" }}>
-            {[
-              { label: "Features", href: "#features" },
-              { label: "How it works", href: "#how-it-works" },
-              { label: "Pricing", href: "#pricing" },
-            ].map((l) => (
-              <a key={l.label} href={l.href} style={{ color: "#333", fontSize: "14px", fontWeight: 400, textDecoration: "none", transition: "color 0.15s" }}>
-                {l.label}
-              </a>
-            ))}
-          </nav>
-        </div>
-        <a href="#pricing" style={{
-          display: "inline-flex", alignItems: "center", height: "36px", padding: "0 20px",
-          background: "#000", color: "#fff",
-          border: "1.5px solid #000",
-          borderRadius: "20px", fontSize: "12px", fontWeight: 400, textDecoration: "none",
-          letterSpacing: "0.06em", transition: "all 0.25s",
-        }}>
-          START FREE TRIAL
-        </a>
-      </header>
+      <SiteHeader />
 
       {/* ── HERO ── */}
       <section style={{
@@ -564,60 +517,7 @@ export default function Home() {
       </section>
 
       {/* ── FOOTER ── */}
-      <footer style={{ background: "#000", color: "#fff", fontFamily: "var(--font-inter), Inter, -apple-system, sans-serif", fontWeight: 300 }}>
-        <div style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", padding: "60px 0 50px" }}>
-          <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 40px", display: "flex", justifyContent: "space-between", gap: "40px", flexWrap: "wrap" }}>
-            <nav style={{ display: "flex", gap: "64px", flexWrap: "wrap" }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", fontWeight: 400, letterSpacing: "0.08em", textTransform: "uppercase" }}>Product</span>
-                <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
-                  {[{ label: "Features", href: "#features" }, { label: "How it works", href: "#how-it-works" }, { label: "Pricing", href: "#pricing" }, { label: "Integrations", href: "#" }, { label: "API Access", href: "#" }].map((l) => (
-                    <li key={l.label}><a href={l.href} style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.01em", transition: "color 0.2s" }} onMouseOver={(e) => (e.currentTarget.style.color = "#fff")} onMouseOut={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.6)")}>{l.label}</a></li>
-                  ))}
-                </ul>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", fontWeight: 400, letterSpacing: "0.08em", textTransform: "uppercase" }}>Industries</span>
-                <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
-                  {["Dental Clinics", "Law Firms", "Medical Practices", "Hotels", "Auto Dealers", "Restaurants"].map((l) => (
-                    <li key={l}><a href="#" style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.01em", transition: "color 0.2s" }} onMouseOver={(e) => (e.currentTarget.style.color = "#fff")} onMouseOut={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.6)")}>{l}</a></li>
-                  ))}
-                </ul>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", fontWeight: 400, letterSpacing: "0.08em", textTransform: "uppercase" }}>Resources</span>
-                <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
-                  {[{ label: "Blog", href: "#" }, { label: "FAQ", href: "#" }, { label: "Contact", href: "#" }, { label: "Documentation", href: "#" }].map((l) => (
-                    <li key={l.label}><a href={l.href} style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.01em", transition: "color 0.2s" }} onMouseOver={(e) => (e.currentTarget.style.color = "#fff")} onMouseOut={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.6)")}>{l.label}</a></li>
-                  ))}
-                </ul>
-              </div>
-            </nav>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "32px" }}>
-              <a href="#pricing" style={{ display: "inline-flex", alignItems: "center", height: "36px", padding: "0 20px", background: "#fff", color: "#000", borderRadius: "20px", fontSize: "12px", fontWeight: 400, textDecoration: "none", letterSpacing: "0.05em", transition: "opacity 0.2s" }}
-                onMouseOver={(e) => (e.currentTarget.style.opacity = "0.85")}
-                onMouseOut={(e) => (e.currentTarget.style.opacity = "1")}
-              >
-                START FREE TRIAL
-              </a>
-            </div>
-          </div>
-        </div>
-        <div style={{ padding: "28px 0" }}>
-          <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 40px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
-            <a href="/" style={{ display: "flex", alignItems: "center", gap: "9px", textDecoration: "none", color: "#fff" }}>
-              <PauseLogo color="#fff" />
-              <span style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontWeight: 500, fontSize: "16px", letterSpacing: "-0.02em", color: "#fff" }}>AI RECEPTIONIST</span>
-            </a>
-            <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", gap: "20px", flexWrap: "wrap" }}>
-              {[{ label: "Privacy Policy", href: "#" }, { label: "Terms & Conditions", href: "#" }, { label: "Cookie Policy", href: "#" }].map((l) => (
-                <li key={l.label}><a href={l.href} style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.02em", transition: "color 0.2s" }} onMouseOver={(e) => (e.currentTarget.style.color = "#fff")} onMouseOut={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.4)")}>{l.label}</a></li>
-              ))}
-            </ul>
-            <p style={{ color: "rgba(255,255,255,0.3)", fontSize: "11px", fontWeight: 300, margin: 0 }}>© 2026 AI Receptionist Now. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </main>
   );
 }
