@@ -138,6 +138,27 @@ export default function Home() {
           -webkit-text-fill-color: transparent;
           background-clip: text;
         }
+        .badge.main-lp {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          background: #f5f5f5;
+          border: 1px solid #e8e8e8;
+          border-radius: 20px;
+          padding: 6px 16px;
+        }
+        .badge-icon {
+          width: 16px;
+          height: 16px;
+          object-fit: contain;
+        }
+        .badge-text {
+          color: #555;
+          font-size: 13px;
+          font-weight: 300;
+          font-family: var(--font-inter), Inter, sans-serif;
+          margin: 0;
+        }
       `}</style>
 
       {/* ── HEADER ── */}
@@ -189,11 +210,9 @@ export default function Home() {
 
           {/* Badge */}
           <div style={{ marginBottom: "28px" }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "#f5f5f5", border: "1px solid #e8e8e8", borderRadius: "20px", padding: "6px 16px" }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M20 6L9 17L4 12" stroke="#111" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <span style={{ color: "#555", fontSize: "13px", fontWeight: 300 }}>AI calls made easy</span>
+            <div className="badge main-lp">
+              <img src="https://cdn.prod.website-files.com/66cdd640b6eaf9b4ea2f21c8/67f4f4514fd1d07674f5e8ba_colorful%20verified.webp" loading="lazy" alt="" className="icon-old badge-icon" />
+              <h1 className="badge-text">AI calls made easy</h1>
             </div>
           </div>
 
