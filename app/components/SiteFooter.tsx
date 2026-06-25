@@ -29,21 +29,6 @@ export default function SiteFooter() {
           </div>
         </div>
       </div>
-      <div style={{ padding: "28px 0", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-        <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 40px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
-          <a href="/" style={{ display: "flex", alignItems: "center", gap: "9px", textDecoration: "none", color: "#fff" }}>
-            <PauseLogo color="#fff" />
-            <span style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontWeight: 500, fontSize: "16px", letterSpacing: "-0.02em" }}>AI RECEPTIONIST</span>
-          </a>
-          <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", gap: "20px", flexWrap: "wrap" }}>
-            {[{ label: "Privacy Policy", href: "/privacy-policy" }, { label: "Terms & Conditions", href: "#" }, { label: "Cookie Policy", href: "#" }].map((l) => (
-              <li key={l.label}><a href={l.href} style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.02em" }}>{l.label}</a></li>
-            ))}
-          </ul>
-          <p style={{ color: "rgba(255,255,255,0.3)", fontSize: "11px", fontWeight: 300, margin: 0 }}>© 2026 AI Receptionist Now. All rights reserved.</p>
-        </div>
-      </div>
-
       {/* ── COPYRIGHT BAR ── */}
       <div style={{ padding: "20px 0" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 40px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
