@@ -1,15 +1,24 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { Sidebar } from "./components/Sidebar";
 import { Topbar } from "./components/Topbar";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "Dashboard — AI Receptionist",
   description: "Manage phone numbers, AI behavior, integrations, and call analytics.",
 };
 
-// NOTE: This route is intentionally public for now. Once auth lands, gate it
-// here (redirect unauthenticated users) or in middleware so it is not exposed.
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  // getClaims() validates the JWT signature, so it's safe to trust for access
+  // control (unlike getSession()). The proxy also guards this route; this is
+  // defense in depth.
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getClaims();
+  if (!data?.claims) {
+    redirect("/?auth=login");
+  }
+
   return (
     <div className="flex min-h-screen bg-neutral-50 text-neutral-900">
       <Sidebar />
