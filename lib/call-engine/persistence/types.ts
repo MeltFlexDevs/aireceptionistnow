@@ -1,0 +1,53 @@
+import type {
+  CallAction,
+  CallStatus,
+  CallSummary,
+  NumberConfig,
+  TranscriptTurn,
+} from "../types";
+
+export interface CreateCallInput {
+  businessId: string;
+  numberId: string;
+  callSid: string;
+  from: string;
+  to: string;
+}
+
+export interface FinalizeCallInput {
+  status: CallStatus;
+  durationSeconds?: number;
+  medianLatencyMs?: number;
+}
+
+/**
+ * Storage boundary for the call engine. Backed by Supabase in production
+ * (see `supabase.ts`); the interface keeps the rest of the engine free of any
+ * direct database coupling and makes it trivial to fake in tests.
+ */
+export interface CallRepository {
+  /** Resolve the configuration for the dialed number, or null if unknown/disabled. */
+  resolveInboundNumber(toE164: string): Promise<NumberConfig | null>;
+
+  createCall(input: CreateCallInput): Promise<string>;
+  markInProgress(callId: string, streamSid: string): Promise<void>;
+  appendTurn(callId: string, turn: TranscriptTurn): Promise<void>;
+  finalizeCall(callId: string, input: FinalizeCallInput): Promise<void>;
+  saveSummary(callId: string, summary: CallSummary): Promise<void>;
+
+  /** Record an action the AI took; returns the action id for later updates. */
+  recordAction(
+    callId: string,
+    action: CallAction,
+    integrationId?: string,
+  ): Promise<string>;
+  updateAction(
+    actionId: string,
+    patch: Partial<Pick<CallAction, "status" | "externalId" | "error">>,
+  ): Promise<void>;
+
+  /** Load a finished call's transcript + config for post-call summarization. */
+  getCallForSummary(
+    callId: string,
+  ): Promise<{ config: NumberConfig; turns: TranscriptTurn[] } | null>;
+}
