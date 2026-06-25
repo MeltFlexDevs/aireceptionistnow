@@ -1,10 +1,11 @@
-import type { Call, Outcome, Sentiment } from "../data";
+import type { Call, Sentiment } from "@/lib/dashboard/analytics";
 
-const outcomeStyle: Record<Outcome, string> = {
+const outcomeStyle: Record<string, string> = {
   Booked: "bg-violet-50 text-violet-700",
   Resolved: "bg-emerald-50 text-emerald-700",
   Message: "bg-sky-50 text-sky-700",
   Transferred: "bg-amber-50 text-amber-700",
+  Abandoned: "bg-rose-50 text-rose-700",
 };
 
 const sentimentStyle: Record<Sentiment, string> = {
@@ -14,6 +15,9 @@ const sentimentStyle: Record<Sentiment, string> = {
 };
 
 export function RecentCalls({ calls }: { calls: Call[] }) {
+  if (calls.length === 0) {
+    return <p className="text-sm text-neutral-500">No calls yet.</p>;
+  }
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
@@ -37,10 +41,12 @@ export function RecentCalls({ calls }: { calls: Call[] }) {
               <td className="py-3 pr-4 text-neutral-500">{c.line}</td>
               <td className="py-3 pr-4 tabular-nums text-neutral-600">{c.duration}</td>
               <td className="py-3 pr-4">
-                <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${outcomeStyle[c.outcome]}`}>{c.outcome}</span>
+                <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${outcomeStyle[c.outcome] ?? "bg-neutral-100 text-neutral-500"}`}>
+                  {c.outcome}
+                </span>
               </td>
               <td className="py-3 pr-4">
-                <span className="flex items-center gap-1.5 text-neutral-500 capitalize">
+                <span className="flex items-center gap-1.5 capitalize text-neutral-500">
                   <span className={`h-2 w-2 rounded-full ${sentimentStyle[c.sentiment]}`} />
                   {c.sentiment}
                 </span>

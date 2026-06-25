@@ -183,6 +183,7 @@ export default function PricingClient() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setCycle(resumeCycle);
     const supabase = createClient();
+    if (!supabase) return;
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) {
         // Clean the URL so a refresh doesn't re-trigger checkout.
@@ -194,8 +195,8 @@ export default function PricingClient() {
 
   const handleSelect = async (plan: Plan) => {
     const supabase = createClient();
-    const { data } = await supabase.auth.getSession();
-    if (data.session) {
+    const session = supabase ? (await supabase.auth.getSession()).data.session : null;
+    if (session) {
       await beginCheckout(plan.id, cycle);
     } else {
       // Sign in first, then come back here and resume checkout automatically.

@@ -237,12 +237,10 @@ export interface UpdateAssistantInput {
   routing: Record<string, unknown>;
 }
 
-export async function listAssistants(): Promise<Assistant[]> {
-  const { data, error } = await db()
-    .from("assistants")
-    .select("*")
-    .is("deleted_at", null)
-    .order("created_at", { ascending: true });
+export async function listAssistants(ownerId?: string | null): Promise<Assistant[]> {
+  let query = db().from("assistants").select("*").is("deleted_at", null);
+  if (ownerId) query = query.eq("owner_id", ownerId);
+  const { data, error } = await query.order("created_at", { ascending: true });
   if (error) throw error;
   return (data ?? []) as Assistant[];
 }
@@ -355,4 +353,66 @@ export async function softDeleteNumber(id: string): Promise<void> {
     .update({ deleted_at: new Date().toISOString(), assistant_id: null })
     .eq("id", id);
   if (error) throw error;
+}
+
+/** Create a call record for a test call (so its transcript/summary persist). */
+export async function createTestCall(input: {
+  businessId: string;
+  numberId: string;
+  e164: string;
+}): Promise<string> {
+  const { data, error } = await db()
+    .from("calls")
+    .insert({
+      business_id: input.businessId,
+      phone_number_id: input.numberId,
+      from_number: input.e164,
+      to_number: input.e164,
+      direction: "outbound",
+      status: "initiated",
+    })
+    .select("id")
+    .single();
+  if (error) throw error;
+  return String(data.id);
+}
+
+/** Attach the Twilio Call SID once an outbound call has been placed, so the
+ *  call log can reconcile this DB row against the live Twilio call logs. */
+export async function setCallTwilioSid(callId: string, sid: string): Promise<void> {
+  const { error } = await db()
+    .from("calls")
+    .update({ twilio_call_sid: sid })
+    .eq("id", callId);
+  if (error) throw error;
+}
+
+export interface OwnedNumber {
+  id: string;
+  e164: string;
+  created_at: string;
+}
+
+/** Phone numbers belonging to a user's assistants. Calls link to a user through
+ *  calls.phone_number_id -> phone_numbers.assistant_id -> assistants.owner_id, so
+ *  these ids scope a user's statistics and call log. */
+export async function getOwnedNumbers(ownerId: string): Promise<OwnedNumber[]> {
+  const { data: assistants, error: aErr } = await db()
+    .from("assistants")
+    .select("id")
+    .eq("owner_id", ownerId);
+  if (aErr) throw aErr;
+  const assistantIds = (assistants ?? []).map((a) => String(a.id));
+  if (assistantIds.length === 0) return [];
+
+  const { data, error } = await db()
+    .from("phone_numbers")
+    .select("id,e164,created_at")
+    .in("assistant_id", assistantIds);
+  if (error) throw error;
+  return (data ?? []).map((n) => ({
+    id: String(n.id),
+    e164: String(n.e164),
+    created_at: String(n.created_at),
+  }));
 }

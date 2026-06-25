@@ -3,24 +3,31 @@ import { redirect } from "next/navigation";
 import { Sidebar } from "./components/Sidebar";
 import { Topbar } from "./components/Topbar";
 import { createClient } from "@/lib/supabase/server";
-import { toAppUser } from "@/lib/auth-user";
+import { authConfigured } from "@/lib/supabase/config";
+import { toAppUser, type AppUser } from "@/lib/auth-user";
 
 export const metadata: Metadata = {
-  title: "Dashboard — AI Receptionist",
+  title: "Dashboard - AI Receptionist",
   description: "Manage phone numbers, AI behavior, integrations, and call analytics.",
 };
 
-export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  // getClaims() validates the JWT signature, so it's safe to trust for access
-  // control (unlike getSession()). The proxy also guards this route; this is
-  // defense in depth.
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getClaims();
-  if (!data?.claims) {
-    redirect("/?auth=login");
-  }
+const GUEST_USER: AppUser = { id: "", email: "", name: "Workspace", initials: "WS" };
 
-  const user = toAppUser(data.claims);
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  // Gate the workspace only when auth is configured. getClaims() validates the
+  // JWT signature, so it's safe to trust (the proxy guards too - defense in depth).
+  let user: AppUser = GUEST_USER;
+  if (authConfigured()) {
+    let claims: Parameters<typeof toAppUser>[0] | null = null;
+    try {
+      const supabase = await createClient();
+      claims = ((await supabase.auth.getClaims()).data?.claims ?? null) as typeof claims;
+    } catch {
+      claims = null;
+    }
+    if (!claims) redirect("/?auth=login");
+    user = toAppUser(claims);
+  }
 
   return (
     <div className="flex min-h-screen bg-neutral-50 text-neutral-900">

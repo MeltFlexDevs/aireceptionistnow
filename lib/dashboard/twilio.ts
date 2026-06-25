@@ -1,8 +1,7 @@
 import twilio from "twilio";
+import { CNAM_POLICY_SID, sanitizeCnam } from "./cnam";
 
-// Provision a Twilio number from the dashboard: search a voice-capable number,
-// buy it, and point its Voice webhook at our app — so the user never copies a
-// SID or touches the Twilio console.
+// Dashboard-side Twilio: provision numbers, place calls, and read call logs.
 
 function twilioConfigured(): boolean {
   return Boolean(
@@ -140,4 +139,146 @@ export async function ensureTwilioNumber(
 export async function releaseTwilioNumber(sid: string): Promise<void> {
   if (!twilioConfigured()) return;
   await twilioClient().incomingPhoneNumbers(sid).remove();
+}
+
+/** Place an outbound call that runs the given TwiML when answered. */
+export async function placeCall(
+  to: string,
+  from: string,
+  twiml: string,
+): Promise<string> {
+  if (!twilioConfigured()) {
+    throw new Error("Twilio credentials are not set on the server.");
+  }
+  const call = await twilioClient().calls.create({ to, from, twiml });
+  return call.sid;
+}
+
+// ── Call logs (reconcile dashboard history against Twilio) ───────────────────
+
+export interface TwilioCallLog {
+  sid: string;
+  date: string;
+  status: string;
+  direction: string;
+  from: string;
+  to: string;
+  durationSec: number;
+}
+
+function normalizeDirection(dir: string | null | undefined): string {
+  return (dir ?? "").startsWith("outbound") ? "outbound" : "inbound";
+}
+
+type TwilioCallInstance = {
+  sid: string;
+  startTime?: Date | null;
+  dateCreated?: Date | null;
+  status?: string | null;
+  direction?: string | null;
+  from?: string | null;
+  to?: string | null;
+  duration?: string | null;
+};
+
+function toLog(c: TwilioCallInstance): TwilioCallLog {
+  const when = c.startTime ?? c.dateCreated;
+  return {
+    sid: c.sid,
+    date: when ? new Date(when).toISOString() : "",
+    status: c.status ?? "",
+    direction: normalizeDirection(c.direction),
+    from: c.from ?? "",
+    to: c.to ?? "",
+    durationSec: Number(c.duration ?? 0) || 0,
+  };
+}
+
+/** Recent Twilio call logs for the account (matches the Twilio Console list). */
+export async function listTwilioCalls(limit = 100): Promise<TwilioCallLog[]> {
+  if (!twilioConfigured()) return [];
+  const calls = await twilioClient().calls.list({ limit });
+  return calls.map(toLog);
+}
+
+/** A single Twilio call by SID, or null if not configured / not found. */
+export async function fetchTwilioCall(sid: string): Promise<TwilioCallLog | null> {
+  if (!twilioConfigured() || !sid) return null;
+  try {
+    return toLog(await twilioClient().calls(sid).fetch());
+  } catch {
+    return null;
+  }
+}
+
+// ── CNAM (caller ID name) via Trust Hub ──────────────────────────────────────
+
+export interface CnamResult {
+  trustProductSid: string;
+  displayName: string;
+  status: string;
+}
+
+/**
+ * Register a CNAM display name for a phone number through Trust Hub, so the
+ * recipient sees the business/assistant name on outbound calls. Requires an
+ * approved Trust Hub Business Profile; US long-code numbers only; allow 48-72h
+ * to propagate. Best-effort with actionable errors for the common blockers.
+ */
+export async function registerCnam(opts: {
+  displayName: string;
+  phoneSid: string;
+  email?: string;
+}): Promise<CnamResult> {
+  if (!twilioConfigured()) throw new Error("Twilio credentials are not set on the server.");
+  const display = sanitizeCnam(opts.displayName);
+  if (display.length < 2) {
+    throw new Error("CNAM name must start with a letter and be at least 2 characters.");
+  }
+  const client = twilioClient();
+
+  const profiles = await client.trusthub.v1.customerProfiles.list({ limit: 50 });
+  const profile = profiles.find((p) => p.status === "twilio-approved") ?? profiles[0];
+  if (!profile) {
+    throw new Error(
+      "No Trust Hub Business Profile found. Create and verify one in Twilio Console > Trust Hub before registering CNAM.",
+    );
+  }
+  if (profile.status !== "twilio-approved") {
+    throw new Error(
+      `Your Trust Hub Business Profile is '${profile.status}', not approved yet. CNAM can be registered once it is approved.`,
+    );
+  }
+
+  const email = opts.email || profile.email || process.env.CNAM_CONTACT_EMAIL || "";
+  const trustProduct = await client.trusthub.v1.trustProducts.create({
+    email,
+    friendlyName: `CNAM ${display}`,
+    policySid: CNAM_POLICY_SID,
+  });
+
+  const endUser = await client.trusthub.v1.endUsers.create({
+    type: "cnam_information",
+    friendlyName: `CNAM ${display}`,
+    attributes: { cnam_display_name: display },
+  });
+
+  await client.trusthub.v1
+    .trustProducts(trustProduct.sid)
+    .trustProductsEntityAssignments.create({ objectSid: profile.sid });
+  await client.trusthub.v1
+    .trustProducts(trustProduct.sid)
+    .trustProductsEntityAssignments.create({ objectSid: endUser.sid });
+  await client.trusthub.v1
+    .trustProducts(trustProduct.sid)
+    .trustProductsChannelEndpointAssignment.create({
+      channelEndpointSid: opts.phoneSid,
+      channelEndpointType: "phone-number",
+    });
+
+  const submitted = await client.trusthub.v1
+    .trustProducts(trustProduct.sid)
+    .update({ status: "pending-review" });
+
+  return { trustProductSid: trustProduct.sid, displayName: display, status: submitted.status };
 }

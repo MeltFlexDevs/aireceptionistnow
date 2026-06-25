@@ -76,10 +76,9 @@ export function Sidebar() {
           <Sparkle className="h-4 w-4" />
           Pro plan
         </div>
-        <p className="mt-1 text-xs text-violet-100">1,284 of 2,000 calls used this month.</p>
-        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/25">
-          <div className="h-full rounded-full bg-white" style={{ width: "64%" }} />
-        </div>
+        <p className="mt-1 text-xs text-violet-100">
+          Unlimited assistants, priority voice latency, and call analytics.
+        </p>
       </div>
     </aside>
   );

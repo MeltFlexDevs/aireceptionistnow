@@ -43,7 +43,7 @@ export function UserMenu({ user }: { user: AppUser }) {
   async function signOut() {
     setSigningOut(true);
     const supabase = createClient();
-    await supabase.auth.signOut();
+    if (supabase) await supabase.auth.signOut();
     // Full refresh so the server drops the session and the proxy bounces any
     // further /dashboard access back to the sign-in dialog.
     router.push("/");

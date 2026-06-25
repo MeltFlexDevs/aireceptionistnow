@@ -2,10 +2,15 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { buildConnectResponse } from "@/lib/call-engine/pickup";
 import {
   createAssistant,
   createNumber,
+  createTestCall,
+  setCallTwilioSid,
   deleteAssistant,
+  getAssistant,
+  getAssistantNumber,
   getAssistantNumbers,
   listIntegrations,
   setNumberAssistant,
@@ -15,8 +20,11 @@ import {
 import {
   buyTwilioNumber,
   ensureTwilioNumber,
+  placeCall,
+  registerCnam,
   releaseTwilioNumber,
 } from "@/lib/dashboard/twilio";
+import { currentUserId } from "@/lib/auth";
 
 const E164 = /^\+[1-9]\d{6,15}$/;
 
@@ -24,14 +32,15 @@ export async function createAssistantAction(formData: FormData): Promise<void> {
   const name = String(formData.get("name") ?? "").trim() || "My assistant";
   const country = String(formData.get("country") ?? "US").trim() || "US";
 
+  const ownerId = await currentUserId();
   let id: string;
   try {
-    id = await createAssistant(name);
+    id = await createAssistant(name, ownerId ?? undefined);
   } catch (err) {
     redirect(`/dashboard/assistant?error=${encodeURIComponent((err as Error).message)}`);
   }
 
-  // Generate the assistant's phone number at creation (best-effort — trial or
+  // Generate the assistant's phone number at creation (best-effort - trial or
   // regulated countries may fail; the assistant is still created and a number
   // can be added from its settings).
   try {
@@ -103,7 +112,7 @@ export async function deleteAssistantAction(formData: FormData): Promise<void> {
           try {
             await releaseTwilioNumber(n.twilio_sid);
           } catch {
-            // already released / not permitted — ignore
+            // already released / not permitted - ignore
           }
         }
         await softDeleteNumber(n.id).catch(() => {});
@@ -152,6 +161,54 @@ export async function connectNumberForAssistantAction(formData: FormData): Promi
   redirect(`/dashboard/assistant/${assistantId}?saved=1`);
 }
 
+export async function testCallAction(formData: FormData): Promise<void> {
+  // Works both from the dedicated Test-call form (assistant_id/to) and from the
+  // settings form's "Test call this number" button (id/transfer_to).
+  const assistantId = String(formData.get("assistant_id") ?? formData.get("id") ?? "");
+  const to = String(formData.get("to") ?? formData.get("transfer_to") ?? "").trim();
+  if (!assistantId) redirect("/dashboard/assistant");
+  if (!E164.test(to)) {
+    redirect(
+      `/dashboard/assistant/${assistantId}?error=${encodeURIComponent("Enter a number in E.164 format, e.g. +14155550142")}`,
+    );
+  }
+
+  const number = await getAssistantNumber(assistantId).catch(() => null);
+  if (!number || !number.e164) {
+    redirect(
+      `/dashboard/assistant/${assistantId}?error=${encodeURIComponent("Add a phone number to this assistant first.")}`,
+    );
+  }
+  const mediaWsUrl = process.env.MEDIA_WS_URL;
+  if (!mediaWsUrl) {
+    redirect(
+      `/dashboard/assistant/${assistantId}?error=${encodeURIComponent("MEDIA_WS_URL is not set on the server.")}`,
+    );
+  }
+
+  try {
+    const callId = await createTestCall({
+      businessId: number.business_id,
+      numberId: number.id,
+      e164: number.e164,
+    });
+    const twiml = buildConnectResponse(mediaWsUrl, {
+      callId,
+      businessId: number.business_id,
+      numberId: number.id,
+      from: number.e164,
+      to: number.e164,
+    });
+    const sid = await placeCall(to, number.e164, twiml);
+    // Persist the Twilio Call SID so this row reconciles against the call log.
+    await setCallTwilioSid(callId, sid).catch(() => {});
+  } catch (err) {
+    redirect(`/dashboard/assistant/${assistantId}?error=${encodeURIComponent((err as Error).message)}`);
+  }
+
+  redirect(`/dashboard/assistant/${assistantId}?calling=1`);
+}
+
 export async function unlinkNumberAction(formData: FormData): Promise<void> {
   const numberId = String(formData.get("number_id") ?? "");
   const assistantId = String(formData.get("assistant_id") ?? "");
@@ -164,4 +221,29 @@ export async function unlinkNumberAction(formData: FormData): Promise<void> {
   }
   revalidatePath(`/dashboard/assistant/${assistantId}`);
   redirect(`/dashboard/assistant/${assistantId}?saved=1`);
+}
+
+export async function registerCnamAction(formData: FormData): Promise<void> {
+  const assistantId = String(formData.get("id") ?? formData.get("assistant_id") ?? "");
+  if (!assistantId) redirect("/dashboard/assistant");
+
+  const assistant = await getAssistant(assistantId).catch(() => null);
+  if (!assistant) redirect("/dashboard/assistant");
+
+  const number = await getAssistantNumber(assistantId).catch(() => null);
+  const phoneSid = number?.twilio_sid ?? "";
+  if (!phoneSid) {
+    redirect(
+      `/dashboard/assistant/${assistantId}?error=${encodeURIComponent("Add a Twilio number to this assistant before registering CNAM.")}`,
+    );
+  }
+
+  let displayName = "";
+  try {
+    const res = await registerCnam({ displayName: assistant.name, phoneSid });
+    displayName = res.displayName;
+  } catch (err) {
+    redirect(`/dashboard/assistant/${assistantId}?error=${encodeURIComponent((err as Error).message)}`);
+  }
+  redirect(`/dashboard/assistant/${assistantId}?cnam=${encodeURIComponent(displayName)}`);
 }

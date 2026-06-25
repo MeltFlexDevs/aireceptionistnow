@@ -1,5 +1,4 @@
-// Inline SVG icon set for the dashboard. Pure presentational components —
-// stroke icons inherit `currentColor`. Keep new icons in this one file.
+// Inline SVG icon set for the dashboard. Pure presentational components - // stroke icons inherit `currentColor`. Keep new icons in this one file.
 
 interface IconProps {
   className?: string;

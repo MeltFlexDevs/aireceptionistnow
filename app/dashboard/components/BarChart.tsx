@@ -1,4 +1,4 @@
-import type { Bar } from "../data";
+import type { Bar } from "@/lib/dashboard/analytics";
 
 export function BarChart({ data }: { data: Bar[] }) {
   const max = Math.max(...data.map((d) => d.value));

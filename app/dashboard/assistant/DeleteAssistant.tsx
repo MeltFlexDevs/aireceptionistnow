@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { deleteAssistantAction } from "./actions";
 
-// Delete with a confirmation modal — requires typing the assistant name (or
+// Delete with a confirmation modal - requires typing the assistant name (or
 // "delete") so it can't be triggered accidentally.
 export function DeleteAssistant({ id, name }: { id: string; name: string }) {
   const [open, setOpen] = useState(false);

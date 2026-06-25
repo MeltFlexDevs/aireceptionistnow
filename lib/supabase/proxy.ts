@@ -1,21 +1,18 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { publicSupabaseEnv } from "./config";
 
-/**
- * Refreshes the Supabase auth session on every matched request and guards the
- * private `/dashboard` workspace. Must run in the proxy so the rotated auth
- * cookies are written back to the browser.
- */
+// Refreshes the Supabase session on every matched request and guards /dashboard.
+// Runs in the proxy so rotated auth cookies are written back to the browser.
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
-  // With Fluid compute, never put this client in a global. Create a new one on
-  // each request.
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    (process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)!,
-    {
+  // Auth not configured yet — let everything through so the app still serves.
+  const env = publicSupabaseEnv();
+  if (!env) return supabaseResponse;
+
+  // With Fluid compute, never put this client in a global. New one per request.
+  const supabase = createServerClient(env.url, env.key, {
       cookies: {
         getAll() {
           return request.cookies.getAll();

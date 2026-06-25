@@ -127,6 +127,7 @@ export function AuthDialogProvider({ children }: { children: React.ReactNode }) 
   }, [isOpen]);
 
   async function signInWithGoogle() {
+    if (!supabase) return setError("Sign-in isn’t configured yet.");
     setError(null);
     setPending("google");
     const { error } = await supabase.auth.signInWithOAuth({
@@ -142,6 +143,7 @@ export function AuthDialogProvider({ children }: { children: React.ReactNode }) 
   }
 
   async function signInWithApple() {
+    if (!supabase) return setError("Sign-in isn’t configured yet.");
     setError(null);
     setPending("apple");
     const { error } = await supabase.auth.signInWithOAuth({
@@ -159,6 +161,7 @@ export function AuthDialogProvider({ children }: { children: React.ReactNode }) 
   async function signInWithEmail(event: React.FormEvent) {
     event.preventDefault();
     if (!email) return;
+    if (!supabase) return setError("Sign-in isn’t configured yet.");
     setError(null);
     setPending("email");
     const { error } = await supabase.auth.signInWithOtp({
@@ -176,6 +179,7 @@ export function AuthDialogProvider({ children }: { children: React.ReactNode }) 
   async function verifyCode(event: React.FormEvent) {
     event.preventDefault();
     if (!sentTo || code.length < 6) return;
+    if (!supabase) return setError("Sign-in isn’t configured yet.");
     setError(null);
     setPending("verify");
     const { error } = await supabase.auth.verifyOtp({

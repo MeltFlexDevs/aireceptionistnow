@@ -1,4 +1,4 @@
-import type { Segment } from "../data";
+import type { Segment } from "@/lib/dashboard/analytics";
 
 interface Props {
   segments: Segment[];

@@ -34,6 +34,10 @@ export default function SiteHeader() {
 
   useEffect(() => {
     const supabase = createClient();
+    if (!supabase) {
+      setSignedIn(false);
+      return;
+    }
     let active = true;
     // getSession reads from local storage (no network call).
     supabase.auth

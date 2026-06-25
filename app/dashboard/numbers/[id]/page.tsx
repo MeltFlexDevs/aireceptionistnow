@@ -117,7 +117,7 @@ export default async function NumberSettingsPage({
               <span className={labelCls}>Default language</span>
               <LanguageSelect name="language" defaultValue={number.language} />
               <p className="mt-1 text-xs text-neutral-400">
-                The AI detects the caller&apos;s language and replies in it — this is the fallback when it can&apos;t tell.
+                The AI detects the caller&apos;s language and replies in it - this is the fallback when it can&apos;t tell.
               </p>
             </div>
             <div>
@@ -195,7 +195,7 @@ export default async function NumberSettingsPage({
                 name="knowledge_notes"
                 defaultValue={notes}
                 rows={4}
-                placeholder="Hours, services, pricing, address, policies — anything the AI should know."
+                placeholder="Hours, services, pricing, address, policies - anything the AI should know."
                 className={`${field} resize-y`}
               />
             </div>

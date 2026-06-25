@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getAssistant, getAssistantNumber, listIntegrations } from "@/lib/dashboard/db";
+import { currentUserId } from "@/lib/auth";
 import { SectionCard } from "../../components/SectionCard";
 import { Tabs } from "../../components/Tabs";
 import { CALENDAR_PROVIDERS } from "../../integrations/providers";
@@ -9,10 +10,14 @@ import { VoiceSelect } from "../../numbers/VoiceSelect";
 import {
   connectNumberForAssistantAction,
   createNumberForAssistantAction,
+  registerCnamAction,
+  testCallAction,
   unlinkNumberAction,
   updateAssistantAction,
 } from "../actions";
 import { DeleteAssistant } from "../DeleteAssistant";
+import { TestCallButton } from "../TestCallButton";
+import { sanitizeCnam } from "@/lib/dashboard/cnam";
 
 export const dynamic = "force-dynamic";
 
@@ -32,13 +37,17 @@ export default async function AssistantSettingsPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ saved?: string; error?: string }>;
+  searchParams: Promise<{ saved?: string; error?: string; cnam?: string }>;
 }) {
   const { id } = await params;
-  const { saved, error } = await searchParams;
+  const { saved, error, cnam } = await searchParams;
 
   const assistant = await getAssistant(id).catch(() => null);
   if (!assistant) notFound();
+
+  // Scope to the signed-in owner (when auth is configured).
+  const ownerId = await currentUserId();
+  if (ownerId && assistant.owner_id && assistant.owner_id !== ownerId) notFound();
 
   const notes = String((assistant.knowledge as { notes?: string })?.notes ?? "");
   const transferTo = String((assistant.routing as { transferTo?: string })?.transferTo ?? "");
@@ -57,6 +66,7 @@ export default async function AssistantSettingsPage({
   }
 
   const number = await getAssistantNumber(assistant.id).catch(() => null);
+  const cnamName = sanitizeCnam(assistant.name);
 
   return (
     <div className="space-y-6">
@@ -75,6 +85,11 @@ export default async function AssistantSettingsPage({
       )}
       {error && (
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>
+      )}
+      {cnam && (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          CNAM &quot;{cnam}&quot; submitted for review. Allow 48-72h to show on calls.
+        </div>
       )}
 
       <SectionCard title="Phone number" subtitle="The number callers dial to reach this assistant.">
@@ -136,6 +151,33 @@ export default async function AssistantSettingsPage({
         )}
       </SectionCard>
 
+      <SectionCard
+        title="Caller ID name (CNAM)"
+        subtitle="Show your business name on the recipient's phone for outbound calls."
+      >
+        <form action={registerCnamAction} className="space-y-3">
+          <input type="hidden" name="id" value={assistant.id} />
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="text-xs uppercase tracking-wide text-neutral-400">Display name (max 15 chars)</div>
+              <div className="mt-0.5 text-lg font-medium tracking-tight text-neutral-900">
+                {cnamName || "Name the assistant first"}
+              </div>
+            </div>
+            <button
+              type="submit"
+              disabled={!cnamName}
+              className="inline-flex h-9 items-center rounded-lg bg-neutral-900 px-4 text-sm font-medium text-white transition-colors hover:bg-neutral-800 disabled:opacity-50"
+            >
+              Register CNAM
+            </button>
+          </div>
+          <p className="text-xs text-neutral-400">
+            US long-code numbers only. Requires an approved Trust Hub business profile. Allow 48-72h to propagate.
+          </p>
+        </form>
+      </SectionCard>
+
       <form action={updateAssistantAction} className="space-y-4">
         <input type="hidden" name="id" value={assistant.id} />
 
@@ -169,7 +211,7 @@ export default async function AssistantSettingsPage({
                     name="knowledge_notes"
                     defaultValue={notes}
                     rows={4}
-                    placeholder="Hours, services, pricing, address, policies — anything the AI should know."
+                    placeholder="Hours, services, pricing, address, policies - anything the AI should know."
                     className={`${field} resize-y`}
                   />
                 </div>
@@ -177,15 +219,26 @@ export default async function AssistantSettingsPage({
             </SectionCard>
 
             <SectionCard title="Calls & alerts" subtitle="Forward important calls and get message texts.">
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-4">
                 <div>
                   <label htmlFor="transfer_to" className={labelCls}>Personal number</label>
-                  <input id="transfer_to" name="transfer_to" defaultValue={transferTo} placeholder="Your real number, e.g. +14155550199" className={field} />
-                  <p className="mt-1 text-xs text-neutral-400">Important calls forward here; message alerts are texted here.</p>
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <input id="transfer_to" name="transfer_to" defaultValue={transferTo} placeholder="Your real number, e.g. +14155550199" className={`${field} sm:flex-1`} />
+                    <TestCallButton
+                      action={testCallAction}
+                      className="inline-flex h-[38px] shrink-0 items-center justify-center gap-1.5 rounded-lg border border-violet-200 bg-white px-3 text-sm font-medium text-violet-700 transition-colors hover:bg-violet-50 disabled:opacity-60"
+                    />
+                  </div>
+                  <p className="mt-1.5 text-xs text-neutral-400">Important calls are forwarded to this number.</p>
                 </div>
-                <label className="flex items-center gap-2 self-start pt-8 text-sm font-medium text-neutral-700">
-                  <input type="checkbox" name="sms_alerts" defaultChecked={smsAlerts} className="h-4 w-4 rounded border-neutral-300 accent-violet-600" />
-                  Text me message alerts
+
+                <label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-neutral-200 px-4 py-3 transition-colors hover:border-neutral-300">
+                  <span>
+                    <span className="block text-sm font-medium text-neutral-800">Text me message alerts</span>
+                    <span className="block text-xs text-neutral-400">When the AI takes a message, text it to your personal number.</span>
+                  </span>
+                  <input type="checkbox" name="sms_alerts" defaultChecked={smsAlerts} className="peer sr-only" />
+                  <span className="relative h-5 w-9 shrink-0 rounded-full bg-neutral-200 transition-colors peer-checked:bg-violet-600 after:absolute after:left-0.5 after:top-0.5 after:h-4 after:w-4 after:rounded-full after:bg-white after:shadow-sm after:transition-all after:content-[''] peer-checked:after:translate-x-4" />
                 </label>
               </div>
             </SectionCard>
@@ -232,7 +285,7 @@ export default async function AssistantSettingsPage({
                   <span className={labelCls}>Default language</span>
                   <LanguageSelect name="language" defaultValue={assistant.language} />
                   <p className="mt-1 text-xs text-neutral-400">
-                    The AI detects the caller&apos;s language and replies in it — this is the fallback.
+                    The AI detects the caller&apos;s language and replies in it - this is the fallback.
                   </p>
                 </div>
               </div>

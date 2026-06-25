@@ -163,7 +163,7 @@ export async function deleteNumberAction(formData: FormData): Promise<void> {
     try {
       await deleteNumber(id);
     } catch {
-      // ignore — number may already be gone
+      // ignore - number may already be gone
     }
     revalidatePath("/dashboard/numbers");
   }

@@ -1,20 +1,11 @@
 import Link from "next/link";
 import { listAssistants, listNumbers, type Assistant } from "@/lib/dashboard/db";
+import { currentUserId } from "@/lib/auth";
 import { SectionCard } from "../components/SectionCard";
-import { Bot, Plus } from "../icons";
-import { createAssistantAction } from "./actions";
+import { Bot } from "../icons";
+import { CreateAssistantForm } from "./CreateAssistantForm";
 
 export const dynamic = "force-dynamic";
-
-const field =
-  "w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition-colors focus:border-violet-400";
-
-const COUNTRIES = [
-  { code: "US", name: "United States", flag: "🇺🇸" },
-  { code: "CA", name: "Canada", flag: "🇨🇦" },
-  { code: "GB", name: "United Kingdom", flag: "🇬🇧" },
-  { code: "AU", name: "Australia", flag: "🇦🇺" },
-];
 
 const STEPS = [
   { num: "01", title: "Create AI phone assistants", desc: "Select voice, language, and a welcome message." },
@@ -32,7 +23,7 @@ export default async function AssistantsPage({
   let assistants: Assistant[] = [];
   let loadError = "";
   try {
-    assistants = await listAssistants();
+    assistants = await listAssistants(await currentUserId());
   } catch (err) {
     loadError = (err as Error).message;
   }
@@ -72,28 +63,8 @@ export default async function AssistantsPage({
         ))}
       </div>
 
-      <SectionCard title="New assistant" subtitle="Name it and pick where its number is created — we generate the number on submit.">
-        <form action={createAssistantAction} className="flex flex-col gap-3 sm:flex-row sm:items-end">
-          <div className="flex-1">
-            <label htmlFor="name" className="mb-1.5 block text-sm font-medium text-neutral-700">Name</label>
-            <input id="name" name="name" placeholder="e.g. Front desk" className={field} />
-          </div>
-          <div className="sm:w-44">
-            <label htmlFor="country" className="mb-1.5 block text-sm font-medium text-neutral-700">Number country</label>
-            <select id="country" name="country" defaultValue="US" className={field}>
-              {COUNTRIES.map((c) => (
-                <option key={c.code} value={c.code}>{c.flag} {c.name}</option>
-              ))}
-            </select>
-          </div>
-          <button
-            type="submit"
-            className="inline-flex h-[38px] items-center justify-center gap-2 rounded-lg bg-neutral-900 px-4 text-sm font-medium text-white transition-colors hover:bg-neutral-800"
-          >
-            <Plus className="h-4 w-4" />
-            Create assistant
-          </button>
-        </form>
+      <SectionCard title="New assistant" subtitle="Name it and pick where its number is created - we generate the number on submit.">
+        <CreateAssistantForm />
       </SectionCard>
 
       {assistants.length === 0 && !loadError ? (

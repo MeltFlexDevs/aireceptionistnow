@@ -1,4 +1,4 @@
-import type { Summary } from "../data";
+import type { Summary } from "@/lib/dashboard/analytics";
 
 export function CallSummaries({ items }: { items: Summary[] }) {
   return (

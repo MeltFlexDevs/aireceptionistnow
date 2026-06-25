@@ -33,7 +33,10 @@ export function VoiceSelect({ name = "voice_id", defaultValue = "" }: Props) {
   }, []);
 
   useEffect(() => {
-    if (!open || loaded) return;
+    if (loaded) return;
+    // Load when the dropdown opens, or on mount when a voice is already set - so
+    // the trigger shows its name instead of the raw voice ID.
+    if (!open && !selected) return;
     setLoading(true);
     loadVoices()
       .then((list) => setVoices(list.length > 0 ? list : FALLBACK_VOICES))
@@ -42,7 +45,7 @@ export function VoiceSelect({ name = "voice_id", defaultValue = "" }: Props) {
         setLoaded(true);
         setLoading(false);
       });
-  }, [open, loaded]);
+  }, [open, loaded, selected]);
 
   const current = voices.find((v) => v.voiceId === selected);
   const q = query.trim().toLowerCase();
