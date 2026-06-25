@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Bell, ChevronDown, Menu } from "../icons";
+import { Search, Bell, Menu } from "../icons";
+import { UserMenu } from "./UserMenu";
+import type { AppUser } from "@/lib/auth-user";
 
 const RANGES = ["Today", "7 days", "30 days", "90 days"] as const;
 type Range = (typeof RANGES)[number];
 
-export function Topbar() {
+export function Topbar({ user }: { user: AppUser }) {
   const [range, setRange] = useState<Range>("Today");
   const [query, setQuery] = useState("");
 
@@ -48,14 +50,7 @@ export function Topbar() {
           <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-violet-600 ring-2 ring-white" />
         </button>
 
-        <button type="button" className="flex items-center gap-2 rounded-lg p-1 pr-2 text-left hover:bg-neutral-100">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-900 text-xs font-medium text-white">MS</span>
-          <span className="hidden leading-tight sm:block">
-            <span className="block text-sm font-medium text-neutral-900">Milan Stupko</span>
-            <span className="block text-xs text-neutral-400">Pro workspace</span>
-          </span>
-          <ChevronDown className="hidden h-4 w-4 text-neutral-400 sm:block" />
-        </button>
+        <UserMenu user={user} />
       </div>
     </header>
   );
