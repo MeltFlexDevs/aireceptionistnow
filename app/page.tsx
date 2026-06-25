@@ -143,6 +143,101 @@ export default function Home() {
           font-family: var(--font-inter), Inter, sans-serif;
           margin: 0;
         }
+        /* How it works (Fonio 1:1 layout, our font) */
+        .container {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 0 40px;
+        }
+        .section-header.width-40rem {
+          max-width: 40rem;
+        }
+        .section-header.align-center {
+          text-align: center;
+          margin-left: auto;
+          margin-right: auto;
+        }
+        .section-header .h2 {
+          font-family: var(--font-inter), Inter, sans-serif;
+          font-size: clamp(28px, 3.5vw, 42px);
+          font-weight: 300;
+          letter-spacing: -0.025em;
+          color: #111;
+          margin: 0 0 12px;
+        }
+        .section-header > p {
+          font-size: 16px;
+          color: #888;
+          font-weight: 300;
+          line-height: 1.6;
+          margin: 0;
+        }
+        ._4rem-margin-top { margin-top: 4rem; }
+        ._0-5rem-margin-top { margin-top: 1.25rem; }
+        .grid_3col {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 2rem;
+        }
+        .how-it-works_card {
+          display: flex;
+          flex-direction: column;
+        }
+        .steps-heading_wrapper {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          margin-bottom: 0.75rem;
+        }
+        .card-icon_wrapper {
+          width: 2.5rem;
+          height: 2.5rem;
+          border: 1px solid #e6e6e6;
+          border-radius: 0.625rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 0.875rem;
+          font-weight: 400;
+          color: #111;
+          flex-shrink: 0;
+        }
+        .text-size-big.inline-text {
+          font-size: 1.125rem;
+          font-weight: 500;
+          color: #111;
+          line-height: 1.3;
+          margin: 0;
+        }
+        .text-color-secondary {
+          color: #888;
+          font-size: 0.95rem;
+          font-weight: 300;
+          line-height: 1.6;
+          margin: 0;
+        }
+        .flex-vertical-stretch.space-between {
+          display: flex;
+          flex-direction: column;
+        }
+        .bg-image-frame.is-how-it-works {
+          background: #f4f4f5;
+          border-radius: 0.875rem;
+          overflow: hidden;
+          margin-top: 0.25rem;
+        }
+        .bleed-image {
+          display: block;
+          width: 100%;
+          height: auto;
+        }
+        @media (max-width: 991px) {
+          .grid_3col { grid-template-columns: 1fr; gap: 2.5rem; }
+        }
+        @media (max-width: 767px) {
+          .container { padding: 0 16px; }
+          ._4rem-margin-top { margin-top: 2.5rem; }
+        }
         .reviews-masonry {
           columns: 4;
           column-gap: 16px;
@@ -324,34 +419,62 @@ export default function Home() {
 
       {/* ── HOW IT WORKS ── */}
       <section id="how-it-works" style={{ padding: "100px 0" }}>
-        <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 40px" }}>
-          <div style={{ textAlign: "center", maxWidth: "640px", margin: "0 auto 56px" }}>
-            <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#111", marginBottom: "16px" }}>
-              Ready to go in under 10 minutes.
-            </h2>
-            <p style={{ fontSize: "16px", color: "#888", fontWeight: 300, lineHeight: 1.6 }}>
-              Anyone can get AI Receptionist up and running — no coding skills required.
-            </p>
+        <div className="container">
+          <div className="section-header align-center width-40rem">
+            <h2 className="h2">Ready to go in under 10 minutes.</h2>
+            <p>Anyone can get AI Receptionist up and running—no coding skills required.</p>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "16px" }}>
-            {[
-              { num: "01", title: "Create your AI receptionist", desc: "Select a voice, language, and a welcome message tailored to your business.", bg: "#f5f3ff" },
-              { num: "02", title: "Define in-call behavior", desc: "Set up call handling — appointment booking, FAQ answers, routing rules, and post-call summaries.", bg: "#eff6ff" },
-              { num: "03", title: "Let the AI take your calls", desc: "The AI connects to a new number or your existing line. Live immediately, 24/7.", bg: "#f0fdf4" },
-            ].map((s, i) => (
-              <div key={i} style={{ background: s.bg, borderRadius: "20px", padding: "32px", border: "1px solid rgba(0,0,0,0.04)" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
-                  <div style={{ width: "36px", height: "36px", background: "#fff", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", fontWeight: 500, color: "#111", boxShadow: "0 1px 4px rgba(0,0,0,0.08)", flexShrink: 0 }}>
-                    {s.num}
+          <div className="_4rem-margin-top">
+            <div className="grid_3col">
+              <div className="how-it-works_card">
+                <div className="steps-text_container">
+                  <div className="steps-heading_wrapper">
+                    <div className="card-icon_wrapper"><div>01</div></div>
+                    <p className="text-size-big inline-text">Create AI phone assistants</p>
                   </div>
-                  <h3 style={{ fontSize: "15px", fontWeight: 500, color: "#111", lineHeight: 1.35 }}>{s.title}</h3>
+                  <p className="text-color-secondary">Select voice, language, and a welcome message.</p>
                 </div>
-                <p style={{ fontSize: "14px", color: "#666", fontWeight: 300, lineHeight: 1.65 }}>{s.desc}</p>
-                <div style={{ marginTop: "28px", height: "148px", background: "rgba(0,0,0,0.04)", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <span style={{ fontSize: "52px", fontWeight: 200, color: "rgba(0,0,0,0.1)", letterSpacing: "-0.04em" }}>{s.num}</span>
+                <div className="_0-5rem-margin-top">
+                  <div className="flex-vertical-stretch space-between">
+                    <div className="bg-image-frame is-how-it-works">
+                      <img alt="" src="https://cdn.prod.website-files.com/66cdd640b6eaf9b4ea2f21c8/69bbfafbb04ee2991aeaa33e_EN_Create-Assistant.webp" loading="lazy" sizes="(max-width: 1274px) 100vw, 1274px" srcSet="https://cdn.prod.website-files.com/66cdd640b6eaf9b4ea2f21c8/69bbfafbb04ee2991aeaa33e_EN_Create-Assistant-p-500.webp 500w, https://cdn.prod.website-files.com/66cdd640b6eaf9b4ea2f21c8/69bbfafbb04ee2991aeaa33e_EN_Create-Assistant-p-800.webp 800w, https://cdn.prod.website-files.com/66cdd640b6eaf9b4ea2f21c8/69bbfafbb04ee2991aeaa33e_EN_Create-Assistant-p-1080.webp 1080w, https://cdn.prod.website-files.com/66cdd640b6eaf9b4ea2f21c8/69bbfafbb04ee2991aeaa33e_EN_Create-Assistant.webp 1298w" className="bleed-image" />
+                    </div>
+                  </div>
                 </div>
               </div>
-            ))}
+              <div className="how-it-works_card">
+                <div className="steps-text_container">
+                  <div className="steps-heading_wrapper">
+                    <div className="card-icon_wrapper"><div>02</div></div>
+                    <p className="text-size-big inline-text">Define in-call behavior and post-processing</p>
+                  </div>
+                  <p className="text-color-secondary">Set up different call handling and choose how you want to receive the transcripts.</p>
+                </div>
+                <div className="_0-5rem-margin-top">
+                  <div>
+                    <div className="bg-image-frame is-how-it-works">
+                      <img alt="" src="https://cdn.prod.website-files.com/66cdd640b6eaf9b4ea2f21c8/69bbfafb6bdb1931f6f581e7_56e1b75f9bdfd8c206405ed1985461de_EN_Edit-Assistant.webp" loading="lazy" sizes="(max-width: 1270px) 100vw, 1270px" srcSet="https://cdn.prod.website-files.com/66cdd640b6eaf9b4ea2f21c8/69bbfafb6bdb1931f6f581e7_56e1b75f9bdfd8c206405ed1985461de_EN_Edit-Assistant-p-500.webp 500w, https://cdn.prod.website-files.com/66cdd640b6eaf9b4ea2f21c8/69bbfafb6bdb1931f6f581e7_56e1b75f9bdfd8c206405ed1985461de_EN_Edit-Assistant-p-800.webp 800w, https://cdn.prod.website-files.com/66cdd640b6eaf9b4ea2f21c8/69bbfafb6bdb1931f6f581e7_56e1b75f9bdfd8c206405ed1985461de_EN_Edit-Assistant-p-1080.webp 1080w, https://cdn.prod.website-files.com/66cdd640b6eaf9b4ea2f21c8/69bbfafb6bdb1931f6f581e7_56e1b75f9bdfd8c206405ed1985461de_EN_Edit-Assistant.webp 1274w" className="bleed-image" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="how-it-works_card">
+                <div className="steps-text_container">
+                  <div className="steps-heading_wrapper">
+                    <div className="card-icon_wrapper"><div>03</div></div>
+                    <p className="text-size-big inline-text">Let the AI take your phone calls</p>
+                  </div>
+                  <p className="text-color-secondary">The AI will be linked to an AI Receptionist phone number or your own phone system.</p>
+                </div>
+                <div className="_0-5rem-margin-top">
+                  <div className="flex-vertical-stretch space-between">
+                    <div className="bg-image-frame is-how-it-works">
+                      <img alt="" src="https://cdn.prod.website-files.com/66cdd640b6eaf9b4ea2f21c8/69bbfafbc5a1170e0c492002_9e947ddc50a109d93e8c0e3e8cafde3d_EN_Call-Screen.webp" loading="lazy" className="bleed-image is-active-phone-call" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
