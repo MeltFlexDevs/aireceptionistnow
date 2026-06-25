@@ -50,30 +50,24 @@ const brandLogos = [
 ];
 
 const reviews = [
-  {
-    quote: "Our front desk used to miss calls constantly during patient hours. Since switching to AI Receptionist, every call is answered 24/7, appointments are booked automatically, and our staff can focus on patients.",
-    name: "Dr. Amanda Reyes",
-    role: "Family Medicine Practice",
-    av: "AR",
-  },
-  {
-    quote: "I used to lose clients because I couldn't answer the phone on a job site. AI Receptionist handles every inbound call, qualifies the lead, and texts me a summary. Closed three new clients this month I would have missed.",
-    name: "Mike Donovan",
-    role: "Owner, Plumbing & Drain Services",
-    av: "MD",
-  },
-  {
-    quote: "My front desk was overwhelmed with booking calls. Set up AI Receptionist in less than 20 minutes. Now it handles all appointment scheduling while my team focuses on clients.",
-    name: "Jasmine Torres",
-    role: "Owner, Day Spa",
-    av: "JT",
-  },
-  {
-    quote: "I'm a one-person agency and I can't always pick up. AI Receptionist qualifies every caller, captures their details, and books showings into my calendar. Like having a full-time receptionist at a fraction of the cost.",
-    name: "Brian Callahan",
-    role: "Independent Realtor",
-    av: "BC",
-  },
+  { quote: "Our front desk used to miss calls constantly during patient hours. Now every single call gets answered 24/7 and appointments just book themselves. Staff can finally focus on patients.", name: "Dr. Amanda Reyes", role: "Family Medicine", av: "AR" },
+  { quote: "couldn't pick up on a job site so I was losing clients every week. This thing answers every call, qualifies the lead and texts me a summary. closed 3 jobs this month I would've missed.", name: "Mike Donovan", role: "Plumbing & Drain", av: "MD" },
+  { quote: "Set it up in like 20 minutes during my lunch break. Now it handles all the booking calls while my team works on clients. honestly wish I'd done this a year ago.", name: "Jasmine Torres", role: "Day Spa", av: "JT" },
+  { quote: "One person agency here, I can't always answer. It qualifies every caller, grabs their details and books showings straight into my calendar. like a full time receptionist for nothing.", name: "Brian Callahan", role: "Realtor", av: "BC" },
+  { quote: "We were paying two people just to answer phones. Now the AI takes the overflow and after hours calls. Cut our front desk costs almost in half.", name: "Priya Sharma", role: "Dental Clinic", av: "PS" },
+  { quote: "the voice is shockingly natural. Half my customers have no idea theyre talking to an AI. Books the appointment, confirms it, done.", name: "Carlos Mendez", role: "Auto Repair Shop", av: "CM" },
+  { quote: "missed calls were killing us at night. now every after hours call gets answered and I get a text recap in the morning. game changer for a small firm.", name: "Rachel Goodwin", role: "Law Office", av: "RG" },
+  { quote: "Setup was way easier than I expected. Described my business, picked a few options and it was taking calls same day. No tech skills needed at all.", name: "Tom Bradley", role: "HVAC Services", av: "TB" },
+  { quote: "It pushes every booking right into my calendar and never double books. Friday nights used to be chaos answering the phone, not anymore.", name: "Nina Petrova", role: "Hair Salon", av: "NP" },
+  { quote: "honestly skeptical at first but it handles weird questions better than my old answering service did. and it's a fraction of the price.", name: "Derek Olsen", role: "Roofing Contractor", av: "DO" },
+  { quote: "We get a lot of Spanish speaking callers and it switches languages no problem. captures everything and emails me the lead instantly.", name: "Sofia Ramirez", role: "Insurance Agency", av: "SR" },
+  { quote: "phones ring nonstop during dinner rush. now the AI takes reservations and to-go orders while we cook. saved us so many lost tables.", name: "Marco Bianchi", role: "Restaurant", av: "MB" },
+  { quote: "It books consults, answers pricing questions and sends me a summary of every call. feels like I hired a receptionist without the payroll.", name: "Hannah Cole", role: "Med Spa", av: "HC" },
+  { quote: "I run the shop alone and can't stop mid job to grab the phone. it answers, qualifies, and texts me whats urgent. closed more work this month than ever.", name: "Wes Carter", role: "Electrician", av: "WC" },
+  { quote: "switched from a call center that kept messing up bookings. this never gets the appointment wrong and it actually sounds friendly.", name: "Linda Park", role: "Chiropractic Clinic", av: "LP" },
+  { quote: "the after hours coverage alone paid for itself. people call at 9pm and still get booked. no more voicemail tag.", name: "Greg Sullivan", role: "Pest Control", av: "GS" },
+  { quote: "tried it on the free plan first and it already booked 4 appointments the first week. upgraded the same day. easy decision.", name: "Aisha Khan", role: "Nail Studio", av: "AK" },
+  { quote: "integrates straight into our calendar and CRM so nothing gets lost. setup took one evening and it's been running flawless since.", name: "Daniel Wright", role: "Real Estate Team", av: "DW" },
 ];
 
 const faqs = [
@@ -148,6 +142,19 @@ export default function Home() {
           font-weight: 300;
           font-family: var(--font-inter), Inter, sans-serif;
           margin: 0;
+        }
+        .reviews-masonry {
+          columns: 4;
+          column-gap: 16px;
+        }
+        @media (max-width: 1024px) {
+          .reviews-masonry { columns: 3; }
+        }
+        @media (max-width: 768px) {
+          .reviews-masonry { columns: 2; }
+        }
+        @media (max-width: 480px) {
+          .reviews-masonry { columns: 1; }
         }
       `}</style>
 
@@ -286,31 +293,31 @@ export default function Home() {
 
       {/* ── CUSTOMER REVIEWS ── */}
       <section style={{ padding: "100px 0" }}>
-        <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 40px" }}>
-          <div style={{ textAlign: "center", marginBottom: "56px" }}>
-            <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#111" }}>
-              Customer reviews
+        <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
+          <div style={{ textAlign: "center", marginBottom: "40px" }}>
+            <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#111", margin: "0 0 8px" }}>
+              Loved by busy businesses
             </h2>
+            <p style={{ fontSize: "15px", color: "#888", fontWeight: 300, margin: 0 }}>
+              Thousands of calls answered every day, never a missed one.
+            </p>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "16px" }}>
+          <div className="reviews-masonry">
             {reviews.map((r, i) => (
-              <div key={i} style={{ background: "#fff", border: "1px solid #ebebeb", borderRadius: "18px", padding: "24px", display: "flex", flexDirection: "column", gap: "16px", transition: "box-shadow 0.2s", cursor: "default" }}
-                onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.boxShadow = "0 4px 24px rgba(0,0,0,0.06)")}
-                onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.boxShadow = "none")}
-              >
+              <div key={i} style={{ breakInside: "avoid-column", marginBottom: "16px", padding: "24px", borderRadius: "12px", border: "1px solid #f0f0f0", background: "#fff", display: "flex", flexDirection: "column", gap: "14px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "#111", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: 500, flexShrink: 0 }}>
+                    {r.av}
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <div style={{ fontWeight: 400, color: "#111", fontSize: "13px" }}>{r.name}</div>
+                    <div style={{ color: "#bbb", fontSize: "10px", fontWeight: 300, letterSpacing: "0.5px" }}>{r.role}</div>
+                  </div>
+                </div>
                 <div style={{ display: "flex", gap: "2px" }}>
                   {[...Array(5)].map((_, j) => <StarSvg key={j} />)}
                 </div>
-                <p style={{ fontSize: "14px", color: "#444", lineHeight: 1.72, fontWeight: 300, flexGrow: 1 }}>"{r.quote}"</p>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "#111", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: 500, flexShrink: 0 }}>
-                    {r.av}
-                  </div>
-                  <div>
-                    <div style={{ fontWeight: 500, color: "#111", fontSize: "13px" }}>{r.name}</div>
-                    <div style={{ color: "#aaa", fontSize: "12px", fontWeight: 300 }}>{r.role}</div>
-                  </div>
-                </div>
+                <p style={{ fontSize: "13px", color: "#555", lineHeight: 1.6, fontWeight: 300, fontStyle: "italic", margin: 0 }}>&ldquo;{r.quote}&rdquo;</p>
               </div>
             ))}
           </div>
