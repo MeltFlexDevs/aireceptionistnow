@@ -101,12 +101,14 @@ export function AuthDialogProvider({ children }: { children: React.ReactNode }) 
 
   const value = React.useMemo(() => ({ open, close }), [open, close]);
 
-  // Open automatically when redirected here with `?auth=login`.
+  // Open automatically when redirected here with `?auth=login`. A `next` param
+  // (e.g. from the pricing page's checkout flow) becomes the post-login target.
   React.useEffect(() => {
-    const openFromUrl =
-      new URLSearchParams(window.location.search).get("auth") === "login";
+    const params = new URLSearchParams(window.location.search);
+    const openFromUrl = params.get("auth") === "login";
+    const next = params.get("next");
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (openFromUrl) open("login");
+    if (openFromUrl) open("login", next ? { next } : undefined);
   }, [open]);
 
   // Lock body scroll + close on Escape while open.

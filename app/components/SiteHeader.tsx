@@ -69,6 +69,16 @@ export default function SiteHeader() {
             AI RECEPTIONIST
           </span>
         </a>
+        <a
+          href="/pricing"
+          style={{
+            color: "#000", fontSize: "12px", fontWeight: 400,
+            letterSpacing: "0.06em", textDecoration: "none",
+            fontFamily: "var(--font-inter), Inter, sans-serif",
+          }}
+        >
+          PRICING
+        </a>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
         {signedIn ? (
