@@ -584,25 +584,25 @@ export default function Home() {
       </section>
 
       {/* ── USE CASES ── */}
-      <section id="features" style={{ background: "#f8f8f8", padding: "100px 0" }}>
+      <section id="features" style={{ background: "#000", padding: "100px 0" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 40px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "40px", marginBottom: "56px", flexWrap: "wrap" }}>
             <div style={{ maxWidth: "520px" }}>
-              <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#111", marginBottom: "16px" }}>
+              <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#fff", marginBottom: "16px" }}>
                 Use cases
               </h2>
-              <p style={{ fontSize: "16px", color: "#888", fontWeight: 300, lineHeight: 1.65 }}>
+              <p style={{ fontSize: "16px", color: "#999", fontWeight: 300, lineHeight: 1.65 }}>
                 Our AI phone assistant adapts flexibly to your needs and integrates with your calendar and CRM. Automated calls that make sense.
               </p>
             </div>
-            <a href="#pricing" style={{ display: "inline-flex", alignItems: "center", height: "42px", padding: "0 22px", background: "#000", color: "#fff", borderRadius: "20px", fontSize: "13px", fontWeight: 400, textDecoration: "none", letterSpacing: "0.02em", transition: "opacity 0.2s", flexShrink: 0 }}
+            <a href="#pricing" style={{ display: "inline-flex", alignItems: "center", height: "42px", padding: "0 22px", background: "#fff", color: "#000", borderRadius: "20px", fontSize: "13px", fontWeight: 400, textDecoration: "none", letterSpacing: "0.02em", transition: "opacity 0.2s", flexShrink: 0 }}
               onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.opacity = "0.85")}
               onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.opacity = "1")}
             >
               Start Free Trial
             </a>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", background: "#ececec", borderRadius: "20px", overflow: "hidden", border: "1px solid #ececec", gap: "1px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "16px" }}>
             {[
               { icon: "briefcase", title: "Reception & Routing", desc: "Takes incoming calls and forwards them to the appropriate contact person.", link: true },
               { icon: "transcript", title: "Call Transcription", desc: "Collects inquiries, transcribes them, and sends you a summary by email.", link: true },
@@ -611,29 +611,27 @@ export default function Home() {
               { icon: "package", title: "Order Processing", desc: "Fast 24/7 automated request handling — no waiting, no missed orders.", link: true },
               { icon: "grid", title: "50+ More Options", desc: "Every business is different. Configure the AI to match your exact workflow.", link: false },
             ].map((uc, i) => (
-              <div key={i} style={{ background: "#fff", padding: "30px 26px", transition: "background 0.2s", cursor: uc.link ? "pointer" : "default" }}
+              <div key={i} style={{ background: "transparent", padding: "8px 4px", transition: "opacity 0.2s", cursor: uc.link ? "pointer" : "default" }}
                 onMouseOver={(e) => {
-                  (e.currentTarget as HTMLElement).style.background = "#fafafa";
                   const arrow = e.currentTarget.querySelector("[data-arrow]") as HTMLElement | null;
                   if (arrow) { arrow.style.opacity = "1"; arrow.style.transform = "translate(2px, -2px)"; }
                 }}
                 onMouseOut={(e) => {
-                  (e.currentTarget as HTMLElement).style.background = "#fff";
                   const arrow = e.currentTarget.querySelector("[data-arrow]") as HTMLElement | null;
                   if (arrow) { arrow.style.opacity = "0"; arrow.style.transform = "translate(0, 0)"; }
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "18px" }}>
-                  <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: "#f2f2f2", display: "flex", alignItems: "center", justifyContent: "center", color: "#111" }}>
+                  <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: "rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
                     <UseCaseIcon name={uc.icon} />
                   </div>
                   {uc.link && (
-                    <span data-arrow style={{ display: "inline-flex", color: "#111", opacity: 0, transform: "translate(0, 0)", transition: "opacity 0.2s, transform 0.2s" }}>
+                    <span data-arrow style={{ display: "inline-flex", color: "#fff", opacity: 0, transform: "translate(0, 0)", transition: "opacity 0.2s, transform 0.2s" }}>
                       <svg width="18" height="18" viewBox="0 -960 960 960" fill="currentColor"><path d="M640-624 284-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l356-356H280q-17 0-28.5-11.5T240-720q0-17 11.5-28.5T280-760h400q17 0 28.5 11.5T720-720v400q0 17-11.5 28.5T680-280q-17 0-28.5-11.5T640-320v-304Z" /></svg>
                     </span>
                   )}
                 </div>
-                <h3 style={{ fontSize: "15px", fontWeight: 500, color: "#111", marginBottom: "8px", letterSpacing: "-0.01em" }}>{uc.title}</h3>
+                <h3 style={{ fontSize: "15px", fontWeight: 500, color: "#fff", marginBottom: "8px", letterSpacing: "-0.01em" }}>{uc.title}</h3>
                 <p style={{ fontSize: "13px", color: "#888", lineHeight: 1.65, fontWeight: 300 }}>{uc.desc}</p>
               </div>
             ))}
