@@ -401,13 +401,35 @@ export default function Home() {
         @media (max-width: 480px) {
           .reviews-masonry { columns: 1; }
         }
+        /* ── MOBILE RESPONSIVE (inline styles → need !important) ── */
+        @media (max-width: 768px) {
+          .lp-section { padding-top: 60px !important; padding-bottom: 60px !important; }
+          .lp-pad { padding-left: 20px !important; padding-right: 20px !important; }
+          .lp-hero { padding-top: 92px !important; min-height: auto !important; }
+          .cta-outer { padding-left: 20px !important; padding-right: 20px !important; }
+          .cta-card { padding: 48px 24px !important; border-radius: 20px !important; }
+          .lp-marquee-item { padding-left: 32px !important; padding-right: 32px !important; }
+        }
+        @media (max-width: 860px) {
+          .hero-h1 { white-space: normal !important; padding: 0 16px; }
+        }
+        @media (max-width: 680px) {
+          .hero-h1 {
+            font-size: clamp(30px, 8.5vw, 44px) !important;
+            line-height: 1.1 !important;
+            margin-bottom: 32px !important;
+          }
+        }
+        @media (max-width: 600px) {
+          .trust-divider { display: none !important; }
+        }
       `}</style>
 
       {/* ── HEADER ── */}
       <SiteHeader />
 
       {/* ── HERO ── */}
-      <section style={{
+      <section className="lp-hero" style={{
         position: "relative", background: "#fff", minHeight: "100vh",
         display: "flex", flexDirection: "column", alignItems: "center",
         paddingTop: "110px", overflow: "hidden",
@@ -424,7 +446,7 @@ export default function Home() {
         </div>
 
         {/* H1 — direct flex child so section's alignItems:center truly centers it */}
-        <h1 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(38px, 6.5vw, 76px)", fontWeight: 300, letterSpacing: "-0.03em", color: "#111", lineHeight: 1.04, marginBottom: "44px", whiteSpace: "nowrap", position: "relative", zIndex: 2 }}>
+        <h1 className="hero-h1" style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(38px, 6.5vw, 76px)", fontWeight: 300, letterSpacing: "-0.03em", color: "#111", lineHeight: 1.04, marginBottom: "44px", whiteSpace: "nowrap", position: "relative", zIndex: 2, textAlign: "center", maxWidth: "100%" }}>
           Let our AI take care of your calls
         </h1>
 
@@ -510,7 +532,7 @@ export default function Home() {
               <span style={{ fontSize: "14px", fontWeight: 400, color: "#111", letterSpacing: "-0.01em" }}>9,500+ users worldwide</span>
               <span style={{ fontSize: "12px", fontWeight: 400, color: "#666" }}>Got every call answered 24/7.</span>
             </div>
-            <div style={{ width: "1px", height: "28px", background: "#e0e0e0" }} />
+            <div className="trust-divider" style={{ width: "1px", height: "28px", background: "#e0e0e0" }} />
             <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
               <div style={{ display: "flex", alignItems: "center" }}>
                 <span style={{ fontSize: "12px", color: "#555", lineHeight: 1.4, fontWeight: 400, letterSpacing: "-0.01em" }}>
@@ -534,7 +556,7 @@ export default function Home() {
         <div style={{ width: "100%", overflow: "hidden", paddingTop: "30px", paddingBottom: "48px" }}>
           <div className="marquee-inner">
             {[...brandLogos, ...brandLogos, ...brandLogos, ...brandLogos].map((brand, i) => (
-              <div key={i} style={{ padding: "0 52px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div key={i} className="lp-marquee-item" style={{ padding: "0 52px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <svg width={28} height={28} viewBox={brand.viewBox} fill="currentColor" style={{ color: "#c8c8c8" }} aria-label={brand.name}>
                   <path d={brand.d} />
                 </svg>
@@ -545,7 +567,7 @@ export default function Home() {
       </section>
 
       {/* ── CUSTOMER REVIEWS ── */}
-      <section style={{ padding: "100px 0" }}>
+      <section className="lp-section" style={{ padding: "100px 0" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
           <div style={{ textAlign: "center", marginBottom: "40px" }}>
             <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#111", margin: "0 0 8px" }}>
@@ -576,7 +598,7 @@ export default function Home() {
       </section>
 
       {/* ── HOW IT WORKS ── */}
-      <section id="how-it-works" className="section hiw-vars" style={{ padding: "100px 0" }}>
+      <section id="how-it-works" className="section hiw-vars lp-section" style={{ padding: "100px 0" }}>
         <div className="container">
           <div className="section-header align-center width-40rem">
             <h2 className="h2">Ready to go in under 10 minutes.</h2>
@@ -638,8 +660,8 @@ export default function Home() {
       </section>
 
       {/* ── USE CASES ── */}
-      <section id="features" style={{ background: "#000", padding: "100px 0" }}>
-        <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 40px" }}>
+      <section id="features" className="lp-section" style={{ background: "#000", padding: "100px 0" }}>
+        <div className="lp-pad" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 40px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "40px", marginBottom: "56px", flexWrap: "wrap" }}>
             <div style={{ maxWidth: "520px" }}>
               <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#fff", marginBottom: "16px" }}>
@@ -694,7 +716,7 @@ export default function Home() {
       </section>
 
       {/* ── FAQ ── */}
-      <section style={{ padding: "100px 0" }}>
+      <section className="lp-section" style={{ padding: "100px 0" }}>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -709,7 +731,7 @@ export default function Home() {
             }),
           }}
         />
-        <div style={{ maxWidth: "760px", margin: "0 auto", padding: "0 40px" }}>
+        <div className="lp-pad" style={{ maxWidth: "760px", margin: "0 auto", padding: "0 40px" }}>
           <div style={{ textAlign: "center", marginBottom: "56px" }}>
             <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#111" }}>
               Frequently Asked Questions
@@ -737,8 +759,8 @@ export default function Home() {
       </section>
 
       {/* ── CTA BANNER ── */}
-      <section style={{ padding: "0 40px 100px" }}>
-        <div style={{ maxWidth: "1200px", margin: "0 auto", background: "#fff", borderRadius: "24px", padding: "80px 60px", textAlign: "center" }}>
+      <section className="cta-outer" style={{ padding: "0 40px 100px" }}>
+        <div className="cta-card" style={{ maxWidth: "1200px", margin: "0 auto", background: "#fff", borderRadius: "24px", padding: "80px 60px", textAlign: "center" }}>
           <div>
             <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(24px, 3.5vw, 40px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#111", marginBottom: "16px" }}>
               Scalable call management with AI Receptionist.
