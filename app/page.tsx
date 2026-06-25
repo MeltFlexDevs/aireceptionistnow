@@ -217,7 +217,7 @@ export default function Home() {
           </div>
 
           {/* H1 */}
-          <h1 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(38px, 6.5vw, 76px)", fontWeight: 300, letterSpacing: "-0.03em", color: "#111", lineHeight: 1.04, marginBottom: "44px", whiteSpace: "nowrap", textAlign: "center", width: "100%" }}>
+          <h1 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(38px, 6.5vw, 76px)", fontWeight: 300, letterSpacing: "-0.03em", color: "#111", lineHeight: 1.04, marginBottom: "44px", whiteSpace: "nowrap", width: "fit-content", margin: "0 auto 44px" }}>
             Let our AI take care of your calls
           </h1>
 
