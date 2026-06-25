@@ -108,6 +108,7 @@ export default function Home() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [phone, setPhone] = useState("");
   const [dialCode, setDialCode] = useState("+1");
+  const [flagOpen, setFlagOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 30);
@@ -221,21 +222,33 @@ export default function Home() {
 
         <div style={{ position: "relative", zIndex: 2, width: "100%", maxWidth: "860px", padding: "0 24px", textAlign: "center" }}>
           {/* CTA Card */}
-          <div style={{ maxWidth: "480px", margin: "0 auto 64px" }}>
+          <div style={{ maxWidth: "380px", margin: "0 auto 64px" }}>
             <div style={{ background: "#fff", border: "1px solid #e8e8e8", borderRadius: "16px", padding: "22px", display: "flex", flexDirection: "column", gap: "10px" }}>
               {/* Phone input row with flag selector */}
-              <div style={{ display: "flex", alignItems: "center", background: "#f8f8f8", border: "1px solid #e8e8e8", borderRadius: "10px", overflow: "hidden" }}>
-                <div style={{ position: "relative", display: "flex", alignItems: "center", flexShrink: 0, borderRight: "1px solid #e8e8e8" }}>
-                  <select
-                    value={dialCode}
-                    onChange={(e) => setDialCode(e.target.value)}
-                    style={{ appearance: "none", WebkitAppearance: "none", background: "transparent", border: "none", padding: "13px 28px 13px 12px", fontSize: "14px", fontWeight: 300, color: "#111", cursor: "pointer", outline: "none", fontFamily: "var(--font-inter), Inter, sans-serif" }}
+              <div style={{ display: "flex", alignItems: "center", background: "#f8f8f8", border: "1px solid #e8e8e8", borderRadius: "10px", overflow: "visible", position: "relative" }}>
+                {/* Custom flag picker */}
+                <div style={{ position: "relative", flexShrink: 0, borderRight: "1px solid #e8e8e8" }}>
+                  <button
+                    onClick={() => setFlagOpen(!flagOpen)}
+                    style={{ display: "flex", alignItems: "center", gap: "4px", background: "transparent", border: "none", padding: "10px 10px", cursor: "pointer", lineHeight: 1 }}
                   >
-                    {countries.map((c) => (
-                      <option key={c.code} value={c.code}>{c.flag} {c.code}</option>
-                    ))}
-                  </select>
-                  <span style={{ position: "absolute", right: "8px", pointerEvents: "none", color: "#999", fontSize: "10px" }}>▼</span>
+                    <span style={{ fontSize: "22px" }}>{countries.find(c => c.code === dialCode)?.flag}</span>
+                    <span style={{ fontSize: "9px", color: "#999" }}>▼</span>
+                  </button>
+                  {flagOpen && (
+                    <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, background: "#fff", border: "1px solid #e8e8e8", borderRadius: "10px", boxShadow: "0 4px 16px rgba(0,0,0,0.1)", zIndex: 200, minWidth: "140px", maxHeight: "220px", overflowY: "auto" }}>
+                      {countries.map(c => (
+                        <button
+                          key={c.code}
+                          onClick={() => { setDialCode(c.code); setFlagOpen(false); }}
+                          style={{ display: "flex", alignItems: "center", gap: "10px", width: "100%", padding: "9px 14px", background: "transparent", border: "none", cursor: "pointer", textAlign: "left" }}
+                        >
+                          <span style={{ fontSize: "20px" }}>{c.flag}</span>
+                          <span style={{ fontSize: "13px", color: "#333", fontFamily: "var(--font-inter), Inter, sans-serif" }}>{c.code}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <input
                   type="tel"
