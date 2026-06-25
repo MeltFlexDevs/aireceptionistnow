@@ -7,6 +7,7 @@ import {
   createNumber,
   deleteNumber,
   listIntegrations,
+  setNumberAssistant,
   updateNumber,
 } from "@/lib/dashboard/db";
 import {
@@ -79,6 +80,20 @@ export async function buyNumberAction(formData: FormData): Promise<void> {
 
   revalidatePath("/dashboard/numbers");
   redirect(`/dashboard/numbers/${id}`);
+}
+
+export async function setAssistantAction(formData: FormData): Promise<void> {
+  const id = String(formData.get("id") ?? "");
+  const assistantId = String(formData.get("assistant_id") ?? "");
+  if (id) {
+    try {
+      await setNumberAssistant(id, assistantId || null);
+    } catch {
+      // ignore
+    }
+    revalidatePath(`/dashboard/numbers/${id}`);
+  }
+  redirect(`/dashboard/numbers/${id}?saved=1`);
 }
 
 export async function updateNumberAction(formData: FormData): Promise<void> {

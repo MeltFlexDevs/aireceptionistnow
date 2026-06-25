@@ -37,6 +37,7 @@ export interface PhoneNumber {
   knowledge: Record<string, unknown>;
   routing: Record<string, unknown>;
   enabled: boolean;
+  assistant_id: string | null;
   created_at: string;
 }
 
@@ -44,6 +45,7 @@ export interface CreateNumberInput {
   label: string;
   e164: string;
   twilioSid?: string;
+  assistantId?: string;
 }
 
 export interface UpdateNumberInput {
@@ -110,6 +112,7 @@ export async function createNumber(input: CreateNumberInput): Promise<string> {
       label: input.label,
       e164: input.e164,
       twilio_sid: input.twilioSid ?? null,
+      assistant_id: input.assistantId ?? null,
       voice_id: DEFAULT_VOICE_ID,
       routing: DEFAULT_ROUTING,
     })
@@ -202,5 +205,117 @@ export async function upsertCalendarIntegration(
 
 export async function deleteIntegration(id: string): Promise<void> {
   const { error } = await db().from("integrations").delete().eq("id", id);
+  if (error) throw error;
+}
+
+// ── Assistants ──────────────────────────────────────────────────────────────
+
+export interface Assistant {
+  id: string;
+  business_id: string;
+  name: string;
+  greeting: string;
+  system_prompt: string;
+  voice_id: string;
+  language: string;
+  knowledge: Record<string, unknown>;
+  routing: Record<string, unknown>;
+  enabled: boolean;
+  created_at: string;
+}
+
+export interface UpdateAssistantInput {
+  name: string;
+  greeting: string;
+  system_prompt: string;
+  voice_id: string;
+  language: string;
+  knowledge: Record<string, unknown>;
+  routing: Record<string, unknown>;
+}
+
+export async function listAssistants(): Promise<Assistant[]> {
+  const { data, error } = await db()
+    .from("assistants")
+    .select("*")
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as Assistant[];
+}
+
+export async function getAssistant(id: string): Promise<Assistant | null> {
+  const { data, error } = await db()
+    .from("assistants")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as Assistant) ?? null;
+}
+
+export async function createAssistant(name: string): Promise<string> {
+  const businessId = await ensureBusinessId();
+  const { data, error } = await db()
+    .from("assistants")
+    .insert({
+      business_id: businessId,
+      name: name || "My assistant",
+      voice_id: DEFAULT_VOICE_ID,
+      routing: DEFAULT_ROUTING,
+    })
+    .select("id")
+    .single();
+  if (error) throw error;
+  return String(data.id);
+}
+
+export async function updateAssistant(
+  id: string,
+  patch: UpdateAssistantInput,
+): Promise<void> {
+  const { error } = await db()
+    .from("assistants")
+    .update({
+      name: patch.name,
+      greeting: patch.greeting,
+      system_prompt: patch.system_prompt,
+      voice_id: patch.voice_id,
+      language: patch.language,
+      knowledge: patch.knowledge,
+      routing: patch.routing,
+    })
+    .eq("id", id);
+  if (error) throw error;
+}
+
+export async function deleteAssistant(id: string): Promise<void> {
+  const { error } = await db().from("assistants").delete().eq("id", id);
+  if (error) throw error;
+}
+
+/** The phone number linked to an assistant, if any. */
+export async function getAssistantNumber(
+  assistantId: string,
+): Promise<PhoneNumber | null> {
+  const { data, error } = await db()
+    .from("phone_numbers")
+    .select("*")
+    .eq("assistant_id", assistantId)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as PhoneNumber) ?? null;
+}
+
+/** Link (or unlink) a phone number to an assistant. */
+export async function setNumberAssistant(
+  numberId: string,
+  assistantId: string | null,
+): Promise<void> {
+  const { error } = await db()
+    .from("phone_numbers")
+    .update({ assistant_id: assistantId })
+    .eq("id", numberId);
   if (error) throw error;
 }

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Logo, Grid, Phone, Hash, Bot, Plug, ChartBar, Gear, Sparkle } from "../icons";
+import { Logo, Grid, Phone, Bot, Plug, ChartBar, Gear, Sparkle } from "../icons";
 
 interface NavItem {
   href: string;
@@ -13,7 +13,6 @@ interface NavItem {
 const main: NavItem[] = [
   { href: "/dashboard", label: "Overview", Icon: Grid },
   { href: "/dashboard/calls", label: "Calls", Icon: Phone },
-  { href: "/dashboard/numbers", label: "Phone numbers", Icon: Hash },
   { href: "/dashboard/assistant", label: "AI assistant", Icon: Bot },
   { href: "/dashboard/integrations", label: "Integrations", Icon: Plug },
   { href: "/dashboard/analytics", label: "Analytics", Icon: ChartBar },

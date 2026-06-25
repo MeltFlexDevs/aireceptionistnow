@@ -1,11 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getNumber, listIntegrations } from "@/lib/dashboard/db";
+import {
+  getNumber,
+  listAssistants,
+  listIntegrations,
+  type Assistant,
+} from "@/lib/dashboard/db";
 import { SectionCard } from "../../components/SectionCard";
 import { CALENDAR_PROVIDERS } from "../../integrations/providers";
 import { LanguageSelect } from "../LanguageSelect";
 import { VoiceSelect } from "../VoiceSelect";
-import { updateNumberAction, deleteNumberAction } from "../actions";
+import { updateNumberAction, deleteNumberAction, setAssistantAction } from "../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +46,13 @@ export default async function NumberSettingsPage({
     calendars = [];
   }
 
+  let assistants: Assistant[] = [];
+  try {
+    assistants = await listAssistants();
+  } catch {
+    assistants = [];
+  }
+
   return (
     <div className="space-y-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
@@ -61,6 +73,32 @@ export default async function NumberSettingsPage({
       {error && (
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>
       )}
+
+      <SectionCard title="Assistant" subtitle="Pick the AI assistant that answers this number.">
+        <form action={setAssistantAction} className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <input type="hidden" name="id" value={number.id} />
+          <div className="flex-1">
+            <label htmlFor="assistant_id" className="mb-1.5 block text-sm font-medium text-neutral-700">Assistant</label>
+            <select id="assistant_id" name="assistant_id" defaultValue={number.assistant_id ?? ""} className={field}>
+              <option value="">This number&apos;s own settings (below)</option>
+              {assistants.map((a) => (
+                <option key={a.id} value={a.id}>{a.name}</option>
+              ))}
+            </select>
+          </div>
+          <button
+            type="submit"
+            className="inline-flex h-[38px] items-center justify-center rounded-lg bg-neutral-900 px-4 text-sm font-medium text-white transition-colors hover:bg-neutral-800"
+          >
+            Save
+          </button>
+        </form>
+        {assistants.length === 0 && (
+          <p className="mt-2 text-xs text-neutral-400">
+            No assistants yet. <Link href="/dashboard/assistant" className="text-violet-600 hover:text-violet-700">Create one →</Link>
+          </p>
+        )}
+      </SectionCard>
 
       <form action={updateNumberAction} className="space-y-4">
         <input type="hidden" name="id" value={number.id} />

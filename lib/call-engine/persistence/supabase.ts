@@ -38,7 +38,7 @@ export class SupabaseCallRepository implements CallRepository {
   async resolveInboundNumber(toE164: string): Promise<NumberConfig | null> {
     const { data: num, error } = await db()
       .from("phone_numbers")
-      .select("*, businesses(name)")
+      .select("*, businesses(name), assistant:assistants(*)")
       .eq("e164", toE164)
       .eq("enabled", true)
       .maybeSingle();
@@ -52,18 +52,20 @@ export class SupabaseCallRepository implements CallRepository {
       .eq("enabled", true);
 
     const business = num.businesses as { name?: string } | null;
+    // Prefer the linked assistant's config; fall back to the number's own.
+    const cfg = (num.assistant as Record<string, unknown> | null) ?? num;
     return {
       numberId: String(num.id),
       businessId: String(num.business_id),
       businessName: business?.name ?? "our business",
       label: String(num.label),
       e164: String(num.e164),
-      greeting: String(num.greeting),
-      systemPrompt: String(num.system_prompt ?? ""),
-      voiceId: String(num.voice_id ?? ""),
-      language: String(num.language ?? "en"),
-      knowledge: (num.knowledge as Record<string, unknown>) ?? {},
-      routing: (num.routing as Record<string, unknown>) ?? {},
+      greeting: String(cfg.greeting ?? num.greeting),
+      systemPrompt: String(cfg.system_prompt ?? ""),
+      voiceId: String(cfg.voice_id ?? ""),
+      language: String(cfg.language ?? "en"),
+      knowledge: (cfg.knowledge as Record<string, unknown>) ?? {},
+      routing: (cfg.routing as Record<string, unknown>) ?? {},
       integrations: (integrations ?? []).map(mapIntegration),
     };
   }
