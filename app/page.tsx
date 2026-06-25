@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import SiteHeader from "./components/SiteHeader";
 import SiteFooter from "./components/SiteFooter";
 
@@ -22,6 +22,64 @@ const PhoneIcon = () => (
     <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02L6.62 10.79z"/>
   </svg>
 );
+
+const UseCaseIcon = ({ name }: { name: string }) => {
+  const common = {
+    width: 22,
+    height: 22,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.6,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+  };
+  const paths: Record<string, ReactNode> = {
+    briefcase: (
+      <>
+        <rect x="2.5" y="7" width="19" height="13" rx="2" />
+        <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+        <path d="M2.5 12.5h19" />
+      </>
+    ),
+    transcript: (
+      <>
+        <path d="M5 3h11l3 3v15a0 0 0 0 1 0 0H5a0 0 0 0 1 0 0V3Z" />
+        <path d="M8 9h6M8 13h8M8 17h5" />
+      </>
+    ),
+    headset: (
+      <>
+        <path d="M4 13v-1a8 8 0 0 1 16 0v1" />
+        <rect x="2.5" y="13" width="4" height="6" rx="1.5" />
+        <rect x="17.5" y="13" width="4" height="6" rx="1.5" />
+        <path d="M20 19v.5a3 3 0 0 1-3 3h-2.5" />
+      </>
+    ),
+    calendar: (
+      <>
+        <rect x="3" y="4.5" width="18" height="16.5" rx="2" />
+        <path d="M3 9.5h18M8 2.5v4M16 2.5v4" />
+        <path d="M7.5 14h2M14.5 14h2M7.5 17.5h2M14.5 17.5h2" />
+      </>
+    ),
+    package: (
+      <>
+        <path d="M21 16V8l-9-5-9 5v8l9 5 9-5Z" />
+        <path d="M3.5 7.5 12 12l8.5-4.5M12 12v9" />
+      </>
+    ),
+    grid: (
+      <>
+        <rect x="3.5" y="3.5" width="7" height="7" rx="1.5" />
+        <rect x="13.5" y="3.5" width="7" height="7" rx="1.5" />
+        <rect x="3.5" y="13.5" width="7" height="7" rx="1.5" />
+        <path d="M17 14.5v6M14 17.5h6" />
+      </>
+    ),
+  };
+  return <svg {...common}>{paths[name]}</svg>;
+};
 
 const countries = [
   { flag: "🇺🇸", code: "+1", name: "United States" },
@@ -544,21 +602,38 @@ export default function Home() {
               Start Free Trial
             </a>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", background: "#e8e8e8", borderRadius: "16px", overflow: "hidden", border: "1px solid #e8e8e8", gap: "1px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", background: "#ececec", borderRadius: "20px", overflow: "hidden", border: "1px solid #ececec", gap: "1px" }}>
             {[
-              { icon: "💼", title: "Reception & Routing", desc: "Takes incoming calls and forwards them to the appropriate contact person." },
-              { icon: "📝", title: "Call Transcription", desc: "Collects inquiries, transcribes them, and sends you a summary by email." },
-              { icon: "🎧", title: "Customer Service", desc: "Handles customer inquiries around the clock with precisely defined behavior." },
-              { icon: "📅", title: "Appointment Booking", desc: "Schedules appointments during the conversation with instant confirmation." },
-              { icon: "🔁", title: "Order Processing", desc: "Fast 24/7 automated request handling — no waiting, no missed orders." },
-              { icon: "⚡", title: "50+ More Options", desc: "Every business is different. Configure the AI to match your exact workflow." },
+              { icon: "briefcase", title: "Reception & Routing", desc: "Takes incoming calls and forwards them to the appropriate contact person.", link: true },
+              { icon: "transcript", title: "Call Transcription", desc: "Collects inquiries, transcribes them, and sends you a summary by email.", link: true },
+              { icon: "headset", title: "Customer Service", desc: "Handles customer inquiries around the clock with precisely defined behavior.", link: true },
+              { icon: "calendar", title: "Appointment Booking", desc: "Schedules appointments during the conversation with instant confirmation.", link: true },
+              { icon: "package", title: "Order Processing", desc: "Fast 24/7 automated request handling — no waiting, no missed orders.", link: true },
+              { icon: "grid", title: "50+ More Options", desc: "Every business is different. Configure the AI to match your exact workflow.", link: false },
             ].map((uc, i) => (
-              <div key={i} style={{ background: "#fff", padding: "28px 24px", transition: "background 0.2s", cursor: "default" }}
-                onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.background = "#fafafa")}
-                onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.background = "#fff")}
+              <div key={i} style={{ background: "#fff", padding: "30px 26px", transition: "background 0.2s", cursor: uc.link ? "pointer" : "default" }}
+                onMouseOver={(e) => {
+                  (e.currentTarget as HTMLElement).style.background = "#fafafa";
+                  const arrow = e.currentTarget.querySelector("[data-arrow]") as HTMLElement | null;
+                  if (arrow) { arrow.style.opacity = "1"; arrow.style.transform = "translate(2px, -2px)"; }
+                }}
+                onMouseOut={(e) => {
+                  (e.currentTarget as HTMLElement).style.background = "#fff";
+                  const arrow = e.currentTarget.querySelector("[data-arrow]") as HTMLElement | null;
+                  if (arrow) { arrow.style.opacity = "0"; arrow.style.transform = "translate(0, 0)"; }
+                }}
               >
-                <div style={{ fontSize: "22px", marginBottom: "12px" }}>{uc.icon}</div>
-                <h3 style={{ fontSize: "14px", fontWeight: 500, color: "#111", marginBottom: "8px" }}>{uc.title}</h3>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "18px" }}>
+                  <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: "#f2f2f2", display: "flex", alignItems: "center", justifyContent: "center", color: "#111" }}>
+                    <UseCaseIcon name={uc.icon} />
+                  </div>
+                  {uc.link && (
+                    <span data-arrow style={{ display: "inline-flex", color: "#111", opacity: 0, transform: "translate(0, 0)", transition: "opacity 0.2s, transform 0.2s" }}>
+                      <svg width="18" height="18" viewBox="0 -960 960 960" fill="currentColor"><path d="M640-624 284-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l356-356H280q-17 0-28.5-11.5T240-720q0-17 11.5-28.5T280-760h400q17 0 28.5 11.5T720-720v400q0 17-11.5 28.5T680-280q-17 0-28.5-11.5T640-320v-304Z" /></svg>
+                    </span>
+                  )}
+                </div>
+                <h3 style={{ fontSize: "15px", fontWeight: 500, color: "#111", marginBottom: "8px", letterSpacing: "-0.01em" }}>{uc.title}</h3>
                 <p style={{ fontSize: "13px", color: "#888", lineHeight: 1.65, fontWeight: 300 }}>{uc.desc}</p>
               </div>
             ))}
