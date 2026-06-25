@@ -258,32 +258,23 @@ export default function Home() {
           overflow: hidden;
         }
         .hiw-vars .bg-image-frame.is-how-it-works {
-          background-color: #fff0;
-          flex: 1;
-          min-height: 300px;
+          background-color: #f5f6fa;
+          background-image: none;
+          aspect-ratio: 1 / 1;
+          width: 100%;
           display: block;
           position: relative;
         }
         .hiw-vars .bleed-image {
-          border-radius: var(--hiw-card-radius);
-          width: 95%;
-          height: 95%;
-          box-shadow: 0 -2px 9px 0 #393a4d14;
-          object-fit: cover;
-          object-position: 0% 0%;
-          display: block;
           position: absolute;
-          inset: 2rem -5% -5% auto;
-        }
-        .hiw-vars .bleed-image.is-active-phone-call {
-          border: 3px solid var(--hiw-primary-text);
-          border-radius: 18px;
-          width: auto;
-          height: 120%;
-          margin-left: auto;
-          margin-right: auto;
-          left: 0;
-          right: 0;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          border-radius: 0;
+          box-shadow: none;
+          object-fit: cover;
+          object-position: center;
+          display: block;
         }
         @media (max-width: 991px) {
           .hiw-vars .grid_3col { flex-flow: column; display: flex; }
@@ -492,7 +483,7 @@ export default function Home() {
                 <div className="_0-5rem-margin-top">
                   <div className="flex-vertical-stretch space-between">
                     <div className="bg-image-frame is-how-it-works">
-                      <img alt="" src="https://cdn.prod.website-files.com/66cdd640b6eaf9b4ea2f21c8/69bbfafbb04ee2991aeaa33e_EN_Create-Assistant.webp" loading="lazy" sizes="(max-width: 1274px) 100vw, 1274px" srcSet="https://cdn.prod.website-files.com/66cdd640b6eaf9b4ea2f21c8/69bbfafbb04ee2991aeaa33e_EN_Create-Assistant-p-500.webp 500w, https://cdn.prod.website-files.com/66cdd640b6eaf9b4ea2f21c8/69bbfafbb04ee2991aeaa33e_EN_Create-Assistant-p-800.webp 800w, https://cdn.prod.website-files.com/66cdd640b6eaf9b4ea2f21c8/69bbfafbb04ee2991aeaa33e_EN_Create-Assistant-p-1080.webp 1080w, https://cdn.prod.website-files.com/66cdd640b6eaf9b4ea2f21c8/69bbfafbb04ee2991aeaa33e_EN_Create-Assistant.webp 1298w" className="bleed-image" />
+                      <img alt="Create your AI receptionist on iPhone" src="/how-it-works/create.webp" loading="lazy" className="bleed-image" />
                     </div>
                   </div>
                 </div>
@@ -508,7 +499,7 @@ export default function Home() {
                 <div className="_0-5rem-margin-top">
                   <div>
                     <div className="bg-image-frame is-how-it-works">
-                      <img alt="" src="https://cdn.prod.website-files.com/66cdd640b6eaf9b4ea2f21c8/69bbfafb6bdb1931f6f581e7_56e1b75f9bdfd8c206405ed1985461de_EN_Edit-Assistant.webp" loading="lazy" sizes="(max-width: 1270px) 100vw, 1270px" srcSet="https://cdn.prod.website-files.com/66cdd640b6eaf9b4ea2f21c8/69bbfafb6bdb1931f6f581e7_56e1b75f9bdfd8c206405ed1985461de_EN_Edit-Assistant-p-500.webp 500w, https://cdn.prod.website-files.com/66cdd640b6eaf9b4ea2f21c8/69bbfafb6bdb1931f6f581e7_56e1b75f9bdfd8c206405ed1985461de_EN_Edit-Assistant-p-800.webp 800w, https://cdn.prod.website-files.com/66cdd640b6eaf9b4ea2f21c8/69bbfafb6bdb1931f6f581e7_56e1b75f9bdfd8c206405ed1985461de_EN_Edit-Assistant-p-1080.webp 1080w, https://cdn.prod.website-files.com/66cdd640b6eaf9b4ea2f21c8/69bbfafb6bdb1931f6f581e7_56e1b75f9bdfd8c206405ed1985461de_EN_Edit-Assistant.webp 1274w" className="bleed-image" />
+                      <img alt="Define in-call behavior on iPhone" src="/how-it-works/behavior.webp" loading="lazy" className="bleed-image" />
                     </div>
                   </div>
                 </div>
@@ -524,7 +515,7 @@ export default function Home() {
                 <div className="_0-5rem-margin-top">
                   <div className="flex-vertical-stretch space-between">
                     <div className="bg-image-frame is-how-it-works">
-                      <img alt="" src="https://cdn.prod.website-files.com/66cdd640b6eaf9b4ea2f21c8/69bbfafbc5a1170e0c492002_9e947ddc50a109d93e8c0e3e8cafde3d_EN_Call-Screen.webp" loading="lazy" className="bleed-image is-active-phone-call" />
+                      <img alt="The AI taking a phone call on iPhone" src="/how-it-works/call.webp" loading="lazy" className="bleed-image" />
                     </div>
                   </div>
                 </div>
