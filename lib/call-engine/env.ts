@@ -7,7 +7,12 @@ import { z } from "zod";
 const schema = z.object({
   // Telephony
   TWILIO_ACCOUNT_SID: z.string().min(1),
-  TWILIO_AUTH_TOKEN: z.string().min(1),
+  TWILIO_AUTH_TOKEN: z.string().min(1), // required: webhook signatures are signed with it
+  // Optional: scoped API Key for REST calls (recommended over the auth token).
+  TWILIO_API_KEY_SID: z.string().optional(),
+  TWILIO_API_KEY_SECRET: z.string().optional(),
+  // Optional: A2P-registered Messaging Service for US SMS (see docs/A2P-10DLC.md).
+  TWILIO_MESSAGING_SERVICE_SID: z.string().optional(),
 
   // Speech-to-text
   DEEPGRAM_API_KEY: z.string().min(1),

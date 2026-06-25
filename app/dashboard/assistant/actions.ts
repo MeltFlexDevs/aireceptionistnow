@@ -6,11 +6,17 @@ import {
   createAssistant,
   createNumber,
   deleteAssistant,
+  getAssistantNumbers,
   listIntegrations,
   setNumberAssistant,
+  softDeleteNumber,
   updateAssistant,
 } from "@/lib/dashboard/db";
-import { buyTwilioNumber, ensureTwilioNumber } from "@/lib/dashboard/twilio";
+import {
+  buyTwilioNumber,
+  ensureTwilioNumber,
+  releaseTwilioNumber,
+} from "@/lib/dashboard/twilio";
 
 const E164 = /^\+[1-9]\d{6,15}$/;
 
@@ -90,9 +96,21 @@ export async function deleteAssistantAction(formData: FormData): Promise<void> {
   const id = String(formData.get("id") ?? "");
   if (id) {
     try {
+      // Release each linked number from Twilio, then soft-delete it and the assistant.
+      const numbers = await getAssistantNumbers(id);
+      for (const n of numbers) {
+        if (n.twilio_sid) {
+          try {
+            await releaseTwilioNumber(n.twilio_sid);
+          } catch {
+            // already released / not permitted — ignore
+          }
+        }
+        await softDeleteNumber(n.id).catch(() => {});
+      }
       await deleteAssistant(id);
     } catch {
-      // already gone
+      // best-effort
     }
     revalidatePath("/dashboard/assistant");
   }

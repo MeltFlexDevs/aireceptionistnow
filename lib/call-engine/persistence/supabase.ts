@@ -41,6 +41,7 @@ export class SupabaseCallRepository implements CallRepository {
       .select("*, businesses(name), assistant:assistants(*)")
       .eq("e164", toE164)
       .eq("enabled", true)
+      .is("deleted_at", null)
       .maybeSingle();
     if (error) throw error;
     if (!num) return null;

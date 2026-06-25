@@ -84,6 +84,7 @@ export async function listNumbers(): Promise<PhoneNumber[]> {
   const { data, error } = await db()
     .from("phone_numbers")
     .select("*")
+    .is("deleted_at", null)
     .order("created_at", { ascending: true });
   if (error) throw error;
   return (data ?? []) as PhoneNumber[];
@@ -94,6 +95,7 @@ export async function getNumber(id: string): Promise<PhoneNumber | null> {
     .from("phone_numbers")
     .select("*")
     .eq("id", id)
+    .is("deleted_at", null)
     .maybeSingle();
   if (error) throw error;
   return (data as PhoneNumber) ?? null;
@@ -213,6 +215,7 @@ export async function deleteIntegration(id: string): Promise<void> {
 export interface Assistant {
   id: string;
   business_id: string;
+  owner_id: string | null;
   name: string;
   greeting: string;
   system_prompt: string;
@@ -238,6 +241,7 @@ export async function listAssistants(): Promise<Assistant[]> {
   const { data, error } = await db()
     .from("assistants")
     .select("*")
+    .is("deleted_at", null)
     .order("created_at", { ascending: true });
   if (error) throw error;
   return (data ?? []) as Assistant[];
@@ -248,17 +252,22 @@ export async function getAssistant(id: string): Promise<Assistant | null> {
     .from("assistants")
     .select("*")
     .eq("id", id)
+    .is("deleted_at", null)
     .maybeSingle();
   if (error) throw error;
   return (data as Assistant) ?? null;
 }
 
-export async function createAssistant(name: string): Promise<string> {
+export async function createAssistant(
+  name: string,
+  ownerId?: string,
+): Promise<string> {
   const businessId = await ensureBusinessId();
   const { data, error } = await db()
     .from("assistants")
     .insert({
       business_id: businessId,
+      owner_id: ownerId ?? null,
       name: name || "My assistant",
       voice_id: DEFAULT_VOICE_ID,
       routing: DEFAULT_ROUTING,
@@ -289,7 +298,10 @@ export async function updateAssistant(
 }
 
 export async function deleteAssistant(id: string): Promise<void> {
-  const { error } = await db().from("assistants").delete().eq("id", id);
+  const { error } = await db()
+    .from("assistants")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id);
   if (error) throw error;
 }
 
@@ -301,6 +313,7 @@ export async function getAssistantNumber(
     .from("phone_numbers")
     .select("*")
     .eq("assistant_id", assistantId)
+    .is("deleted_at", null)
     .order("created_at", { ascending: true })
     .limit(1)
     .maybeSingle();
@@ -317,5 +330,29 @@ export async function setNumberAssistant(
     .from("phone_numbers")
     .update({ assistant_id: assistantId })
     .eq("id", numberId);
+  if (error) throw error;
+}
+
+/** All active numbers linked to an assistant (with their Twilio SIDs to release). */
+export async function getAssistantNumbers(
+  assistantId: string,
+): Promise<{ id: string; twilio_sid: string | null }[]> {
+  const { data, error } = await db()
+    .from("phone_numbers")
+    .select("id, twilio_sid")
+    .eq("assistant_id", assistantId)
+    .is("deleted_at", null);
+  if (error) throw error;
+  return (data ?? []).map((r) => ({
+    id: String(r.id),
+    twilio_sid: r.twilio_sid ? String(r.twilio_sid) : null,
+  }));
+}
+
+export async function softDeleteNumber(id: string): Promise<void> {
+  const { error } = await db()
+    .from("phone_numbers")
+    .update({ deleted_at: new Date().toISOString(), assistant_id: null })
+    .eq("id", id);
   if (error) throw error;
 }
