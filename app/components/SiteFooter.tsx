@@ -45,7 +45,7 @@ export default function SiteFooter() {
           </div>
         </div>
       </div>
-      <div style={{ padding: "28px 0" }}>
+      <div style={{ padding: "28px 0", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 40px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
           <a href="/" style={{ display: "flex", alignItems: "center", gap: "9px", textDecoration: "none", color: "#fff" }}>
             <PauseLogo color="#fff" />
@@ -57,6 +57,27 @@ export default function SiteFooter() {
             ))}
           </ul>
           <p style={{ color: "rgba(255,255,255,0.3)", fontSize: "11px", fontWeight: 300, margin: 0 }}>© 2026 AI Receptionist Now. All rights reserved.</p>
+        </div>
+      </div>
+
+      {/* ── COPYRIGHT BAR ── */}
+      <div style={{ padding: "20px 0" }}>
+        <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 40px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
+          {/* Left: copyright + links */}
+          <div style={{ display: "flex", alignItems: "center", gap: "20px", flexWrap: "wrap" }}>
+            <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "11px", fontWeight: 300 }}>© All rights reserved. aireceptionistnow.com 2026</span>
+            <a href="#" style={{ color: "rgba(255,255,255,0.35)", fontSize: "11px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.02em" }}>Imprint</a>
+            <a href="/privacy-policy" style={{ color: "rgba(255,255,255,0.35)", fontSize: "11px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.02em" }}>Data protection</a>
+          </div>
+
+          {/* Right: GDPR badge */}
+          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+            <img src="https://cdn.prod.website-files.com/66cdd640b6eaf9b4ea2f21c8/6848312f044b2bc8aef51e5d_leaves.svg" loading="lazy" alt="" style={{ height: "20px", width: "auto" }} />
+            <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "11px", fontWeight: 300 }}>
+              <strong style={{ color: "rgba(255,255,255,0.7)", fontWeight: 500 }}>GDPR</strong> compliant
+            </span>
+            <img src="https://cdn.prod.website-files.com/66cdd640b6eaf9b4ea2f21c8/684831cb9a3271ea234575e9_leaves-2.svg" loading="lazy" alt="" style={{ height: "20px", width: "auto" }} />
+          </div>
         </div>
       </div>
     </footer>
