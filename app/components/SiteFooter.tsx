@@ -65,16 +65,16 @@ export default function SiteFooter() {
         <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 40px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
           {/* Left: copyright + links */}
           <div style={{ display: "flex", alignItems: "center", gap: "20px", flexWrap: "wrap" }}>
-            <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "11px", fontWeight: 300 }}>© All rights reserved. aireceptionistnow.com 2026</span>
-            <a href="#" style={{ color: "rgba(255,255,255,0.35)", fontSize: "11px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.02em" }}>Imprint</a>
-            <a href="/privacy-policy" style={{ color: "rgba(255,255,255,0.35)", fontSize: "11px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.02em" }}>Data protection</a>
+            <span style={{ color: "#fff", fontSize: "11px", fontWeight: 300 }}>© All rights reserved. aireceptionistnow.com 2026</span>
+            <a href="#" style={{ color: "#fff", fontSize: "11px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.02em" }}>Imprint</a>
+            <a href="/privacy-policy" style={{ color: "#fff", fontSize: "11px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.02em" }}>Data protection</a>
           </div>
 
           {/* Right: GDPR badge */}
           <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
             <img src="https://cdn.prod.website-files.com/66cdd640b6eaf9b4ea2f21c8/6848312f044b2bc8aef51e5d_leaves.svg" loading="lazy" alt="" style={{ height: "20px", width: "auto" }} />
-            <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "11px", fontWeight: 300 }}>
-              <strong style={{ color: "rgba(255,255,255,0.7)", fontWeight: 500 }}>GDPR</strong> compliant
+            <span style={{ color: "#fff", fontSize: "11px", fontWeight: 300 }}>
+              <strong style={{ color: "#fff", fontWeight: 500 }}>GDPR</strong> compliant
             </span>
             <img src="https://cdn.prod.website-files.com/66cdd640b6eaf9b4ea2f21c8/684831cb9a3271ea234575e9_leaves-2.svg" loading="lazy" alt="" style={{ height: "20px", width: "auto" }} />
           </div>
