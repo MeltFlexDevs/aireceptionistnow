@@ -6,7 +6,7 @@ import SiteFooter from "./components/SiteFooter";
 
 
 const StarSvg = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="#a855f7" xmlns="http://www.w3.org/2000/svg">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="#22c55e" xmlns="http://www.w3.org/2000/svg">
     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
   </svg>
 );
@@ -50,24 +50,24 @@ const brandLogos = [
 ];
 
 const reviews = [
-  { quote: "Our front desk used to miss calls constantly during patient hours. Now every single call gets answered 24/7 and appointments just book themselves. Staff can finally focus on patients.", name: "Dr. Amanda Reyes", role: "Family Medicine", av: "AR" },
-  { quote: "couldn't pick up on a job site so I was losing clients every week. This thing answers every call, qualifies the lead and texts me a summary. closed 3 jobs this month I would've missed.", name: "Mike Donovan", role: "Plumbing & Drain", av: "MD" },
-  { quote: "Set it up in like 20 minutes during my lunch break. Now it handles all the booking calls while my team works on clients. honestly wish I'd done this a year ago.", name: "Jasmine Torres", role: "Day Spa", av: "JT" },
-  { quote: "One person agency here, I can't always answer. It qualifies every caller, grabs their details and books showings straight into my calendar. like a full time receptionist for nothing.", name: "Brian Callahan", role: "Realtor", av: "BC" },
-  { quote: "We were paying two people just to answer phones. Now the AI takes the overflow and after hours calls. Cut our front desk costs almost in half.", name: "Priya Sharma", role: "Dental Clinic", av: "PS" },
-  { quote: "the voice is shockingly natural. Half my customers have no idea theyre talking to an AI. Books the appointment, confirms it, done.", name: "Carlos Mendez", role: "Auto Repair Shop", av: "CM" },
-  { quote: "missed calls were killing us at night. now every after hours call gets answered and I get a text recap in the morning. game changer for a small firm.", name: "Rachel Goodwin", role: "Law Office", av: "RG" },
-  { quote: "Setup was way easier than I expected. Described my business, picked a few options and it was taking calls same day. No tech skills needed at all.", name: "Tom Bradley", role: "HVAC Services", av: "TB" },
-  { quote: "It pushes every booking right into my calendar and never double books. Friday nights used to be chaos answering the phone, not anymore.", name: "Nina Petrova", role: "Hair Salon", av: "NP" },
-  { quote: "honestly skeptical at first but it handles weird questions better than my old answering service did. and it's a fraction of the price.", name: "Derek Olsen", role: "Roofing Contractor", av: "DO" },
-  { quote: "We get a lot of Spanish speaking callers and it switches languages no problem. captures everything and emails me the lead instantly.", name: "Sofia Ramirez", role: "Insurance Agency", av: "SR" },
-  { quote: "phones ring nonstop during dinner rush. now the AI takes reservations and to-go orders while we cook. saved us so many lost tables.", name: "Marco Bianchi", role: "Restaurant", av: "MB" },
-  { quote: "It books consults, answers pricing questions and sends me a summary of every call. feels like I hired a receptionist without the payroll.", name: "Hannah Cole", role: "Med Spa", av: "HC" },
-  { quote: "I run the shop alone and can't stop mid job to grab the phone. it answers, qualifies, and texts me whats urgent. closed more work this month than ever.", name: "Wes Carter", role: "Electrician", av: "WC" },
-  { quote: "switched from a call center that kept messing up bookings. this never gets the appointment wrong and it actually sounds friendly.", name: "Linda Park", role: "Chiropractic Clinic", av: "LP" },
-  { quote: "the after hours coverage alone paid for itself. people call at 9pm and still get booked. no more voicemail tag.", name: "Greg Sullivan", role: "Pest Control", av: "GS" },
-  { quote: "tried it on the free plan first and it already booked 4 appointments the first week. upgraded the same day. easy decision.", name: "Aisha Khan", role: "Nail Studio", av: "AK" },
-  { quote: "integrates straight into our calendar and CRM so nothing gets lost. setup took one evening and it's been running flawless since.", name: "Daniel Wright", role: "Real Estate Team", av: "DW" },
+  { quote: "Our front desk used to miss calls constantly during patient hours. Now every single call gets answered 24/7 and appointments just book themselves. Staff can finally focus on patients.", name: "Dr. Amanda Reyes", role: "Family Medicine", photo: "/testimonials/sarah.jpg" },
+  { quote: "couldn't pick up on a job site so I was losing clients every week. This thing answers every call, qualifies the lead and texts me a summary. closed 3 jobs this month I would've missed.", name: "Mike Donovan", role: "Plumbing & Drain", photo: "/testimonials/james.jpg" },
+  { quote: "Set it up in like 20 minutes during my lunch break. Now it handles all the booking calls while my team works on clients. honestly wish I'd done this a year ago.", name: "Jasmine Torres", role: "Day Spa", photo: "/testimonials/emma.jpg" },
+  { quote: "One person agency here, I can't always answer. It qualifies every caller, grabs their details and books showings straight into my calendar. like a full time receptionist for nothing.", name: "Brian Callahan", role: "Realtor", photo: "/testimonials/michael.jpg" },
+  { quote: "We were paying two people just to answer phones. Now the AI takes the overflow and after hours calls. Cut our front desk costs almost in half.", name: "Priya Sharma", role: "Dental Clinic", photo: "/testimonials/priya.jpg" },
+  { quote: "the voice is shockingly natural. Half my customers have no idea theyre talking to an AI. Books the appointment, confirms it, done.", name: "Carlos Mendez", role: "Auto Repair Shop", photo: "/testimonials/carlos.jpg" },
+  { quote: "missed calls were killing us at night. now every after hours call gets answered and I get a text recap in the morning. game changer for a small firm.", name: "Rachel Goodwin", role: "Law Office", photo: "/testimonials/rachel.jpg" },
+  { quote: "Setup was way easier than I expected. Described my business, picked a few options and it was taking calls same day. No tech skills needed at all.", name: "Tom Bradley", role: "HVAC Services", photo: "/testimonials/thomas.jpg" },
+  { quote: "It pushes every booking right into my calendar and never double books. Friday nights used to be chaos answering the phone, not anymore.", name: "Nina Petrova", role: "Hair Salon", photo: "/testimonials/anna.jpg" },
+  { quote: "honestly skeptical at first but it handles weird questions better than my old answering service did. and it's a fraction of the price.", name: "Derek Olsen", role: "Roofing Contractor", photo: "/testimonials/henrik.jpg" },
+  { quote: "We get a lot of Spanish speaking callers and it switches languages no problem. captures everything and emails me the lead instantly.", name: "Sofia Ramirez", role: "Insurance Agency", photo: "/testimonials/maria.jpg" },
+  { quote: "phones ring nonstop during dinner rush. now the AI takes reservations and to-go orders while we cook. saved us so many lost tables.", name: "Marco Bianchi", role: "Restaurant", photo: "/testimonials/marco.jpg" },
+  { quote: "It books consults, answers pricing questions and sends me a summary of every call. feels like I hired a receptionist without the payroll.", name: "Hannah Cole", role: "Med Spa", photo: "/testimonials/sophie.jpg" },
+  { quote: "I run the shop alone and can't stop mid job to grab the phone. it answers, qualifies, and texts me whats urgent. closed more work this month than ever.", name: "Wes Carter", role: "Electrician", photo: "/testimonials/sean.jpg" },
+  { quote: "switched from a call center that kept messing up bookings. this never gets the appointment wrong and it actually sounds friendly.", name: "Linda Park", role: "Chiropractic Clinic", photo: "/testimonials/lisa.jpg" },
+  { quote: "the after hours coverage alone paid for itself. people call at 9pm and still get booked. no more voicemail tag.", name: "Greg Sullivan", role: "Pest Control", photo: "/testimonials/david.jpg" },
+  { quote: "tried it on the free plan first and it already booked 4 appointments the first week. upgraded the same day. easy decision.", name: "Aisha Khan", role: "Nail Studio", photo: "/testimonials/delphine.jpg" },
+  { quote: "integrates straight into our calendar and CRM so nothing gets lost. setup took one evening and it's been running flawless since.", name: "Daniel Wright", role: "Real Estate Team", photo: "/testimonials/oliver.jpg" },
 ];
 
 const faqs = [
@@ -306,9 +306,7 @@ export default function Home() {
             {reviews.map((r, i) => (
               <div key={i} style={{ breakInside: "avoid-column", marginBottom: "16px", padding: "24px", borderRadius: "12px", border: "1px solid #f0f0f0", background: "#fff", display: "flex", flexDirection: "column", gap: "14px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "#111", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: 500, flexShrink: 0 }}>
-                    {r.av}
-                  </div>
+                  <img src={r.photo} alt={r.name} width={36} height={36} loading="lazy" style={{ width: "36px", height: "36px", borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
                   <div style={{ display: "flex", flexDirection: "column" }}>
                     <div style={{ fontWeight: 400, color: "#111", fontSize: "13px" }}>{r.name}</div>
                     <div style={{ color: "#bbb", fontSize: "10px", fontWeight: 300, letterSpacing: "0.5px" }}>{r.role}</div>
