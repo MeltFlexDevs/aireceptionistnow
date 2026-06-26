@@ -26,6 +26,9 @@ const server = http.createServer((req, res) => {
 const wss = new WebSocketServer({ server, path: "/media" });
 wss.on("connection", (ws) => handleMediaConnection(ws, repo));
 
-server.listen(env.MEDIA_WS_PORT, () => {
-  console.log(`[media] listening on :${env.MEDIA_WS_PORT} (ws path /media)`);
+// Hosts like Railway/Render inject the port to bind on via PORT; fall back to
+// MEDIA_WS_PORT (default 8080) for local runs.
+const port = Number(process.env.PORT) || env.MEDIA_WS_PORT;
+server.listen(port, () => {
+  console.log(`[media] listening on :${port} (ws path /media)`);
 });

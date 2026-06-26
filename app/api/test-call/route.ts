@@ -1,16 +1,10 @@
 import type { NextRequest } from "next/server";
-import { buildConnectResponse } from "@/lib/call-engine/pickup";
-import {
-  createTestCall,
-  getDefaultCallableNumber,
-  setCallTwilioSid,
-} from "@/lib/dashboard/db";
-import { placeCall } from "@/lib/dashboard/twilio";
+import { assertUnderCallCaps, placeAgentCall } from "@/lib/call-engine/elevenlabs";
 
-// Public "Talk to our AI now" endpoint: places an outbound Twilio call to the
-// visitor's number, connecting the audio to the media server with the default
-// assistant's config. Note: on a Twilio trial, outbound calls only reach
-// verified numbers — the carrier error is surfaced to the caller.
+// Public "Talk to our AI now" endpoint: an ElevenLabs Conversational AI agent
+// places an outbound call to the visitor's number and talks to them live.
+// ElevenLabs hosts the real-time voice pipeline, so this runs fine on Vercel
+// serverless — no standalone media server needed.
 
 export const dynamic = "force-dynamic";
 
@@ -35,38 +29,18 @@ export async function POST(req: NextRequest): Promise<Response> {
     return json({ ok: false, error: "Enter a valid phone number in international format." }, 400);
   }
 
-  const mediaWsUrl = process.env.MEDIA_WS_URL;
-  if (!mediaWsUrl) {
-    return json({ ok: false, error: "Calling isn't available right now." }, 503);
-  }
-
-  let number: Awaited<ReturnType<typeof getDefaultCallableNumber>> = null;
   try {
-    number = await getDefaultCallableNumber();
-  } catch {
-    number = null;
-  }
-  if (!number) {
-    return json({ ok: false, error: "No assistant number is available to call from." }, 503);
+    await assertUnderCallCaps();
+  } catch (err) {
+    // Over the hourly/daily usage cap — protect credits, ask them to retry later.
+    return json({ ok: false, error: (err as Error).message }, 429);
   }
 
   try {
-    const callId = await createTestCall({
-      businessId: number.businessId,
-      numberId: number.id,
-      e164: number.e164,
-    });
-    const twiml = buildConnectResponse(mediaWsUrl, {
-      callId,
-      businessId: number.businessId,
-      numberId: number.id,
-      from: number.e164,
-      to: number.e164,
-    });
-    const sid = await placeCall(to, number.e164, twiml);
-    await setCallTwilioSid(callId, sid).catch(() => {});
+    await placeAgentCall(to);
     return json({ ok: true });
   } catch (err) {
+    console.error("[test-call] failed:", (err as Error).message);
     return json({ ok: false, error: (err as Error).message }, 500);
   }
 }
