@@ -423,6 +423,11 @@ export default function Home() {
         @media (max-width: 600px) {
           .trust-divider { display: none !important; }
         }
+        /* iOS zooms the page when a focused input's font-size is < 16px.
+           Bump the phone field to 16px on mobile so entering a number never zooms. */
+        @media (max-width: 600px) {
+          .phone-input { font-size: 16px !important; }
+        }
       `}</style>
 
       {/* ── HEADER ── */}
@@ -482,6 +487,7 @@ export default function Home() {
                 </div>
                 <input
                   type="tel"
+                  className="phone-input"
                   placeholder="Enter phone number"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}

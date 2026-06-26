@@ -72,10 +72,9 @@ export default function SiteHeader() {
           .site-header-left { gap: 14px !important; }
           .site-header-logo { font-size: 15px !important; }
           .site-header-cta { padding: 0 13px !important; letter-spacing: 0.02em !important; }
-          .site-header-signin { padding: 0 8px !important; }
-        }
-        @media (max-width: 380px) {
+          /* Mobile: show only the logo + the CTA so the header always fits. */
           .site-header-pricing { display: none !important; }
+          .site-header-signin { display: none !important; }
         }
       `}</style>
       <div className="site-header-left" style={{ display: "flex", alignItems: "center", gap: "32px" }}>
