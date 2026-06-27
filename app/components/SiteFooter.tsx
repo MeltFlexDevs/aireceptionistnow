@@ -38,8 +38,7 @@ export default function SiteFooter() {
               <PauseLogo color="#fff" />
               <span style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontWeight: 500, fontSize: "16px", letterSpacing: "-0.02em" }}>AI RECEPTIONIST</span>
             </a>
-            <span style={{ color: "#fff", fontSize: "11px", fontWeight: 300 }}>© All rights reserved. aireceptionistnow.com 2026 · MeltFlex s. r. o.</span>
-            <a href="#" style={{ color: "#fff", fontSize: "11px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.02em" }}>Imprint</a>
+            <span style={{ color: "#fff", fontSize: "11px", fontWeight: 300 }}>© 2026 MeltFlex s. r. o.</span>
             <a href="/privacy-policy" style={{ color: "#fff", fontSize: "11px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.02em" }}>Data protection</a>
           </div>
 
