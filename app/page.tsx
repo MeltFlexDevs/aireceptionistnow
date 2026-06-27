@@ -305,14 +305,19 @@ export default function Home() {
         .hiw-vars .h2 {
           font-family: var(--font-inter), Inter, sans-serif;
           text-wrap: balance;
-          margin-bottom: 1rem;
-          font-size: 2.5rem;
-          font-weight: 500;
+          margin-bottom: 8px;
+          font-size: clamp(28px, 3.5vw, 42px);
+          font-weight: 300;
+          letter-spacing: -0.025em;
           line-height: 1.1;
-          color: var(--hiw-primary-text);
+          text-transform: uppercase;
+          color: #111;
         }
         .hiw-vars .section-header > p {
-          color: var(--hiw-secondary-text);
+          font-family: var(--font-inter), Inter, sans-serif;
+          font-size: 15px;
+          font-weight: 300;
+          color: #888;
           margin: 0;
         }
         .hiw-vars ._4rem-margin-top { margin-top: 4rem; }
@@ -342,7 +347,8 @@ export default function Home() {
         }
         .hiw-vars .steps-heading_wrapper {
           flex-flow: column;
-          font-weight: 500;
+          font-weight: 400;
+          letter-spacing: -0.01em;
           display: flex;
         }
         .hiw-vars .card-icon_wrapper {
@@ -484,7 +490,7 @@ export default function Home() {
         paddingTop: "110px", overflow: "hidden",
       }}>
         {/* H1 — direct flex child so section's alignItems:center truly centers it */}
-        <h1 className="hero-h1" style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(38px, 6.5vw, 76px)", fontWeight: 300, letterSpacing: "-0.03em", color: "#111", lineHeight: 1.04, marginTop: "56px", marginBottom: "44px", whiteSpace: "nowrap", position: "relative", zIndex: 2, textAlign: "center", maxWidth: "100%" }}>
+        <h1 className="hero-h1" style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(34px, 5vw, 62px)", fontWeight: 300, letterSpacing: "-0.02em", color: "#111", lineHeight: 1.06, marginTop: "56px", marginBottom: "44px", whiteSpace: "normal", textWrap: "balance", textTransform: "uppercase", position: "relative", zIndex: 2, textAlign: "center", maxWidth: "16ch", paddingLeft: "16px", paddingRight: "16px" }}>
           Let our AI take care of your calls
         </h1>
 
@@ -611,7 +617,7 @@ export default function Home() {
       <section className="lp-section" style={{ padding: "100px 0" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
           <div style={{ textAlign: "center", marginBottom: "40px" }}>
-            <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#111", margin: "0 0 8px" }}>
+            <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 300, letterSpacing: "-0.025em", textTransform: "uppercase", color: "#111", margin: "0 0 8px" }}>
               Loved by busy businesses
             </h2>
             <p style={{ fontSize: "15px", color: "#888", fontWeight: 300, margin: 0 }}>
@@ -708,7 +714,7 @@ export default function Home() {
         <div className="lp-pad" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 40px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "40px", marginBottom: "56px", flexWrap: "wrap" }}>
             <div style={{ maxWidth: "520px" }}>
-              <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#fff", marginBottom: "16px" }}>
+              <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 300, letterSpacing: "-0.025em", textTransform: "uppercase", color: "#fff", marginBottom: "16px" }}>
                 Use cases
               </h2>
               <p style={{ fontSize: "16px", color: "#999", fontWeight: 300, lineHeight: 1.65 }}>
@@ -777,7 +783,7 @@ export default function Home() {
         />
         <div className="lp-pad" style={{ maxWidth: "760px", margin: "0 auto", padding: "0 40px" }}>
           <div style={{ textAlign: "center", marginBottom: "56px" }}>
-            <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#111" }}>
+            <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 300, letterSpacing: "-0.025em", textTransform: "uppercase", color: "#111" }}>
               Frequently Asked Questions
             </h2>
           </div>
@@ -806,7 +812,7 @@ export default function Home() {
       <section className="cta-outer" style={{ padding: "0 40px 100px" }}>
         <div className="cta-card" style={{ maxWidth: "1200px", margin: "0 auto", background: "#fff", borderRadius: "24px", padding: "80px 60px", textAlign: "center" }}>
           <div>
-            <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(24px, 3.5vw, 40px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#111", marginBottom: "16px" }}>
+            <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(24px, 3.5vw, 40px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#111", marginBottom: "16px", textTransform: "uppercase" }}>
               Scalable call management with AI Receptionist.
             </h2>
             <p style={{ color: "#888", fontSize: "16px", fontWeight: 300, lineHeight: 1.65, maxWidth: "560px", margin: "0 auto 36px" }}>
