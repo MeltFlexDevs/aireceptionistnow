@@ -3,6 +3,8 @@
 import { useState, useEffect, type ReactNode } from "react";
 import SiteHeader from "./components/SiteHeader";
 import SiteFooter from "./components/SiteFooter";
+import { siteUrl, siteName, siteDescription } from "@/lib/site";
+import { PLANS } from "@/lib/plans";
 
 
 const StarSvg = () => (
@@ -209,8 +211,31 @@ export default function Home() {
     fontWeight: 300,
   };
 
+  const prices = PLANS.map((p) => p.monthlyAmountCents / 100);
+  const softwareJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: siteName,
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web, iOS, Android",
+    url: siteUrl,
+    description: siteDescription,
+    offers: {
+      "@type": "AggregateOffer",
+      priceCurrency: "EUR",
+      lowPrice: String(Math.min(...prices)),
+      highPrice: String(Math.max(...prices)),
+      offerCount: PLANS.length,
+      url: `${siteUrl}/pricing`,
+    },
+  };
+
   return (
     <main style={{ ...inter, background: "#fff", color: "#333", minHeight: "100vh", overflowX: "hidden" }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareJsonLd) }}
+      />
       <style>{`
         @keyframes marquee {
           0% { transform: translateX(0); }
@@ -446,7 +471,7 @@ export default function Home() {
               <path fill="#111" d="M12 1.5l2.39 1.74 2.95-.02 .9 2.8 2.39 1.73-.92 2.81.92 2.81-2.39 1.73-.9 2.8-2.95-.02L12 22.5l-2.39-1.74-2.95.02-.9-2.8-2.39-1.73.92-2.81L3.37 8.55l2.39-1.73.9-2.8 2.95.02L12 1.5z" />
               <path d="M8.5 12.2l2.3 2.3 4.7-4.7" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
             </svg>
-            <h1 className="badge-text">AI calls made easy</h1>
+            <span className="badge-text">AI calls made easy</span>
           </div>
         </div>
 

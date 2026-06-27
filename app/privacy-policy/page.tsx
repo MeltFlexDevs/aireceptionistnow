@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
+import { siteUrl } from "@/lib/site";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy | AI Receptionist",
-  description: "How AI Receptionist collects, uses, and protects your personal data. GDPR-compliant privacy policy for our AI phone answering service.",
+  title: "Privacy Policy",
+  description:
+    "How AI Receptionist Now collects, uses, and protects your personal data. GDPR-compliant privacy policy for our AI phone answering service.",
+  alternates: { canonical: `${siteUrl}/privacy-policy` },
+  robots: { index: true, follow: true },
 };
 
 export default function PrivacyPolicyPage() {
