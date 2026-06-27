@@ -388,12 +388,12 @@ export default function Home() {
           overflow: hidden;
         }
         .hiw-vars .bg-image-frame.is-how-it-works {
-          background-color: #f5f6fa;
-          background-image: none;
+          background-image: linear-gradient(155deg, #cdbef5 0%, #e4d6f2 44%, #ffd9c0 100%);
           aspect-ratio: 1 / 1;
           width: 100%;
           display: block;
           position: relative;
+          overflow: hidden;
         }
         .hiw-vars .bleed-image {
           position: absolute;
@@ -403,8 +403,26 @@ export default function Home() {
           border-radius: 0;
           box-shadow: none;
           object-fit: cover;
-          object-position: center;
+          object-position: 50% 20%;
+          transform: scale(1.5);
+          transform-origin: 50% 20%;
           display: block;
+        }
+        /* pastel "voice" tint so the cards match the hero orb palette */
+        .hiw-vars .hiw-tint {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          background: linear-gradient(155deg, #b9a6f0 0%, rgba(255,255,255,0) 46%, #ffc59a 100%);
+          mix-blend-mode: soft-light;
+          opacity: 0.85;
+        }
+        .hiw-vars .hiw-tint::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(120% 80% at 50% 6%, rgba(183,148,244,0.28), rgba(183,148,244,0) 60%);
+          mix-blend-mode: multiply;
         }
         @media (max-width: 991px) {
           .hiw-vars .grid_3col { flex-flow: column; display: flex; }
@@ -641,6 +659,7 @@ export default function Home() {
                   <div className="flex-vertical-stretch space-between">
                     <div className="bg-image-frame is-how-it-works">
                       <img alt="Create your AI receptionist on iPhone" src="/how-it-works/create.webp" loading="lazy" className="bleed-image" />
+                      <div className="hiw-tint" aria-hidden="true" />
                     </div>
                   </div>
                 </div>
@@ -657,6 +676,7 @@ export default function Home() {
                   <div>
                     <div className="bg-image-frame is-how-it-works">
                       <img alt="Define in-call behavior on iPhone" src="/how-it-works/behavior.webp" loading="lazy" className="bleed-image" />
+                      <div className="hiw-tint" aria-hidden="true" />
                     </div>
                   </div>
                 </div>
@@ -673,6 +693,7 @@ export default function Home() {
                   <div className="flex-vertical-stretch space-between">
                     <div className="bg-image-frame is-how-it-works">
                       <img alt="The AI taking a phone call on iPhone" src="/how-it-works/call.webp" loading="lazy" className="bleed-image" />
+                      <div className="hiw-tint" aria-hidden="true" />
                     </div>
                   </div>
                 </div>
