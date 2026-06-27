@@ -466,7 +466,7 @@ export default function Home() {
         paddingTop: "110px", overflow: "hidden",
       }}>
         {/* H1 — direct flex child so section's alignItems:center truly centers it */}
-        <h1 className="hero-h1" style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(38px, 6.5vw, 76px)", fontWeight: 300, letterSpacing: "-0.03em", color: "#111", lineHeight: 1.04, marginBottom: "44px", whiteSpace: "nowrap", position: "relative", zIndex: 2, textAlign: "center", maxWidth: "100%" }}>
+        <h1 className="hero-h1" style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(38px, 6.5vw, 76px)", fontWeight: 300, letterSpacing: "-0.03em", color: "#111", lineHeight: 1.04, marginTop: "56px", marginBottom: "44px", whiteSpace: "nowrap", position: "relative", zIndex: 2, textAlign: "center", maxWidth: "100%" }}>
           Let our AI take care of your calls
         </h1>
 
