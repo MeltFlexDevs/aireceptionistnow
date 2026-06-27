@@ -5,6 +5,9 @@ import { defaultAuthorKey, type AuthorKey } from "@/lib/site";
 import CanAiReplaceReceptionist, {
   meta as canAiReplaceReceptionistMeta,
 } from "./can-an-ai-receptionist-replace-a-human-receptionist";
+import HowToChooseAiReceptionist, {
+  meta as howToChooseAiReceptionistMeta,
+} from "./how-to-choose-an-ai-receptionist";
 
 export type PostMeta = {
   slug: string;
@@ -30,10 +33,12 @@ export type Post = PostMeta & { Body: ComponentType; author: AuthorKey };
 /** Which author is credited on each post. */
 const postAuthors: Record<string, AuthorKey> = {
   "can-an-ai-receptionist-replace-a-human-receptionist": "team",
+  "how-to-choose-an-ai-receptionist": "team",
 };
 
 export const posts: Post[] = [
   { ...canAiReplaceReceptionistMeta, Body: CanAiReplaceReceptionist },
+  { ...howToChooseAiReceptionistMeta, Body: HowToChooseAiReceptionist },
 ]
   .map((p) => ({ ...p, author: postAuthors[p.slug] ?? defaultAuthorKey }))
   .sort((a, b) => (a.date < b.date ? 1 : -1));
