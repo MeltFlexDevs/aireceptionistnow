@@ -14,14 +14,14 @@ export default function VoiceOrb() {
       <style>{`
         .voice-orb {
           position: relative;
-          width: clamp(170px, 42vw, 248px);
+          width: clamp(128px, 30vw, 184px);
           aspect-ratio: 1 / 1;
-          margin: 4px auto 44px;
+          margin: 4px auto 40px;
           border-radius: 50%;
           z-index: 2;
           isolation: isolate;
           animation: vo-float 7s ease-in-out infinite;
-          filter: drop-shadow(0 24px 60px rgba(123, 84, 245, 0.30));
+          filter: drop-shadow(0 18px 44px rgba(196, 170, 230, 0.40));
           transition: transform 0.35s ease;
         }
         .voice-orb:hover { transform: scale(1.035); }
@@ -32,7 +32,7 @@ export default function VoiceOrb() {
           position: absolute;
           inset: 0;
           border-radius: 50%;
-          border: 1.5px solid rgba(177, 108, 234, 0.55);
+          border: 1.5px solid rgba(214, 196, 240, 0.55);
           animation: vo-pulse 3.2s ease-out infinite;
           z-index: 0;
         }
@@ -41,10 +41,10 @@ export default function VoiceOrb() {
           position: absolute;
           inset: -14%;
           border-radius: 50%;
-          background: conic-gradient(from 0deg,
-            #6d5efc, #b16cea, #ff5e9c, #ffb86c, #5ee7ff, #6d5efc);
-          filter: blur(7px) saturate(1.15);
-          animation: vo-spin 14s linear infinite;
+          background: conic-gradient(from 200deg,
+            #dccdf5, #f4d2e3, #ffdfc9, #dccdf5);
+          filter: blur(8px) saturate(0.92);
+          animation: vo-spin 16s linear infinite;
         }
         .vo-glow {
           position: absolute;
@@ -68,8 +68,8 @@ export default function VoiceOrb() {
           inset: 0;
           border-radius: 50%;
           box-shadow:
-            inset 0 0 46px rgba(0,0,0,0.28),
-            inset 0 0 0 1px rgba(255,255,255,0.18);
+            inset 0 0 38px rgba(120,100,150,0.16),
+            inset 0 0 0 1px rgba(255,255,255,0.30);
         }
         .vo-ring {
           position: absolute;
