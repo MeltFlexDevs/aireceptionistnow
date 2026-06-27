@@ -52,6 +52,9 @@ All call data is encrypted in transit and at rest. AI Receptionist Now complies 
 - [Pricing](https://aireceptionistnow.com/pricing): Solo and Team plans, monthly and annual, with a free start.
 - [Blog](https://aireceptionistnow.com/blog): Guides on AI phone answering, appointment booking, and call automation.
 - [Can an AI Receptionist Replace a Human? (Honest 2026 Guide)](https://aireceptionistnow.com/blog/can-an-ai-receptionist-replace-a-human-receptionist): An honest look at where an AI phone agent beats a human front desk and where it still loses.
+- [How to Choose an AI Receptionist: A Buyer's Guide (2026)](https://aireceptionistnow.com/blog/how-to-choose-an-ai-receptionist): A vendor-neutral framework for evaluating AI receptionists — features, escalation, integrations, compliance, pricing, and red flags.
+- [Real Estate Answering Service: AI That Books Showings](https://aireceptionistnow.com/blog/real-estate-answering-service): How agents use an AI answering service to capture buyer and seller leads 24/7 and book showings, plus where a human still wins.
+- [AI Receptionist Pricing: What It Actually Costs (2026)](https://aireceptionistnow.com/blog/ai-receptionist-pricing): Transparent pricing models, real ranges, hidden fees, and how AI compares to a human receptionist.
 - [Privacy Policy](https://aireceptionistnow.com/privacy-policy): How call data is handled and protected.
 
 ## FAQ
