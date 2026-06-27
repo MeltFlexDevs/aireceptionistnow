@@ -3,6 +3,7 @@
 import { useState, useEffect, type ReactNode } from "react";
 import SiteHeader from "./components/SiteHeader";
 import SiteFooter from "./components/SiteFooter";
+import VoiceOrb from "./components/VoiceOrb";
 import { siteUrl, siteName, siteDescription } from "@/lib/site";
 import { PLANS } from "@/lib/plans";
 
@@ -479,6 +480,8 @@ export default function Home() {
         <h1 className="hero-h1" style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(38px, 6.5vw, 76px)", fontWeight: 300, letterSpacing: "-0.03em", color: "#111", lineHeight: 1.04, marginBottom: "44px", whiteSpace: "nowrap", position: "relative", zIndex: 2, textAlign: "center", maxWidth: "100%" }}>
           Let our AI take care of your calls
         </h1>
+
+        <VoiceOrb />
 
         <div style={{ position: "relative", zIndex: 2, width: "100%", maxWidth: "860px", padding: "0 24px", textAlign: "center" }}>
           {/* CTA Card */}
