@@ -82,28 +82,6 @@ export default function VoiceOrb() {
         }
         .voice-orb:hover .vo-ring { opacity: 1; transform: scale(1); }
 
-        .vo-play {
-          position: absolute;
-          inset: 0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 2;
-        }
-        .vo-play-btn {
-          width: 54px;
-          height: 54px;
-          border-radius: 50%;
-          background: #fff;
-          color: #111;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 0 1px rgba(0,0,0,0.4), 0 2px 6px rgba(0,0,0,0.14);
-          transition: transform 0.2s ease, background 0.2s ease;
-        }
-        .voice-orb:hover .vo-play-btn { transform: scale(1.06); background: #fafafa; }
-
         @keyframes vo-spin { to { transform: rotate(360deg); } }
         @keyframes vo-float {
           0%, 100% { transform: translateY(0); }
@@ -123,16 +101,6 @@ export default function VoiceOrb() {
       <div className="vo-noise" aria-hidden="true" />
       <div className="vo-depth" aria-hidden="true" />
       <div className="vo-ring" aria-hidden="true" />
-      <div className="vo-play" aria-hidden="true">
-        <span className="vo-play-btn">
-          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-            <path
-              fill="currentColor"
-              d="M9.244 2.368C7.414 1.184 5 2.497 5 4.676v14.648c0 2.18 2.414 3.493 4.244 2.309l11.318-7.324c1.675-1.084 1.675-3.534 0-4.618z"
-            />
-          </svg>
-        </span>
-      </div>
     </div>
   );
 }
