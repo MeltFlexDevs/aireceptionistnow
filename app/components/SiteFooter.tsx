@@ -24,7 +24,7 @@ export default function SiteFooter() {
           </nav>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "32px" }}>
             <a href="/dashboard" style={{ display: "inline-flex", alignItems: "center", height: "36px", padding: "0 20px", background: "#fff", color: "#000", borderRadius: "20px", fontSize: "12px", fontWeight: 400, textDecoration: "none", letterSpacing: "0.05em" }}>
-              START FREE TRIAL
+              START NOW
             </a>
           </div>
         </div>

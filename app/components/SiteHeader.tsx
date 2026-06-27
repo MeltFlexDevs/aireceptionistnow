@@ -117,7 +117,7 @@ export default function SiteHeader() {
               SIGN IN
             </button>
             <button type="button" onClick={() => open("signup")} className="site-header-cta" style={ctaStyle}>
-              START FREE TRIAL
+              START NOW
             </button>
           </>
         )}

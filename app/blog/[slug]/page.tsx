@@ -252,7 +252,7 @@ export default async function BlogPostPage({
                   href="/pricing"
                   className="mt-6 inline-flex items-center gap-1.5 rounded-full bg-white px-6 py-2.5 text-[12px] font-medium tracking-[0.08em] text-[#1a1a1a] uppercase transition-colors hover:bg-white/90"
                 >
-                  Start free trial <span aria-hidden="true">→</span>
+                  Start now <span aria-hidden="true">→</span>
                 </Link>
               </div>
             </div>

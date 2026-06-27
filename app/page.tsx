@@ -725,7 +725,7 @@ export default function Home() {
               onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.opacity = "0.85")}
               onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.opacity = "1")}
             >
-              Start Free Trial
+              Start Now
             </a>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "16px" }}>
