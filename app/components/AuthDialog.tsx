@@ -220,29 +220,16 @@ export function AuthDialogProvider({ children }: { children: React.ReactNode }) 
             </button>
 
             <div className="grid sm:grid-cols-2">
-              {/* Left: brand image on the landing "voice" palette */}
-              <div
-                className="relative hidden min-h-[600px] overflow-hidden sm:block"
-                style={{ background: "linear-gradient(160deg, #cdbef5 0%, #e4d6f2 44%, #ffd9c0 100%)" }}
-              >
+              {/* Left: minimalist iPhone call screen on pure white */}
+              <div className="relative hidden min-h-[600px] overflow-hidden bg-white sm:block">
                 <Image
-                  src="/how-it-works/call.webp"
+                  src="/signin-call.png"
                   alt=""
                   fill
                   sizes="440px"
-                  className="object-cover"
-                  style={{ objectPosition: "50% 16%", transform: "scale(1.5)", transformOrigin: "50% 16%" }}
+                  className="object-contain"
+                  style={{ objectPosition: "center", padding: "24px" }}
                   priority
-                />
-                <div
-                  aria-hidden="true"
-                  className="pointer-events-none absolute inset-0"
-                  style={{
-                    background:
-                      "linear-gradient(160deg, #b9a6f0 0%, rgba(255,255,255,0) 46%, #ffc59a 100%)",
-                    mixBlendMode: "soft-light",
-                    opacity: 0.9,
-                  }}
                 />
               </div>
 
