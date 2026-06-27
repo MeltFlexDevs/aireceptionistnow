@@ -1,25 +1,25 @@
 /**
- * Decorative hero "voice blob" — a soft, edgeless pastel gradient smudge with
- * a faint noise texture and slow idle motion. Purely visual; built from our own
- * gradient/SVG so it has no external asset deps.
+ * Decorative "voice blob" used on the landing hero — a soft, edgeless pastel
+ * gradient smudge with a faint noise texture and gentle idle motion. Purely
+ * visual; built from our own gradient/SVG so it has no external asset deps.
  */
 export default function VoiceOrb() {
   // Inline fractal-noise texture so the blob needs no image file.
   const noise =
     "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")";
   const fillMask =
-    "radial-gradient(circle at center, #000 36%, rgba(0,0,0,0.5) 58%, transparent 78%)";
+    "radial-gradient(circle at center, #000 22%, rgba(0,0,0,0.35) 50%, transparent 70%)";
   const softMask =
-    "radial-gradient(circle at center, #000 42%, transparent 70%)";
+    "radial-gradient(circle at center, #000 40%, transparent 68%)";
 
   return (
-    <div className="voice-orb" role="img" aria-label="AI receptionist voice visual">
+    <div className="voice-orb" role="img" aria-label="AI receptionist voice preview">
       <style>{`
         .voice-orb {
           position: relative;
-          width: clamp(140px, 32vw, 200px);
+          width: clamp(128px, 30vw, 184px);
           aspect-ratio: 1 / 1;
-          margin: 8px auto 40px;
+          margin: 4px auto 40px;
           z-index: 2;
           isolation: isolate;
           animation: vo-float 7s ease-in-out infinite;
@@ -27,11 +27,11 @@ export default function VoiceOrb() {
 
         .vo-fill {
           position: absolute;
-          inset: -14%;
+          inset: -16%;
           border-radius: 50%;
           background: conic-gradient(from 200deg,
-            #b794f6, #e879f9, #fb7185, #fdba74, #b794f6);
-          filter: blur(11px) saturate(1.18);
+            #b794f4, #f191c9, #ffc187, #7fd1e8, #b794f4);
+          filter: blur(14px) saturate(1.5);
           -webkit-mask-image: ${fillMask};
           mask-image: ${fillMask};
           animation: vo-spin 16s linear infinite;
@@ -41,7 +41,7 @@ export default function VoiceOrb() {
           inset: 0;
           border-radius: 50%;
           background: radial-gradient(circle at 34% 30%,
-            rgba(255,255,255,0.45), rgba(255,255,255,0) 55%);
+            rgba(255,255,255,0.5), rgba(255,255,255,0) 55%);
           mix-blend-mode: screen;
         }
         .vo-noise {
@@ -50,7 +50,7 @@ export default function VoiceOrb() {
           background-image: ${noise};
           background-size: 180px 180px;
           mix-blend-mode: overlay;
-          opacity: 0.3;
+          opacity: 0.28;
           -webkit-mask-image: ${softMask};
           mask-image: ${softMask};
         }
