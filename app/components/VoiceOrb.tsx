@@ -1,13 +1,16 @@
 /**
- * Decorative "voice orb" used on the landing hero — a circular gradient blob
- * with a soft noise texture, a centred play glyph, a hover ring and gentle
- * idle motion. Purely visual (no audio); inspired by ElevenLabs' voice previews
- * but built from our own gradient/SVG so it has no external asset dependencies.
+ * Decorative "voice blob" used on the landing hero — a soft, edgeless pastel
+ * gradient smudge with a faint noise texture and gentle idle motion. Purely
+ * visual; built from our own gradient/SVG so it has no external asset deps.
  */
 export default function VoiceOrb() {
-  // Inline fractal-noise texture so the orb needs no image file.
+  // Inline fractal-noise texture so the blob needs no image file.
   const noise =
     "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")";
+  const fillMask =
+    "radial-gradient(circle at center, #000 22%, rgba(0,0,0,0.35) 50%, transparent 70%)";
+  const softMask =
+    "radial-gradient(circle at center, #000 40%, transparent 68%)";
 
   return (
     <div className="voice-orb" role="img" aria-label="AI receptionist voice preview">
@@ -17,90 +20,54 @@ export default function VoiceOrb() {
           width: clamp(128px, 30vw, 184px);
           aspect-ratio: 1 / 1;
           margin: 4px auto 40px;
-          border-radius: 50%;
           z-index: 2;
           isolation: isolate;
           animation: vo-float 7s ease-in-out infinite;
-          filter: drop-shadow(0 18px 44px rgba(196, 170, 230, 0.40));
-          transition: transform 0.35s ease;
-        }
-        .voice-orb:hover { transform: scale(1.035); }
-
-        /* expanding "listening" pulse */
-        .voice-orb::after {
-          content: "";
-          position: absolute;
-          inset: 0;
-          border-radius: 50%;
-          border: 1.5px solid rgba(214, 196, 240, 0.55);
-          animation: vo-pulse 3.2s ease-out infinite;
-          z-index: 0;
         }
 
         .vo-fill {
           position: absolute;
-          inset: -14%;
+          inset: -16%;
           border-radius: 50%;
           background: conic-gradient(from 200deg,
             #dccdf5, #f4d2e3, #ffdfc9, #dccdf5);
-          filter: blur(8px) saturate(0.92);
+          filter: blur(14px) saturate(0.92);
+          -webkit-mask-image: ${fillMask};
+          mask-image: ${fillMask};
           animation: vo-spin 16s linear infinite;
         }
         .vo-glow {
           position: absolute;
           inset: 0;
           border-radius: 50%;
-          background: radial-gradient(circle at 32% 28%,
-            rgba(255,255,255,0.55), rgba(255,255,255,0) 55%);
+          background: radial-gradient(circle at 34% 30%,
+            rgba(255,255,255,0.5), rgba(255,255,255,0) 55%);
           mix-blend-mode: screen;
         }
         .vo-noise {
           position: absolute;
           inset: 0;
-          border-radius: 50%;
           background-image: ${noise};
           background-size: 180px 180px;
           mix-blend-mode: overlay;
-          opacity: 0.35;
+          opacity: 0.28;
+          -webkit-mask-image: ${softMask};
+          mask-image: ${softMask};
         }
-        .vo-depth {
-          position: absolute;
-          inset: 0;
-          border-radius: 50%;
-          box-shadow:
-            inset 0 0 38px rgba(120,100,150,0.16),
-            inset 0 0 0 1px rgba(255,255,255,0.30);
-        }
-        .vo-ring {
-          position: absolute;
-          inset: -7px;
-          border-radius: 50%;
-          border: 4px solid rgba(229,231,235,0.9);
-          opacity: 0;
-          transform: scale(0.985);
-          transition: opacity 0.2s ease, transform 0.2s ease;
-        }
-        .voice-orb:hover .vo-ring { opacity: 1; transform: scale(1); }
 
         @keyframes vo-spin { to { transform: rotate(360deg); } }
         @keyframes vo-float {
           0%, 100% { transform: translateY(0); }
           50% { transform: translateY(-7px); }
         }
-        @keyframes vo-pulse {
-          0% { transform: scale(1); opacity: 0.6; }
-          80%, 100% { transform: scale(1.28); opacity: 0; }
-        }
         @media (prefers-reduced-motion: reduce) {
-          .voice-orb, .vo-fill, .voice-orb::after { animation: none; }
+          .voice-orb, .vo-fill { animation: none; }
         }
       `}</style>
 
       <div className="vo-fill" aria-hidden="true" />
       <div className="vo-glow" aria-hidden="true" />
       <div className="vo-noise" aria-hidden="true" />
-      <div className="vo-depth" aria-hidden="true" />
-      <div className="vo-ring" aria-hidden="true" />
     </div>
   );
 }

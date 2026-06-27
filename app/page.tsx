@@ -465,17 +465,6 @@ export default function Home() {
         display: "flex", flexDirection: "column", alignItems: "center",
         paddingTop: "110px", overflow: "hidden",
       }}>
-        {/* Badge */}
-        <div style={{ marginBottom: "28px", position: "relative", zIndex: 2 }}>
-          <div className="badge main-lp">
-            <svg className="badge-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <path fill="#111" d="M12 1.5l2.39 1.74 2.95-.02 .9 2.8 2.39 1.73-.92 2.81.92 2.81-2.39 1.73-.9 2.8-2.95-.02L12 22.5l-2.39-1.74-2.95.02-.9-2.8-2.39-1.73.92-2.81L3.37 8.55l2.39-1.73.9-2.8 2.95.02L12 1.5z" />
-              <path d="M8.5 12.2l2.3 2.3 4.7-4.7" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-            </svg>
-            <span className="badge-text">AI calls made easy</span>
-          </div>
-        </div>
-
         {/* H1 — direct flex child so section's alignItems:center truly centers it */}
         <h1 className="hero-h1" style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(38px, 6.5vw, 76px)", fontWeight: 300, letterSpacing: "-0.03em", color: "#111", lineHeight: 1.04, marginBottom: "44px", whiteSpace: "nowrap", position: "relative", zIndex: 2, textAlign: "center", maxWidth: "100%" }}>
           Let our AI take care of your calls
