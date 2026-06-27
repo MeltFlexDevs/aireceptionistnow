@@ -1,128 +1,73 @@
-"use client";
-
-import { useEffect, useRef } from "react";
-
 /**
- * Decorative hero "voice orb" rendered as a soft cloud of drifting pastel
- * dots — a slow, sand-like particle animation on <canvas>. Self-contained,
- * no external assets. Respects prefers-reduced-motion (renders a still frame).
+ * Decorative hero "voice blob" — a soft, edgeless pastel gradient smudge with
+ * a faint noise texture and slow idle motion. Purely visual; built from our own
+ * gradient/SVG so it has no external asset deps.
  */
 export default function VoiceOrb() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    // Vivid pastel palette — warmer + more saturated than a flat blob.
-    const palette = [
-      "#b794f6", "#a78bfa", "#f472b6", "#fb7185",
-      "#fda4af", "#fdba74", "#7dd3fc",
-    ];
-
-    type P = {
-      angle: number; radius: number; size: number; color: string;
-      speed: number; phase: number; bob: number;
-    };
-    let particles: P[] = [];
-    let R = 0, cx = 0, cy = 0, sizePx = 0;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-
-    function build() {
-      sizePx = canvas!.clientWidth || 200;
-      canvas!.width = Math.round(sizePx * dpr);
-      canvas!.height = Math.round(sizePx * dpr);
-      ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
-      R = sizePx / 2;
-      cx = R; cy = R;
-      const N = Math.round(sizePx * 1.15); // scale count with size
-      particles = Array.from({ length: N }, () => {
-        // center-biased point in the disc
-        const r = Math.pow(Math.random(), 0.65) * R * 0.96;
-        return {
-          angle: Math.random() * Math.PI * 2,
-          radius: r,
-          size: 0.8 + Math.random() * 2.2,
-          color: palette[(Math.random() * palette.length) | 0],
-          speed: (0.0006 + Math.random() * 0.0014) * (Math.random() < 0.5 ? 1 : -1),
-          phase: Math.random() * Math.PI * 2,
-          bob: 2 + Math.random() * 4,
-        };
-      });
-    }
-
-    let raf = 0;
-    let t = 0;
-    function frame() {
-      t += 1;
-      ctx!.clearRect(0, 0, sizePx, sizePx);
-      for (const p of particles) {
-        p.angle += p.speed;
-        // slow radial "breathing" + per-grain jitter → sand-like shifting
-        const rr =
-          p.radius +
-          Math.sin(t * 0.008 + p.phase) * p.bob +
-          Math.sin(t * 0.05 + p.phase * 3) * 0.6;
-        const x = cx + Math.cos(p.angle) * rr;
-        const y = cy + Math.sin(p.angle) * rr;
-        const edge = rr / R;
-        const alpha = Math.max(0, 1 - edge * edge * edge); // fade to nothing at edge
-        ctx!.globalAlpha = alpha * 0.9;
-        ctx!.fillStyle = p.color;
-        ctx!.beginPath();
-        ctx!.arc(x, y, p.size, 0, Math.PI * 2);
-        ctx!.fill();
-      }
-      ctx!.globalAlpha = 1;
-      raf = requestAnimationFrame(frame);
-    }
-
-    build();
-    if (reduce) {
-      frame();
-      cancelAnimationFrame(raf);
-    } else {
-      raf = requestAnimationFrame(frame);
-    }
-
-    const ro = new ResizeObserver(() => {
-      cancelAnimationFrame(raf);
-      build();
-      if (reduce) frame();
-      else raf = requestAnimationFrame(frame);
-    });
-    ro.observe(canvas);
-
-    return () => {
-      cancelAnimationFrame(raf);
-      ro.disconnect();
-    };
-  }, []);
+  // Inline fractal-noise texture so the blob needs no image file.
+  const noise =
+    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")";
+  const fillMask =
+    "radial-gradient(circle at center, #000 36%, rgba(0,0,0,0.5) 58%, transparent 78%)";
+  const softMask =
+    "radial-gradient(circle at center, #000 42%, transparent 70%)";
 
   return (
     <div className="voice-orb" role="img" aria-label="AI receptionist voice visual">
       <style>{`
         .voice-orb {
           position: relative;
-          width: clamp(150px, 34vw, 210px);
+          width: clamp(140px, 32vw, 200px);
           aspect-ratio: 1 / 1;
           margin: 8px auto 40px;
           z-index: 2;
-          animation: vo-float 8s ease-in-out infinite;
+          isolation: isolate;
+          animation: vo-float 7s ease-in-out infinite;
         }
-        .vo-canvas { width: 100%; height: 100%; display: block; }
+
+        .vo-fill {
+          position: absolute;
+          inset: -14%;
+          border-radius: 50%;
+          background: conic-gradient(from 200deg,
+            #b794f6, #e879f9, #fb7185, #fdba74, #b794f6);
+          filter: blur(11px) saturate(1.18);
+          -webkit-mask-image: ${fillMask};
+          mask-image: ${fillMask};
+          animation: vo-spin 16s linear infinite;
+        }
+        .vo-glow {
+          position: absolute;
+          inset: 0;
+          border-radius: 50%;
+          background: radial-gradient(circle at 34% 30%,
+            rgba(255,255,255,0.45), rgba(255,255,255,0) 55%);
+          mix-blend-mode: screen;
+        }
+        .vo-noise {
+          position: absolute;
+          inset: 0;
+          background-image: ${noise};
+          background-size: 180px 180px;
+          mix-blend-mode: overlay;
+          opacity: 0.3;
+          -webkit-mask-image: ${softMask};
+          mask-image: ${softMask};
+        }
+
+        @keyframes vo-spin { to { transform: rotate(360deg); } }
         @keyframes vo-float {
           0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-6px); }
+          50% { transform: translateY(-7px); }
         }
         @media (prefers-reduced-motion: reduce) {
-          .voice-orb { animation: none; }
+          .voice-orb, .vo-fill { animation: none; }
         }
       `}</style>
-      <canvas ref={canvasRef} className="vo-canvas" aria-hidden="true" />
+
+      <div className="vo-fill" aria-hidden="true" />
+      <div className="vo-glow" aria-hidden="true" />
+      <div className="vo-noise" aria-hidden="true" />
     </div>
   );
 }
