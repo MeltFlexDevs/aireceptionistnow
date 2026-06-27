@@ -1,0 +1,82 @@
+# AI Receptionist Now — 24/7 AI Phone Answering Service for Small Business
+
+> AI Receptionist Now (https://aireceptionistnow.com) is an AI-powered virtual receptionist that answers your business calls 24/7 in a natural voice, books appointments straight into your calendar, qualifies and captures leads, and texts or emails you a summary of every call. It goes live in under 10 minutes with no code, handles 25+ languages and 20+ voices, and costs a fraction of hiring front-desk staff or an answering service.
+
+AI Receptionist Now is built for businesses that lose money to missed, after-hours, and overflow calls — medical and dental clinics, plumbers, HVAC, electricians, roofers and other trades, salons, spas and med spas, real estate agents, law offices, restaurants, auto repair shops, insurance agencies, and pest control. The AI picks up instantly, holds a natural conversation, follows the instructions you set, and never sends a caller to voicemail.
+
+## What it does
+
+- **Answers every call 24/7** — nights, weekends, holidays, and during call overflow, with no hold times and no voicemail.
+- **Books appointments during the call** — scheduling directly into your connected calendar without double-booking.
+- **Qualifies and captures leads** — collects caller details, answers FAQs, and routes or escalates as needed.
+- **Sends a summary of every call** — a transcript and recap by text or email right after the caller hangs up.
+- **Speaks the caller's language** — 25+ languages with the ability to switch languages mid-conversation.
+- **Sounds human** — natural, conversational voices (20+ to choose from); many callers can't tell it's an AI.
+- **Escalates when needed** — captures details, schedules a callback, or transfers to a live person in real time when a request falls outside its scope.
+
+## How it works
+
+1. **Describe your business** — tell the AI what you do and how calls should be handled.
+2. **Choose a voice and language** — pick from 20+ voices and 25+ languages.
+3. **Go live the same day** — connect a dedicated number or your existing business line; setup takes under 10 minutes with no coding or technical skills required.
+
+## Integrations
+
+Native integrations with Google Calendar, Outlook, HubSpot, Salesforce, and Calendly, plus thousands of apps through Zapier. Custom integrations are available via an open API, so caller data flows straight into the tools you already use.
+
+## Pricing
+
+Start for free and upgrade only when you need more calls or features. Two plans, billed monthly or annually (annual saves 15%):
+
+- **Solo — €99/month** — suitable for 1–20 calls/day. Includes 1,000 minutes (€0.09 per extra minute), 1,000 contacts, 1 phone number (€7/mo per additional), 1 user, assistants, 20+ voices, 25+ languages, and the scheduler.
+- **Team — €299/month** — suitable for 20–100 calls/day. Includes 3,000 minutes (€0.09 per extra minute), 3,000 contacts, 3 concurrent calls, 3 phone numbers, multiple users, everything in Solo, connect your own SIP, plus outbound calls and campaigns.
+
+An AI receptionist costs a fraction of hiring front-desk staff or a per-minute answering service, while answering every call around the clock — most businesses recover the cost from extra booked jobs and recovered missed calls.
+
+## Who it's for
+
+- **Healthcare** — family medicine, dental, chiropractic, and med spas that can't let the front desk miss patient calls.
+- **Home services & trades** — plumbing, HVAC, electrical, roofing, and pest control pros who can't answer from a job site.
+- **Personal care** — hair salons, nail studios, and day spas booking appointments while staff work with clients.
+- **Real estate** — solo agents and teams qualifying callers and booking showings into their calendar.
+- **Professional services** — law offices and insurance agencies capturing after-hours leads.
+- **Hospitality & retail** — restaurants and shops taking reservations and orders during the rush.
+
+## Security & compliance
+
+All call data is encrypted in transit and at rest. AI Receptionist Now complies with GDPR and HIPAA requirements, and your data is never sold, shared with third parties, or used to train external AI models.
+
+## Key pages
+
+- [Home — AI Receptionist Now](https://aireceptionistnow.com): Product overview, live demo call, testimonials, and FAQ.
+- [Pricing](https://aireceptionistnow.com/pricing): Solo and Team plans, monthly and annual, with a free start.
+- [Blog](https://aireceptionistnow.com/blog): Guides on AI phone answering, appointment booking, and call automation.
+- [Can an AI Receptionist Replace a Human? (Honest 2026 Guide)](https://aireceptionistnow.com/blog/can-an-ai-receptionist-replace-a-human-receptionist): An honest look at where an AI phone agent beats a human front desk and where it still loses.
+- [Privacy Policy](https://aireceptionistnow.com/privacy-policy): How call data is handled and protected.
+
+## FAQ
+
+**What is an AI receptionist?** A virtual phone assistant that answers your business calls automatically, 24/7 — greeting callers in a natural voice, answering questions, qualifying leads, booking appointments, and sending you a summary of every call.
+
+**How does it work?** It connects to a dedicated number or your existing business line, picks up instantly, holds a natural conversation, and follows the instructions you set — answering FAQs, capturing details, routing calls, or scheduling appointments — then sends a transcript and summary by email or text.
+
+**Can it answer calls 24/7?** Yes — around the clock, including nights, weekends, holidays, and overflow, with no hold times and no voicemail.
+
+**How fast is setup?** Under 10 minutes. Describe your business, choose a voice and language, set how calls should be handled, and it's ready to take calls the same day. No coding required.
+
+**Will callers know it's an AI?** The voice is natural and conversational, and many callers can't tell. You stay in control of whether the AI discloses that it's a virtual assistant.
+
+**Can it book appointments and integrate with my calendar and CRM?** Yes — it books during the call and integrates natively with Google Calendar, Outlook, HubSpot, Salesforce, and Calendly, plus Zapier and a custom open API.
+
+**What languages does it support?** 25+ languages, with the ability to switch languages mid-conversation based on the caller.
+
+**What if the AI can't handle a call?** It resolves the vast majority of calls from the context you provide. For anything outside its scope, it captures the details, schedules a callback, or transfers to you or a team member in real time.
+
+**How much does it cost?** Start free and upgrade when you need more. Solo is €99/month and Team is €299/month, billed monthly or annually (15% off annually).
+
+**Is my data secure?** Yes — encrypted in transit and at rest, GDPR- and HIPAA-compliant, and never sold, shared, or used to train external AI models.
+
+## Contact
+
+- Website: https://aireceptionistnow.com
+- Try a live demo call directly from the homepage.
