@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getAssistant, getAssistantNumber, listIntegrations } from "@/lib/dashboard/db";
+import { getPlanContext } from "@/lib/dashboard/plan";
 import { currentUserId } from "@/lib/auth";
+import { NumberCountrySelect } from "../NumberCountrySelect";
 import { SectionCard } from "../../components/SectionCard";
 import { Tabs } from "../../components/Tabs";
 import { CALENDAR_PROVIDERS } from "../../integrations/providers";
@@ -27,22 +29,15 @@ const field =
   "w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition-colors focus:border-violet-400";
 const labelCls = "mb-1.5 block text-sm font-medium text-neutral-700";
 
-const COUNTRIES = [
-  { code: "US", name: "United States", flag: "🇺🇸" },
-  { code: "CA", name: "Canada", flag: "🇨🇦" },
-  { code: "GB", name: "United Kingdom", flag: "🇬🇧" },
-  { code: "AU", name: "Australia", flag: "🇦🇺" },
-];
-
 export default async function AssistantSettingsPage({
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ saved?: string; error?: string }>;
+  searchParams: Promise<{ saved?: string; error?: string; notice?: string }>;
 }) {
   const { id } = await params;
-  const { saved, error } = await searchParams;
+  const { saved, error, notice } = await searchParams;
 
   const assistant = await getAssistant(id).catch(() => null);
   if (!assistant) notFound();
@@ -74,6 +69,8 @@ export default async function AssistantSettingsPage({
   }
 
   const number = await getAssistantNumber(assistant.id).catch(() => null);
+  const planCtx = await getPlanContext(ownerId).catch(() => null);
+  const credits = planCtx?.limits.minutesIncluded ?? 1000;
 
   return (
     <div className="space-y-6">
@@ -92,6 +89,14 @@ export default async function AssistantSettingsPage({
       )}
       {error && (
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>
+      )}
+      {notice && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <span>{notice}</span>
+          <Link href="/pricing" className="font-medium underline underline-offset-2 hover:text-amber-900">
+            View plans
+          </Link>
+        </div>
       )}
 
       <SectionCard title="Phone number" subtitle="The number callers dial to reach this assistant.">
@@ -114,16 +119,9 @@ export default async function AssistantSettingsPage({
           </div>
         ) : (
           <div className="space-y-3">
-            <form action={createNumberForAssistantAction} className="flex flex-col gap-3 sm:flex-row sm:items-end">
+            <form action={createNumberForAssistantAction} className="flex flex-col gap-3 sm:flex-row sm:items-end sm:pb-6">
               <input type="hidden" name="assistant_id" value={assistant.id} />
-              <div className="sm:w-48">
-                <label htmlFor="country" className={labelCls}>Number country</label>
-                <select id="country" name="country" defaultValue="US" className={field}>
-                  {COUNTRIES.map((c) => (
-                    <option key={c.code} value={c.code}>{c.flag} {c.name}</option>
-                  ))}
-                </select>
-              </div>
+              <NumberCountrySelect credits={credits} />
               <button
                 type="submit"
                 className="inline-flex h-[38px] items-center justify-center rounded-lg bg-neutral-900 px-4 text-sm font-medium text-white transition-colors hover:bg-neutral-800"

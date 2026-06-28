@@ -1,15 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Bell, Menu } from "../icons";
+import { Search, Menu } from "../icons";
 import { UserMenu } from "./UserMenu";
+import { NotificationsBell } from "./NotificationsBell";
 import type { AppUser } from "@/lib/auth-user";
 
-const RANGES = ["Today", "7 days", "30 days", "90 days"] as const;
-type Range = (typeof RANGES)[number];
-
 export function Topbar({ user }: { user: AppUser }) {
-  const [range, setRange] = useState<Range>("Today");
   const [query, setQuery] = useState("");
 
   return (
@@ -30,25 +27,7 @@ export function Topbar({ user }: { user: AppUser }) {
       </label>
 
       <div className="ml-auto flex items-center gap-2">
-        <div className="hidden items-center rounded-lg border border-neutral-200 bg-neutral-50 p-0.5 sm:flex">
-          {RANGES.map((r) => (
-            <button
-              key={r}
-              type="button"
-              onClick={() => setRange(r)}
-              className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
-                range === r ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-900"
-              }`}
-            >
-              {r}
-            </button>
-          ))}
-        </div>
-
-        <button type="button" className="relative rounded-lg p-2 text-neutral-600 hover:bg-neutral-100" aria-label="Notifications">
-          <Bell className="h-5 w-5" />
-          <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-violet-600 ring-2 ring-white" />
-        </button>
+        <NotificationsBell />
 
         <UserMenu user={user} />
       </div>

@@ -12,6 +12,8 @@ interface ScribeMessage {
   message_type?: string;
   text?: string;
   words?: { text?: string }[];
+  language_code?: string;
+  language?: string;
 }
 
 export function openElevenLabsStt(opts: SttOptions): SttSession {
@@ -23,6 +25,7 @@ export function openElevenLabsStt(opts: SttOptions): SttSession {
 
   let open = false;
   let inUtterance = false;
+  let lastLanguage = "";
   const queue: string[] = [];
 
   const send = (msg: object) => {
@@ -47,6 +50,12 @@ export function openElevenLabsStt(opts: SttOptions): SttSession {
     const text =
       msg.text?.trim() ??
       (msg.words ?? []).map((w) => w.text ?? "").join(" ").trim();
+
+    const lang = (msg.language_code || msg.language || "").trim();
+    if (lang && lang !== lastLanguage) {
+      lastLanguage = lang;
+      opts.onLanguageDetected?.(lang);
+    }
 
     switch (msg.message_type) {
       case "partial_transcript":

@@ -11,7 +11,19 @@ interface DgMessage {
   type?: string; // "Results" | "SpeechStarted" | "UtteranceEnd"
   is_final?: boolean;
   speech_final?: boolean;
-  channel?: { alternatives?: { transcript?: string }[] };
+  channel?: {
+    detected_language?: string;
+    alternatives?: { transcript?: string; languages?: string[] }[];
+  };
+}
+
+/** Pull whatever language Deepgram reports (multilingual nova-3 / detect mode).
+ *  Best-effort: the field location differs across models, so check both. */
+function detectedLanguageOf(msg: DgMessage): string | null {
+  const fromChannel = msg.channel?.detected_language;
+  const fromAlt = msg.channel?.alternatives?.[0]?.languages?.[0];
+  const lang = (fromChannel || fromAlt || "").trim();
+  return lang ? lang : null;
 }
 
 export function openDeepgramStt(opts: SttOptions): SttSession {
@@ -35,6 +47,7 @@ export function openDeepgramStt(opts: SttOptions): SttSession {
   });
 
   let open = false;
+  let lastLanguage = "";
   const queue: Buffer[] = [];
   const segments: string[] = [];
 
@@ -64,6 +77,11 @@ export function openDeepgramStt(opts: SttOptions): SttSession {
     if (msg.type === "UtteranceEnd") {
       flushUtterance();
       return;
+    }
+    const lang = detectedLanguageOf(msg);
+    if (lang && lang !== lastLanguage) {
+      lastLanguage = lang;
+      opts.onLanguageDetected?.(lang);
     }
     const text = msg.channel?.alternatives?.[0]?.transcript?.trim() ?? "";
     if (!text) return;

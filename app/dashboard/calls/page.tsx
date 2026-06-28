@@ -17,7 +17,7 @@ export default async function CallsPage({ searchParams }: { searchParams: Search
   const sp = await searchParams;
   const filters = {
     q: one(sp.q, ""),
-    direction: one(sp.dir, "all"),
+    direction: "inbound", // Call log shows incoming calls only.
     status: one(sp.status, "all"),
   };
 
@@ -33,7 +33,7 @@ export default async function CallsPage({ searchParams }: { searchParams: Search
     <header>
       <h1 className="text-2xl font-medium tracking-tight text-neutral-900">Calls</h1>
       <p className="mt-1 text-sm text-neutral-500">
-        Every inbound and outbound call, reconciled with your Twilio call logs by Call SID.
+        Every incoming call, reconciled with your Twilio call logs by Call SID.
       </p>
     </header>
   );
@@ -49,12 +49,12 @@ export default async function CallsPage({ searchParams }: { searchParams: Search
     );
   }
 
-  const filtered = filters.q || filters.direction !== "all" || filters.status !== "all";
+  const filtered = Boolean(filters.q) || filters.status !== "all";
 
   return (
     <div className="space-y-6">
       {header}
-      <CallFilters q={filters.q} direction={filters.direction} status={filters.status} />
+      <CallFilters q={filters.q} status={filters.status} />
 
       {!log.twilioConnected && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
@@ -78,7 +78,7 @@ export default async function CallsPage({ searchParams }: { searchParams: Search
             <p className="mt-1 max-w-sm text-sm text-neutral-500">
               {filtered
                 ? "Try clearing the search or changing the filters."
-                : "Inbound calls and test calls appear here, matched to their Twilio Call SID."}
+                : "Incoming calls appear here, matched to their Twilio Call SID."}
             </p>
           </div>
         ) : (

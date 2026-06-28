@@ -1,8 +1,11 @@
-import { getAnalytics } from "@/lib/dashboard/analytics";
+import { getAnalytics, getAssistantStats } from "@/lib/dashboard/analytics";
+import { listAssistants } from "@/lib/dashboard/db";
 import { currentUserId } from "@/lib/auth";
 import { SectionCard } from "../components/SectionCard";
 import { BarChart } from "../components/BarChart";
 import { DonutChart } from "../components/DonutChart";
+import { AssistantStats } from "../components/AssistantStats";
+import { AssistantPicker } from "./AssistantPicker";
 
 export const dynamic = "force-dynamic";
 
@@ -20,19 +23,45 @@ function latencyPoints(values: number[]): string {
     .join(" ");
 }
 
-export default async function AnalyticsPage() {
+export default async function AnalyticsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ assistant?: string }>;
+}) {
+  const { assistant: assistantParam } = await searchParams;
+
   let data: Awaited<ReturnType<typeof getAnalytics>> | null = null;
+  let assistants: Awaited<ReturnType<typeof getAssistantStats>> = [];
+  let assistantList: { id: string; name: string }[] = [];
   let loadError = "";
+  let selectedId = "";
   try {
-    data = await getAnalytics(await currentUserId());
+    const ownerId = await currentUserId();
+    const all = await listAssistants(ownerId);
+    assistantList = all.map((a) => ({ id: a.id, name: a.name }));
+    // Only honor the filter when it's one of the owner's assistants.
+    selectedId = assistantParam && all.some((a) => a.id === assistantParam) ? assistantParam : "";
+    [data, assistants] = await Promise.all([
+      getAnalytics(ownerId, selectedId || undefined),
+      getAssistantStats(ownerId, 30),
+    ]);
   } catch (err) {
     loadError = (err as Error).message;
   }
 
+  const selectedName = assistantList.find((a) => a.id === selectedId)?.name;
+
   const header = (
-    <header>
-      <h1 className="text-2xl font-medium tracking-tight text-neutral-900">Analytics</h1>
-      <p className="mt-1 text-sm text-neutral-500">Trends across the last 30 days.</p>
+    <header className="flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <h1 className="text-2xl font-medium tracking-tight text-neutral-900">Analytics</h1>
+        <p className="mt-1 text-sm text-neutral-500">
+          {selectedName ? `${selectedName} — last 30 days.` : "Trends across all assistants, last 30 days."}
+        </p>
+      </div>
+      {assistantList.length > 0 && (
+        <AssistantPicker assistants={assistantList} selected={selectedId} />
+      )}
     </header>
   );
 
@@ -71,6 +100,12 @@ export default async function AnalyticsPage() {
       <SectionCard title="Call volume" subtitle="Calls answered over the last 30 days">
         <BarChart data={data.volume} />
       </SectionCard>
+
+      {!selectedId && (
+        <SectionCard title="By assistant" subtitle="Per-assistant performance over the last 30 days">
+          <AssistantStats stats={assistants} />
+        </SectionCard>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-3">
         <SectionCard title="Outcomes" subtitle="How calls resolved">

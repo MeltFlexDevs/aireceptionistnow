@@ -13,6 +13,7 @@ import { selectStt } from "./stt";
 import type { SttProvider, SttSession } from "./stt/types";
 import { openElevenLabsTts } from "./tts/elevenlabs";
 import type { TtsProvider, TtsSession } from "./tts/types";
+import { baseLanguage, bestVoiceForLanguage, isAutoLanguage } from "./voice/catalog";
 import { resolveCalendarById, resolveCalendarProvider } from "./integrations/registry";
 import { redirectCall, sendSms } from "./telephony";
 import { runPostCall } from "./summary/dispatch";
@@ -54,6 +55,11 @@ export class CallSession {
 
   private messages: LlmMessage[] = [];
   private tts: TtsSession | null = null;
+  // Voice + language can change mid-call when auto-detecting the caller's
+  // language; both start from the assistant's configured values.
+  private currentVoiceId: string;
+  private detectedLanguage: string | null = null;
+  private readonly autoLanguage: boolean;
   private abort: AbortController | null = null;
   private speaking = false;
   private shouldEnd = false;
@@ -68,6 +74,8 @@ export class CallSession {
     private readonly deps: SessionDeps,
   ) {
     this.system = buildSystemPrompt(ctx.config);
+    this.currentVoiceId = ctx.config.voiceId;
+    this.autoLanguage = isAutoLanguage(ctx.config.language);
     const sttName =
       (ctx.config.routing.sttProvider as string | undefined) ?? getEnv().STT_PROVIDER;
     const sttProvider: SttProvider = deps.stt ?? selectStt(sttName);
@@ -77,7 +85,19 @@ export class CallSession {
       onSpeechStarted: () => this.onSpeechStarted(),
       onTranscript: () => {},
       onUtterance: (text) => void this.onUtterance(text),
+      onLanguageDetected: (lang) => this.onLanguageDetected(lang),
     });
+  }
+
+  /** Caller's language was detected (auto mode only). Match the TTS voice and
+   *  pronunciation to it for the rest of the call; the LLM already replies in the
+   *  caller's language because it sees their transcribed words. */
+  private onLanguageDetected(language: string): void {
+    if (!this.autoLanguage) return;
+    const base = baseLanguage(language);
+    if (!base || base === this.detectedLanguage) return;
+    this.detectedLanguage = base;
+    this.currentVoiceId = bestVoiceForLanguage(base, this.ctx.config.voiceId);
   }
 
   /** Greet the caller as soon as the media stream is live. */
@@ -162,7 +182,10 @@ export class CallSession {
   private openTts(): TtsSession {
     this.tts?.close();
     const tts = this.ttsProvider({
-      voiceId: this.ctx.config.voiceId,
+      voiceId: this.currentVoiceId,
+      // Only hint a language once we've auto-detected one; fixed-language
+      // assistants keep the provider default (their STT is already pinned).
+      languageCode: this.autoLanguage ? this.detectedLanguage ?? undefined : undefined,
       onAudio: (ulaw) => {
         if (!this.firstAudioCaptured) {
           this.firstAudioCaptured = true;

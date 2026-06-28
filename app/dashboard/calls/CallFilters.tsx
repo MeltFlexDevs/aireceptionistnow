@@ -6,15 +6,9 @@ import { Search } from "../icons";
 
 interface Props {
   q: string;
-  direction: string;
   status: string;
 }
 
-const DIRECTIONS = [
-  { value: "all", label: "All directions" },
-  { value: "inbound", label: "Inbound" },
-  { value: "outbound", label: "Outbound" },
-];
 const STATUSES = [
   { value: "all", label: "All statuses" },
   { value: "completed", label: "Completed" },
@@ -22,7 +16,7 @@ const STATUSES = [
   { value: "active", label: "In progress" },
 ];
 
-export function CallFilters({ q, direction, status }: Props) {
+export function CallFilters({ q, status }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -61,13 +55,6 @@ export function CallFilters({ q, direction, status }: Props) {
           className="h-10 w-full rounded-lg border border-neutral-200 bg-white pl-9 pr-3 text-sm text-neutral-700 outline-none placeholder:text-neutral-400 focus:border-violet-400"
         />
       </div>
-      <select value={direction} onChange={(e) => setParam("dir", e.target.value)} className={selectClass}>
-        {DIRECTIONS.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
       <select value={status} onChange={(e) => setParam("status", e.target.value)} className={selectClass}>
         {STATUSES.map((o) => (
           <option key={o.value} value={o.value}>

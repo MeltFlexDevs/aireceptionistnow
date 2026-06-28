@@ -28,32 +28,15 @@ export interface BoughtNumber {
   sid: string;
 }
 
-export async function buyTwilioNumber(opts: {
-  country: string;
-  areaCode?: string;
-}): Promise<BoughtNumber> {
-  if (!twilioConfigured()) {
-    throw new Error("Twilio credentials are not set on the server.");
-  }
-  const base = process.env.APP_BASE_URL;
-  const client = twilioClient();
-  const country = (opts.country || "US").toUpperCase();
-
-  const available = await client
-    .availablePhoneNumbers(country)
-    .local.list({
-      voiceEnabled: true,
-      areaCode: opts.areaCode ? Number(opts.areaCode) : undefined,
-      limit: 1,
-    });
-  if (available.length === 0) {
-    throw new Error(
-      `No voice numbers available in ${country}${opts.areaCode ? ` area ${opts.areaCode}` : ""}.`,
-    );
-  }
-
-  // Regulated countries (DE, GB, …) require an Address and/or Regulatory Bundle.
-  // Attach the account's matching ones if they exist.
+/**
+ * Regulated countries (DE, GB, …) require an Address and/or Regulatory Bundle
+ * on the purchase. Attach the account's matching ones if they exist, otherwise
+ * buy unadorned (works for US/CA).
+ */
+async function regulatoryAttachments(
+  client: ReturnType<typeof twilioClient>,
+  country: string,
+): Promise<{ addressSid?: string; bundleSid?: string }> {
   const reg: { addressSid?: string; bundleSid?: string } = {};
   try {
     const addresses = await client.addresses.list({ limit: 50 });
@@ -73,28 +56,80 @@ export async function buyTwilioNumber(opts: {
   } catch {
     // no bundles available — ignore
   }
+  return reg;
+}
 
-  let purchased: Awaited<ReturnType<typeof client.incomingPhoneNumbers.create>>;
-  try {
-    purchased = await client.incomingPhoneNumbers.create({
-      phoneNumber: available[0].phoneNumber,
-      voiceUrl: base ? `${base}/api/twilio/voice` : undefined,
-      voiceMethod: "POST",
-      statusCallback: base ? `${base}/api/twilio/status` : undefined,
-      statusCallbackMethod: "POST",
-      ...reg,
+export async function buyTwilioNumber(opts: {
+  country: string;
+  areaCode?: string;
+}): Promise<BoughtNumber> {
+  const [first] = await buyTwilioNumbers(opts, 1);
+  if (!first) {
+    const country = (opts.country || "US").toUpperCase();
+    throw new Error(`Could not purchase a number in ${country}.`);
+  }
+  return first;
+}
+
+/**
+ * Buy up to `count` voice numbers in one pass. Used to seed/replenish the shared
+ * number pool. Lists `count` available numbers, then purchases each; numbers
+ * snapped up by someone else between listing and buying are skipped. Throws only
+ * when none could be bought (or on a regulatory-compliance blocker).
+ */
+export async function buyTwilioNumbers(
+  opts: { country: string; areaCode?: string },
+  count: number,
+): Promise<BoughtNumber[]> {
+  if (!twilioConfigured()) {
+    throw new Error("Twilio credentials are not set on the server.");
+  }
+  if (count < 1) return [];
+  const base = process.env.APP_BASE_URL;
+  const client = twilioClient();
+  const country = (opts.country || "US").toUpperCase();
+
+  const available = await client
+    .availablePhoneNumbers(country)
+    .local.list({
+      voiceEnabled: true,
+      areaCode: opts.areaCode ? Number(opts.areaCode) : undefined,
+      limit: count,
     });
-  } catch (err) {
-    const msg = (err as Error).message ?? "";
-    if (/address|bundle/i.test(msg)) {
-      throw new Error(
-        `${country} numbers need a verified Address and Regulatory Bundle in your Twilio account (Console → Phone Numbers → Regulatory Compliance). Set those up, or pick US/CA.`,
-      );
-    }
-    throw err;
+  if (available.length === 0) {
+    throw new Error(
+      `No voice numbers available in ${country}${opts.areaCode ? ` area ${opts.areaCode}` : ""}.`,
+    );
   }
 
-  return { e164: purchased.phoneNumber, sid: purchased.sid };
+  const reg = await regulatoryAttachments(client, country);
+
+  const bought: BoughtNumber[] = [];
+  for (const candidate of available) {
+    try {
+      const purchased = await client.incomingPhoneNumbers.create({
+        phoneNumber: candidate.phoneNumber,
+        voiceUrl: base ? `${base}/api/twilio/voice` : undefined,
+        voiceMethod: "POST",
+        statusCallback: base ? `${base}/api/twilio/status` : undefined,
+        statusCallbackMethod: "POST",
+        ...reg,
+      });
+      bought.push({ e164: purchased.phoneNumber, sid: purchased.sid });
+    } catch (err) {
+      const msg = (err as Error).message ?? "";
+      if (/address|bundle/i.test(msg)) {
+        throw new Error(
+          `${country} numbers need a verified Address and Regulatory Bundle in your Twilio account (Console → Phone Numbers → Regulatory Compliance). Set those up, or pick US/CA.`,
+        );
+      }
+      // Number taken between list and buy, or a transient error — skip it.
+    }
+  }
+  if (bought.length === 0) {
+    throw new Error(`Could not purchase any numbers in ${country}.`);
+  }
+  return bought;
 }
 
 /**

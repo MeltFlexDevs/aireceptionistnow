@@ -86,6 +86,9 @@ export async function getNumber(id: string): Promise<PhoneNumber | null> {
 // Defaults applied to a freshly created assistant so it can take a call right away.
 const DEFAULT_VOICE_ID = "21m00Tcm4TlvDq8ikWAM"; // ElevenLabs "Rachel"
 const DEFAULT_ROUTING = { sttProvider: "elevenlabs" };
+// "multi" = auto-detect the caller's language and reply in it (the engine
+// matches voice + pronunciation). Users can pin a fixed language in settings.
+const DEFAULT_LANGUAGE = "multi";
 
 export async function createNumber(input: CreateNumberInput): Promise<string> {
   const { data, error } = await db()
@@ -234,6 +237,7 @@ export async function createAssistant(
       owner_id: ownerId ?? null,
       name: name || "My assistant",
       voice_id: DEFAULT_VOICE_ID,
+      language: DEFAULT_LANGUAGE,
       routing: DEFAULT_ROUTING,
     })
     .select("id")
@@ -295,6 +299,67 @@ export async function getAssistantNumber(
     .maybeSingle();
   if (error) throw error;
   return (data as PhoneNumber) ?? null;
+}
+
+/**
+ * Claim the first free pooled number for an assistant. "Free" = active, enabled,
+ * backed by a real Twilio number, and not yet linked to any assistant. The update
+ * is guarded by `assistant_id IS NULL` so two concurrent creates can't grab the
+ * same row — the loser's update matches zero rows and we try the next candidate.
+ * Returns the claimed number, or null when the pool has none free.
+ */
+export async function claimFreeNumber(
+  assistantId: string,
+): Promise<PhoneNumber | null> {
+  const { data: candidates, error } = await db()
+    .from("phone_numbers")
+    .select("id")
+    .is("deleted_at", null)
+    .is("assistant_id", null)
+    .eq("enabled", true)
+    .not("twilio_sid", "is", null)
+    .order("created_at", { ascending: true })
+    .limit(20);
+  if (error) throw error;
+
+  for (const c of candidates ?? []) {
+    const { data: claimed, error: claimErr } = await db()
+      .from("phone_numbers")
+      .update({ assistant_id: assistantId })
+      .eq("id", c.id)
+      .is("assistant_id", null)
+      .select("*")
+      .maybeSingle();
+    if (claimErr) throw claimErr;
+    if (claimed) return claimed as PhoneNumber;
+  }
+  return null;
+}
+
+/** How many free numbers the pool currently holds (same "free" rule as claim). */
+export async function countFreeNumbers(): Promise<number> {
+  const { count, error } = await db()
+    .from("phone_numbers")
+    .select("id", { count: "exact", head: true })
+    .is("deleted_at", null)
+    .is("assistant_id", null)
+    .eq("enabled", true)
+    .not("twilio_sid", "is", null);
+  if (error) throw error;
+  return count ?? 0;
+}
+
+/**
+ * Return all of an assistant's active numbers to the shared pool (unlink, keep
+ * them on Twilio). Used on assistant delete so another assistant can reuse them.
+ */
+export async function freeAssistantNumbers(assistantId: string): Promise<void> {
+  const { error } = await db()
+    .from("phone_numbers")
+    .update({ assistant_id: null })
+    .eq("assistant_id", assistantId)
+    .is("deleted_at", null);
+  if (error) throw error;
 }
 
 /** Link (or unlink) a phone number to an assistant. */

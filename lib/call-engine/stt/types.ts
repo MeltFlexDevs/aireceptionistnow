@@ -9,6 +9,9 @@ export interface SttCallbacks {
   onTranscript: (t: { text: string; isFinal: boolean }) => void;
   /** Caller finished an utterance — hand this to the LLM as a user turn. */
   onUtterance: (text: string) => void;
+  /** Detected spoken language (BCP-47-ish code, e.g. "es"), when the provider
+   *  reports one in multilingual/auto mode. Fired whenever it changes. */
+  onLanguageDetected?: (language: string) => void;
 }
 
 export interface SttOptions extends SttCallbacks {

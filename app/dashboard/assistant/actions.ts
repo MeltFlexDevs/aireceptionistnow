@@ -5,18 +5,19 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { buildConnectResponse } from "@/lib/call-engine/pickup";
 import {
+  claimFreeNumber,
+  countFreeNumbers,
   createAssistant,
   createNumber,
   createTestCall,
   setCallTwilioSid,
   deleteAssistant,
   ensureBusinessId,
+  freeAssistantNumbers,
   getAssistant,
   getAssistantNumber,
-  getAssistantNumbers,
   listIntegrations,
   setNumberAssistant,
-  softDeleteNumber,
   updateAssistant,
   updateAssistantKnowledge,
 } from "@/lib/dashboard/db";
@@ -30,14 +31,30 @@ import {
 } from "@/lib/knowledge/sources";
 import {
   buyTwilioNumber,
+  buyTwilioNumbers,
   ensureTwilioNumber,
   placeCall,
   registerCnam,
-  releaseTwilioNumber,
 } from "@/lib/dashboard/twilio";
 import { currentUserId } from "@/lib/auth";
+import { canAssignNumber } from "@/lib/dashboard/plan";
 
 const E164 = /^\+[1-9]\d{6,15}$/;
+
+// Keep this many free numbers standing by in the shared pool at all times, so a
+// new assistant gets a number instantly. The pool is refilled (by buying) after
+// each assignment; numbers freed by deleting assistants reduce how much we buy.
+const POOL_TARGET_FREE = 3;
+
+/** Buy numbers until the pool holds POOL_TARGET_FREE free ones again. */
+async function topUpPool(country: string): Promise<void> {
+  const deficit = POOL_TARGET_FREE - (await countFreeNumbers());
+  if (deficit <= 0) return;
+  const bought = await buyTwilioNumbers({ country }, deficit);
+  for (const b of bought) {
+    await createNumber({ e164: b.e164, twilioSid: b.sid });
+  }
+}
 
 export async function createAssistantAction(formData: FormData): Promise<void> {
   const name = String(formData.get("name") ?? "").trim() || "My assistant";
@@ -51,12 +68,27 @@ export async function createAssistantAction(formData: FormData): Promise<void> {
     redirect(`/dashboard/assistant?error=${encodeURIComponent((err as Error).message)}`);
   }
 
-  // Generate the assistant's phone number at creation (best-effort - trial or
-  // regulated countries may fail; the assistant is still created and a number
-  // can be added from its settings).
+  // Only provision a number if the owner's plan still has phone-number quota.
+  // The assistant is created either way; when the plan is maxed out we skip the
+  // number and tell the user (they can upgrade, then add one from settings).
+  const allowance = await canAssignNumber(ownerId);
+  if (!allowance.ok) {
+    revalidatePath("/dashboard/assistant");
+    redirect(`/dashboard/assistant/${id}?notice=${encodeURIComponent(allowance.reason ?? "")}`);
+  }
+
+  // Assign a phone number from the shared pool (best-effort - the assistant is
+  // still created if this fails, and a number can be added from its settings).
+  // Claim a free number, buying one only if the pool is momentarily dry, then
+  // top the pool back up to its standing buffer of POOL_TARGET_FREE.
   try {
-    const bought = await buyTwilioNumber({ country });
-    await createNumber({ e164: bought.e164, twilioSid: bought.sid, assistantId: id });
+    let claimed = await claimFreeNumber(id);
+    if (!claimed) {
+      const [bought] = await buyTwilioNumbers({ country }, 1);
+      if (bought) await createNumber({ e164: bought.e164, twilioSid: bought.sid });
+      claimed = await claimFreeNumber(id);
+    }
+    await topUpPool(country);
   } catch (err) {
     console.error("[assistant] number provisioning", err);
   }
@@ -134,18 +166,10 @@ export async function deleteAssistantAction(formData: FormData): Promise<void> {
   const id = String(formData.get("id") ?? "");
   if (id) {
     try {
-      // Release each linked number from Twilio, then soft-delete it and the assistant.
-      const numbers = await getAssistantNumbers(id);
-      for (const n of numbers) {
-        if (n.twilio_sid) {
-          try {
-            await releaseTwilioNumber(n.twilio_sid);
-          } catch {
-            // already released / not permitted - ignore
-          }
-        }
-        await softDeleteNumber(n.id).catch(() => {});
-      }
+      // Return this assistant's numbers to the shared pool (unlink, but keep them
+      // on Twilio) so another assistant can reuse them, then soft-delete the
+      // assistant. This is what makes a freed number reclaimable instead of lost.
+      await freeAssistantNumbers(id);
       await deleteAssistant(id);
     } catch {
       // best-effort
@@ -260,6 +284,12 @@ export async function createNumberForAssistantAction(formData: FormData): Promis
   const assistantId = String(formData.get("assistant_id") ?? "");
   const country = String(formData.get("country") ?? "US").trim() || "US";
   if (!assistantId) redirect("/dashboard/assistant");
+
+  const allowance = await canAssignNumber(await currentUserId());
+  if (!allowance.ok) {
+    redirect(`/dashboard/assistant/${assistantId}?notice=${encodeURIComponent(allowance.reason ?? "")}`);
+  }
+
   try {
     const bought = await buyTwilioNumber({ country });
     await createNumber({ e164: bought.e164, twilioSid: bought.sid, assistantId });
@@ -279,6 +309,12 @@ export async function connectNumberForAssistantAction(formData: FormData): Promi
       `/dashboard/assistant/${assistantId}?error=${encodeURIComponent("Use E.164 format, e.g. +14155550142")}`,
     );
   }
+
+  const allowance = await canAssignNumber(await currentUserId());
+  if (!allowance.ok) {
+    redirect(`/dashboard/assistant/${assistantId}?notice=${encodeURIComponent(allowance.reason ?? "")}`);
+  }
+
   try {
     const result = await ensureTwilioNumber(e164);
     await createNumber({ e164, twilioSid: result.sid ?? undefined, assistantId });

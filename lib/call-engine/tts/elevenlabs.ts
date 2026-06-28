@@ -1,5 +1,6 @@
 import WebSocket from "ws";
 import { getEnv } from "../env";
+import { baseLanguage } from "../voice/catalog";
 import type { TtsOptions, TtsSession } from "./types";
 
 // ElevenLabs streaming input API. We open one socket per assistant turn, stream
@@ -35,13 +36,15 @@ export function openElevenLabsTts(opts: TtsOptions): TtsSession {
 
     ws.on("open", () => {
       open = true;
-      // Initialize the stream with voice settings before any text.
-      ws?.send(
-        JSON.stringify({
-          text: " ",
-          voice_settings: { stability: 0.5, similarity_boost: 0.8, speed: 1.0 },
-        }),
-      );
+      // Initialize the stream with voice settings before any text. A
+      // language_code (when known) makes the multilingual model pronounce the
+      // reply in the caller's language; it must be sent in this first message.
+      const init: Record<string, unknown> = {
+        text: " ",
+        voice_settings: { stability: 0.5, similarity_boost: 0.8, speed: 1.0 },
+      };
+      if (opts.languageCode) init.language_code = baseLanguage(opts.languageCode);
+      ws?.send(JSON.stringify(init));
       for (const json of outbox) ws?.send(json);
       outbox.length = 0;
     });

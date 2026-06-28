@@ -81,6 +81,19 @@ interface CallRow {
   to_number: string | null;
   median_latency_ms: number | null;
   summary: string | null;
+  phone_number_id: string | null;
+}
+
+// Per-assistant rollup shown on the Overview and Analytics pages.
+export interface AssistantStat {
+  id: string;
+  name: string;
+  number: string;
+  calls: number;
+  avgDuration: string;
+  answerRate: number;
+  bookings: number;
+  positivePct: number;
 }
 
 const OUTCOME_COLORS: Record<string, string> = {
@@ -153,7 +166,7 @@ async function fetchCalls(
   let query = serviceClient()
     .from("calls")
     .select(
-      "id,started_at,duration_seconds,status,outcome,sentiment,from_number,to_number,median_latency_ms,summary",
+      "id,started_at,duration_seconds,status,outcome,sentiment,from_number,to_number,median_latency_ms,summary,phone_number_id",
     )
     .eq("business_id", businessId)
     .gte("started_at", sinceIso);
@@ -318,9 +331,119 @@ export async function getOverview(ownerId?: string | null): Promise<Overview> {
   };
 }
 
-export async function getAnalytics(ownerId?: string | null): Promise<Analytics> {
+interface NumberMeta {
+  assistantId: string | null;
+  assistantName: string;
+  e164: string;
+}
+
+// Map phone_number_id -> its assistant, so calls can be grouped per assistant.
+async function numberMeta(numberIds?: string[]): Promise<Map<string, NumberMeta>> {
+  if (numberIds && numberIds.length === 0) return new Map();
+  let query = serviceClient()
+    .from("phone_numbers")
+    .select("id,e164,assistant_id,assistant:assistants(name)");
+  if (numberIds) query = query.in("id", numberIds);
+  const { data, error } = await query;
+  if (error) throw error;
+  const map = new Map<string, NumberMeta>();
+  for (const r of data ?? []) {
+    const row = r as Record<string, unknown>;
+    const assistant = row.assistant as { name?: string } | { name?: string }[] | null;
+    const name = Array.isArray(assistant) ? assistant[0]?.name : assistant?.name;
+    map.set(String(row.id), {
+      assistantId: row.assistant_id ? String(row.assistant_id) : null,
+      assistantName: name ?? "",
+      e164: String(row.e164 ?? ""),
+    });
+  }
+  return map;
+}
+
+/** Per-assistant call stats over the last `days`. Calls on numbers not linked to
+ *  an assistant are grouped under a single "Unassigned" row. */
+export async function getAssistantStats(
+  ownerId?: string | null,
+  days = 30,
+): Promise<AssistantStat[]> {
   const businessId = await ensureBusinessId();
   const numberIds = await scopedNumberIds(ownerId);
+  const since = new Date();
+  since.setDate(since.getDate() - days);
+
+  const [calls, meta] = await Promise.all([
+    fetchCalls(businessId, since.toISOString(), numberIds),
+    numberMeta(numberIds),
+  ]);
+
+  const groups = new Map<string, { name: string; number: string; calls: CallRow[] }>();
+  for (const c of calls) {
+    const m = c.phone_number_id ? meta.get(c.phone_number_id) : undefined;
+    const id = m?.assistantId ?? "unassigned";
+    if (!groups.has(id)) {
+      groups.set(id, {
+        name: m?.assistantName || "Unassigned",
+        number: m?.e164 ?? "",
+        calls: [],
+      });
+    }
+    groups.get(id)!.calls.push(c);
+  }
+
+  // Surface assistants that own a number but have no calls yet, so each shows up.
+  for (const [numberId, m] of meta) {
+    void numberId;
+    const id = m.assistantId ?? "unassigned";
+    if (m.assistantId && !groups.has(id)) {
+      groups.set(id, { name: m.assistantName || "Assistant", number: m.e164, calls: [] });
+    }
+  }
+
+  return [...groups.entries()]
+    .map(([id, g]) => {
+      const total = g.calls.length;
+      const completed = g.calls.filter((c) => c.status === "completed").length;
+      const positive = g.calls.filter((c) => c.sentiment === "positive").length;
+      const avgSec = total
+        ? g.calls.reduce((s, c) => s + (c.duration_seconds ?? 0), 0) / total
+        : 0;
+      return {
+        id,
+        name: g.name,
+        number: g.number,
+        calls: total,
+        avgDuration: fmtDuration(avgSec),
+        answerRate: total ? Math.round((completed / total) * 100) : 0,
+        bookings: g.calls.filter((c) => c.outcome === "booked").length,
+        positivePct: total ? Math.round((positive / total) * 100) : 0,
+      };
+    })
+    .sort((a, b) => b.calls - a.calls);
+}
+
+/** Active phone-number ids linked to a single assistant. */
+async function assistantNumberIds(assistantId: string): Promise<string[]> {
+  const { data, error } = await serviceClient()
+    .from("phone_numbers")
+    .select("id")
+    .eq("assistant_id", assistantId)
+    .is("deleted_at", null);
+  if (error) throw error;
+  return (data ?? []).map((r) => String((r as { id: string }).id));
+}
+
+export async function getAnalytics(
+  ownerId?: string | null,
+  assistantId?: string | null,
+): Promise<Analytics> {
+  const businessId = await ensureBusinessId();
+  // Owner scopes to all their numbers; an assistant filter narrows to just that
+  // assistant's numbers (intersected with the owner scope so it can't widen it).
+  let numberIds = await scopedNumberIds(ownerId);
+  if (assistantId) {
+    const ids = await assistantNumberIds(assistantId);
+    numberIds = numberIds ? numberIds.filter((id) => ids.includes(id)) : ids;
+  }
   const now = new Date();
   const since = new Date(now);
   since.setDate(now.getDate() - 30);

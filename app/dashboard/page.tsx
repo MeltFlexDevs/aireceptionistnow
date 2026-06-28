@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getOverview } from "@/lib/dashboard/analytics";
+import { getOverview, getAssistantStats } from "@/lib/dashboard/analytics";
 import { currentUserId } from "@/lib/auth";
 import { StatCard } from "./components/StatCard";
 import { SectionCard } from "./components/SectionCard";
@@ -7,6 +7,9 @@ import { BarChart } from "./components/BarChart";
 import { DonutChart } from "./components/DonutChart";
 import { RecentCalls } from "./components/RecentCalls";
 import { CallSummaries } from "./components/CallSummaries";
+import { AssistantStats } from "./components/AssistantStats";
+import { PlanUsage } from "./components/PlanUsage";
+import { getPlanContext } from "@/lib/dashboard/plan";
 import { Bolt, Plus } from "./icons";
 
 export const dynamic = "force-dynamic";
@@ -27,9 +30,16 @@ function latencyPoints(values: number[]): string {
 
 export default async function OverviewPage() {
   let data: Awaited<ReturnType<typeof getOverview>> | null = null;
+  let assistants: Awaited<ReturnType<typeof getAssistantStats>> = [];
+  let planCtx: Awaited<ReturnType<typeof getPlanContext>> | null = null;
   let loadError = "";
   try {
-    data = await getOverview(await currentUserId());
+    const ownerId = await currentUserId();
+    [data, assistants, planCtx] = await Promise.all([
+      getOverview(ownerId),
+      getAssistantStats(ownerId, 14),
+      getPlanContext(ownerId),
+    ]);
   } catch (err) {
     loadError = (err as Error).message;
   }
@@ -73,6 +83,12 @@ export default async function OverviewPage() {
           <StatCard key={kpi.key} kpi={kpi} />
         ))}
       </div>
+
+      {planCtx && <PlanUsage ctx={planCtx} />}
+
+      <SectionCard title="Assistants" subtitle="Each assistant's results over the last 14 days">
+        <AssistantStats stats={assistants} />
+      </SectionCard>
 
       <div className="grid gap-4 lg:grid-cols-3">
         <SectionCard className="lg:col-span-2" title="Call volume" subtitle="Calls answered over the last 14 days">

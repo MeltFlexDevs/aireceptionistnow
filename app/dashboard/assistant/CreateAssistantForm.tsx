@@ -4,16 +4,10 @@ import { useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Plus } from "../icons";
 import { createAssistantAction } from "./actions";
+import { NumberCountrySelect } from "./NumberCountrySelect";
 
 const field =
-  "w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition-colors focus:border-violet-400";
-
-const COUNTRIES = [
-  { code: "US", name: "United States", flag: "🇺🇸" },
-  { code: "CA", name: "Canada", flag: "🇨🇦" },
-  { code: "GB", name: "United Kingdom", flag: "🇬🇧" },
-  { code: "AU", name: "Australia", flag: "🇦🇺" },
-];
+  "w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition-colors focus:border-neutral-900";
 
 const STEPS = [
   "Saving assistant",
@@ -49,7 +43,7 @@ function Progress() {
 
         <div className="mt-4 h-2 overflow-hidden rounded-full bg-neutral-100">
           <div
-            className="h-full rounded-full bg-violet-600 transition-all duration-700 ease-out"
+            className="h-full rounded-full bg-neutral-900 transition-all duration-700 ease-out"
             style={{ width: `${pct}%` }}
           />
         </div>
@@ -60,9 +54,9 @@ function Progress() {
               <span
                 className={`flex h-5 w-5 items-center justify-center rounded-full text-[11px] ${
                   i < step
-                    ? "bg-emerald-500 text-white"
+                    ? "bg-neutral-900 text-white"
                     : i === step
-                      ? "bg-violet-600 text-white"
+                      ? "bg-neutral-700 text-white"
                       : "bg-neutral-100 text-neutral-400"
                 }`}
               >
@@ -91,21 +85,14 @@ function SubmitButton() {
   );
 }
 
-export function CreateAssistantForm() {
+export function CreateAssistantForm({ credits }: { credits: number }) {
   return (
-    <form action={createAssistantAction} className="flex flex-col gap-3 sm:flex-row sm:items-end">
+    <form action={createAssistantAction} className="flex flex-col gap-3 sm:flex-row sm:items-end sm:pb-6">
       <div className="flex-1">
         <label htmlFor="name" className="mb-1.5 block text-sm font-medium text-neutral-700">Name</label>
         <input id="name" name="name" placeholder="e.g. Front desk" className={field} />
       </div>
-      <div className="sm:w-44">
-        <label htmlFor="country" className="mb-1.5 block text-sm font-medium text-neutral-700">Number country</label>
-        <select id="country" name="country" defaultValue="US" className={field}>
-          {COUNTRIES.map((c) => (
-            <option key={c.code} value={c.code}>{c.flag} {c.name}</option>
-          ))}
-        </select>
-      </div>
+      <NumberCountrySelect credits={credits} className="sm:w-56" />
       <SubmitButton />
       <Progress />
     </form>

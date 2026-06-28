@@ -20,12 +20,35 @@ export function annualAmountCents(monthlyCents: number): number {
   return Math.round(monthlyCents * 12 * (1 - ANNUAL_DISCOUNT));
 }
 
+/**
+ * Hard limits enforced server-side per plan. The source of truth for "how many
+ * X can this account have". Kept next to the price so the quotas a customer pays
+ * for and the quotas the app enforces can never drift apart. `Infinity` means no
+ * cap. Used by lib/dashboard/plan.ts and the create/assign server actions.
+ */
+export interface PlanLimits {
+  /** Concurrent phone numbers assigned to the account's assistants. */
+  phoneNumbers: number;
+  /** Assistants the account may keep (the pricing lists these as uncapped). */
+  assistants: number;
+  /** Simultaneous live calls. */
+  concurrentCalls: number;
+  /** Included talk minutes per billing period (overage billed per-minute). */
+  minutesIncluded: number;
+  /** Stored contacts. */
+  contacts: number;
+  /** Seats. */
+  users: number;
+}
+
 export type Plan = {
   /** Stable identifier used in checkout requests and stored on the customer. */
   id: PlanId;
   name: string;
   /** One-line audience description shown under the plan name. */
   tagline: string;
+  /** Enforced quotas for this plan. */
+  limits: PlanLimits;
   /** Integer per-month price in cents when billed monthly (also the headline
    *  price on the pricing card). Used to create the Stripe Price and as a
    *  server-side sanity check. */
@@ -51,6 +74,14 @@ export const PLANS: Plan[] = [
     tagline: "Suitable for 1–20 calls/day",
     monthlyAmountCents: 9900,
     currency: "eur",
+    limits: {
+      phoneNumbers: 1,
+      assistants: Infinity,
+      concurrentCalls: 1,
+      minutesIncluded: 1000,
+      contacts: 1000,
+      users: 1,
+    },
     highlight: false,
     included: [
       "1000 minutes — €0.09 per extra minute",
@@ -72,6 +103,14 @@ export const PLANS: Plan[] = [
     tagline: "Suitable for 20–100 calls/day",
     monthlyAmountCents: 29900,
     currency: "eur",
+    limits: {
+      phoneNumbers: 3,
+      assistants: Infinity,
+      concurrentCalls: 3,
+      minutesIncluded: 3000,
+      contacts: 3000,
+      users: Infinity,
+    },
     highlight: true,
     included: [
       "3000 minutes — €0.09 per extra minute",
@@ -92,6 +131,19 @@ export const PLANS: Plan[] = [
     },
   },
 ];
+
+/**
+ * Limits applied when an account has no active paid plan. Matches the entry tier
+ * (Solo) so the app stays usable without immediately wedging on a 0-quota; the
+ * "no active subscription" state is signalled separately by the caller.
+ */
+export const FALLBACK_LIMITS: PlanLimits = PLANS[0].limits;
+
+/** The enforced limits for a plan id (or the fallback when null/unknown). */
+export function limitsFor(planId: PlanId | null | undefined): PlanLimits {
+  const plan = planId ? getPlan(planId) : undefined;
+  return plan ? plan.limits : FALLBACK_LIMITS;
+}
 
 /** Look a plan up by its stable id. */
 export function getPlan(id: string): Plan | undefined {

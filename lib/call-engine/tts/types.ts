@@ -10,6 +10,9 @@ export interface TtsCallbacks {
 
 export interface TtsOptions extends TtsCallbacks {
   voiceId: string;
+  /** Optional ISO language to enforce pronunciation (e.g. "es", "de"). When set,
+   *  the multilingual model speaks the text in this language. */
+  languageCode?: string;
 }
 
 export interface TtsSession {
