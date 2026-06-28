@@ -94,7 +94,7 @@ export default function BlogPage() {
         ))}
       </div>
 
-      <div className="mx-auto max-w-[1200px] px-6 pb-20 sm:px-10">
+      <div className="mx-auto flex max-w-[1200px] flex-wrap items-center gap-6 px-6 pb-20 sm:px-10">
         <a
           href="https://turbo0.com/item/ai-receptionist-now"
           target="_blank"
@@ -105,6 +105,19 @@ export default function BlogPage() {
             src="https://img.turbo0.com/badge-listed-light.svg"
             alt="Listed on Turbo0"
             style={{ height: "54px", width: "auto" }}
+          />
+        </a>
+        <a
+          href="https://www.toolpilot.ai"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Image
+            src="/toolpilot-featured.png"
+            alt="Featured on ToolPilot"
+            width={690}
+            height={151}
+            className="h-[54px] w-auto"
           />
         </a>
       </div>
