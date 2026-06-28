@@ -93,6 +93,21 @@ export default function BlogPage() {
           </Link>
         ))}
       </div>
+
+      <div className="mx-auto max-w-[1200px] px-6 pb-20 sm:px-10">
+        <a
+          href="https://turbo0.com/item/ai-receptionist-now"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="https://img.turbo0.com/badge-listed-light.svg"
+            alt="Listed on Turbo0"
+            style={{ height: "54px", width: "auto" }}
+          />
+        </a>
+      </div>
     </div>
   );
 }
