@@ -47,6 +47,39 @@ function CheckIcon() {
   );
 }
 
+const FONT = "var(--font-inter), Inter, sans-serif";
+
+const sectionLabel: React.CSSProperties = {
+  fontFamily: FONT,
+  fontSize: "11px",
+  fontWeight: 400,
+  textTransform: "uppercase",
+  letterSpacing: "0.08em",
+  color: "#aaa",
+  margin: "0 0 14px",
+};
+
+function FeatureItem({ children }: { children: React.ReactNode }) {
+  return (
+    <li
+      style={{
+        display: "flex",
+        alignItems: "flex-start",
+        gap: "10px",
+        fontSize: "13px",
+        fontWeight: 300,
+        color: "#555",
+        lineHeight: 1.5,
+      }}
+    >
+      <span style={{ marginTop: "2px", color: "#111", flexShrink: 0 }}>
+        <CheckIcon />
+      </span>
+      {children}
+    </li>
+  );
+}
+
 function PlanCard({
   plan,
   cycle,
@@ -66,31 +99,50 @@ function PlanCard({
 
   return (
     <div
-      className="flex w-full max-w-[420px] flex-col rounded-2xl border bg-white p-8 text-left"
       style={{
-        borderColor: plan.highlight ? "#000" : "rgba(0,0,0,0.10)",
-        boxShadow: plan.highlight ? "0 18px 50px rgba(0,0,0,0.08)" : "none",
+        fontFamily: FONT,
+        display: "flex",
+        flexDirection: "column",
+        width: "100%",
+        maxWidth: "420px",
+        background: "#fff",
+        border: `1px solid ${plan.highlight ? "#111" : "#e8e8e8"}`,
+        borderRadius: "16px",
+        padding: "32px",
+        textAlign: "left",
+        boxShadow: plan.highlight ? "0 18px 50px rgba(0,0,0,0.06)" : "none",
       }}
     >
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium tracking-tight text-neutral-900">
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
+        <h3 style={{ fontSize: "16px", fontWeight: 500, letterSpacing: "-0.01em", color: "#111", margin: 0 }}>
           {plan.name}
         </h3>
         {plan.highlight ? (
-          <span className="rounded-full bg-black px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.08em] text-white">
+          <span
+            style={{
+              background: "#000",
+              color: "#fff",
+              borderRadius: "20px",
+              padding: "4px 11px",
+              fontSize: "10px",
+              fontWeight: 400,
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
+            }}
+          >
             Most popular
           </span>
         ) : null}
       </div>
-      <p className="mt-1 text-[13px] text-neutral-500">{plan.tagline}</p>
+      <p style={{ marginTop: "6px", fontSize: "13px", fontWeight: 300, color: "#888" }}>{plan.tagline}</p>
 
-      <div className="mt-6 flex items-end gap-1.5">
-        <span className="text-4xl font-semibold tracking-tight text-neutral-900">
+      <div style={{ marginTop: "24px", display: "flex", alignItems: "flex-end", gap: "6px" }}>
+        <span style={{ fontSize: "46px", fontWeight: 300, letterSpacing: "-0.03em", color: "#111", lineHeight: 1 }}>
           {eur(perMonth)}
         </span>
-        <span className="mb-1.5 text-sm text-neutral-500">/ month</span>
+        <span style={{ marginBottom: "5px", fontSize: "14px", fontWeight: 300, color: "#888" }}>/ month</span>
       </div>
-      <p className="mt-1 h-4 text-[12px] text-neutral-400">
+      <p style={{ marginTop: "8px", height: "16px", fontSize: "12px", fontWeight: 300, color: "#aaa" }}>
         {cycle === "annual"
           ? `${eur2(annualTotal)} billed yearly`
           : "billed monthly"}
@@ -100,54 +152,42 @@ function PlanCard({
         type="button"
         disabled={busy}
         onClick={() => onSelect(plan)}
-        className="mt-6 w-full rounded-full px-4 py-3 text-[13px] font-medium uppercase tracking-[0.06em] transition disabled:opacity-60"
-        style={
-          plan.highlight
-            ? { background: "#000", color: "#fff" }
-            : {
-                background: "#fff",
-                color: "#000",
-                border: "1.5px solid #000",
-              }
-        }
+        style={{
+          marginTop: "24px",
+          width: "100%",
+          borderRadius: "23px",
+          padding: "13px 20px",
+          fontFamily: FONT,
+          fontSize: "14px",
+          fontWeight: 400,
+          letterSpacing: "0.01em",
+          cursor: busy ? "default" : "pointer",
+          opacity: busy ? 0.6 : 1,
+          transition: "opacity 0.2s",
+          ...(plan.highlight
+            ? { background: "#000", color: "#fff", border: "1px solid #000" }
+            : { background: "#fff", color: "#111", border: "1px solid #111" }),
+        }}
+        onMouseOver={(e) => { if (!busy) (e.currentTarget as HTMLElement).style.opacity = "0.85"; }}
+        onMouseOut={(e) => { if (!busy) (e.currentTarget as HTMLElement).style.opacity = "1"; }}
       >
         {busy ? "Starting…" : "Start now"}
       </button>
 
-      <div className="mt-8">
-        <p className="mb-3 text-[11px] font-medium uppercase tracking-[0.08em] text-neutral-400">
-          Included
-        </p>
-        <ul className="flex flex-col gap-2.5">
+      <div style={{ marginTop: "32px" }}>
+        <p style={sectionLabel}>Included</p>
+        <ul style={{ display: "flex", flexDirection: "column", gap: "10px", margin: 0, padding: 0, listStyle: "none" }}>
           {plan.included.map((f) => (
-            <li
-              key={f}
-              className="flex items-start gap-2.5 text-[13px] text-neutral-700"
-            >
-              <span className="mt-0.5 text-neutral-900">
-                <CheckIcon />
-              </span>
-              {f}
-            </li>
+            <FeatureItem key={f}>{f}</FeatureItem>
           ))}
         </ul>
       </div>
 
-      <div className="mt-6 border-t border-neutral-100 pt-6">
-        <p className="mb-3 text-[11px] font-medium uppercase tracking-[0.08em] text-neutral-400">
-          Features
-        </p>
-        <ul className="flex flex-col gap-2.5">
+      <div style={{ marginTop: "24px", borderTop: "1px solid #f0f0f0", paddingTop: "24px" }}>
+        <p style={sectionLabel}>Features</p>
+        <ul style={{ display: "flex", flexDirection: "column", gap: "10px", margin: 0, padding: 0, listStyle: "none" }}>
           {plan.features.map((f) => (
-            <li
-              key={f}
-              className="flex items-start gap-2.5 text-[13px] text-neutral-700"
-            >
-              <span className="mt-0.5 text-neutral-900">
-                <CheckIcon />
-              </span>
-              {f}
-            </li>
+            <FeatureItem key={f}>{f}</FeatureItem>
           ))}
         </ul>
       </div>
@@ -212,52 +252,106 @@ export default function PricingClient() {
   return (
     <>
       <SiteHeader />
-      <main className="bg-white pb-24 pt-32">
-        <section className="mx-auto max-w-[960px] px-6 text-center">
-          <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-neutral-200 px-3 py-1 text-[12px] text-neutral-600">
-            <CheckIcon />
+      <main style={{ fontFamily: FONT, fontWeight: 300, background: "#fff", color: "#333", paddingTop: "150px", paddingBottom: "100px" }}>
+        <section style={{ maxWidth: "960px", margin: "0 auto", padding: "0 24px", textAlign: "center" }}>
+          <p
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+              marginBottom: "20px",
+              borderRadius: "20px",
+              border: "1px solid #e8e8e8",
+              padding: "6px 14px",
+              fontSize: "12px",
+              fontWeight: 300,
+              color: "#888",
+            }}
+          >
+            <span style={{ color: "#111", display: "flex" }}><CheckIcon /></span>
             30-day money-back guarantee
           </p>
-          <h1 className="text-4xl font-medium tracking-tight text-neutral-900 sm:text-5xl">
+          <h1
+            style={{
+              fontFamily: FONT,
+              fontSize: "clamp(32px, 4vw, 48px)",
+              fontWeight: 300,
+              letterSpacing: "-0.025em",
+              textTransform: "uppercase",
+              lineHeight: 1.08,
+              color: "#111",
+              margin: 0,
+            }}
+          >
             Simple, transparent pricing
           </h1>
-          <p className="mx-auto mt-4 max-w-[520px] text-[15px] text-neutral-500">
+          <p style={{ maxWidth: "520px", margin: "16px auto 0", fontSize: "15px", fontWeight: 300, color: "#888", lineHeight: 1.6 }}>
             Pick a plan and your AI receptionist is answering calls in minutes.
             Cancel anytime.
           </p>
 
           {/* Billing cycle toggle */}
-          <div className="mt-8 inline-flex items-center rounded-full border border-neutral-200 bg-neutral-50 p-1">
+          <div
+            style={{
+              marginTop: "32px",
+              display: "inline-flex",
+              alignItems: "center",
+              borderRadius: "23px",
+              border: "1px solid #e8e8e8",
+              background: "#f8f8f8",
+              padding: "4px",
+            }}
+          >
             <button
               type="button"
               onClick={() => setCycle("monthly")}
-              className="rounded-full px-5 py-2 text-[13px] font-medium transition"
-              style={
-                cycle === "monthly"
+              style={{
+                borderRadius: "20px",
+                border: "none",
+                padding: "9px 20px",
+                fontFamily: FONT,
+                fontSize: "13px",
+                fontWeight: 400,
+                cursor: "pointer",
+                transition: "background 0.2s, color 0.2s",
+                ...(cycle === "monthly"
                   ? { background: "#000", color: "#fff" }
-                  : { background: "transparent", color: "#444" }
-              }
+                  : { background: "transparent", color: "#555" }),
+              }}
             >
               Monthly
             </button>
             <button
               type="button"
               onClick={() => setCycle("annual")}
-              className="flex items-center gap-2 rounded-full px-5 py-2 text-[13px] font-medium transition"
-              style={
-                cycle === "annual"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                borderRadius: "20px",
+                border: "none",
+                padding: "9px 20px",
+                fontFamily: FONT,
+                fontSize: "13px",
+                fontWeight: 400,
+                cursor: "pointer",
+                transition: "background 0.2s, color 0.2s",
+                ...(cycle === "annual"
                   ? { background: "#000", color: "#fff" }
-                  : { background: "transparent", color: "#444" }
-              }
+                  : { background: "transparent", color: "#555" }),
+              }}
             >
               Annually
               <span
-                className="rounded-full px-1.5 py-0.5 text-[10px] font-semibold"
-                style={
-                  cycle === "annual"
+                style={{
+                  borderRadius: "20px",
+                  padding: "2px 7px",
+                  fontSize: "10px",
+                  fontWeight: 500,
+                  ...(cycle === "annual"
                     ? { background: "rgba(255,255,255,0.2)", color: "#fff" }
-                    : { background: "#000", color: "#fff" }
-                }
+                    : { background: "#000", color: "#fff" }),
+                }}
               >
                 −{annualPct}%
               </span>
@@ -265,13 +359,24 @@ export default function PricingClient() {
           </div>
 
           {error ? (
-            <p className="mx-auto mt-6 max-w-[520px] rounded-lg bg-red-50 px-4 py-2.5 text-[13px] text-red-600">
+            <p
+              style={{
+                maxWidth: "520px",
+                margin: "24px auto 0",
+                borderRadius: "10px",
+                background: "#fef2f2",
+                padding: "10px 16px",
+                fontSize: "13px",
+                fontWeight: 300,
+                color: "#dc2626",
+              }}
+            >
               {error}
             </p>
           ) : null}
 
           {/* Plans */}
-          <div className="mt-12 flex flex-wrap items-stretch justify-center gap-6">
+          <div style={{ marginTop: "48px", display: "flex", flexWrap: "wrap", alignItems: "stretch", justifyContent: "center", gap: "24px" }}>
             {PLANS.map((plan) => (
               <PlanCard
                 key={plan.id}
@@ -283,7 +388,7 @@ export default function PricingClient() {
             ))}
           </div>
 
-          <p className="mt-10 text-[13px] text-neutral-400">
+          <p style={{ marginTop: "40px", fontSize: "13px", fontWeight: 300, color: "#aaa" }}>
             Prices in EUR, excl. VAT. Extra minutes billed at €0.09/min.
           </p>
         </section>
