@@ -6,6 +6,15 @@ import { notFound } from "next/navigation";
 import { siteUrl, siteName, getAuthor } from "@/lib/site";
 import { answers, getAnswer } from "../_answers";
 
+function formatDate(date: string): string {
+  return new Date(`${date}T00:00:00Z`).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+}
+
 export function generateStaticParams() {
   return answers.map((a) => ({ slug: a.slug }));
 }
@@ -96,7 +105,10 @@ export default async function AnswerPage({
       url,
       speakable: {
         "@type": "SpeakableSpecification",
-        cssSelector: [".answer-quick", ".answer-content > p:first-child"],
+        cssSelector: [
+          ".answer-page__short-answer",
+          ".answer-page__content > p:first-child",
+        ],
       },
       about: { "@type": "Thing", name: "AI receptionist" },
     },
@@ -125,76 +137,75 @@ export default async function AnswerPage({
   ];
 
   return (
-    <div className="min-h-screen bg-white font-light text-[#1a1a1a]">
+    <div className="answer-page">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <div className="mx-auto max-w-[760px] px-6 pt-16 pb-20 sm:px-10">
-        <Link
-          href="/answers"
-          className="mb-10 inline-flex items-center gap-1.5 text-[14px] text-[#666] transition-colors hover:text-[#1a1a1a]"
-        >
-          <span aria-hidden="true">←</span> All answers
+      <div className="answer-page__inner">
+        <Link href="/answers" className="answer-page__back">
+          <span aria-hidden="true">&larr;</span> All answers
         </Link>
 
-        <span className="mb-4 block text-[11px] font-medium tracking-[0.06em] text-[#1a1a1a] uppercase">
-          {a.category}
-        </span>
-        <h1 className="text-[30px] leading-[1.2] font-light tracking-[-0.02em] text-[#1a1a1a] sm:text-[38px]">
-          {a.question}
-        </h1>
+        <span className="answer-page__category">{a.category}</span>
+        <h1 className="answer-page__question">{a.question}</h1>
 
-        <div className="mt-6 flex flex-wrap items-center gap-3 text-[14px] text-[#666]">
-          <a
-            href={author.linkedin}
-            target="_blank"
-            rel="noopener noreferrer me"
-            className="flex items-center gap-3 transition-opacity hover:opacity-80"
-          >
-            <Image
-              src={author.image}
-              alt={author.name}
-              width={36}
-              height={36}
-              className="size-9 rounded-full object-cover"
-            />
-            <span>
-              By <span className="text-[#1a1a1a]">{author.name}</span>
-              <span className="block text-[12px] text-[#999]">{author.role}</span>
-            </span>
-          </a>
+        <div className="answer-page__author">
+          <Image
+            src={author.image}
+            alt={author.name}
+            width={40}
+            height={40}
+            className="answer-page__author-img"
+          />
+          <div className="answer-page__author-info">
+            <a
+              href={author.linkedin}
+              target="_blank"
+              rel="noopener noreferrer me"
+              className="answer-page__author-name"
+            >
+              {author.name}
+            </a>
+            <span className="answer-page__author-role">{author.role}</span>
+            <a
+              href={author.linkedin}
+              target="_blank"
+              rel="noopener noreferrer me"
+              className="answer-page__author-link"
+            >
+              Verified on LinkedIn
+            </a>
+          </div>
+          <time className="answer-page__date" dateTime={a.date}>
+            {formatDate(a.date)}
+          </time>
         </div>
 
-        {/* Quick Answer — the AEO/voice-result target */}
-        <div className="answer-quick my-9 border-l-2 border-[#1a1a1a] bg-[#fafafa] px-6 py-5">
-          <p className="mb-2 text-[10px] font-semibold tracking-[0.08em] text-[#999] uppercase">
-            Quick answer
-          </p>
-          <p className="text-[17px] leading-[1.6] text-[#1a1a1a]">
-            {a.shortAnswer}
-          </p>
+        <div className="answer-page__short-answer">
+          <span className="answer-page__short-answer-label">Quick answer</span>
+          <p>{a.shortAnswer}</p>
         </div>
 
-        <article className="answer-content">
+        <article className="answer-page__content">
           <Body />
         </article>
 
         {related.length > 0 && (
-          <aside className="mt-14 border-t border-[#e5e5e5] pt-10">
-            <p className="mb-5 text-[11px] font-medium tracking-[0.06em] text-[#1a1a1a] uppercase">
-              More answers
-            </p>
-            <div className="flex flex-col gap-3">
+          <aside className="answer-page__related">
+            <p className="answer-page__related-title">More answers</p>
+            <div className="answer-page__related-list">
               {related.map((r) => (
                 <Link
                   key={r.slug}
                   href={`/answers/${r.slug}`}
-                  className="flex items-center justify-between gap-3 border border-[#e5e5e5] px-[18px] py-3.5 transition-colors hover:border-[#1a1a1a] hover:bg-[#fafafa]"
+                  className="answer-page__related-link"
                 >
-                  <span className="text-[15px] text-[#1a1a1a]">{r.question}</span>
-                  <span className="shrink-0 text-[11px] font-medium tracking-[0.06em] text-[#999] uppercase">
+                  <span className="answer-page__related-question">
+                    {r.question}
+                  </span>
+                  <span className="answer-page__related-category">
                     {r.category}
                   </span>
                 </Link>
@@ -204,19 +215,18 @@ export default async function AnswerPage({
         )}
 
         {/* CTA funnels to the homepage — the page that ranks for "AI receptionist" */}
-        <aside className="mt-12 bg-[#111] px-7 py-8 text-white">
-          <p className="text-[19px] font-medium">Hear it answer your calls</p>
-          <p className="mt-2 max-w-[460px] text-[15px] leading-[1.6] text-white/70">
-            Our AI receptionist answers 24/7, books appointments, and texts you a
-            summary — live in about 10 minutes.
-          </p>
-          <Link
-            href="/"
-            className="mt-5 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-[14px] font-medium text-[#111] transition-opacity hover:opacity-90"
-          >
-            Try our AI receptionist <span aria-hidden="true">→</span>
-          </Link>
-        </aside>
+        <div className="answer-page__cta">
+          <div className="answer-page__cta-box">
+            <p className="answer-page__cta-title">Hear it answer your calls</p>
+            <p className="answer-page__cta-text">
+              Our AI receptionist answers 24/7, books appointments, and texts you
+              a summary. Live in about 10 minutes.
+            </p>
+            <Link href="/" className="answer-page__cta-button">
+              Try our AI receptionist <span aria-hidden="true">&rarr;</span>
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );

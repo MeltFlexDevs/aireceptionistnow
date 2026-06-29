@@ -1,5 +1,6 @@
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
+import "./answers.css";
 
 export default function AnswersLayout({
   children,
