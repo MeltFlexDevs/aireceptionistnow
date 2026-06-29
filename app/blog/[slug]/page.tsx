@@ -240,20 +240,36 @@ export default async function BlogPostPage({
             <div className="sticky top-24">
               <PostToc sections={post.sections} />
 
-              <div className="mt-8 overflow-hidden rounded-2xl bg-[#111] px-6 py-8 text-center">
-                <p className="text-[15px] leading-[1.35] font-semibold tracking-[0.04em] text-white uppercase">
-                  Never miss a call again
-                </p>
-                <p className="mt-3 text-[13px] leading-[1.6] font-light text-white/55">
-                  An AI receptionist that answers 24/7, books appointments, and
-                  texts you the summary. Live in 10 minutes.
-                </p>
-                <Link
-                  href="/pricing"
-                  className="mt-6 inline-flex items-center gap-1.5 rounded-full bg-white px-6 py-2.5 text-[12px] font-medium tracking-[0.08em] text-[#1a1a1a] uppercase transition-colors hover:bg-white/90"
+              <div className="mt-8 overflow-hidden rounded-2xl bg-[#111]">
+                {/* Image banner on the landing "voice" palette — same call image as the sign-in screen */}
+                <div
+                  className="relative aspect-[16/10] w-full overflow-hidden"
+                  style={{ background: "linear-gradient(160deg, #cdbef5 0%, #e4d6f2 44%, #ffd9c0 100%)" }}
                 >
-                  Start now <span aria-hidden="true">→</span>
-                </Link>
+                  <Image
+                    src="/sign-in-call.png"
+                    alt=""
+                    fill
+                    sizes="320px"
+                    className="object-contain"
+                    style={{ objectPosition: "50% 100%", transform: "scale(1.12)", transformOrigin: "50% 100%" }}
+                  />
+                </div>
+                <div className="px-6 py-8 text-center">
+                  <p className="text-[15px] leading-[1.35] font-semibold tracking-[0.04em] text-white uppercase">
+                    Never miss a call again
+                  </p>
+                  <p className="mt-3 text-[13px] leading-[1.6] font-light text-white/55">
+                    An AI receptionist that answers 24/7, books appointments, and
+                    texts you the summary. Live in 10 minutes.
+                  </p>
+                  <Link
+                    href="/pricing"
+                    className="mt-6 inline-flex items-center gap-1.5 rounded-full bg-white px-6 py-2.5 text-[12px] font-medium tracking-[0.08em] text-[#1a1a1a] uppercase transition-colors hover:bg-white/90"
+                  >
+                    Start now <span aria-hidden="true">→</span>
+                  </Link>
+                </div>
               </div>
             </div>
           </aside>
