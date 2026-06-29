@@ -115,8 +115,9 @@ export default function Body() {
             emotional one, a careful listener often can.
           </>,
           <>
-            The voice audio is rarely the problem anymore. <Strong>Speed and
-            timing</Strong> are. A long pause before every answer reads as
+            The voice audio is rarely the problem anymore.{" "}
+            <Strong>Speed and timing</Strong>
+            {" "}are. A long pause before every answer reads as
             &quot;machine&quot; even when the voice is flawless.
           </>,
           <>
@@ -255,7 +256,8 @@ export default function Body() {
         Tuesday&quot; before you&apos;ve finished offering this week. A human voice
         agent stops talking the instant you start, listens, and adjusts. A weak one
         plows through its scripted sentence while you&apos;re already speaking, or
-        talks over you. <Strong>Barge-in</Strong> is the feature name, and its
+        talks over you. <Strong>Barge-in</Strong>
+        {" "}is the feature name, and its
         absence is one of the fastest giveaways that you&apos;re not talking to a
         person.
       </P>
