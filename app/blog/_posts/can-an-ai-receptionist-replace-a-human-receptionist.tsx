@@ -323,7 +323,8 @@ export default function Body() {
         day) the math is straightforward. You&apos;re not replacing your
         receptionist. You&apos;re giving them back the calls that actually need a
         human, and handing the rest to something that never sleeps. If that&apos;s
-        you, see how the{" "}
+        you, see what our{" "}
+        <Internal href="/">AI receptionist</Internal> can do, how the{" "}
         <Internal href="/pricing">setup and pricing</Internal> work, and judge it
         on your own calls.
       </P>

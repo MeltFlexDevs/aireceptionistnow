@@ -532,7 +532,8 @@ export default function Body() {
         to actually test the failure path, you&apos;re better equipped than most
         buyers in this category. When you&apos;re ready to put a candidate through
         its paces, the simplest test is to point a real call at it and listen.
-        See how our{" "}
+        See what our{" "}
+        <Internal href="/">AI receptionist</Internal> does on a call and how our{" "}
         <Internal href="/pricing">setup and pricing</Internal> work, then judge it
         on your own calls, the same way you should judge everyone else&apos;s.
       </P>

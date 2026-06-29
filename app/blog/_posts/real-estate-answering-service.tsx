@@ -399,7 +399,8 @@ export default function Body() {
         , compare the{" "}
         <Internal href="/blog/ai-receptionist-pricing">cost of the options</Internal>
         , then see how our{" "}
-        <Internal href="/pricing">setup and pricing</Internal> work and judge it on
+        <Internal href="/">AI receptionist for real estate</Internal> works, check
+        the <Internal href="/pricing">setup and pricing</Internal>, and judge it on
         your own calls.
       </P>
 

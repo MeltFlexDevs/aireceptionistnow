@@ -387,7 +387,9 @@ export default function Body() {
         <Internal href="/blog/can-an-ai-receptionist-replace-a-human-receptionist">
           can an AI receptionist replace a human
         </Internal>
-        . When you&apos;re ready to price it for your own calls, our{" "}
+        . See what our{" "}
+        <Internal href="/">AI receptionist</Internal> does on a call, and when
+        you&apos;re ready to price it for your own calls, our{" "}
         <Internal href="/pricing">plans are here</Internal>.
       </P>
 

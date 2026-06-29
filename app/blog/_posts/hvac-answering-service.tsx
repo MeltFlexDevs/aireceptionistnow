@@ -475,7 +475,8 @@ export default function Body() {
           real estate answering service guide
         </Internal>{" "}
         covers the same playbook for that world. Then see how our{" "}
-        <Internal href="/pricing">setup and pricing</Internal> work and judge it on
+        <Internal href="/">AI receptionist</Internal> works, check the{" "}
+        <Internal href="/pricing">setup and pricing</Internal>, and judge it on
         your own calls.
       </P>
 

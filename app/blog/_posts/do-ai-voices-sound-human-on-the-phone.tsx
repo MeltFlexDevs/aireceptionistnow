@@ -435,8 +435,9 @@ export default function Body() {
         <Internal href="/blog/can-an-ai-receptionist-replace-a-human-receptionist">
           whether an AI receptionist can replace a human
         </Internal>
-        , then{" "}
-        <Internal href="/pricing">try ours on a live call</Internal> and trust your
+        , then hear our{" "}
+        <Internal href="/">AI receptionist</Internal> and{" "}
+        <Internal href="/pricing">try it on a live call</Internal> and trust your
         own ears.
       </P>
 
