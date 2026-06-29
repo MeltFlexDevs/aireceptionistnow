@@ -57,6 +57,13 @@ All call data is encrypted in transit and at rest. AI Receptionist Now complies 
 - [AI Receptionist Pricing: What It Actually Costs (2026)](https://aireceptionistnow.com/blog/ai-receptionist-pricing): Transparent pricing models, real ranges, hidden fees, and how AI compares to a human receptionist.
 - [Do AI Voices Sound Human on the Phone? An Honest 2026 Breakdown](https://aireceptionistnow.com/blog/do-ai-voices-sound-human-on-the-phone): How human AI voices really sound on a call — latency, turn-taking, and prosody — and where they still give themselves away.
 - [HVAC Answering Service: Never Miss Another Service Call](https://aireceptionistnow.com/blog/hvac-answering-service): Capturing no-cooling and no-heat calls 24/7 with emergency triage, booking and dispatch, and the life-safety calls a human must take.
+- [Answers](https://aireceptionistnow.com/answers): Short, direct answers to common questions about AI receptionists.
+- [Can an AI receptionist transfer calls to a human?](https://aireceptionistnow.com/answers/can-an-ai-receptionist-transfer-calls-to-a-human): Yes — it transfers on request or by your rules, with context, and falls back to a message or callback if no one is free.
+- [Can I use my existing business phone number with an AI receptionist?](https://aireceptionistnow.com/answers/use-existing-phone-number-with-ai-receptionist): Yes — keep your number and forward calls (all of them, or only the ones you'd miss); no porting required.
+- [Can an AI receptionist book appointments into my calendar?](https://aireceptionistnow.com/answers/can-an-ai-receptionist-book-appointments): Yes — it books live on the call with two-way calendar sync (Google, Outlook, Calendly), not message-taking.
+- [AI receptionist vs IVR: what's the difference?](https://aireceptionistnow.com/answers/ai-receptionist-vs-ivr): An IVR is a press-1 menu that routes calls; an AI receptionist understands speech and handles the call.
+- [Can an AI receptionist handle multiple calls at once?](https://aireceptionistnow.com/answers/can-an-ai-receptionist-handle-multiple-calls-at-once): Yes — it answers many calls simultaneously, so no caller gets a busy signal or hold queue during a spike.
+- [What languages can an AI receptionist speak?](https://aireceptionistnow.com/answers/what-languages-can-an-ai-receptionist-speak): 25+ languages including English, Spanish, French and German, with mid-call language switching.
 - [Privacy Policy](https://aireceptionistnow.com/privacy-policy): How call data is handled and protected.
 
 ## FAQ

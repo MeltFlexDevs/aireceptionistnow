@@ -46,7 +46,7 @@ export default function SiteFooter() {
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
               <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", fontWeight: 400, letterSpacing: "0.08em", textTransform: "uppercase" }}>Resources</span>
               <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
-                {[{ label: "Blog", href: "/blog" }, { label: "AI Information", href: "/llms.txt" }].map((l) => (
+                {[{ label: "Blog", href: "/blog" }, { label: "Answers", href: "/answers" }, { label: "AI Information", href: "/llms.txt" }].map((l) => (
                   <li key={l.label}><a href={l.href} style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.01em" }}>{l.label}</a></li>
                 ))}
               </ul>
