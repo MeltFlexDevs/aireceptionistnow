@@ -28,7 +28,7 @@ export const meta = {
   updated: "2026-06-29",
   readingTime: "12 min read",
   tag: "Industries",
-  hero: "/blog/hvac-answering-service-hero.jpg",
+  hero: "/blog/hvac-answering-service-hero.webp",
   heroAlt:
     "A friendly HVAC technician taking a service call on his phone while standing next to a residential air-conditioning condenser unit outside a suburban home on a bright summer day",
   heroWidth: 1376,
@@ -177,7 +177,7 @@ export default function Body() {
         costs. The service that catches the call pays for itself on the first job.
       </P>
       <Figure
-        src="/blog/hvac-missed-call.jpg"
+        src="/blog/hvac-missed-call.webp"
         alt="A homeowner sitting on a couch in a hot living room during a heat wave, fanning herself while holding a phone to her ear as the call goes unanswered"
         width={1376}
         height={768}
@@ -223,7 +223,7 @@ export default function Body() {
         </LI>
       </UL>
       <Figure
-        src="/blog/hvac-dispatch.jpg"
+        src="/blog/hvac-dispatch.webp"
         alt="A dispatcher wearing a headset smiling while booking a service appointment on scheduling software at a small HVAC company office desk"
         width={1376}
         height={768}
@@ -260,7 +260,7 @@ export default function Body() {
         </LI>
       </UL>
       <Figure
-        src="/blog/hvac-tech-arrives.jpg"
+        src="/blog/hvac-tech-arrives.webp"
         alt="An HVAC technician with a tool bag arriving at a home and shaking hands with a relieved homeowner, service van in the driveway"
         width={1376}
         height={768}

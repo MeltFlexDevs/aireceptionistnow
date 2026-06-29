@@ -81,9 +81,12 @@ export default async function BlogPostPage({
       keywords: post.keywords.join(", "),
       mainEntityOfPage: { "@type": "WebPage", "@id": url },
       author: {
-        "@type": "Organization",
+        "@type": "Person",
         name: a.name,
+        jobTitle: a.role,
         url: a.linkedin,
+        image: `${siteUrl}${a.image}`,
+        sameAs: [a.linkedin],
       },
       publisher: {
         "@type": "Organization",
@@ -138,15 +141,24 @@ export default async function BlogPostPage({
             </h1>
 
             <div className="mt-6 flex flex-wrap items-center gap-3 text-[14px] text-[#666]">
-              <span
-                aria-hidden="true"
-                className="flex size-9 items-center justify-center rounded-full bg-[#111] text-[12px] font-medium tracking-[0.04em] text-white"
+              <a
+                href={a.linkedin}
+                target="_blank"
+                rel="noopener noreferrer me"
+                className="flex items-center gap-3 transition-opacity hover:opacity-80"
               >
-                {a.initials}
-              </span>
-              <span>
-                By <span className="text-[#1a1a1a]">{a.name}</span>
-              </span>
+                <Image
+                  src={a.image}
+                  alt={a.name}
+                  width={36}
+                  height={36}
+                  className="size-9 rounded-full object-cover"
+                />
+                <span>
+                  By <span className="text-[#1a1a1a]">{a.name}</span>
+                  <span className="block text-[12px] text-[#999]">{a.role}</span>
+                </span>
+              </a>
               <span aria-hidden="true" className="size-[3px] rounded-full bg-[#ccc]" />
               <time dateTime={post.date}>{formatDate(post.date)}</time>
               <span aria-hidden="true" className="size-[3px] rounded-full bg-[#ccc]" />

@@ -27,7 +27,7 @@ export const meta = {
   updated: "2026-06-27",
   readingTime: "12 min read",
   tag: "Guides",
-  hero: "/blog/choose-ai-receptionist-checklist.jpg",
+  hero: "/blog/choose-ai-receptionist-checklist.webp",
   heroAlt:
     "A hand ticking boxes on a handwritten project checklist by lamplight, representing a structured framework for evaluating AI receptionist vendors",
   heroWidth: 1600,
@@ -176,7 +176,7 @@ export default function Body() {
       </Callout>
 
       <Figure
-        src="/blog/ai-receptionist-tradesperson-call.png"
+        src="/blog/ai-receptionist-tradesperson-call.webp"
         alt="A tradesperson on a job site glancing at an incoming call in warm afternoon light"
         width={1376}
         height={768}

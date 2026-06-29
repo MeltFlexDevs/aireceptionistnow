@@ -28,7 +28,7 @@ export const meta = {
   updated: "2026-06-25",
   readingTime: "9 min read",
   tag: "Guides",
-  hero: "/blog/ai-receptionist-hero.png",
+  hero: "/blog/ai-receptionist-hero.webp",
   heroAlt:
     "A modern desk phone glowing on a reception desk at dusk with sound waves radiating from it, suggesting an always-on 24/7 answering service",
   heroWidth: 1376,
@@ -193,7 +193,7 @@ export default function Body() {
       </Callout>
 
       <Figure
-        src="/blog/ai-receptionist-tradesperson-call.png"
+        src="/blog/ai-receptionist-tradesperson-call.webp"
         alt="A tradesperson on a job site glancing at a phone call in warm afternoon light"
         width={1376}
         height={768}
@@ -207,7 +207,7 @@ export default function Body() {
       </P>
 
       <Figure
-        src="/blog/ai-receptionist-human-frontdesk.png"
+        src="/blog/ai-receptionist-human-frontdesk.webp"
         alt="A friendly receptionist wearing a headset, mid-conversation at a bright modern front desk"
         width={1376}
         height={768}

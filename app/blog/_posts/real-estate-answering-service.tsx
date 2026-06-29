@@ -28,7 +28,7 @@ export const meta = {
   updated: "2026-06-27",
   readingTime: "11 min read",
   tag: "Industries",
-  hero: "/blog/real-estate-answering-service.jpg",
+  hero: "/blog/real-estate-answering-service.webp",
   heroAlt:
     "A hand holding a set of house keys with a small house-shaped keyring in the doorway of a new home, representing a closed real estate deal",
   heroWidth: 1600,

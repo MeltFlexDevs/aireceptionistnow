@@ -27,7 +27,7 @@ export const meta = {
   updated: "2026-06-27",
   readingTime: "10 min read",
   tag: "Guides",
-  hero: "/blog/ai-receptionist-pricing.jpg",
+  hero: "/blog/ai-receptionist-pricing.webp",
   heroAlt:
     "Hands using a calculator next to a notebook, charts, and a laptop on a desk, representing working out the real cost of an AI receptionist",
   heroWidth: 1600,

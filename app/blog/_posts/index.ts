@@ -44,12 +44,12 @@ export type Post = PostMeta & { Body: ComponentType; author: AuthorKey };
 
 /** Which author is credited on each post. */
 const postAuthors: Record<string, AuthorKey> = {
-  "can-an-ai-receptionist-replace-a-human-receptionist": "team",
-  "how-to-choose-an-ai-receptionist": "team",
-  "real-estate-answering-service": "team",
-  "ai-receptionist-pricing": "team",
-  "do-ai-voices-sound-human-on-the-phone": "team",
-  "hvac-answering-service": "team",
+  "can-an-ai-receptionist-replace-a-human-receptionist": "matus",
+  "how-to-choose-an-ai-receptionist": "brano",
+  "real-estate-answering-service": "matus",
+  "ai-receptionist-pricing": "brano",
+  "do-ai-voices-sound-human-on-the-phone": "matus",
+  "hvac-answering-service": "brano",
 };
 
 export const posts: Post[] = [
