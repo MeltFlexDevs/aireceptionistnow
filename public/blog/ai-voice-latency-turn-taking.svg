@@ -1,0 +1,80 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif">
+  <rect width="1200" height="630" fill="#ffffff"/>
+  <rect x="0.5" y="0.5" width="1199" height="629" rx="0" stroke="#eeeeee"/>
+
+  <!-- ── TOP: the hear → think → speak loop ── -->
+  <text x="80" y="58" font-size="15" font-weight="600" letter-spacing="1.5" fill="#9aa0b4">THE LOOP, MANY TIMES A CALL</text>
+
+  <!-- Card 1: HEAR -->
+  <rect x="80" y="78" width="300" height="118" rx="16" fill="#f7f8fc" stroke="#e1e3f4"/>
+  <circle cx="120" cy="120" r="17" fill="#ede9ff"/>
+  <text x="120" y="126" font-size="16" font-weight="600" fill="#7c5cff" text-anchor="middle">01</text>
+  <text x="152" y="118" font-size="22" font-weight="600" fill="#111111">Hear</text>
+  <text x="152" y="146" font-size="14" fill="#555b6e">speech → text</text>
+  <text x="100" y="178" font-size="13" fill="#8a90a2">Transcribes you in real time</text>
+
+  <!-- Card 2: THINK -->
+  <rect x="450" y="78" width="300" height="118" rx="16" fill="#f7f8fc" stroke="#e1e3f4"/>
+  <circle cx="490" cy="120" r="17" fill="#ede9ff"/>
+  <text x="490" y="126" font-size="16" font-weight="600" fill="#7c5cff" text-anchor="middle">02</text>
+  <text x="522" y="118" font-size="22" font-weight="600" fill="#111111">Think</text>
+  <text x="522" y="146" font-size="14" fill="#555b6e">the model decides</text>
+  <text x="470" y="178" font-size="13" fill="#8a90a2">Answer, book, or hand off</text>
+
+  <!-- Card 3: SPEAK -->
+  <rect x="820" y="78" width="300" height="118" rx="16" fill="#f7f8fc" stroke="#e1e3f4"/>
+  <circle cx="860" cy="120" r="17" fill="#fff0e6"/>
+  <text x="860" y="126" font-size="16" font-weight="600" fill="#ff8a3d" text-anchor="middle">03</text>
+  <text x="892" y="118" font-size="22" font-weight="600" fill="#111111">Speak</text>
+  <text x="892" y="146" font-size="14" fill="#555b6e">text → speech</text>
+  <text x="840" y="178" font-size="13" fill="#8a90a2">Streams natural audio back</text>
+
+  <!-- Arrows between cards -->
+  <path d="M392 137 H438" stroke="#c4c8d8" stroke-width="2"/>
+  <path d="M432 131 L442 137 L432 143 Z" fill="#c4c8d8"/>
+  <path d="M762 137 H808" stroke="#c4c8d8" stroke-width="2"/>
+  <path d="M802 131 L812 137 L802 143 Z" fill="#c4c8d8"/>
+
+  <!-- Loop arrow back -->
+  <path d="M970 196 V224 H210 V196" stroke="#c4c8d8" stroke-width="2" fill="none"/>
+  <path d="M204 206 L210 196 L216 206 Z" fill="#c4c8d8"/>
+
+  <!-- Divider -->
+  <line x1="80" y1="290" x2="1120" y2="290" stroke="#f0f0f0"/>
+
+  <!-- ── BOTTOM: the latency budget ── -->
+  <text x="80" y="338" font-size="15" font-weight="600" letter-spacing="1.5" fill="#9aa0b4">WHY SPEED DECIDES &#8220;HUMAN&#8221;</text>
+
+  <!-- Axis -->
+  <line x1="80" y1="500" x2="1120" y2="500" stroke="#d8dae6" stroke-width="1.5"/>
+  <!-- ticks -->
+  <g stroke="#d8dae6" stroke-width="1.5">
+    <line x1="80" y1="500" x2="80" y2="508"/>
+    <line x1="253" y1="500" x2="253" y2="508"/>
+    <line x1="427" y1="500" x2="427" y2="508"/>
+    <line x1="600" y1="500" x2="600" y2="508"/>
+    <line x1="773" y1="500" x2="773" y2="508"/>
+    <line x1="947" y1="500" x2="947" y2="508"/>
+  </g>
+  <g font-size="13" fill="#8a90a2" text-anchor="middle">
+    <text x="80" y="528">0</text>
+    <text x="253" y="528">200 ms</text>
+    <text x="427" y="528">400 ms</text>
+    <text x="600" y="528">600 ms</text>
+    <text x="773" y="528">800 ms</text>
+    <text x="947" y="528">1 s</text>
+  </g>
+
+  <!-- Good AI band 500–1000 ms -->
+  <rect x="513" y="466" width="434" height="24" rx="12" fill="#ffd9bd" stroke="#ff9e64"/>
+  <text x="730" y="455" font-size="15" font-weight="600" fill="#cf6a1f" text-anchor="middle">Good AI voice agent &#8776; 0.5&#8211;1 s</text>
+
+  <!-- Human reply gap ~200 ms -->
+  <line x1="253" y1="396" x2="253" y2="500" stroke="#7c5cff" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <circle cx="253" cy="478" r="6" fill="#7c5cff"/>
+  <text x="253" y="388" font-size="15" font-weight="600" fill="#5b3ef0" text-anchor="middle">Human reply gap &#8776; 200 ms</text>
+
+  <!-- ITU 400 ms threshold -->
+  <line x1="427" y1="430" x2="427" y2="500" stroke="#b0b4c6" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <text x="437" y="424" font-size="13" fill="#8a90a2">~400 ms: lag turns disruptive (ITU&#8209;T G.114)</text>
+</svg>

@@ -207,11 +207,11 @@ export default function Body() {
         getting close enough that your brain forgives it.
       </P>
       <Figure
-        src="/blog/ai-receptionist-call-flow.svg"
-        alt="Diagram of an AI voice call loop: the agent hears the caller (speech-to-text), thinks (language model), and speaks (text-to-speech), then either books, answers, or escalates"
+        src="/blog/ai-voice-latency-turn-taking.svg"
+        alt="Diagram: the hear → think → speak loop of an AI voice call, and a latency scale showing the ~200ms human reply gap versus a good AI agent's ~0.5–1 second response and the ~400ms ITU disruption threshold"
         width={1200}
         height={630}
-        caption="The hear → think → speak loop runs many times per call. Human-ness is decided less by any single step's quality than by how fast the whole loop closes — and whether it can be interrupted mid-speak."
+        caption="The hear → think → speak loop runs many times per call, and every step costs milliseconds. Humans answer in about 200 ms; even a good AI lands at roughly half a second to a second. Closing that gap — not the audio quality — is what makes a call feel human."
       />
       <P>
         For reference, the telecom world has known for decades that delay breaks
