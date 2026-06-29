@@ -28,11 +28,11 @@ export const meta = {
   updated: "2026-06-29",
   readingTime: "12 min read",
   tag: "Guides",
-  hero: "/blog/ai-receptionist-tradesperson-call.png",
+  hero: "/blog/voice-hero.svg",
   heroAlt:
-    "A tradesperson taking a phone call on a job site, representing a real business call answered by an AI voice agent",
-  heroWidth: 1376,
-  heroHeight: 768,
+    "An audio waveform in a soft pastel panel with a phone icon, representing a natural-sounding AI voice on a phone call",
+  heroWidth: 1600,
+  heroHeight: 900,
   keywords: [
     "do ai voices sound human on the phone",
     "ai voice agent for phone calls",
@@ -233,6 +233,13 @@ export default function Body() {
         If you only remember one section, make it this one. These are the four
         levers, roughly in order of how often they&apos;re the deciding factor:
       </P>
+      <Figure
+        src="/blog/voice-human-levers.svg"
+        alt="Four things that make an AI phone voice feel human: prosody (the melody of speech), response speed (~0.5–1s), barge-in (stopping when interrupted), and backchannel (small acknowledgements while you talk)"
+        width={1200}
+        height={630}
+        caption="The four levers that decide whether a call feels human. The audio quality (prosody) is mostly solved on premium voices in 2026 — most real-world failures are now about speed, interruptions, and listening signals."
+      />
       <H3>1. Prosody — the melody, not the words</H3>
       <P>
         Prosody is the rise and fall, the stress, the rhythm. It&apos;s the
@@ -242,6 +249,13 @@ export default function Body() {
         is mostly solved on premium neural voices in 2026 — but it&apos;s still the
         first thing that betrays a budget setup.
       </P>
+      <Figure
+        src="/blog/voice-human-vs-robotic.svg"
+        alt="Two waveforms compared: natural prosody with varied amplitude versus flat text-to-speech with even, mechanical peaks"
+        width={1200}
+        height={630}
+        caption="The same sentence, two ways. Natural prosody varies in amplitude and rhythm; flat text-to-speech is mechanically even. The ear catches the difference instantly, even when it can't name why."
+      />
       <H3>2. Response speed — the half-second that decides everything</H3>
       <P>
         As above: a beat of silence before each reply is the single most common

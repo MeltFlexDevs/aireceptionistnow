@@ -1,0 +1,57 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif">
+  <rect width="1200" height="630" fill="#ffffff"/>
+  <rect x="0.5" y="0.5" width="1199" height="629" stroke="#eeeeee"/>
+
+  <text x="80" y="64" font-size="15" font-weight="600" letter-spacing="1.5" fill="#9aa0b4">SAME WORDS, DIFFERENT MELODY</text>
+
+  <!-- ── Natural / human prosody ── -->
+  <text x="80" y="150" font-size="22" font-weight="600" fill="#111111">Natural prosody</text>
+  <text x="80" y="178" font-size="15" fill="#8a90a2">Varied amplitude — stress, breaths, life</text>
+  <g transform="translate(80,250)">
+    <line x1="0" y1="0" x2="1040" y2="0" stroke="#ece9ff" stroke-width="2"/>
+    <path d="M0 0
+      Q26 -64 52 0 T104 0
+      Q134 -82 164 0 T224 0
+      Q250 -38 276 0 T328 0
+      Q362 -90 396 0 T464 0
+      Q488 -52 512 0 T560 0
+      Q592 -78 624 0 T688 0
+      Q712 -34 736 0 T784 0
+      Q816 -70 848 0 T912 0
+      Q936 -44 960 0 T1008 0
+      Q1024 -24 1040 0"
+      stroke="#7c5cff" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <path d="M0 0
+      Q26 64 52 0 T104 0
+      Q134 82 164 0 T224 0
+      Q250 38 276 0 T328 0
+      Q362 90 396 0 T464 0
+      Q488 52 512 0 T560 0
+      Q592 78 624 0 T688 0
+      Q712 34 736 0 T784 0
+      Q816 70 848 0 T912 0
+      Q936 44 960 0 T1008 0
+      Q1024 24 1040 0"
+      stroke="#b9a6f0" stroke-width="3.5" fill="none" stroke-linecap="round" opacity="0.7"/>
+  </g>
+
+  <!-- divider -->
+  <line x1="80" y1="360" x2="1120" y2="360" stroke="#f0f0f0"/>
+
+  <!-- ── Flat text-to-speech ── -->
+  <text x="80" y="430" font-size="22" font-weight="600" fill="#111111">Flat text-to-speech</text>
+  <text x="80" y="458" font-size="15" fill="#8a90a2">Even, mechanical — correct words, no feeling</text>
+  <g transform="translate(80,530)">
+    <line x1="0" y1="0" x2="1040" y2="0" stroke="#eeeeee" stroke-width="2"/>
+    <path d="M0 0
+      Q20 -16 40 0 T80 0 T120 0 T160 0 T200 0 T240 0 T280 0 T320 0 T360 0
+      T400 0 T440 0 T480 0 T520 0 T560 0 T600 0 T640 0 T680 0 T720 0 T760 0
+      T800 0 T840 0 T880 0 T920 0 T960 0 T1000 0 T1040 0"
+      stroke="#9aa0b4" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <path d="M0 0
+      Q20 16 40 0 T80 0 T120 0 T160 0 T200 0 T240 0 T280 0 T320 0 T360 0
+      T400 0 T440 0 T480 0 T520 0 T560 0 T600 0 T640 0 T680 0 T720 0 T760 0
+      T800 0 T840 0 T880 0 T920 0 T960 0 T1000 0 T1040 0"
+      stroke="#c4c8d8" stroke-width="3.5" fill="none" stroke-linecap="round" opacity="0.7"/>
+  </g>
+</svg>
