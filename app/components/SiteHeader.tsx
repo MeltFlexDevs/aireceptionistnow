@@ -77,13 +77,15 @@ export default function SiteHeader() {
           .site-header-signin { display: none !important; }
         }
       `}</style>
-      <div className="site-header-left" style={{ display: "flex", alignItems: "center", gap: "32px" }}>
+      <div className="site-header-left" style={{ display: "flex", alignItems: "center" }}>
         <a href="/" style={{ display: "flex", alignItems: "center", gap: "6px", textDecoration: "none", color: "#000" }}>
           <PauseLogo color="#000" />
           <span className="site-header-logo" style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontWeight: 500, fontSize: "18px", letterSpacing: "-0.02em", whiteSpace: "nowrap" }}>
             AI RECEPTIONIST
           </span>
         </a>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
         <a
           href="/pricing"
           className="site-header-pricing"
@@ -95,14 +97,12 @@ export default function SiteHeader() {
         >
           PRICING
         </a>
-      </div>
-      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-        {signedIn ? (
+        {signedIn === null ? null : signedIn ? (
           <a href="/dashboard" className="site-header-cta" style={ctaStyle}>
             DASHBOARD
           </a>
         ) : (
-          <>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <button
               type="button"
               onClick={() => open("login")}
@@ -119,7 +119,7 @@ export default function SiteHeader() {
             <button type="button" onClick={() => open("signup")} className="site-header-cta" style={ctaStyle}>
               START NOW
             </button>
-          </>
+          </div>
         )}
       </div>
     </header>
