@@ -17,6 +17,9 @@ import AiReceptionistPricing, {
 import DoAiVoicesSoundHuman, {
   meta as doAiVoicesSoundHumanMeta,
 } from "./do-ai-voices-sound-human-on-the-phone";
+import HvacAnsweringService, {
+  meta as hvacAnsweringServiceMeta,
+} from "./hvac-answering-service";
 
 export type PostMeta = {
   slug: string;
@@ -46,6 +49,7 @@ const postAuthors: Record<string, AuthorKey> = {
   "real-estate-answering-service": "team",
   "ai-receptionist-pricing": "team",
   "do-ai-voices-sound-human-on-the-phone": "team",
+  "hvac-answering-service": "team",
 };
 
 export const posts: Post[] = [
@@ -54,6 +58,7 @@ export const posts: Post[] = [
   { ...realEstateAnsweringServiceMeta, Body: RealEstateAnsweringService },
   { ...aiReceptionistPricingMeta, Body: AiReceptionistPricing },
   { ...doAiVoicesSoundHumanMeta, Body: DoAiVoicesSoundHuman },
+  { ...hvacAnsweringServiceMeta, Body: HvacAnsweringService },
 ]
   .map((p) => ({ ...p, author: postAuthors[p.slug] ?? defaultAuthorKey }))
   .sort((a, b) => (a.date < b.date ? 1 : -1));
