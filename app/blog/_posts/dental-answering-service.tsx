@@ -28,11 +28,11 @@ export const meta = {
   updated: "2026-06-30",
   readingTime: "12 min read",
   tag: "Industries",
-  hero: "/blog/dental-answering-service-hero.svg",
+  hero: "/blog/dental-new-patient-exam.webp",
   heroAlt:
-    "A dental practice phone line answered around the clock, illustrated as a clean call panel over the AI Receptionist Now brand gradient",
+    "A dentist fitting a clear dental aligner for a patient reclined in the treatment chair, with an intraoral scan of the teeth on the screen behind them",
   heroWidth: 1600,
-  heroHeight: 900,
+  heroHeight: 1067,
   keywords: [
     "dental answering service",
     "answering service for dental offices",

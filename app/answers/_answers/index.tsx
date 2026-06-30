@@ -44,8 +44,8 @@ const defs: Answer[] = [
     updated: "2026-06-29",
     author: "matus",
     related: [
+      "what-happens-if-an-ai-receptionist-cant-answer",
       "ai-receptionist-vs-ivr",
-      "can-an-ai-receptionist-handle-multiple-calls-at-once",
       "use-existing-phone-number-with-ai-receptionist",
     ],
     faqs: [
@@ -297,9 +297,9 @@ const defs: Answer[] = [
     updated: "2026-06-29",
     author: "matus",
     related: [
+      "train-ai-receptionist-on-my-business",
       "use-existing-phone-number-with-ai-receptionist",
       "can-an-ai-receptionist-transfer-calls-to-a-human",
-      "what-languages-can-an-ai-receptionist-speak",
     ],
     faqs: [
       {
@@ -639,8 +639,8 @@ const defs: Answer[] = [
     updated: "2026-06-29",
     author: "brano",
     related: [
+      "do-callers-know-its-an-ai-receptionist",
       "can-an-ai-receptionist-book-appointments",
-      "can-an-ai-receptionist-handle-multiple-calls-at-once",
       "ai-receptionist-vs-ivr",
     ],
     faqs: [
@@ -723,6 +723,390 @@ const defs: Answer[] = [
               how to choose an AI receptionist
             </Link>
             .
+          </p>
+        </>
+      );
+    },
+  },
+
+  {
+    slug: "what-happens-if-an-ai-receptionist-cant-answer",
+    question: "What happens when an AI receptionist can't answer a question?",
+    shortAnswer:
+      "When an AI receptionist hits a question it cannot answer, a good one does not bluff. It says so plainly, then captures the caller's details, books a callback, or transfers to a person, depending on the rules you set. The worst thing it can do is invent an answer, so test that it does not.",
+    description:
+      "When an AI receptionist can't answer, a good one admits it and captures details, books a callback, or transfers, instead of bluffing. How fallback really works.",
+    keywords: [
+      "what happens when an AI receptionist can't answer a question",
+      "AI receptionist fallback",
+      "does an AI receptionist make things up",
+      "AI receptionist hallucination phone",
+      "AI receptionist unknown question",
+    ],
+    category: "Reliability",
+    date: "2026-06-30",
+    updated: "2026-06-30",
+    author: "matus",
+    related: [
+      "can-an-ai-receptionist-transfer-calls-to-a-human",
+      "train-ai-receptionist-on-my-business",
+      "do-callers-know-its-an-ai-receptionist",
+    ],
+    faqs: [
+      {
+        q: "Does an AI receptionist make up answers?",
+        a: "A well-built one should not. It is configured to stay inside what you have told it and to admit when it does not know, then capture the request or hand off. Bluffing, or hallucinating, is a red flag you should test for before you buy.",
+      },
+      {
+        q: "What does it do when it can't help?",
+        a: "It follows your fallback rules: take a detailed message, book a callback at a specific time, or transfer to a person. The goal is that the caller still leaves with a clear next step, not a dead end.",
+      },
+      {
+        q: "How do I stop it from giving wrong information?",
+        a: "Give it accurate, specific instructions, mark off-limits topics, and test edge cases on real calls. The more clearly you define what it knows and what to escalate, the less room there is for a wrong answer.",
+      },
+    ],
+    Body: function Body() {
+      return (
+        <>
+          <p>
+            The honest answer is that a good{" "}
+            <Link href="/">AI receptionist</Link> handles the vast majority of
+            calls, but not every one, and what it does on the calls it{" "}
+            <em>cannot</em> finish is the real test. A well-built assistant does
+            not bluff. It admits it does not know, then captures the caller and
+            hands the request to you cleanly. A cheap one guesses, and a wrong
+            answer on the phone can cost you the customer.
+          </p>
+
+          <blockquote>
+            <p>
+              &ldquo;The question to ask any vendor is not &lsquo;can it answer
+              everything?&rsquo; Nothing can. Ask &lsquo;what does it do when it
+              does not know?&rsquo; That single behaviour separates a trustworthy
+              assistant from a liability.&rdquo;
+            </p>
+            <cite>Matúš Koleják, Co-Founder, AI Receptionist Now</cite>
+          </blockquote>
+
+          <h2 id="does-it-bluff-or-admit-it-doesnt-know">
+            Does it bluff, or admit it doesn&apos;t know?
+          </h2>
+          <p>
+            This is the line that matters. A good AI receptionist is configured
+            to stay inside what you have actually told it and to say so when a
+            question falls outside that, rather than inventing a plausible
+            sounding answer. An assistant that confidently makes things up, what
+            people call &ldquo;hallucinating,&rdquo; is worse than one that
+            simply takes a message, because the caller leaves believing something
+            untrue.
+          </p>
+
+          <h2 id="what-a-good-fallback-looks-like">
+            What a good fallback looks like
+          </h2>
+          <p>
+            When it reaches the edge of what it knows, it should still leave the
+            caller with a next step. The usual options, in order of preference:
+          </p>
+          <ul>
+            <li>
+              <strong>Transfer to a person</strong> if someone is available and
+              the question warrants it.
+            </li>
+            <li>
+              <strong>Book a callback</strong> at a specific time so the caller
+              is not left chasing you.
+            </li>
+            <li>
+              <strong>Take a detailed message</strong> with the context you need
+              to follow up, not just a name and number.
+            </li>
+          </ul>
+          <p>
+            The difference between this and old voicemail is that the caller is
+            heard, captured, and given a commitment, instead of dropped into a
+            mailbox. For how the handoff itself works, see{" "}
+            <Link href="/answers/can-an-ai-receptionist-transfer-calls-to-a-human">
+              can an AI receptionist transfer calls to a human
+            </Link>
+            .
+          </p>
+
+          <h2 id="how-to-test-for-hallucination-before-you-buy">
+            How to test for hallucination before you buy
+          </h2>
+          <p>
+            Do not take a polished demo on faith. On a live call, ask it
+            something you deliberately never told it, an obscure policy, a price
+            on a service you do not offer, a detail it cannot know. A trustworthy
+            assistant will admit it does not have that information and offer to
+            get you an answer. If it confidently invents one, walk away. Five
+            minutes of trying to trip it up tells you more than any feature list.
+          </p>
+          <p>
+            Most of these gaps are avoidable in the first place: the more
+            accurately you{" "}
+            <Link href="/answers/train-ai-receptionist-on-my-business">
+              set up what the AI knows about your business
+            </Link>
+            , the less often it reaches an answer it does not have. For the full
+            buyer&apos;s framework, see{" "}
+            <Link href="/blog/how-to-choose-an-ai-receptionist">
+              how to choose an AI receptionist
+            </Link>
+            , or hear ours handle an edge case on the{" "}
+            <Link href="/">homepage demo</Link>.
+          </p>
+        </>
+      );
+    },
+  },
+
+  {
+    slug: "train-ai-receptionist-on-my-business",
+    question: "Can I train an AI receptionist on my own business information?",
+    shortAnswer:
+      "Yes. You give it your business details, hours, services, prices, policies, and the questions customers ask most, and it answers callers from that, in your own words. You do not write code or train a model; you fill in instructions and a knowledge base, then refine them as you listen to real calls.",
+    description:
+      "Yes, you give an AI receptionist your hours, services, prices and FAQs and it answers from that, no coding or model training. How to set up its knowledge.",
+    keywords: [
+      "can I train an AI receptionist on my business",
+      "AI receptionist knowledge base",
+      "how does an AI receptionist know my business",
+      "customize AI receptionist answers",
+      "AI receptionist FAQ answers",
+    ],
+    category: "Setup",
+    date: "2026-06-30",
+    updated: "2026-06-30",
+    author: "brano",
+    related: [
+      "can-an-ai-receptionist-book-appointments",
+      "use-existing-phone-number-with-ai-receptionist",
+      "what-happens-if-an-ai-receptionist-cant-answer",
+    ],
+    faqs: [
+      {
+        q: "How does an AI receptionist know about my business?",
+        a: "You give it the facts: your hours, locations, services, prices, policies, and the questions customers ask most. It answers callers from that, so the more complete and accurate your information, the better it performs.",
+      },
+      {
+        q: "Do I need technical skills to set it up?",
+        a: "No. You are not training a model or writing code. You fill in plain-language instructions and a knowledge base, the same way you would brief a new front-desk hire, and you can update it any time.",
+      },
+      {
+        q: "Can I update what it knows later?",
+        a: "Yes, and you should. Change a price, add a service, or close for a holiday, and you update the instructions in minutes. Listening to real call transcripts is the fastest way to spot gaps to fill.",
+      },
+    ],
+    Body: function Body() {
+      return (
+        <>
+          <p>
+            Yes, and this is what turns a generic voice into{" "}
+            <em>your</em> receptionist. You give an{" "}
+            <Link href="/">AI receptionist</Link> the facts about your business,
+            your hours, services, prices, policies, and the questions customers
+            ask all day, and it answers callers from that, in your own words. The
+            important part to understand up front: you are not training a model
+            or writing code. You are briefing an assistant.
+          </p>
+
+          <blockquote>
+            <p>
+              &ldquo;Think of it exactly like onboarding a new front-desk hire.
+              You would not hand them the phone with no information. You tell them
+              how the business works, and a good setup lets you do that in plain
+              language, in an afternoon.&rdquo;
+            </p>
+            <cite>Branislav Hrivnák, Co-Founder, AI Receptionist Now</cite>
+          </blockquote>
+
+          <h2 id="what-you-teach-it">What you teach it</h2>
+          <p>
+            The more specific you are, the better it sounds and the fewer
+            questions it has to dodge. The essentials:
+          </p>
+          <ul>
+            <li>
+              <strong>The basics:</strong> your hours, locations, and how you
+              want callers greeted.
+            </li>
+            <li>
+              <strong>Services and prices:</strong> what you offer, what it
+              costs, and what is out of scope.
+            </li>
+            <li>
+              <strong>Policies:</strong> cancellations, deposits, service areas,
+              anything a caller commonly asks about.
+            </li>
+            <li>
+              <strong>Your FAQs:</strong> the dozen questions you answer every
+              week, in the answers you would actually give.
+            </li>
+            <li>
+              <strong>Escalation rules:</strong> what it should handle itself and
+              what it should hand to a person.
+            </li>
+          </ul>
+
+          <h2 id="youre-briefing-an-assistant-not-training-a-model">
+            You&apos;re briefing an assistant, not training a model
+          </h2>
+          <p>
+            This is the point that confuses people. &ldquo;Training&rdquo; here
+            does not mean machine learning, datasets, or anything technical. You
+            fill in instructions and a knowledge base through a simple form, the
+            same way you would write a one-page brief for a new hire. No code, no
+            data science, and you can do it yourself the same day. That is also
+            why you can connect it to{" "}
+            <Link href="/answers/use-existing-phone-number-with-ai-receptionist">
+              your existing business number
+            </Link>{" "}
+            and be live quickly.
+          </p>
+
+          <h2 id="keep-it-accurate-as-your-business-changes">
+            Keep it accurate as your business changes
+          </h2>
+          <p>
+            A knowledge base is only as good as how current it is. When a price
+            changes, you add a service, or you close for a holiday, update the
+            instructions, it takes minutes. The fastest way to find what is
+            missing is to read real call transcripts: every time the AI had to
+            dodge a question is a gap you can fill in one edit.
+          </p>
+          <p>
+            One honest limit: it only knows what you tell it. Vague instructions
+            produce vague answers, and for anything genuinely outside its
+            knowledge it should admit it and hand off rather than guess, see{" "}
+            <Link href="/answers/what-happens-if-an-ai-receptionist-cant-answer">
+              what happens when an AI receptionist can&apos;t answer a question
+            </Link>
+            . Once it knows your business, the next step most owners want is
+            scheduling, see{" "}
+            <Link href="/answers/can-an-ai-receptionist-book-appointments">
+              whether it can book appointments into your calendar
+            </Link>
+            , or just try our <Link href="/">AI receptionist</Link> on a live
+            call.
+          </p>
+        </>
+      );
+    },
+  },
+
+  {
+    slug: "do-callers-know-its-an-ai-receptionist",
+    question: "Do callers know they're talking to an AI receptionist?",
+    shortAnswer:
+      "Often not, because modern voices sound natural, but whether you tell them is your choice. You can have the AI disclose that it's a virtual assistant, or have it answer naturally. Some regions and professions now require disclosure, so check your local rules and your industry's before you decide.",
+    description:
+      "Modern AI voices sound natural, so many callers can't tell, but disclosure is your choice and sometimes legally required. How to handle telling callers it's AI.",
+    keywords: [
+      "do callers know they're talking to an AI",
+      "should an AI receptionist tell callers it's AI",
+      "AI receptionist disclosure",
+      "can you tell an AI receptionist is not human",
+      "AI phone call disclosure law",
+    ],
+    category: "Trust & disclosure",
+    date: "2026-06-30",
+    updated: "2026-06-30",
+    author: "matus",
+    related: [
+      "what-happens-if-an-ai-receptionist-cant-answer",
+      "what-languages-can-an-ai-receptionist-speak",
+      "ai-receptionist-vs-ivr",
+    ],
+    faqs: [
+      {
+        q: "Can callers tell it's an AI?",
+        a: "With modern voices, often not, especially on short, routine calls. Quality is strongest on clear lines and can slip on long or unusual calls, which is one reason many businesses choose to disclose anyway.",
+      },
+      {
+        q: "Should I tell callers they're speaking to an AI?",
+        a: "It is your call, and increasingly a legal one. Some regions and professions require disclosure. Being upfront also tends to build trust, and most callers care more about getting helped fast than about who picks up.",
+      },
+      {
+        q: "Is it legal to use an AI receptionist without disclosing it?",
+        a: "It depends on where you operate and your industry. Several places have introduced AI-disclosure rules, so check your local law and any professional ethics rules rather than assuming. When in doubt, disclose.",
+      },
+    ],
+    Body: function Body() {
+      return (
+        <>
+          <p>
+            Often they cannot tell, and that is exactly why this question is
+            worth taking seriously. Modern voices on a good{" "}
+            <Link href="/">AI receptionist</Link> sound natural enough that many
+            callers assume they are talking to a person, especially on short,
+            routine calls. Whether you leave it that way or tell them is a choice
+            you control, and in a growing number of places it is also a legal
+            one.
+          </p>
+
+          <blockquote>
+            <p>
+              &ldquo;We get asked &lsquo;will people know?&rsquo; a lot. The more
+              useful question is &lsquo;do I want them to know?&rsquo; Being
+              upfront rarely costs you a call, and it protects you. Pretending
+              can backfire the moment a caller realises.&rdquo;
+            </p>
+            <cite>Matúš Koleják, Co-Founder, AI Receptionist Now</cite>
+          </blockquote>
+
+          <h2 id="can-callers-actually-tell">Can callers actually tell?</h2>
+          <p>
+            On clear lines and ordinary calls, frequently not. The voices are
+            conversational, they handle interruptions, and they answer instantly.
+            Where the illusion can slip is on long, unusual, or emotional calls,
+            or with a poor connection. We break down exactly where AI voices hold
+            up and where they give themselves away in{" "}
+            <Link href="/blog/do-ai-voices-sound-human-on-the-phone">
+              do AI voices sound human on the phone
+            </Link>
+            .
+          </p>
+
+          <h2 id="should-you-disclose-and-where-you-must">
+            Should you disclose, and where you must?
+          </h2>
+          <p>
+            This is partly preference and partly law. Several regions and certain
+            professions have introduced rules that require telling people they
+            are interacting with an AI, and those rules are expanding. We cannot
+            give you legal advice, so the safe move is simple: check your local
+            regulations and any professional or ethics rules for your industry
+            before you decide. When in doubt, disclose, it is the low-risk
+            default.
+          </p>
+
+          <h2 id="why-disclosure-can-work-in-your-favour">
+            Why disclosure can work in your favour
+          </h2>
+          <p>
+            Telling callers up front is not just defensive. Most people care far
+            more about being helped quickly than about who, or what, picks up. A
+            clear &ldquo;you are speaking with our virtual assistant, I can book
+            you in right now&rdquo; sets expectations, builds trust, and avoids
+            the one bad outcome: a caller feeling deceived after the fact. It
+            also pairs naturally with handling the call well, answering in the
+            caller&apos;s own{" "}
+            <Link href="/answers/what-languages-can-an-ai-receptionist-speak">
+              language
+            </Link>{" "}
+            and being honest when it{" "}
+            <Link href="/answers/what-happens-if-an-ai-receptionist-cant-answer">
+              does not know an answer
+            </Link>
+            .
+          </p>
+          <p>
+            Either way, you stay in control of whether and how the AI introduces
+            itself. Hear how natural it sounds, and decide for yourself, on our{" "}
+            <Link href="/">AI receptionist</Link> demo.
           </p>
         </>
       );

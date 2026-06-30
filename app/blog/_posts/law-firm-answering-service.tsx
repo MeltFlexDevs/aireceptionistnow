@@ -28,11 +28,11 @@ export const meta = {
   updated: "2026-06-30",
   readingTime: "12 min read",
   tag: "Industries",
-  hero: "/blog/law-firm-answering-service-hero.svg",
+  hero: "/blog/law-firm-consultation.webp",
   heroAlt:
-    "A law firm intake line answered around the clock, illustrated as a clean call panel over the AI Receptionist Now brand gradient",
+    "Two professionals reviewing and signing documents across a desk during a consultation",
   heroWidth: 1600,
-  heroHeight: 900,
+  heroHeight: 1067,
   keywords: [
     "law firm answering service",
     "answering service for attorneys",

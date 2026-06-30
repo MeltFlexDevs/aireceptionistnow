@@ -66,6 +66,9 @@ All call data is encrypted in transit and at rest. AI Receptionist Now complies 
 - [AI receptionist vs IVR: what's the difference?](https://aireceptionistnow.com/answers/ai-receptionist-vs-ivr): An IVR is a press-1 menu that routes calls; an AI receptionist understands speech and handles the call.
 - [Can an AI receptionist handle multiple calls at once?](https://aireceptionistnow.com/answers/can-an-ai-receptionist-handle-multiple-calls-at-once): Yes — it answers many calls simultaneously, so no caller gets a busy signal or hold queue during a spike.
 - [What languages can an AI receptionist speak?](https://aireceptionistnow.com/answers/what-languages-can-an-ai-receptionist-speak): 25+ languages including English, Spanish, French and German, with mid-call language switching.
+- [What happens when an AI receptionist can't answer a question?](https://aireceptionistnow.com/answers/what-happens-if-an-ai-receptionist-cant-answer): A good one admits it instead of bluffing, then captures details, books a callback, or transfers; how to test for hallucination before you buy.
+- [Can I train an AI receptionist on my own business information?](https://aireceptionistnow.com/answers/train-ai-receptionist-on-my-business): Yes — you give it your hours, services, prices and FAQs and it answers from that; no coding or model training, and you can update it any time.
+- [Do callers know they're talking to an AI receptionist?](https://aireceptionistnow.com/answers/do-callers-know-its-an-ai-receptionist): Modern voices sound natural so many can't tell, but disclosure is your choice and sometimes legally required; check local and industry rules.
 - [Privacy Policy](https://aireceptionistnow.com/privacy-policy): How call data is handled and protected.
 
 ## FAQ
