@@ -1,6 +1,6 @@
 import { getEnv } from "./env";
 import { buildSystemPrompt } from "./llm/prompt";
-import { runClaudeTurn } from "./llm/claude";
+import { selectLlm } from "./llm";
 import {
   receptionistTools,
   TOOL_BOOK,
@@ -8,7 +8,7 @@ import {
   TOOL_MESSAGE,
   TOOL_TRANSFER,
 } from "./llm/tools";
-import type { LlmMessage } from "./llm/types";
+import type { LlmMessage, LlmProvider } from "./llm/types";
 import { selectStt } from "./stt";
 import type { SttProvider, SttSession } from "./stt/types";
 import { openElevenLabsTts } from "./tts/elevenlabs";
@@ -51,6 +51,8 @@ export class CallSession {
   private readonly system: string;
   private readonly stt: SttSession;
   private readonly ttsProvider: TtsProvider;
+  private readonly llm: LlmProvider;
+  private readonly llmModel: string;
   private readonly startedAt = Date.now();
 
   private messages: LlmMessage[] = [];
@@ -76,6 +78,10 @@ export class CallSession {
     this.system = buildSystemPrompt(ctx.config);
     this.currentVoiceId = ctx.config.voiceId;
     this.autoLanguage = isAutoLanguage(ctx.config.language);
+    const llmName = ctx.config.routing.llmProvider as string | undefined;
+    const selected = selectLlm(llmName);
+    this.llm = selected.provider;
+    this.llmModel = selected.model;
     const sttName =
       (ctx.config.routing.sttProvider as string | undefined) ?? getEnv().STT_PROVIDER;
     const sttProvider: SttProvider = deps.stt ?? selectStt(sttName);
@@ -125,9 +131,21 @@ export class CallSession {
     await this.deps.repo
       .appendTurn(this.ctx.callId, { role: "caller", text, tsMs: this.elapsed() })
       .catch((e) => console.error("[session] persist caller turn", e));
-    this.messages.push({ role: "user", content: text });
+    this.messages.push({ role: "user", text });
     await this.runAssistantTurn();
     if (this.shouldEnd) this.hooks.endCall();
+  }
+
+  /** The system prompt for this turn. Once the caller's language is detected in
+   *  auto mode, append an explicit instruction to reply in it — the prompt
+   *  already asks the model to match the caller, but pinning the detected code
+   *  makes the spoken reply land in the right language reliably. */
+  private systemForTurn(): string {
+    if (!this.autoLanguage || !this.detectedLanguage) return this.system;
+    return (
+      `${this.system}\n\nThe caller is speaking "${this.detectedLanguage}" ` +
+      `(ISO code). Reply only in that language for the rest of the call.`
+    );
   }
 
   private async runAssistantTurn(): Promise<void> {
@@ -139,9 +157,9 @@ export class CallSession {
     const tts = this.openTts();
     this.speaking = true;
 
-    this.messages = await runClaudeTurn({
-      model: getEnv().CLAUDE_MODEL,
-      system: this.system,
+    this.messages = await this.llm({
+      model: this.llmModel,
+      system: this.systemForTurn(),
       messages: this.messages,
       tools: receptionistTools,
       runTool: (name, input) => this.runTool(name, input),

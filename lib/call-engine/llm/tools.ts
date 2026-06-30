@@ -1,27 +1,27 @@
-import type Anthropic from "@anthropic-ai/sdk";
+import type { LlmTool } from "./types";
 
 // Tools the receptionist can call mid-conversation. The model decides when to
 // use them; the session wires the actual execution to integrations + storage.
-// `strict: true` guarantees the arguments (especially booking times) validate.
+// Declared provider-neutral (see types.ts) so the same set works whether the
+// brain is Gemini or Claude — each adapter maps `parameters` to its own schema.
 
 export const TOOL_BOOK = "book_appointment";
 export const TOOL_MESSAGE = "take_message";
 export const TOOL_TRANSFER = "transfer_call";
 export const TOOL_END = "end_call";
 
-export const receptionistTools: Anthropic.Tool[] = [
+export const receptionistTools: LlmTool[] = [
   {
     name: TOOL_BOOK,
     description:
       "Book an appointment on the business calendar. Only call after confirming the date, time, and the caller's name out loud.",
-    strict: true,
-    input_schema: {
+    parameters: {
       type: "object",
       additionalProperties: false,
       properties: {
         title: { type: "string", description: "Short title for the appointment" },
-        start_time: { type: "string", format: "date-time", description: "ISO 8601 start" },
-        end_time: { type: "string", format: "date-time", description: "ISO 8601 end" },
+        start_time: { type: "string", description: "ISO 8601 start (date-time)" },
+        end_time: { type: "string", description: "ISO 8601 end (date-time)" },
         attendee_name: { type: "string", description: "Caller's name" },
         attendee_phone: { type: "string", description: "Callback number" },
         notes: { type: "string", description: "Reason / context for the visit" },
@@ -33,8 +33,7 @@ export const receptionistTools: Anthropic.Tool[] = [
     name: TOOL_MESSAGE,
     description:
       "Take a message when you cannot resolve the request or the caller asks to leave one.",
-    strict: true,
-    input_schema: {
+    parameters: {
       type: "object",
       additionalProperties: false,
       properties: {
@@ -50,8 +49,7 @@ export const receptionistTools: Anthropic.Tool[] = [
     name: TOOL_TRANSFER,
     description:
       "Transfer the call to a human when the routing rules call for it or the caller insists.",
-    strict: true,
-    input_schema: {
+    parameters: {
       type: "object",
       additionalProperties: false,
       properties: {
@@ -63,9 +61,9 @@ export const receptionistTools: Anthropic.Tool[] = [
   },
   {
     name: TOOL_END,
-    description: "End the call once the caller's needs are met and goodbyes are exchanged.",
-    strict: true,
-    input_schema: {
+    description:
+      "End the call once the caller's needs are met and goodbyes are exchanged.",
+    parameters: {
       type: "object",
       additionalProperties: false,
       properties: {

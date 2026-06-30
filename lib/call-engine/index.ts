@@ -8,6 +8,8 @@ export {
   buildConnectResponse,
   buildRejectResponse,
   verifyTwilioSignature,
+  signStreamParams,
+  verifyStreamSignature,
 } from "./pickup";
 export { getRepository, SupabaseCallRepository } from "./persistence/supabase";
 export type { CallRepository } from "./persistence/types";

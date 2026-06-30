@@ -1,5 +1,6 @@
 import type { WebSocket } from "ws";
 import { framesFromUlaw, mediaMessage, clearMessage } from "../lib/call-engine/audio";
+import { verifyStreamSignature } from "../lib/call-engine/pickup";
 import { CallSession } from "../lib/call-engine/session";
 import type { CallRepository } from "../lib/call-engine/persistence/types";
 import type { CallContext } from "../lib/call-engine/types";
@@ -46,6 +47,22 @@ export function handleMediaConnection(ws: WebSocket, repo: CallRepository): void
         streamSid = start.streamSid;
         const p = start.customParameters ?? {};
         const to = p.to ?? "";
+        // The media WebSocket is a separate public connection from the signed
+        // Twilio webhook, so verify the HMAC we put in the TwiML before doing
+        // any work — this stops a stranger from opening a stream against a
+        // callId and burning STT/LLM/TTS budget (or hijacking a real call).
+        if (
+          !verifyStreamSignature({
+            callId: p.callId ?? "",
+            to,
+            ts: p.ts ?? "",
+            sig: p.sig ?? "",
+          })
+        ) {
+          console.error("[media] rejected unverified stream; closing", { to });
+          ws.close();
+          return;
+        }
         const config = to ? await repo.resolveInboundNumber(to) : null;
         if (!config || !p.callId) {
           console.error("[media] unresolved call; closing", { to });
