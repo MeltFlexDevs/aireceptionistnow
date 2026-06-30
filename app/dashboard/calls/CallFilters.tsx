@@ -42,7 +42,7 @@ export function CallFilters({ q, status }: Props) {
   }, [text]);
 
   const selectClass =
-    "h-10 rounded-lg border border-neutral-200 bg-white px-3 text-sm text-neutral-700 outline-none focus:border-violet-400";
+    "h-10 rounded-lg border border-neutral-200 bg-white px-3 text-sm text-neutral-700 outline-none focus:border-neutral-900";
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row">
@@ -52,7 +52,7 @@ export function CallFilters({ q, status }: Props) {
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Search by number, assistant, outcome, or Call SID"
-          className="h-10 w-full rounded-lg border border-neutral-200 bg-white pl-9 pr-3 text-sm text-neutral-700 outline-none placeholder:text-neutral-400 focus:border-violet-400"
+          className="h-10 w-full rounded-lg border border-neutral-200 bg-white pl-9 pr-3 text-sm text-neutral-700 outline-none placeholder:text-neutral-400 focus:border-neutral-900"
         />
       </div>
       <select value={status} onChange={(e) => setParam("status", e.target.value)} className={selectClass}>

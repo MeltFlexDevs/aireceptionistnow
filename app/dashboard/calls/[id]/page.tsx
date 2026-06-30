@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 
 const SENTIMENT_TONE: Record<string, string> = {
   positive: "bg-emerald-50 text-emerald-700",
-  neutral: "bg-amber-50 text-amber-700",
+  neutral: "bg-neutral-100 text-neutral-700",
   negative: "bg-rose-50 text-rose-700",
 };
 
@@ -58,7 +58,7 @@ export default async function CallDetailPage({ params }: { params: Promise<{ id:
           <div>
             <div className="flex items-center gap-2">
               <span
-                className={`inline-flex h-6 w-6 items-center justify-center rounded-full ${outbound ? "bg-violet-50 text-violet-600" : "bg-sky-50 text-sky-600"}`}
+                className={`inline-flex h-6 w-6 items-center justify-center rounded-full ${outbound ? "bg-neutral-100 text-neutral-900" : "bg-neutral-100 text-neutral-700"}`}
               >
                 {outbound ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />}
               </span>
@@ -78,7 +78,7 @@ export default async function CallDetailPage({ params }: { params: Promise<{ id:
               {call.statusLabel}
             </span>
             {call.outcome && (
-              <span className="inline-flex rounded-full bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-700">
+              <span className="inline-flex rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-900">
                 {call.outcome}
               </span>
             )}

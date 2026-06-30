@@ -1,16 +1,16 @@
 import type { Call, Sentiment } from "@/lib/dashboard/analytics";
 
 const outcomeStyle: Record<string, string> = {
-  Booked: "bg-violet-50 text-violet-700",
+  Booked: "bg-neutral-100 text-neutral-900",
   Resolved: "bg-emerald-50 text-emerald-700",
-  Message: "bg-sky-50 text-sky-700",
-  Transferred: "bg-amber-50 text-amber-700",
+  Message: "bg-neutral-100 text-neutral-700",
+  Transferred: "bg-neutral-100 text-neutral-700",
   Abandoned: "bg-rose-50 text-rose-700",
 };
 
 const sentimentStyle: Record<Sentiment, string> = {
   positive: "bg-emerald-500",
-  neutral: "bg-amber-400",
+  neutral: "bg-neutral-400",
   negative: "bg-rose-500",
 };
 

@@ -4,6 +4,8 @@ import { getPlanContext } from "@/lib/dashboard/plan";
 import { currentUserId } from "@/lib/auth";
 import { Bot, ChevronDown, Phone, Plus } from "../icons";
 import { PlanUsage } from "../components/PlanUsage";
+import { PageHeader } from "../components/PageHeader";
+import { Hint } from "../components/Hint";
 import { CreateAssistantForm } from "./CreateAssistantForm";
 
 const LANGUAGE_LABELS: Record<string, string> = {
@@ -52,10 +54,18 @@ export default async function AssistantsPage({
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-medium tracking-tight text-neutral-900">AI assistants</h1>
-        <p className="mt-1 text-sm text-neutral-500">Create an assistant, then link it to a phone number.</p>
-      </header>
+      <PageHeader
+        title="Assistants"
+        description="An assistant is the voice that answers a phone number. Create one, give it a role, and it starts taking calls."
+      />
+
+      <Hint tone="tip">
+        New here? Set up an{" "}
+        <Link href="/dashboard/organizations" className="font-medium underline underline-offset-2">
+          organization
+        </Link>{" "}
+        first so your assistants share the same company knowledge.
+      </Hint>
 
       {(error || loadError) && (
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
@@ -64,9 +74,9 @@ export default async function AssistantsPage({
       )}
 
       {notice && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-neutral-300 bg-neutral-100 px-4 py-3 text-sm text-neutral-800">
           <span>{notice}</span>
-          <Link href="/pricing" className="font-medium underline underline-offset-2 hover:text-amber-900">
+          <Link href="/pricing" className="font-medium underline underline-offset-2 hover:text-neutral-900">
             View plans
           </Link>
         </div>

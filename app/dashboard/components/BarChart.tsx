@@ -14,7 +14,7 @@ export function BarChart({ data }: { data: Bar[] }) {
               <div
                 title={`${d.value} calls`}
                 style={{ height: `${Math.max(heightPct, 3)}%` }}
-                className={`w-full max-w-[16px] rounded-md transition-colors ${isLast ? "bg-violet-600" : "bg-violet-200 group-hover:bg-violet-400"}`}
+                className={`w-full max-w-[16px] rounded-md transition-colors ${isLast ? "bg-neutral-900" : "bg-neutral-300 group-hover:bg-neutral-900"}`}
               />
             </div>
           );

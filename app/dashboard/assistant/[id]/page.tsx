@@ -1,32 +1,30 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getAssistant, getAssistantNumber, listIntegrations } from "@/lib/dashboard/db";
+import { getOrganization } from "@/lib/dashboard/organizations";
 import { getPlanContext } from "@/lib/dashboard/plan";
 import { currentUserId } from "@/lib/auth";
 import { NumberCountrySelect } from "../NumberCountrySelect";
 import { SectionCard } from "../../components/SectionCard";
+import { PageHeader } from "../../components/PageHeader";
 import { Tabs } from "../../components/Tabs";
 import { CALENDAR_PROVIDERS } from "../../integrations/providers";
 import { LanguageSelect } from "../../numbers/LanguageSelect";
 import { VoiceSelect } from "../../numbers/VoiceSelect";
 import {
-  addPdfKnowledgeAction,
-  addWebsiteKnowledgeAction,
   connectNumberForAssistantAction,
   createNumberForAssistantAction,
-  removeKnowledgeSourceAction,
   testCallAction,
   unlinkNumberAction,
   updateAssistantAction,
 } from "../actions";
-import { readKnowledge } from "@/lib/knowledge/sources";
 import { DeleteAssistant } from "../DeleteAssistant";
 import { TestCallButton } from "../TestCallButton";
 
 export const dynamic = "force-dynamic";
 
 const field =
-  "w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition-colors focus:border-violet-400";
+  "w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition-colors focus:border-neutral-900";
 const labelCls = "mb-1.5 block text-sm font-medium text-neutral-700";
 
 export default async function AssistantSettingsPage({
@@ -46,9 +44,10 @@ export default async function AssistantSettingsPage({
   const ownerId = await currentUserId();
   if (ownerId && assistant.owner_id && assistant.owner_id !== ownerId) notFound();
 
-  const knowledge = readKnowledge(assistant.knowledge);
-  const notes = knowledge.notes ?? "";
-  const sources = knowledge.sources ?? [];
+  const org = assistant.organization_id
+    ? await getOrganization(assistant.organization_id).catch(() => null)
+    : null;
+
   const emailCfg =
     (assistant.routing as { emailTranscripts?: { enabled?: boolean; to?: string } })?.emailTranscripts ?? {};
   const crmCfg =
@@ -74,13 +73,11 @@ export default async function AssistantSettingsPage({
 
   return (
     <div className="space-y-6">
-      <header>
-        <Link href="/dashboard/assistant" className="text-sm text-violet-600 hover:text-violet-700">
-          ← Assistants
-        </Link>
-        <h1 className="mt-1 text-2xl font-medium tracking-tight text-neutral-900">{assistant.name}</h1>
-        <p className="mt-1 text-sm text-neutral-500">Voice, language, and behavior for this assistant.</p>
-      </header>
+      <PageHeader
+        title={assistant.name}
+        description="Set this assistant's phone number, organization, role, and how it sounds on calls."
+        back={{ href: "/dashboard/assistant", label: "Assistants" }}
+      />
 
       {saved && (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
@@ -91,9 +88,9 @@ export default async function AssistantSettingsPage({
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>
       )}
       {notice && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-neutral-300 bg-neutral-100 px-4 py-3 text-sm text-neutral-800">
           <span>{notice}</span>
-          <Link href="/pricing" className="font-medium underline underline-offset-2 hover:text-amber-900">
+          <Link href="/pricing" className="font-medium underline underline-offset-2 hover:text-neutral-900">
             View plans
           </Link>
         </div>
@@ -152,75 +149,30 @@ export default async function AssistantSettingsPage({
       </SectionCard>
 
       <SectionCard
-        title="Knowledge sources"
-        subtitle="Import websites and PDFs. Each is processed to Markdown the assistant reads on calls."
+        title="Organization"
+        subtitle="The organization this assistant belongs to. It reads the organization's shared knowledge on every call."
       >
-        <div className="space-y-4">
-          {sources.length > 0 && (
-            <ul className="space-y-2">
-              {sources.map((s) => (
-                <li
-                  key={s.id}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-neutral-200 px-3 py-2.5"
-                >
-                  <div className="min-w-0">
-                    <div className="truncate text-sm font-medium text-neutral-800">
-                      {s.kind === "website" ? "🌐" : "📄"} {s.title}
-                    </div>
-                    <div className="truncate text-xs text-neutral-400">
-                      {s.url ?? s.kind} · {(s.charCount / 1000).toFixed(1)}k chars
-                    </div>
-                  </div>
-                  <form action={removeKnowledgeSourceAction}>
-                    <input type="hidden" name="id" value={assistant.id} />
-                    <input type="hidden" name="source_id" value={s.id} />
-                    <button
-                      type="submit"
-                      className="inline-flex h-8 shrink-0 items-center rounded-lg border border-rose-200 bg-white px-3 text-xs font-medium text-rose-600 transition-colors hover:bg-rose-50"
-                    >
-                      Remove
-                    </button>
-                  </form>
-                </li>
-              ))}
-            </ul>
-          )}
-
-          <form action={addWebsiteKnowledgeAction} className="flex flex-col gap-2 sm:flex-row sm:items-end">
-            <input type="hidden" name="id" value={assistant.id} />
-            <div className="flex-1">
-              <label htmlFor="kn_url" className={labelCls}>Import from website</label>
-              <input id="kn_url" name="url" type="url" required placeholder="https://yourbusiness.com/about" className={field} />
+        {org ? (
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <div className="truncate text-sm font-medium text-neutral-900">{org.name}</div>
+              <div className="truncate text-xs text-neutral-500">{org.description || "No description"}</div>
             </div>
-            <button
-              type="submit"
-              className="inline-flex h-[38px] shrink-0 items-center justify-center rounded-lg bg-neutral-900 px-4 text-sm font-medium text-white transition-colors hover:bg-neutral-800"
+            <Link
+              href={`/dashboard/organizations/${org.id}`}
+              className="inline-flex h-9 shrink-0 items-center rounded-lg border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50"
             >
-              Import
-            </button>
-          </form>
-
-          <form action={addPdfKnowledgeAction} className="flex flex-col gap-2 sm:flex-row sm:items-end">
-            <input type="hidden" name="id" value={assistant.id} />
-            <div className="flex-1">
-              <label htmlFor="kn_pdf" className={labelCls}>Upload a PDF</label>
-              <input
-                id="kn_pdf"
-                name="pdf"
-                type="file"
-                accept="application/pdf"
-                required
-                className={`${field} file:mr-3 file:rounded-md file:border-0 file:bg-neutral-100 file:px-3 file:py-1 file:text-sm file:text-neutral-700`}
-              />
-            </div>
-            <button
-              type="submit"
-              className="inline-flex h-[38px] shrink-0 items-center justify-center rounded-lg border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50"
-            >
-              Upload
-            </button>
-          </form>
-        </div>
+              Manage
+            </Link>
+          </div>
+        ) : (
+          <p className="text-sm text-neutral-500">
+            Not assigned to an organization.{" "}
+            <Link href="/dashboard/organizations" className="text-neutral-900 hover:text-neutral-900">
+              Assign one →
+            </Link>
+          </p>
+        )}
       </SectionCard>
 
       <form action={updateAssistantAction} className="space-y-4">
@@ -236,30 +188,28 @@ export default async function AssistantSettingsPage({
               <textarea name="greeting" defaultValue={assistant.greeting} rows={2} className={`${field} resize-y`} />
             </SectionCard>
 
-            <SectionCard title="Behavior" subtitle="How the AI handles the call.">
-              <div className="space-y-4">
-                <div>
-                  <label htmlFor="system_prompt" className={labelCls}>Behavior instructions</label>
-                  <textarea
-                    id="system_prompt"
-                    name="system_prompt"
-                    defaultValue={assistant.system_prompt}
-                    rows={4}
-                    placeholder="e.g. You handle a dental clinic. Book cleanings, answer hours and insurance questions, escalate emergencies."
-                    className={`${field} resize-y`}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="knowledge_notes" className={labelCls}>Business knowledge & FAQs</label>
-                  <textarea
-                    id="knowledge_notes"
-                    name="knowledge_notes"
-                    defaultValue={notes}
-                    rows={4}
-                    placeholder="Hours, services, pricing, address, policies - anything the AI should know."
-                    className={`${field} resize-y`}
-                  />
-                </div>
+            <SectionCard
+              title="Role & position"
+              subtitle={
+                org
+                  ? `This assistant's job within ${org.name}, and how it handles calls.`
+                  : "This assistant's role, and how it handles calls."
+              }
+            >
+              <div>
+                <label htmlFor="system_prompt" className={labelCls}>Position description</label>
+                <textarea
+                  id="system_prompt"
+                  name="system_prompt"
+                  defaultValue={assistant.system_prompt}
+                  rows={6}
+                  placeholder="Describe this assistant's job. For example: front desk for the sales team. It greets callers, books demos, answers common questions, and passes billing issues to accounts and tech problems to support."
+                  className={`${field} resize-y`}
+                />
+                <p className="mt-1.5 text-xs text-neutral-400">
+                  Company facts like hours, services, pricing, and policies live in the organization&apos;s shared
+                  knowledge. This assistant reads them on its own.
+                </p>
               </div>
             </SectionCard>
 
@@ -271,7 +221,7 @@ export default async function AssistantSettingsPage({
                     <input id="transfer_to" name="transfer_to" defaultValue={transferTo} placeholder="Your real number, e.g. +14155550199" className={`${field} sm:flex-1`} />
                     <TestCallButton
                       action={testCallAction}
-                      className="inline-flex h-[38px] shrink-0 items-center justify-center gap-1.5 rounded-lg border border-violet-200 bg-white px-3 text-sm font-medium text-violet-700 transition-colors hover:bg-violet-50 disabled:opacity-60"
+                      className="inline-flex h-[38px] shrink-0 items-center justify-center gap-1.5 rounded-lg border border-neutral-300 bg-white px-3 text-sm font-medium text-neutral-900 transition-colors hover:bg-neutral-100 disabled:opacity-60"
                     />
                   </div>
                   <p className="mt-1.5 text-xs text-neutral-400">Important calls are forwarded to this number.</p>
@@ -283,7 +233,7 @@ export default async function AssistantSettingsPage({
                     <span className="block text-xs text-neutral-400">When the AI takes a message, text it to your personal number.</span>
                   </span>
                   <input type="checkbox" name="sms_alerts" defaultChecked={smsAlerts} className="peer sr-only" />
-                  <span className="relative h-5 w-9 shrink-0 rounded-full bg-neutral-200 transition-colors peer-checked:bg-violet-600 after:absolute after:left-0.5 after:top-0.5 after:h-4 after:w-4 after:rounded-full after:bg-white after:shadow-sm after:transition-all after:content-[''] peer-checked:after:translate-x-4" />
+                  <span className="relative h-5 w-9 shrink-0 rounded-full bg-neutral-200 transition-colors peer-checked:bg-neutral-900 after:absolute after:left-0.5 after:top-0.5 after:h-4 after:w-4 after:rounded-full after:bg-white after:shadow-sm after:transition-all after:content-[''] peer-checked:after:translate-x-4" />
                 </label>
               </div>
             </SectionCard>
@@ -292,7 +242,7 @@ export default async function AssistantSettingsPage({
               {calendars.length === 0 ? (
                 <p className="text-sm text-neutral-500">
                   No calendars connected yet.{" "}
-                  <Link href="/dashboard/integrations" className="text-violet-600 hover:text-violet-700">Connect one →</Link>
+                  <Link href="/dashboard/integrations" className="text-neutral-900 hover:text-neutral-900">Connect one →</Link>
                 </p>
               ) : (
                 <div className="space-y-3">
@@ -304,7 +254,7 @@ export default async function AssistantSettingsPage({
                         <select
                           name={`cal_access_${c.id}`}
                           defaultValue={accessMap.get(c.id) ?? "none"}
-                          className="shrink-0 rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-sm text-neutral-900 outline-none focus:border-violet-400"
+                          className="shrink-0 rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-sm text-neutral-900 outline-none focus:border-neutral-900"
                         >
                           <option value="none">No access</option>
                           <option value="busy">Busy only (hide details)</option>
@@ -326,7 +276,7 @@ export default async function AssistantSettingsPage({
                     <span className="block text-xs text-neutral-400">After every call, email a summary and the full transcript.</span>
                   </span>
                   <input type="checkbox" name="email_enabled" defaultChecked={emailCfg.enabled ?? false} className="peer sr-only" />
-                  <span className="relative h-5 w-9 shrink-0 rounded-full bg-neutral-200 transition-colors peer-checked:bg-violet-600 after:absolute after:left-0.5 after:top-0.5 after:h-4 after:w-4 after:rounded-full after:bg-white after:shadow-sm after:transition-all after:content-[''] peer-checked:after:translate-x-4" />
+                  <span className="relative h-5 w-9 shrink-0 rounded-full bg-neutral-200 transition-colors peer-checked:bg-neutral-900 after:absolute after:left-0.5 after:top-0.5 after:h-4 after:w-4 after:rounded-full after:bg-white after:shadow-sm after:transition-all after:content-[''] peer-checked:after:translate-x-4" />
                 </label>
                 <div>
                   <label htmlFor="email_to" className={labelCls}>Send to</label>
@@ -346,7 +296,7 @@ export default async function AssistantSettingsPage({
                     <span className="block text-xs text-neutral-400">Sends summary + transcript as JSON to your endpoint (Salesforce, HubSpot, Zapier, n8n, custom).</span>
                   </span>
                   <input type="checkbox" name="crm_enabled" defaultChecked={crmCfg.enabled ?? false} className="peer sr-only" />
-                  <span className="relative h-5 w-9 shrink-0 rounded-full bg-neutral-200 transition-colors peer-checked:bg-violet-600 after:absolute after:left-0.5 after:top-0.5 after:h-4 after:w-4 after:rounded-full after:bg-white after:shadow-sm after:transition-all after:content-[''] peer-checked:after:translate-x-4" />
+                  <span className="relative h-5 w-9 shrink-0 rounded-full bg-neutral-200 transition-colors peer-checked:bg-neutral-900 after:absolute after:left-0.5 after:top-0.5 after:h-4 after:w-4 after:rounded-full after:bg-white after:shadow-sm after:transition-all after:content-[''] peer-checked:after:translate-x-4" />
                 </label>
                 <div>
                   <label htmlFor="crm_url" className={labelCls}>Endpoint URL</label>

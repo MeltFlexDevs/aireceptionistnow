@@ -10,6 +10,7 @@ import { CallSummaries } from "./components/CallSummaries";
 import { AssistantStats } from "./components/AssistantStats";
 import { PlanUsage } from "./components/PlanUsage";
 import { getPlanContext } from "@/lib/dashboard/plan";
+import { PageHeader } from "./components/PageHeader";
 import { Bolt, Plus } from "./icons";
 
 export const dynamic = "force-dynamic";
@@ -45,19 +46,19 @@ export default async function OverviewPage() {
   }
 
   const header = (
-    <header className="flex flex-wrap items-end justify-between gap-4">
-      <div>
-        <h1 className="text-2xl font-medium tracking-tight text-neutral-900">Overview</h1>
-        <p className="mt-1 text-sm text-neutral-500">Live results from your AI receptionist.</p>
-      </div>
-      <Link
-        href="/dashboard/assistant"
-        className="inline-flex h-9 items-center gap-2 rounded-lg bg-neutral-900 px-3 text-sm font-medium text-white transition-colors hover:bg-neutral-800"
-      >
-        <Plus className="h-4 w-4" />
-        New assistant
-      </Link>
-    </header>
+    <PageHeader
+      title="Overview"
+      description="See how your AI receptionist is doing. Calls answered, how they went, and trends over time."
+      action={
+        <Link
+          href="/dashboard/assistant"
+          className="inline-flex h-9 items-center gap-2 rounded-lg bg-neutral-900 px-3 text-sm font-medium text-white shadow-card transition-colors hover:bg-neutral-800"
+        >
+          <Plus className="h-4 w-4" />
+          New assistant
+        </Link>
+      }
+    />
   );
 
   if (!data) {
@@ -120,7 +121,7 @@ export default async function OverviewPage() {
             </div>
             {data.latency.spark.length > 1 && (
               <svg viewBox="0 0 100 24" preserveAspectRatio="none" className="h-10 w-28">
-                <polyline points={latencyPoints(data.latency.spark)} fill="none" stroke="#7c3aed" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+                <polyline points={latencyPoints(data.latency.spark)} fill="none" stroke="#171717" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
               </svg>
             )}
           </div>

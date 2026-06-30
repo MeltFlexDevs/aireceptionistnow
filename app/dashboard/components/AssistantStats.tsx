@@ -8,7 +8,7 @@ interface Props {
 
 function answerTone(pct: number): string {
   if (pct >= 80) return "text-emerald-600";
-  if (pct >= 50) return "text-amber-600";
+  if (pct >= 50) return "text-neutral-700";
   return "text-rose-600";
 }
 

@@ -48,7 +48,7 @@ export function NumberCountrySelect({
       >
         {NUMBER_COUNTRIES.map((c) => (
           <option key={c.code} value={c.code}>
-            {c.flag} {c.name} — {c.creditsPerMinute} credit{c.creditsPerMinute === 1 ? "" : "s"}/min
+            {c.flag} {c.name}: {c.creditsPerMinute} credit{c.creditsPerMinute === 1 ? "" : "s"}/min
           </option>
         ))}
       </select>
@@ -56,8 +56,8 @@ export function NumberCountrySelect({
           row's inputs and button still bottom-align despite this helper line. */}
       <p className="mt-1.5 text-xs leading-snug text-neutral-500 sm:absolute sm:inset-x-0 sm:top-full sm:mt-1">
         {country.flag} {country.name}: <span className="font-medium text-neutral-700">{cpm} credit{cpm === 1 ? "" : "s"}/min</span>
-        {" — "}
-        ≈ {minutes.toLocaleString()} min of your {credits.toLocaleString()} credits
+        {". "}
+        About {minutes.toLocaleString()} min of your {credits.toLocaleString()} credits.
       </p>
     </div>
   );

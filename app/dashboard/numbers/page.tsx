@@ -7,7 +7,7 @@ import { buyNumberAction } from "./actions";
 export const dynamic = "force-dynamic";
 
 const field =
-  "w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition-colors focus:border-violet-400";
+  "w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition-colors focus:border-neutral-900";
 
 const COUNTRIES = [
   { code: "US", name: "United States", flag: "🇺🇸" },
@@ -76,7 +76,7 @@ export default async function NumbersPage({
 
       {numbers.length === 0 && !loadError ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-neutral-300 bg-white px-6 py-14 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-50 text-violet-600">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-neutral-100 text-neutral-900">
             <Hash className="h-6 w-6" />
           </div>
           <h2 className="mt-4 text-base font-medium text-neutral-900">No numbers yet</h2>

@@ -8,7 +8,7 @@ function Direction({ direction }: { direction: string }) {
   return (
     <span className="inline-flex items-center gap-1.5 text-neutral-600">
       <span
-        className={`inline-flex h-5 w-5 items-center justify-center rounded-full ${outbound ? "bg-violet-50 text-violet-600" : "bg-sky-50 text-sky-600"}`}
+        className={`inline-flex h-5 w-5 items-center justify-center rounded-full ${outbound ? "bg-neutral-100 text-neutral-900" : "bg-neutral-100 text-neutral-700"}`}
       >
         {outbound ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
       </span>
@@ -25,7 +25,7 @@ function FromTo({ row }: { row: CallLogRow }) {
     </>
   );
   return row.dbId ? (
-    <Link href={`/dashboard/calls/${row.dbId}`} className="block hover:text-violet-700">
+    <Link href={`/dashboard/calls/${row.dbId}`} className="block hover:text-neutral-900">
       {inner}
     </Link>
   ) : (
@@ -63,7 +63,7 @@ export function CallTable({ rows }: { rows: CallLogRow[] }) {
                   {c.statusLabel}
                 </span>
                 {c.outcome && (
-                  <span className="ml-1.5 inline-flex rounded-full bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-700">
+                  <span className="ml-1.5 inline-flex rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-900">
                     {c.outcome}
                   </span>
                 )}

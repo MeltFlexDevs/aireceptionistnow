@@ -43,6 +43,10 @@ export const Plug = ({ className = base }: IconProps) => (
   <Stroke className={className}><path d="M9 3v5M15 3v5M6 8h12v2a6 6 0 0 1-6 6 6 6 0 0 1-6-6V8ZM12 16v5" /></Stroke>
 );
 
+export const Building = ({ className = base }: IconProps) => (
+  <Stroke className={className}><path d="M3 21h18M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16M9 7h.01M15 7h.01M9 11h.01M15 11h.01M9 15h.01M15 15h.01M10 21v-3a2 2 0 0 1 4 0v3" /></Stroke>
+);
+
 export const ChartBar = ({ className = base }: IconProps) => (
   <Stroke className={className}><path d="M4 20V10M10 20V4M16 20v-6M22 20H2" /></Stroke>
 );
@@ -93,4 +97,16 @@ export const Download = ({ className = base }: IconProps) => (
 
 export const Menu = ({ className = base }: IconProps) => (
   <Stroke className={className}><path d="M4 7h16M4 12h16M4 17h16" /></Stroke>
+);
+
+export const Info = ({ className = base }: IconProps) => (
+  <Stroke className={className}><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h.01" /></Stroke>
+);
+
+export const Lightbulb = ({ className = base }: IconProps) => (
+  <Stroke className={className}><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.6.6 1 1.3 1 2.1V16h6v-.4c0-.8.4-1.5 1-2.1A6 6 0 0 0 12 3Z" /></Stroke>
+);
+
+export const Check = ({ className = base }: IconProps) => (
+  <Stroke className={className}><path d="M20 6 9 17l-5-5" /></Stroke>
 );

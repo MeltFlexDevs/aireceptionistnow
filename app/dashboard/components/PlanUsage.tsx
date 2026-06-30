@@ -48,7 +48,7 @@ export function PlanUsage({ ctx }: Props) {
           <p className="mt-0.5 text-xs text-neutral-500">
             {ctx.active
               ? "Active subscription"
-              : "No active subscription — limits apply at the entry tier."}
+              : "No active subscription. Entry tier limits apply."}
           </p>
         </div>
         {showUpgrade && (

@@ -1,5 +1,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { getEnv } from "../env";
+import { mergeKnowledge } from "../../knowledge/sources";
+import { accountKnowledgeNotes, type AccountSettings } from "../../dashboard/account";
 import type {
   CallAction,
   IntegrationConfig,
@@ -38,7 +40,9 @@ export class SupabaseCallRepository implements CallRepository {
   async resolveInboundNumber(toE164: string): Promise<NumberConfig | null> {
     const { data: num, error } = await db()
       .from("phone_numbers")
-      .select("*, assistant:assistants(*, business:businesses(id, name))")
+      .select(
+        "*, assistant:assistants(*, business:businesses(id, name), organization:organizations(knowledge))",
+      )
       .eq("e164", toE164)
       .eq("enabled", true)
       .is("deleted_at", null)
@@ -51,6 +55,7 @@ export class SupabaseCallRepository implements CallRepository {
     // first business when the number is unassigned.
     const cfg = (num.assistant as Record<string, unknown> | null) ?? {};
     const cfgBiz = (cfg.business as { id?: string; name?: string } | null) ?? null;
+    const cfgOrg = (cfg.organization as { knowledge?: Record<string, unknown> } | null) ?? null;
     let businessId = cfgBiz?.id ? String(cfgBiz.id) : "";
     let businessName = cfgBiz?.name ?? "our business";
     if (!businessId) {
@@ -72,6 +77,23 @@ export class SupabaseCallRepository implements CallRepository {
       .eq("business_id", businessId)
       .eq("enabled", true);
 
+    // Knowledge precedence, all merged into one block the assistant reads:
+    //   assistant's own  +  its organization's shared  +  the owner's profile.
+    let knowledge: Record<string, unknown> = cfgOrg?.knowledge
+      ? mergeKnowledge(cfg.knowledge as Record<string, unknown>, cfgOrg.knowledge)
+      : ((cfg.knowledge as Record<string, unknown>) ?? {});
+
+    const ownerId = cfg.owner_id ? String(cfg.owner_id) : "";
+    if (ownerId) {
+      const { data: acct } = await db()
+        .from("account_settings")
+        .select("*")
+        .eq("user_id", ownerId)
+        .maybeSingle();
+      const ownerNotes = accountKnowledgeNotes(acct as AccountSettings | null);
+      if (ownerNotes) knowledge = mergeKnowledge(knowledge, { notes: ownerNotes });
+    }
+
     return {
       numberId: String(num.id),
       businessId,
@@ -82,7 +104,7 @@ export class SupabaseCallRepository implements CallRepository {
       systemPrompt: String(cfg.system_prompt ?? ""),
       voiceId: String(cfg.voice_id ?? "21m00Tcm4TlvDq8ikWAM"),
       language: String(cfg.language ?? "en"),
-      knowledge: (cfg.knowledge as Record<string, unknown>) ?? {},
+      knowledge,
       routing: (cfg.routing as Record<string, unknown>) ?? {},
       integrations: (integrations ?? []).map(mapIntegration),
     };

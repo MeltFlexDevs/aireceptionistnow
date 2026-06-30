@@ -50,6 +50,32 @@ export function removeSource(knowledge: AssistantKnowledge, id: string): Assista
 }
 
 /**
+ * Merge two knowledge objects (e.g. an organization's shared knowledge with an
+ * assistant's own) into one. `base` is rendered first. Notes are concatenated;
+ * sources are de-duplicated by id (base wins) and capped at MAX_SOURCES. Used at
+ * pickup so an assistant reads its organization's knowledge alongside its own.
+ */
+export function mergeKnowledge(
+  base: Record<string, unknown> | null | undefined,
+  extra: Record<string, unknown> | null | undefined,
+): AssistantKnowledge {
+  const a = readKnowledge(base);
+  const b = readKnowledge(extra);
+
+  const notes = [a.notes, b.notes].map((n) => (n ?? "").trim()).filter(Boolean).join("\n\n");
+
+  const seen = new Set<string>();
+  const sources: KnowledgeSource[] = [];
+  for (const src of [...(a.sources ?? []), ...(b.sources ?? [])]) {
+    if (seen.has(src.id)) continue;
+    seen.add(src.id);
+    sources.push(src);
+  }
+
+  return { notes, sources: sources.slice(0, MAX_SOURCES) };
+}
+
+/**
  * Render the knowledge object into a readable Markdown block for the system
  * prompt. Preferred over dumping raw JSON: the model reads prose far better.
  */

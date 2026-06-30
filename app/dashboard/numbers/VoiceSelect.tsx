@@ -95,7 +95,7 @@ export function VoiceSelect({ name = "voice_id", defaultValue = "" }: Props) {
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="listbox"
         aria-expanded={open}
-        className="flex w-full items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition-colors hover:border-neutral-300 focus:border-violet-400"
+        className="flex w-full items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition-colors hover:border-neutral-300 focus:border-neutral-900"
       >
         <span className="truncate">
           {current ? current.name : selected || "Select a voice"}
@@ -121,7 +121,7 @@ export function VoiceSelect({ name = "voice_id", defaultValue = "" }: Props) {
                 }
               }}
               placeholder="Search voices..."
-              className="w-full rounded-md border border-neutral-200 px-2.5 py-1.5 text-sm text-neutral-900 outline-none focus:border-violet-400"
+              className="w-full rounded-md border border-neutral-200 px-2.5 py-1.5 text-sm text-neutral-900 outline-none focus:border-neutral-900"
             />
           </div>
 
@@ -135,7 +135,7 @@ export function VoiceSelect({ name = "voice_id", defaultValue = "" }: Props) {
                 <li key={v.voiceId} role="option" aria-selected={v.voiceId === selected}>
                   <div
                     className={`flex items-center gap-2 px-3 py-2 ${
-                      v.voiceId === selected ? "bg-violet-50" : "hover:bg-neutral-50"
+                      v.voiceId === selected ? "bg-neutral-100" : "hover:bg-neutral-50"
                     }`}
                   >
                     <button
@@ -156,7 +156,7 @@ export function VoiceSelect({ name = "voice_id", defaultValue = "" }: Props) {
                       onClick={() => pick(v.voiceId)}
                       className="flex min-w-0 flex-1 flex-col text-left"
                     >
-                      <span className={`truncate text-sm ${v.voiceId === selected ? "text-violet-700" : "text-neutral-800"}`}>{v.name}</span>
+                      <span className={`truncate text-sm ${v.voiceId === selected ? "text-neutral-900" : "text-neutral-800"}`}>{v.name}</span>
                       {v.description ? <span className="truncate text-xs text-neutral-400">{v.description}</span> : null}
                     </button>
                   </div>
@@ -170,7 +170,7 @@ export function VoiceSelect({ name = "voice_id", defaultValue = "" }: Props) {
               defaultValue={selected}
               onChange={(e) => setSelected(e.target.value.trim())}
               placeholder="Or paste a voice ID"
-              className="w-full rounded-md border border-neutral-200 px-2.5 py-1.5 text-xs text-neutral-700 outline-none focus:border-violet-400"
+              className="w-full rounded-md border border-neutral-200 px-2.5 py-1.5 text-xs text-neutral-700 outline-none focus:border-neutral-900"
             />
           </div>
         </div>

@@ -2,6 +2,16 @@
 
 :root {
   --font-geist: "Geist", sans-serif;
+
+  /* Dashboard design tokens. Monochrome: black accent, green = success,
+     red = error. No other hues in the UI. */
+  --accent: #171717;
+  --accent-soft: color-mix(in oklab, var(--accent) 8%, white);
+  --ring: color-mix(in oklab, var(--accent) 45%, white);
+  --success: #16a34a;
+  --error: #dc2626;
+  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 1px 3px rgb(15 23 42 / 0.06);
+  --shadow-pop: 0 10px 30px -12px rgb(15 23 42 / 0.18);
 }
 
 * {
@@ -10,6 +20,55 @@
 
 html {
   scroll-behavior: smooth;
+}
+
+/* ── DASHBOARD BASE POLISH ──────────────────────────────────────────────── */
+@layer base {
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--accent) 22%, transparent);
+  }
+
+  /* One consistent keyboard-focus ring everywhere, so tabbing is always
+     obvious. Form controls keep their own border-based focus (set below). */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 8px;
+  }
+  :where(input, textarea, select):focus-visible {
+    outline: none;
+  }
+
+  /* Quieter, thinner scrollbars that match the neutral palette. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #d4d4d4 transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: #d4d4d4;
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: #a3a3a3;
+    background-clip: content-box;
+  }
+}
+
+/* Reusable card shadow utility for dashboard surfaces. */
+.shadow-card {
+  box-shadow: var(--shadow-card);
 }
 
 /* ── PRIVACY / TERMS PAGES ── */

@@ -48,7 +48,7 @@ export function LanguageSelect({ name = "language", defaultValue = "en" }: Props
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="listbox"
         aria-expanded={open}
-        className="flex w-full items-center justify-between rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition-colors hover:border-neutral-300 focus:border-violet-400"
+        className="flex w-full items-center justify-between rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition-colors hover:border-neutral-300 focus:border-neutral-900"
       >
         <span className="flex items-center gap-2">
           <span className="text-base leading-none">{current?.flag ?? "🌐"}</span>
@@ -75,7 +75,7 @@ export function LanguageSelect({ name = "language", defaultValue = "en" }: Props
                 }
               }}
               placeholder="Search language..."
-              className="w-full rounded-md border border-neutral-200 px-2.5 py-1.5 text-sm text-neutral-900 outline-none focus:border-violet-400"
+              className="w-full rounded-md border border-neutral-200 px-2.5 py-1.5 text-sm text-neutral-900 outline-none focus:border-neutral-900"
             />
           </div>
           <ul className="max-h-60 overflow-y-auto py-1" role="listbox">
@@ -88,7 +88,7 @@ export function LanguageSelect({ name = "language", defaultValue = "en" }: Props
                     type="button"
                     onClick={() => pick(l.code)}
                     className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-neutral-50 ${
-                      l.code === selected ? "bg-violet-50 text-violet-700" : "text-neutral-700"
+                      l.code === selected ? "bg-neutral-100 text-neutral-900" : "text-neutral-700"
                     }`}
                   >
                     <span className="text-base leading-none">{l.flag}</span>

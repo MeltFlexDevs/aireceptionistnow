@@ -8,7 +8,7 @@ const TYPE_LABEL: Record<string, string> = {
 
 const STATUS_TONE: Record<string, string> = {
   done: "bg-emerald-50 text-emerald-700",
-  pending: "bg-amber-50 text-amber-700",
+  pending: "bg-neutral-100 text-neutral-700",
   failed: "bg-rose-50 text-rose-700",
 };
 

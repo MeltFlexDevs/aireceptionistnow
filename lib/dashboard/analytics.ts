@@ -96,17 +96,18 @@ export interface AssistantStat {
   positivePct: number;
 }
 
+// Monochrome charts: green for good outcomes, red for bad, grays for the rest.
 const OUTCOME_COLORS: Record<string, string> = {
-  booked: "#7c3aed",
-  resolved: "#10b981",
-  message: "#0ea5e9",
-  transferred: "#f59e0b",
-  abandoned: "#f43f5e",
+  booked: "#16a34a",
+  resolved: "#22c55e",
+  message: "#737373",
+  transferred: "#a3a3a3",
+  abandoned: "#dc2626",
 };
 const SENTIMENT_COLORS: Record<string, string> = {
-  positive: "#10b981",
-  neutral: "#f59e0b",
-  negative: "#f43f5e",
+  positive: "#16a34a",
+  neutral: "#a3a3a3",
+  negative: "#dc2626",
 };
 
 function fmtDuration(sec: number | null): string {
@@ -227,8 +228,8 @@ async function talkRatio(callIds: string[]): Promise<Segment[]> {
   const total = caller + ai;
   if (total === 0) return [];
   return [
-    { label: "Caller", value: Math.round((caller / total) * 100), color: "#7c3aed" },
-    { label: "AI", value: Math.round((ai / total) * 100), color: "#c4b5fd" },
+    { label: "Caller", value: Math.round((caller / total) * 100), color: "#171717" },
+    { label: "AI", value: Math.round((ai / total) * 100), color: "#a3a3a3" },
   ];
 }
 
@@ -365,9 +366,13 @@ async function numberMeta(numberIds?: string[]): Promise<Map<string, NumberMeta>
 export async function getAssistantStats(
   ownerId?: string | null,
   days = 30,
+  organizationId?: string | null,
 ): Promise<AssistantStat[]> {
   const businessId = await ensureBusinessId();
-  const numberIds = await scopedNumberIds(ownerId);
+  let numberIds = await scopedNumberIds(ownerId);
+  if (organizationId) {
+    numberIds = intersectScope(numberIds, await organizationNumberIds(organizationId));
+  }
   const since = new Date();
   since.setDate(since.getDate() - days);
 
@@ -432,17 +437,51 @@ async function assistantNumberIds(assistantId: string): Promise<string[]> {
   return (data ?? []).map((r) => String((r as { id: string }).id));
 }
 
+/** Active phone-number ids across every assistant in an organization. */
+async function organizationNumberIds(organizationId: string): Promise<string[]> {
+  const sb = serviceClient();
+  const { data: assistants, error: aErr } = await sb
+    .from("assistants")
+    .select("id")
+    .eq("organization_id", organizationId)
+    .is("deleted_at", null);
+  if (aErr) throw aErr;
+  const assistantIds = (assistants ?? []).map((a) => String((a as { id: string }).id));
+  if (assistantIds.length === 0) return [];
+
+  const { data: numbers, error: nErr } = await sb
+    .from("phone_numbers")
+    .select("id")
+    .in("assistant_id", assistantIds)
+    .is("deleted_at", null);
+  if (nErr) throw nErr;
+  return (numbers ?? []).map((r) => String((r as { id: string }).id));
+}
+
+/** Intersect a number-id scope with an extra filter set. undefined scope (auth
+ *  off) becomes the filter; otherwise keep only ids present in both. */
+function intersectScope(
+  scope: string[] | undefined,
+  filter: string[],
+): string[] {
+  return scope ? scope.filter((id) => filter.includes(id)) : filter;
+}
+
 export async function getAnalytics(
   ownerId?: string | null,
   assistantId?: string | null,
+  organizationId?: string | null,
 ): Promise<Analytics> {
   const businessId = await ensureBusinessId();
-  // Owner scopes to all their numbers; an assistant filter narrows to just that
-  // assistant's numbers (intersected with the owner scope so it can't widen it).
+  // Owner scopes to all their numbers; an organization filter narrows to its
+  // assistants' numbers, and an assistant filter narrows further — each
+  // intersected with the owner scope so a filter can never widen it.
   let numberIds = await scopedNumberIds(ownerId);
+  if (organizationId) {
+    numberIds = intersectScope(numberIds, await organizationNumberIds(organizationId));
+  }
   if (assistantId) {
-    const ids = await assistantNumberIds(assistantId);
-    numberIds = numberIds ? numberIds.filter((id) => ids.includes(id)) : ids;
+    numberIds = intersectScope(numberIds, await assistantNumberIds(assistantId));
   }
   const now = new Date();
   const since = new Date(now);

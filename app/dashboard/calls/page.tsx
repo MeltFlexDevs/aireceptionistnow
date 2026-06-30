@@ -57,7 +57,7 @@ export default async function CallsPage({ searchParams }: { searchParams: Search
       <CallFilters q={filters.q} status={filters.status} />
 
       {!log.twilioConnected && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <div className="rounded-xl border border-neutral-300 bg-neutral-100 px-4 py-3 text-sm text-neutral-800">
           Twilio isn&apos;t connected (or has no call logs yet), so statuses and durations come
           from your own records and may lag the carrier.
         </div>
@@ -69,7 +69,7 @@ export default async function CallsPage({ searchParams }: { searchParams: Search
       >
         {log.rows.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-50 text-violet-600">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-neutral-100 text-neutral-900">
               <Phone className="h-5 w-5" />
             </div>
             <p className="mt-4 text-sm font-medium text-neutral-900">

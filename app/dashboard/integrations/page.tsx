@@ -6,7 +6,7 @@ import { connectCalendarAction, disconnectCalendarAction } from "./actions";
 export const dynamic = "force-dynamic";
 
 const field =
-  "w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition-colors focus:border-violet-400";
+  "w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition-colors focus:border-neutral-900";
 
 const LOGIN_NAMES: Record<string, string> = {
   google: "Google",
@@ -147,7 +147,7 @@ export default async function IntegrationsPage({
                       </span>
                     ) : null}
                     {isPrimary && (
-                      <span className="rounded-full bg-violet-50 px-2 py-0.5 text-[11px] font-medium text-violet-700">
+                      <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-900">
                         Primary
                       </span>
                     )}

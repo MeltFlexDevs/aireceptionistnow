@@ -7,7 +7,7 @@ import { updateNumberAction, deleteNumberAction, setAssistantAction } from "../a
 export const dynamic = "force-dynamic";
 
 const field =
-  "w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition-colors focus:border-violet-400";
+  "w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition-colors focus:border-neutral-900";
 
 function Info({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
@@ -42,7 +42,7 @@ export default async function NumberSettingsPage({
   return (
     <div className="space-y-6">
       <header>
-        <Link href="/dashboard/numbers" className="text-sm text-violet-600 hover:text-violet-700">
+        <Link href="/dashboard/numbers" className="text-sm text-neutral-900 hover:text-neutral-900">
           ← Phone numbers
         </Link>
         <h1 className="mt-1 text-2xl font-medium tracking-tight text-neutral-900">{number.e164}</h1>
@@ -80,7 +80,7 @@ export default async function NumberSettingsPage({
         {assigned && (
           <p className="mt-2 text-xs text-neutral-400">
             Edit behavior in{" "}
-            <Link href={`/dashboard/assistant/${assigned.id}`} className="text-violet-600 hover:text-violet-700">
+            <Link href={`/dashboard/assistant/${assigned.id}`} className="text-neutral-900 hover:text-neutral-900">
               {assigned.name} settings →
             </Link>
           </p>
@@ -88,7 +88,7 @@ export default async function NumberSettingsPage({
         {assistants.length === 0 && (
           <p className="mt-2 text-xs text-neutral-400">
             No assistants yet.{" "}
-            <Link href="/dashboard/assistant" className="text-violet-600 hover:text-violet-700">Create one →</Link>
+            <Link href="/dashboard/assistant" className="text-neutral-900 hover:text-neutral-900">Create one →</Link>
           </p>
         )}
       </SectionCard>
@@ -104,7 +104,7 @@ export default async function NumberSettingsPage({
         <form action={updateNumberAction} className="mt-5 flex items-center justify-between gap-3 border-t border-neutral-100 pt-4">
           <input type="hidden" name="id" value={number.id} />
           <label className="flex items-center gap-2 text-sm font-medium text-neutral-700">
-            <input type="checkbox" name="enabled" defaultChecked={number.enabled} className="h-4 w-4 rounded border-neutral-300 accent-violet-600" />
+            <input type="checkbox" name="enabled" defaultChecked={number.enabled} className="h-4 w-4 rounded border-neutral-300 accent-neutral-900" />
             Answer calls on this number
           </label>
           <button

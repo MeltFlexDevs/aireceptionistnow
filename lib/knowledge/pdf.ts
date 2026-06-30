@@ -25,11 +25,16 @@ export async function parsePdfMarkdown(bytes: Uint8Array): Promise<PdfResult> {
     throw new Error("Couldn't read that PDF — it may be scanned images or corrupted.");
   }
 
-  // Normalize: collapse runs of spaces and blank lines that PDF extraction
-  // tends to produce, so the result reads as clean prose.
+  // Normalize PDF text into clean Markdown prose. PDF extraction emits a hard
+  // line break at every visual line, hyphenates words split across lines, and
+  // scatters runs of spaces — all of which read badly in the system prompt.
   const cleaned = text
-    .replace(/[ \t]+/g, " ")
-    .replace(/\n{3,}/g, "\n\n")
+    .replace(/\r\n?/g, "\n") // normalize line endings
+    .replace(/[ \t]+/g, " ") // collapse runs of spaces
+    .replace(/(\w)-\n(\w)/g, "$1$2") // re-join words hyphenated across a line break
+    .replace(/([^\n])\n(?!\n)(?=\S)/g, "$1 ") // single line break inside a paragraph → space
+    .replace(/[ \t]*\n[ \t]*/g, "\n") // trim whitespace around the kept breaks
+    .replace(/\n{3,}/g, "\n\n") // cap blank runs at one blank line (paragraph break)
     .trim();
 
   if (!cleaned) {

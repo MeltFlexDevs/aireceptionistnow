@@ -22,7 +22,7 @@ export function Topbar({ user }: { user: AppUser }) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search calls, callers, numbers..."
-          className="h-10 w-full max-w-md rounded-lg border border-neutral-200 bg-neutral-50 pl-9 pr-3 text-sm text-neutral-900 outline-none transition-colors placeholder:text-neutral-400 focus:border-violet-400 focus:bg-white"
+          className="h-10 w-full max-w-md rounded-lg border border-neutral-200 bg-neutral-50 pl-9 pr-3 text-sm text-neutral-900 outline-none transition-colors placeholder:text-neutral-400 focus:border-neutral-900 focus:bg-white"
         />
       </label>
 

@@ -22,7 +22,7 @@ export function Transcript({ turns }: { turns: CallTurn[] }) {
               </div>
               <div
                 className={`inline-block rounded-2xl px-3.5 py-2 text-sm leading-relaxed ${
-                  caller ? "bg-neutral-100 text-neutral-800" : "bg-violet-600 text-white"
+                  caller ? "bg-neutral-100 text-neutral-800" : "bg-neutral-900 text-white"
                 }`}
               >
                 {t.text}

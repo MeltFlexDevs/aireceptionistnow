@@ -7,7 +7,7 @@ export function statusTone(status: string): string {
     return "bg-rose-50 text-rose-700";
   }
   if (["in-progress", "in_progress", "ringing", "queued", "initiated"].includes(s)) {
-    return "bg-amber-50 text-amber-700";
+    return "bg-neutral-100 text-neutral-700";
   }
   return "bg-neutral-100 text-neutral-500";
 }

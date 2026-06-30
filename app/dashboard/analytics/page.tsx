@@ -1,11 +1,14 @@
 import { getAnalytics, getAssistantStats } from "@/lib/dashboard/analytics";
 import { listAssistants } from "@/lib/dashboard/db";
+import { listOrganizations } from "@/lib/dashboard/organizations";
 import { currentUserId } from "@/lib/auth";
 import { SectionCard } from "../components/SectionCard";
 import { BarChart } from "../components/BarChart";
 import { DonutChart } from "../components/DonutChart";
 import { AssistantStats } from "../components/AssistantStats";
+import { PageHeader } from "../components/PageHeader";
 import { AssistantPicker } from "./AssistantPicker";
+import { OrganizationPicker } from "./OrganizationPicker";
 
 export const dynamic = "force-dynamic";
 
@@ -26,43 +29,66 @@ function latencyPoints(values: number[]): string {
 export default async function AnalyticsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ assistant?: string }>;
+  searchParams: Promise<{ assistant?: string; org?: string }>;
 }) {
-  const { assistant: assistantParam } = await searchParams;
+  const { assistant: assistantParam, org: orgParam } = await searchParams;
 
   let data: Awaited<ReturnType<typeof getAnalytics>> | null = null;
   let assistants: Awaited<ReturnType<typeof getAssistantStats>> = [];
   let assistantList: { id: string; name: string }[] = [];
+  let orgList: { id: string; name: string }[] = [];
   let loadError = "";
   let selectedId = "";
+  let selectedOrg = "";
   try {
     const ownerId = await currentUserId();
-    const all = await listAssistants(ownerId);
-    assistantList = all.map((a) => ({ id: a.id, name: a.name }));
-    // Only honor the filter when it's one of the owner's assistants.
-    selectedId = assistantParam && all.some((a) => a.id === assistantParam) ? assistantParam : "";
+    const [all, orgs] = await Promise.all([
+      listAssistants(ownerId),
+      listOrganizations(ownerId),
+    ]);
+    orgList = orgs.map((o) => ({ id: o.id, name: o.name }));
+    // Only honor the org filter when it's one of the owner's organizations.
+    selectedOrg = orgParam && orgs.some((o) => o.id === orgParam) ? orgParam : "";
+
+    // When an org is selected, the assistant dropdown only offers that org's
+    // assistants, and an out-of-org assistant filter is dropped.
+    const inScope = selectedOrg ? all.filter((a) => a.organization_id === selectedOrg) : all;
+    assistantList = inScope.map((a) => ({ id: a.id, name: a.name }));
+    selectedId =
+      assistantParam && inScope.some((a) => a.id === assistantParam) ? assistantParam : "";
+
     [data, assistants] = await Promise.all([
-      getAnalytics(ownerId, selectedId || undefined),
-      getAssistantStats(ownerId, 30),
+      getAnalytics(ownerId, selectedId || undefined, selectedOrg || undefined),
+      getAssistantStats(ownerId, 30, selectedOrg || undefined),
     ]);
   } catch (err) {
     loadError = (err as Error).message;
   }
 
   const selectedName = assistantList.find((a) => a.id === selectedId)?.name;
+  const selectedOrgName = orgList.find((o) => o.id === selectedOrg)?.name;
+
+  const scopeLabel = selectedName
+    ? `${selectedName}. Last 30 days.`
+    : selectedOrgName
+      ? `${selectedOrgName}. All assistants, last 30 days.`
+      : "All assistants. Last 30 days.";
 
   const header = (
-    <header className="flex flex-wrap items-end justify-between gap-4">
-      <div>
-        <h1 className="text-2xl font-medium tracking-tight text-neutral-900">Analytics</h1>
-        <p className="mt-1 text-sm text-neutral-500">
-          {selectedName ? `${selectedName} — last 30 days.` : "Trends across all assistants, last 30 days."}
-        </p>
-      </div>
-      {assistantList.length > 0 && (
-        <AssistantPicker assistants={assistantList} selected={selectedId} />
-      )}
-    </header>
+    <PageHeader
+      title="Analytics"
+      description={scopeLabel}
+      action={
+        <>
+          {orgList.length > 0 && (
+            <OrganizationPicker organizations={orgList} selected={selectedOrg} />
+          )}
+          {assistantList.length > 0 && (
+            <AssistantPicker assistants={assistantList} selected={selectedId} />
+          )}
+        </>
+      }
+    />
   );
 
   if (!data) {
@@ -131,7 +157,7 @@ export default async function AnalyticsPage({
           </div>
           {data.latency.spark.length > 1 && (
             <svg viewBox="0 0 100 24" preserveAspectRatio="none" className="mt-3 h-10 w-full">
-              <polyline points={latencyPoints(data.latency.spark)} fill="none" stroke="#7c3aed" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+              <polyline points={latencyPoints(data.latency.spark)} fill="none" stroke="#171717" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
             </svg>
           )}
           <div className="mt-3 border-t border-neutral-100 pt-3 text-sm text-neutral-500">

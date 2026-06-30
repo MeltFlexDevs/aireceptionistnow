@@ -185,6 +185,7 @@ export interface Assistant {
   id: string;
   business_id: string;
   owner_id: string | null;
+  organization_id: string | null;
   name: string;
   greeting: string;
   system_prompt: string;
