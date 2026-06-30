@@ -36,6 +36,12 @@ const schema = z
     // Text-to-speech (all voice synthesis runs here).
     ELEVENLABS_API_KEY: z.string().min(1),
     ELEVENLABS_MODEL: z.string().default("eleven_flash_v2_5"),
+    // Per-language voice overrides used in auto-detect mode: a JSON map of base
+    // language code -> ElevenLabs voice id, e.g. {"sk":"<slovak-voice-id>"}. When
+    // the caller's language is detected and has an entry here, that voice is used
+    // for the rest of the call; languages with no entry keep the assistant's own
+    // configured voice (the multilingual model still pronounces them correctly).
+    ELEVENLABS_VOICE_OVERRIDES: z.string().optional(),
 
     // Security. Stream parameters Twilio carries to the media server are signed
     // with this secret so a stranger can't open a media stream against a callId.

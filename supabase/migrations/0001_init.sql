@@ -6,7 +6,8 @@
 create extension if not exists "pgcrypto";
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- Businesses (one per account/workspace)
+-- Businesses (one per account/workspace). The single-tenant root the call engine
+-- resolves numbers through.
 -- ─────────────────────────────────────────────────────────────────────────────
 create table if not exists businesses (
   id          uuid primary key default gen_random_uuid(),
@@ -16,27 +17,51 @@ create table if not exists businesses (
 );
 
 -- ─────────────────────────────────────────────────────────────────────────────
+-- Organizations — a user-facing corporation/workspace grouping. An organization
+-- carries its own shared knowledge (websites, PDFs, notes); multiple assistants
+-- are assigned to it and read that knowledge on every call (merged with their
+-- own). This sits on top of the single-tenant `businesses` root used by the call
+-- engine — it does not replace it, so number/business resolution is unchanged.
+-- ─────────────────────────────────────────────────────────────────────────────
+create table if not exists organizations (
+  id          uuid primary key default gen_random_uuid(),
+  owner_id    uuid references auth.users(id) on delete set null,
+  name        text not null default 'My organization',
+  description text not null default '',
+  knowledge   jsonb not null default '{}'::jsonb,   -- shared {notes, sources[]}
+  deleted_at  timestamptz,
+  created_at  timestamptz not null default now()
+);
+create index if not exists organizations_owner_idx  on organizations (owner_id);
+create index if not exists organizations_active_idx on organizations (owner_id) where deleted_at is null;
+
+-- ─────────────────────────────────────────────────────────────────────────────
 -- Assistants — the voice + behavior config. A phone number links to an assistant
--- and the engine builds the entire call config from it.
+-- and the engine builds the entire call config from it. Optionally assigned to an
+-- organization, whose shared knowledge is merged in on every call. The org link is
+-- nullable + ON DELETE SET NULL so deleting an organization never deletes its
+-- assistants.
 -- ─────────────────────────────────────────────────────────────────────────────
 create table if not exists assistants (
-  id            uuid primary key default gen_random_uuid(),
-  business_id   uuid not null references businesses(id) on delete cascade,
-  owner_id      uuid references auth.users(id) on delete set null,
-  name          text not null default 'My assistant',
-  greeting      text not null default 'Hello, thanks for calling. How can I help?',
-  system_prompt text not null default '',
-  voice_id      text not null default '',
-  language      text not null default 'en',
-  knowledge     jsonb not null default '{}'::jsonb,
-  routing       jsonb not null default '{}'::jsonb,  -- transfer, sms alerts, calendar access, stt
-  enabled       boolean not null default true,
-  deleted_at    timestamptz,
-  created_at    timestamptz not null default now()
+  id              uuid primary key default gen_random_uuid(),
+  business_id     uuid not null references businesses(id) on delete cascade,
+  organization_id uuid references organizations(id) on delete set null,
+  owner_id        uuid references auth.users(id) on delete set null,
+  name            text not null default 'My assistant',
+  greeting        text not null default 'Hello, thanks for calling. How can I help?',
+  system_prompt   text not null default '',
+  voice_id        text not null default '',
+  language        text not null default 'en',
+  knowledge       jsonb not null default '{}'::jsonb,
+  routing         jsonb not null default '{}'::jsonb,  -- transfer, sms alerts, calendar access, stt
+  enabled         boolean not null default true,
+  deleted_at      timestamptz,
+  created_at      timestamptz not null default now()
 );
-create index if not exists assistants_business_idx on assistants (business_id);
-create index if not exists assistants_owner_idx on assistants (owner_id);
-create index if not exists assistants_active_idx on assistants (business_id) where deleted_at is null;
+create index if not exists assistants_business_idx     on assistants (business_id);
+create index if not exists assistants_organization_idx on assistants (organization_id);
+create index if not exists assistants_owner_idx        on assistants (owner_id);
+create index if not exists assistants_active_idx       on assistants (business_id) where deleted_at is null;
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Phone numbers the AI answers. Only the number + its Twilio info + the assistant
@@ -71,11 +96,20 @@ create index if not exists integrations_business_idx on integrations (business_i
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Calls — one row per phone call.
+--
+-- assistant_id + owner_id are denormalized onto each call: history for an
+-- assistant/user becomes a single indexed lookup instead of a 2-hop join through
+-- phone_numbers → assistants, and they snapshot who owned the call when it
+-- happened (immune to later number reassignment). Both stay nullable + ON DELETE
+-- SET NULL so deleting an assistant/user never deletes call history. They are
+-- populated automatically by the BEFORE INSERT/UPDATE trigger below.
 -- ─────────────────────────────────────────────────────────────────────────────
 create table if not exists calls (
   id                uuid primary key default gen_random_uuid(),
   business_id       uuid not null references businesses(id) on delete cascade,
   phone_number_id   uuid references phone_numbers(id) on delete set null,
+  assistant_id      uuid references assistants(id) on delete set null,
+  owner_id          uuid references auth.users(id) on delete set null,
   twilio_call_sid   text unique,
   from_number       text,
   to_number         text,
@@ -91,7 +125,44 @@ create table if not exists calls (
   median_latency_ms integer,
   created_at        timestamptz not null default now()
 );
-create index if not exists calls_business_idx on calls (business_id, started_at desc);
+create index if not exists calls_business_idx  on calls (business_id, started_at desc);
+create index if not exists calls_assistant_idx on calls (assistant_id, started_at desc);
+create index if not exists calls_owner_idx     on calls (owner_id, started_at desc);
+
+-- Resolve assistant_id (from the number) and owner_id (from the assistant, or the
+-- business owner as a fallback) whenever they are left unset on insert/update, so
+-- every insert path (call engine, test calls) fills them without app changes.
+create or replace function set_call_assignment()
+returns trigger
+language plpgsql
+as $$
+begin
+  if new.assistant_id is null and new.phone_number_id is not null then
+    select pn.assistant_id into new.assistant_id
+    from phone_numbers pn
+    where pn.id = new.phone_number_id;
+  end if;
+
+  if new.owner_id is null and new.assistant_id is not null then
+    select a.owner_id into new.owner_id
+    from assistants a
+    where a.id = new.assistant_id;
+  end if;
+
+  if new.owner_id is null and new.business_id is not null then
+    select b.owner_id into new.owner_id
+    from businesses b
+    where b.id = new.business_id;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists calls_set_assignment on calls;
+create trigger calls_set_assignment
+  before insert or update of phone_number_id, assistant_id on calls
+  for each row execute function set_call_assignment();
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Transcript turns — the running conversation, persisted live.
@@ -122,15 +193,39 @@ create table if not exists call_actions (
 );
 create index if not exists call_actions_call_idx on call_actions (call_id);
 
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Account settings — one row per user. Holds profile details (name, company,
+-- role, contact), an "about" blurb the user can choose to share with their AI
+-- assistants (so callers can be told who the owner is), and notification
+-- preferences. Billing lives in user_billing; this is everything else.
+-- ─────────────────────────────────────────────────────────────────────────────
+create table if not exists account_settings (
+  user_id                uuid primary key references auth.users(id) on delete cascade,
+  full_name              text not null default '',
+  company                text not null default '',
+  role                   text not null default '',
+  phone                  text not null default '',
+  timezone               text not null default '',
+  about                  text not null default '',     -- shared with assistants when enabled
+  share_with_assistants  boolean not null default true,
+  notify_email           boolean not null default true,
+  notify_email_address   text not null default '',
+  notify_sms             boolean not null default false,
+  notify_sms_number      text not null default '',
+  updated_at             timestamptz not null default now()
+);
+
 -- Enable RLS; the server uses the service role (bypasses RLS). Dashboard
 -- policies are added as auth is wired up.
-alter table businesses     enable row level security;
-alter table assistants     enable row level security;
-alter table phone_numbers  enable row level security;
-alter table integrations   enable row level security;
-alter table calls          enable row level security;
-alter table call_turns     enable row level security;
-alter table call_actions   enable row level security;
+alter table businesses       enable row level security;
+alter table organizations    enable row level security;
+alter table assistants       enable row level security;
+alter table phone_numbers    enable row level security;
+alter table integrations     enable row level security;
+alter table calls            enable row level security;
+alter table call_turns       enable row level security;
+alter table call_actions     enable row level security;
+alter table account_settings enable row level security;
 
 -- ============================================================================
 -- Stripe billing — subscription tracking + webhook idempotency. Self-contained.
