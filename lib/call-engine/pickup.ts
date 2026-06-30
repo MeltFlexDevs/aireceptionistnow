@@ -21,7 +21,10 @@ export interface ConnectParams {
 const STREAM_SIG_TTL_MS = 5 * 60_000;
 
 function streamPayload(callId: string, to: string, ts: string): string {
-  return `${callId}.${to}.${ts}`;
+  // "|" cannot appear in a UUID callId, an E.164 number, or a numeric timestamp,
+  // so it's an unambiguous separator — no field can bleed into the next and forge
+  // a colliding payload.
+  return `${callId}|${to}|${ts}`;
 }
 
 /** HMAC over the call-identifying stream params, so the media server can prove a

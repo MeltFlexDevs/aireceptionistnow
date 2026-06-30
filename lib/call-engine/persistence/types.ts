@@ -46,8 +46,13 @@ export interface CallRepository {
     patch: Partial<Pick<CallAction, "status" | "externalId" | "error">>,
   ): Promise<void>;
 
-  /** Load a finished call's transcript + config for post-call summarization. */
-  getCallForSummary(
-    callId: string,
-  ): Promise<{ config: NumberConfig; turns: TranscriptTurn[]; from: string } | null>;
+  /** Load a finished call's transcript, actions, and config for post-call
+   *  summarization. Actions (bookings/messages/transfers) let the recap state
+   *  what the assistant actually did, not just what was said. */
+  getCallForSummary(callId: string): Promise<{
+    config: NumberConfig;
+    turns: TranscriptTurn[];
+    actions: CallAction[];
+    from: string;
+  } | null>;
 }

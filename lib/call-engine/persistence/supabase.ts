@@ -216,9 +216,12 @@ export class SupabaseCallRepository implements CallRepository {
     if (error) throw error;
   }
 
-  async getCallForSummary(
-    callId: string,
-  ): Promise<{ config: NumberConfig; turns: TranscriptTurn[]; from: string } | null> {
+  async getCallForSummary(callId: string): Promise<{
+    config: NumberConfig;
+    turns: TranscriptTurn[];
+    actions: CallAction[];
+    from: string;
+  } | null> {
     const { data: call, error } = await db()
       .from("calls")
       .select("to_number, from_number")
@@ -236,6 +239,12 @@ export class SupabaseCallRepository implements CallRepository {
       .eq("call_id", callId)
       .order("id", { ascending: true });
 
+    const { data: actions } = await db()
+      .from("call_actions")
+      .select("type, status, external_id, payload, error")
+      .eq("call_id", callId)
+      .order("id", { ascending: true });
+
     return {
       config,
       from: String(call.from_number ?? ""),
@@ -243,6 +252,13 @@ export class SupabaseCallRepository implements CallRepository {
         role: t.role as TranscriptTurn["role"],
         text: String(t.text),
         tsMs: Number(t.ts_ms),
+      })),
+      actions: (actions ?? []).map((a) => ({
+        type: a.type as CallAction["type"],
+        status: a.status as CallAction["status"],
+        externalId: a.external_id ? String(a.external_id) : undefined,
+        payload: (a.payload as Record<string, unknown>) ?? {},
+        error: a.error ? String(a.error) : undefined,
       })),
     };
   }

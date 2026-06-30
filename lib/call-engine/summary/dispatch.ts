@@ -17,7 +17,7 @@ export async function runPostCall(
   try {
     const loaded = await repo.getCallForSummary(callId);
     if (!loaded) return null;
-    const summary = await summarizeCall(loaded.turns, loaded.config);
+    const summary = await summarizeCall(loaded.turns, loaded.config, loaded.actions);
     await repo.saveSummary(callId, summary);
 
     // Best-effort external deliveries — never let one break the others or the
