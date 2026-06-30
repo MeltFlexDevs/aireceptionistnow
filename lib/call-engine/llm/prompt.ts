@@ -19,9 +19,11 @@ const PROVIDER_LABELS: Record<string, string> = {
   apple: "Apple iCloud",
 };
 
-// Spells out, in plain language, what the AI may say about each connected
-// calendar. The busy-only tier is the privacy rule: it can tell a slot is taken
-// but must not reveal what's on it.
+// Spells out, in plain language, what the AI may do with each connected
+// calendar. Two capabilities: READ (availability only — check if a time is free,
+// never reveal what's on the calendar) and WRITE (also book). Read is the
+// privacy rule: the assistant may say a time is taken and offer free times, but
+// must never reveal who/what/why. Legacy "busy" entries map to read.
 function calendarSection(
   routing: Record<string, unknown>,
   integrations: IntegrationConfig[],
@@ -33,25 +35,29 @@ function calendarSection(
     const found = integrations.find((i) => i.id === id);
     return found ? PROVIDER_LABELS[found.provider] ?? found.provider : "a calendar";
   };
-  const names = (level: string) =>
-    access.filter((a) => a.level === level).map((a) => nameOf(a.integrationId));
 
-  const write = names("write");
-  const read = names("read");
-  const busy = names("busy");
+  const write = access.filter((a) => a.level === "write").map((a) => nameOf(a.integrationId));
+  // read + legacy "busy" both mean availability-only.
+  const read = access
+    .filter((a) => a.level === "read" || a.level === "busy")
+    .map((a) => nameOf(a.integrationId));
+
   const out: string[] = ["", "CALENDAR ACCESS:"];
   if (write.length) {
-    out.push(`- Book appointments on: ${write.join(", ")}. You may read and discuss these events.`);
-  }
-  if (read.length) {
-    out.push(`- You may read full event details from: ${read.join(", ")}.`);
-  }
-  if (busy.length) {
     out.push(
-      `- PRIVATE (conflict-check only): ${busy.join(", ")}.`,
-      "  Treat their busy times as simply unavailable. Never reveal who or what is scheduled on them — if a caller asks, say only that the time isn't available.",
+      `- Book appointments on: ${write.join(", ")} with book_appointment.`,
+      "  Always call check_availability first and only book a time you've confirmed is free.",
     );
   }
+  if (read.length) {
+    out.push(`- Check availability on (read-only, no booking): ${read.join(", ")}.`);
+  }
+  out.push(
+    "- AVAILABILITY IS PRIVATE. Use check_availability to see if a time is free, but",
+    "  NEVER say what is scheduled, who it's with, or why a time is taken — even if asked.",
+    "- If a time is unavailable, say only that it's unavailable and offer the nearest free",
+    '  times instead, e.g. "That time isn\'t available — I could do 2pm or 4pm." Never explain why.',
+  );
   return out;
 }
 

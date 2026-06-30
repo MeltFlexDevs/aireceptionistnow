@@ -2,19 +2,26 @@ import { getEnv } from "./env";
 import { buildSystemPrompt } from "./llm/prompt";
 import { selectLlm } from "./llm";
 import {
-  receptionistTools,
+  buildReceptionistTools,
   TOOL_BOOK,
+  TOOL_CHECK,
   TOOL_END,
   TOOL_MESSAGE,
   TOOL_TRANSFER,
 } from "./llm/tools";
-import type { LlmMessage, LlmProvider } from "./llm/types";
+import type { LlmMessage, LlmProvider, LlmTool } from "./llm/types";
 import { selectStt } from "./stt";
 import type { SttProvider, SttSession } from "./stt/types";
 import { openElevenLabsTts } from "./tts/elevenlabs";
 import type { TtsProvider, TtsSession } from "./tts/types";
 import { baseLanguage, bestVoiceForLanguage, isAutoLanguage } from "./voice/catalog";
-import { resolveCalendarById, resolveCalendarProvider } from "./integrations/registry";
+import {
+  resolveCalendarById,
+  resolveCalendarProvider,
+  resolveCalendarsForAccess,
+  type CalendarAccessEntry,
+} from "./integrations/registry";
+import { checkAvailability } from "./integrations/availability";
 import { redirectCall, sendSms } from "./telephony";
 import { runPostCall } from "./summary/dispatch";
 import type { CallRepository } from "./persistence/types";
@@ -53,6 +60,8 @@ export class CallSession {
   private readonly ttsProvider: TtsProvider;
   private readonly llm: LlmProvider;
   private readonly llmModel: string;
+  private readonly tools: LlmTool[];
+  private readonly calendarAccess: CalendarAccessEntry[];
   private readonly startedAt = Date.now();
 
   private messages: LlmMessage[] = [];
@@ -82,6 +91,11 @@ export class CallSession {
     const selected = selectLlm(llmName);
     this.llm = selected.provider;
     this.llmModel = selected.model;
+    this.calendarAccess =
+      (ctx.config.routing.calendar as { access?: CalendarAccessEntry[] })?.access ?? [];
+    this.tools = buildReceptionistTools({
+      canCheckAvailability: this.calendarAccess.length > 0,
+    });
     const sttName =
       (ctx.config.routing.sttProvider as string | undefined) ?? getEnv().STT_PROVIDER;
     const sttProvider: SttProvider = deps.stt ?? selectStt(sttName);
@@ -161,7 +175,7 @@ export class CallSession {
       model: this.llmModel,
       system: this.systemForTurn(),
       messages: this.messages,
-      tools: receptionistTools,
+      tools: this.tools,
       runTool: (name, input) => this.runTool(name, input),
       callbacks: {
         onTextDelta: (delta) => {
@@ -224,6 +238,8 @@ export class CallSession {
     input: Record<string, unknown>,
   ): Promise<string> {
     switch (name) {
+      case TOOL_CHECK:
+        return this.checkAvailability(input);
       case TOOL_BOOK:
         return this.bookAppointment(input);
       case TOOL_MESSAGE: {
@@ -260,6 +276,39 @@ export class CallSession {
       default:
         return `Unknown tool: ${name}`;
     }
+  }
+
+  /** Read-only availability check across every calendar this assistant may read.
+   *  Returns guidance the model speaks; it deliberately surfaces only free/busy
+   *  and free alternatives — never what is scheduled, who, or why. */
+  private async checkAvailability(input: Record<string, unknown>): Promise<string> {
+    const start = String(input.start_time ?? "");
+    const end = String(input.end_time ?? "");
+    if (!start || !end) {
+      return "I need a specific start and end time to check availability.";
+    }
+    const calendars = resolveCalendarsForAccess(
+      this.ctx.config.integrations,
+      this.calendarAccess,
+    );
+    const answer = await checkAvailability(calendars, start, end).catch((err) => {
+      console.error("[session] availability", err);
+      return null;
+    });
+    if (!answer || !answer.ok) {
+      return "I couldn't check the calendar right now. Offer to take a message or have someone confirm, without guessing whether the time is free.";
+    }
+    if (answer.requestedFree) {
+      return "That time is free. You can confirm it and book if the caller agrees.";
+    }
+    if (answer.alternatives.length === 0) {
+      return "That time isn't available, and there are no nearby openings. Say only that it's unavailable and offer to take a message. Never reveal what is scheduled or why.";
+    }
+    return (
+      "That time isn't available. Tell the caller only that the time is taken " +
+      "(never what is scheduled or why) and offer these free times instead, " +
+      `phrased naturally: ${answer.alternatives.join(", ")}.`
+    );
   }
 
   private async bookAppointment(input: Record<string, unknown>): Promise<string> {

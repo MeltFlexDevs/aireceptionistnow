@@ -99,8 +99,11 @@ export async function updateAssistantAction(formData: FormData): Promise<void> {
   const access: Array<{ integrationId: string; level: string }> = [];
   for (const c of calendars) {
     if (c.type !== "calendar") continue;
-    const level = String(formData.get(`cal_access_${c.id}`) ?? "none");
-    if (level === "busy" || level === "read" || level === "write") {
+    // Two capabilities: read (availability only) or write (also book). Legacy
+    // "busy" maps to read.
+    const raw = String(formData.get(`cal_access_${c.id}`) ?? "none");
+    const level = raw === "busy" ? "read" : raw;
+    if (level === "read" || level === "write") {
       access.push({ integrationId: c.id, level });
     }
   }

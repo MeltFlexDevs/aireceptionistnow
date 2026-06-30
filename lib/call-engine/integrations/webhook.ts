@@ -1,5 +1,10 @@
 import type { BookingRequest, BookingResult } from "../types";
-import type { CalendarFactory, CalendarProvider } from "./types";
+import type {
+  AvailabilityResult,
+  BusyInterval,
+  CalendarFactory,
+  CalendarProvider,
+} from "./types";
 
 // Generic "bring your own" adapter: POST the booking to a URL the user supplies.
 // This is the broad-compatibility path — point it at Zapier, Make, n8n, or a
@@ -43,6 +48,32 @@ export const createWebhookCalendar: CalendarFactory = (config): CalendarProvider
         // non-JSON 2xx is still a success
       }
       return { ok: true, externalId };
+    },
+
+    // Availability read: POST a freebusy request and expect { busy: [{start,end}] }.
+    // The endpoint owner decides how to source it (Zapier/Make/custom). If they
+    // don't support it, a non-2xx degrades the assistant to taking a message.
+    async getBusy(query): Promise<AvailabilityResult> {
+      if (!cfg.url) return { ok: false, busy: [], error: "no webhook url configured" };
+      const res = await fetch(cfg.url, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          ...(cfg.secret ? { "x-webhook-secret": cfg.secret } : {}),
+        },
+        body: JSON.stringify({
+          type: "freebusy",
+          timeMin: query.timeMin,
+          timeMax: query.timeMax,
+        }),
+      });
+      if (!res.ok) return { ok: false, busy: [], error: `webhook ${res.status}` };
+      try {
+        const json = (await res.json()) as { busy?: BusyInterval[] };
+        return { ok: true, busy: json.busy ?? [] };
+      } catch {
+        return { ok: true, busy: [] };
+      }
     },
   };
 };

@@ -1,5 +1,11 @@
 import type { BookingRequest, BookingResult } from "../types";
-import type { CalendarFactory, CalendarProvider } from "./types";
+import type {
+  AvailabilityQuery,
+  AvailabilityResult,
+  BusyInterval,
+  CalendarFactory,
+  CalendarProvider,
+} from "./types";
 
 // Google Calendar adapter. Config holds the user's OAuth credentials — an
 // access token (refreshed on 401 if a refresh token + client creds are present)
@@ -54,6 +60,20 @@ export const createGoogleCalendar: CalendarFactory = (config): CalendarProvider 
       },
     );
 
+  const freeBusy = (token: string, q: AvailabilityQuery) =>
+    fetch("https://www.googleapis.com/calendar/v3/freeBusy", {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${token}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        timeMin: q.timeMin,
+        timeMax: q.timeMax,
+        items: [{ id: cfg.calendar_id || "primary" }],
+      }),
+    });
+
   return {
     async createEvent(req): Promise<BookingResult> {
       let token = cfg.access_token ?? null;
@@ -66,6 +86,24 @@ export const createGoogleCalendar: CalendarFactory = (config): CalendarProvider 
       if (!res.ok) return { ok: false, error: `google calendar ${res.status}` };
       const json = (await res.json()) as { id?: string };
       return { ok: true, externalId: json.id };
+    },
+
+    async getBusy(q): Promise<AvailabilityResult> {
+      let token = cfg.access_token ?? null;
+      let res = token ? await freeBusy(token, q) : null;
+      if (!res || res.status === 401) {
+        token = await refreshAccessToken(cfg);
+        if (token) res = await freeBusy(token, q);
+      }
+      if (!res) return { ok: false, busy: [], error: "google calendar not authorized" };
+      if (!res.ok) return { ok: false, busy: [], error: `google calendar ${res.status}` };
+      const json = (await res.json()) as {
+        calendars?: Record<string, { busy?: BusyInterval[] }>;
+      };
+      const busy = Object.values(json.calendars ?? {}).flatMap(
+        (c) => c.busy ?? [],
+      );
+      return { ok: true, busy };
     },
   };
 };

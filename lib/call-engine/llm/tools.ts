@@ -9,8 +9,28 @@ export const TOOL_BOOK = "book_appointment";
 export const TOOL_MESSAGE = "take_message";
 export const TOOL_TRANSFER = "transfer_call";
 export const TOOL_END = "end_call";
+export const TOOL_CHECK = "check_availability";
 
-export const receptionistTools: LlmTool[] = [
+// Availability read. Offered only when the assistant has read or write calendar
+// access. It reports whether a slot is free and offers free alternatives — it
+// never returns what is scheduled, so the assistant can answer availability
+// without revealing private details.
+const availabilityTool: LlmTool = {
+  name: TOOL_CHECK,
+  description:
+    "Check whether the business is free at a specific time before offering or booking it. Use whenever the caller proposes a time or asks if a slot is open. Never state what is on the calendar — only whether the time is free and which other times are.",
+  parameters: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      start_time: { type: "string", description: "ISO 8601 start of the requested slot" },
+      end_time: { type: "string", description: "ISO 8601 end of the requested slot" },
+    },
+    required: ["start_time", "end_time"],
+  },
+};
+
+const baseTools: LlmTool[] = [
   {
     name: TOOL_BOOK,
     description:
@@ -73,3 +93,9 @@ export const receptionistTools: LlmTool[] = [
     },
   },
 ];
+
+/** The tool set for a call. check_availability is added only when the assistant
+ *  has read/write access to at least one calendar. */
+export function buildReceptionistTools(opts: { canCheckAvailability: boolean }): LlmTool[] {
+  return opts.canCheckAvailability ? [...baseTools, availabilityTool] : baseTools;
+}

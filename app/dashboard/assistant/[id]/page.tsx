@@ -58,7 +58,10 @@ export default async function AssistantSettingsPage({
   const calAccess =
     (assistant.routing as { calendar?: { access?: Array<{ integrationId: string; level: string }> } })
       ?.calendar?.access ?? [];
-  const accessMap = new Map(calAccess.map((a) => [a.integrationId, a.level]));
+  // Legacy "busy" tier now displays as read (availability only).
+  const accessMap = new Map(
+    calAccess.map((a) => [a.integrationId, a.level === "busy" ? "read" : a.level]),
+  );
 
   let calendars: Awaited<ReturnType<typeof listIntegrations>> = [];
   try {
@@ -238,7 +241,7 @@ export default async function AssistantSettingsPage({
               </div>
             </SectionCard>
 
-            <SectionCard title="Calendar access" subtitle="Which connected calendars this assistant can use, and how.">
+            <SectionCard title="Calendar access" subtitle="Read = check availability only (details stay private). Write = also book here.">
               {calendars.length === 0 ? (
                 <p className="text-sm text-neutral-500">
                   No calendars connected yet.{" "}
@@ -257,8 +260,7 @@ export default async function AssistantSettingsPage({
                           className="shrink-0 rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-sm text-neutral-900 outline-none focus:border-neutral-900"
                         >
                           <option value="none">No access</option>
-                          <option value="busy">Busy only (hide details)</option>
-                          <option value="read">Read details</option>
+                          <option value="read">Read availability (hide details)</option>
                           <option value="write">Write &amp; book here</option>
                         </select>
                       </div>

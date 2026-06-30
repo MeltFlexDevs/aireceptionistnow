@@ -89,10 +89,35 @@ Mid-conversation the model can call these (declared once, provider-neutral, in
 [tools.ts](../lib/call-engine/llm/tools.ts); executed in
 [session.ts](../lib/call-engine/session.ts) `runTool`):
 
+- `check_availability` → read free/busy across the assistant's readable calendars
+  (offered only when it has read/write calendar access — see below)
 - `book_appointment` → calendar adapter (Google / Cal.com / Outlook / webhook)
 - `take_message` → stored + optional SMS alert to the owner
 - `transfer_call` → live Twilio `<Dial>` redirect to a human
 - `end_call` → wrap up and hang up
+
+### Calendar access: read vs write (per assistant)
+
+Each assistant is granted access **per connected calendar**, set on its settings
+page and stored in `routing.calendar.access[{integrationId, level}]`:
+
+- **Read** — availability only. The assistant can call `check_availability` to
+  see if a time is free, but it **never reveals what is on the calendar** (who,
+  what, or why). When a time is taken it says only that it's unavailable and
+  offers the nearest free times: *"That time isn't available — I could do 2pm or
+  4pm."* Read works across **all** the calendars granted read, so conflicts from
+  every calendar are respected.
+- **Write** — everything read does, plus `book_appointment` to create events on
+  that calendar.
+- **None** — the calendar is ignored.
+
+The privacy guarantee is enforced in two places: the availability layer
+([integrations/availability.ts](../lib/call-engine/integrations/availability.ts))
+returns **only free times**, never busy details — and the system prompt
+([llm/prompt.ts](../lib/call-engine/llm/prompt.ts) `calendarSection`) instructs
+the model to never say what's scheduled or why. Free/busy is read via each
+adapter's optional `getBusy` (Google free/busy + the generic webhook today;
+adapters without it degrade to taking a message rather than guessing).
 
 ## Security model
 
