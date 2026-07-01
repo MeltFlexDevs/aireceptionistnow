@@ -44,7 +44,12 @@ async function requireAssistantOwner(assistantId: string): Promise<void> {
   const assistant = assistantId
     ? await getAssistant(assistantId).catch(() => null)
     : null;
-  if (!ownerId || !assistant || (assistant.owner_id && assistant.owner_id !== ownerId)) {
+  // Block only a genuine cross-tenant access: an OWNED assistant whose owner
+  // isn't the current user. An unowned assistant (owner_id null — created when no
+  // session resolved) is treated as single-tenant and allowed, matching the
+  // "ownership isn't enforced when auth is effectively off" intent above. This
+  // avoids locking the sole operator out of their own unowned assistants.
+  if (!assistant || (assistant.owner_id && assistant.owner_id !== ownerId)) {
     redirect(`/dashboard/assistant?error=${encodeURIComponent("Not authorized.")}`);
   }
 }

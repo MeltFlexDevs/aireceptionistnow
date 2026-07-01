@@ -15,11 +15,18 @@ import { MAX_SOURCE_CHARS, type AssistantKnowledge } from "../../knowledge/sourc
 // an assistant is created or edited; deleteAssistantAgent tears it down.
 
 // Agent LLM: Gemini flash, matching the backend enrichment model — low latency,
-// multilingual, good enough for reception. TTS: the multilingual flash model so
-// one voice can speak the caller's language (the init webhook localizes greeting
-// + swaps to a native voice per caller country).
+// multilingual, good enough for reception.
 const AGENT_LLM = "gemini-2.5-flash";
-const TTS_MODEL = "eleven_flash_v2_5";
+
+// TTS model. Both are multilingual, so one voice can speak the caller's language
+// (the init webhook localizes the greeting + swaps to a native voice per caller
+// country). ElevenLabs enforces "English agents must use turbo or flash v2", so
+// an English/auto base language must use the turbo v2.5 model (still
+// multilingual); non-English bases use flash v2.5. Picking flash_v2_5 for an
+// English agent is rejected with a 400.
+function ttsModelFor(baseLang: string): ElevenLabs.TtsConversationalModel {
+  return baseLang === "en" ? "eleven_turbo_v2_5" : "eleven_flash_v2_5";
+}
 const DEFAULT_GREETING = "Hello, thanks for calling. How can I help?";
 const DEFAULT_VOICE_ID = "21m00Tcm4TlvDq8ikWAM"; // ElevenLabs "Rachel"
 // Cap how many knowledge docs we push per agent so a runaway source list can't
@@ -128,10 +135,11 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
 
   const { docs, locators } = await uploadKnowledge(assistant, knowledge);
 
+  const language = baseLanguage(assistant.language);
   const conversationConfig: ElevenLabs.ConversationalConfig = {
     agent: {
       firstMessage: (assistant.greeting ?? "").trim() || DEFAULT_GREETING,
-      language: baseLanguage(assistant.language),
+      language,
       prompt: {
         prompt: composeSystemPrompt(assistant, businessName),
         llm: AGENT_LLM,
@@ -140,7 +148,7 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
     },
     tts: {
       voiceId: (assistant.voice_id ?? "").trim() || DEFAULT_VOICE_ID,
-      modelId: TTS_MODEL,
+      modelId: ttsModelFor(language),
     },
   };
 
