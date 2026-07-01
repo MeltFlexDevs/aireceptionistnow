@@ -9,6 +9,7 @@ import {
   getAssistant,
   getNumber,
   setNumberAssistant,
+  setNumberElevenLabsId,
   updateNumber,
 } from "@/lib/dashboard/db";
 import {
@@ -97,7 +98,13 @@ export async function setAssistantAction(formData: FormData): Promise<void> {
         ]);
         const agentId =
           assistant?.elevenlabs_agent_id ?? (await syncAssistantAgent(assistantId));
-        if (number?.e164) await routeNumberToAgent(number.e164, agentId ?? undefined);
+        if (number?.e164) {
+          const elevenLabsPhoneNumberId = await routeNumberToAgent(
+            number.e164,
+            agentId ?? undefined,
+          );
+          await setNumberElevenLabsId(id, elevenLabsPhoneNumberId);
+        }
       }
     } catch (err) {
       console.error("[numbers] assign assistant/agent failed", err);

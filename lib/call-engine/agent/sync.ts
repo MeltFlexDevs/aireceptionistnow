@@ -4,10 +4,12 @@ import {
   getAssistantSyncContext,
   setAssistantAgent,
   type AgentKbDoc,
+  type AgentTool,
   type Assistant,
 } from "../../dashboard/db";
 import { MAX_SOURCE_CHARS, type AssistantKnowledge } from "../../knowledge/sources";
 import { SUPPORTED_LANGUAGES } from "../voice/phone-language";
+import { buildBuiltInTools, createAgentTools, deleteAgentTools } from "./tools";
 
 // Sync a dashboard assistant to a managed ElevenLabs Conversational AI agent.
 // The agent IS the caller-facing runtime (voice + LLM + turn-taking); we build
@@ -55,23 +57,55 @@ function baseLanguage(code: string): string {
 /** The agent's system prompt: business persona + the assistant's own
  *  instructions + light routing guidance. Knowledge lives in the attached
  *  knowledge base (retrieved on demand), so it isn't dumped here. */
-function composeSystemPrompt(assistant: Assistant, businessName: string): string {
+/** Build the agent's system prompt. `hasServerTools` says whether the webhook
+ *  server tools (check_availability / book_appointment / take_message) were
+ *  actually attached this sync — the prompt must not advertise tools the agent
+ *  doesn't have (e.g. when APP_BASE_URL/AGENT_WEBHOOK_SECRET are unset), or it
+ *  will promise actions it can't take and silently drop them. */
+function composeSystemPrompt(
+  assistant: Assistant,
+  businessName: string,
+  hasServerTools: boolean,
+): string {
   const parts: string[] = [
-    `You are the AI receptionist for ${businessName}. You answer inbound phone calls: be warm, concise, and natural, like a great front-desk person.`,
+    `You are the AI receptionist for ${businessName}. You answer inbound phone calls: be warm, concise, and natural, like a great front-desk person. Keep answers to a sentence or two and let the caller guide you on where to go deeper.`,
   ];
   const own = (assistant.system_prompt ?? "").trim();
   if (own) parts.push(own);
 
-  const routing = (assistant.routing ?? {}) as { transferTo?: unknown };
+  const routing = (assistant.routing ?? {}) as {
+    transferTo?: unknown;
+    calendar?: { access?: unknown[] };
+  };
   const transferTo = typeof routing.transferTo === "string" ? routing.transferTo : "";
-  if (transferTo) {
+  const hasCalendar =
+    Array.isArray(routing.calendar?.access) && routing.calendar!.access!.length > 0;
+
+  // Only describe a tool when it's actually wired. Scheduling + take_message are
+  // webhook tools (gated on hasServerTools); transfer + end_call are built-in and
+  // always present (transfer only when a target is configured).
+  if (hasServerTools && hasCalendar) {
     parts.push(
-      `If the caller needs a human or asks to be transferred, transfer the call to ${transferTo}.`,
+      "You can schedule appointments. Use check_availability to confirm a time is free before offering or booking it, then use book_appointment once the caller agrees. Never reveal what else is on the calendar or why a slot is taken — only whether it's free.",
     );
   }
+  if (transferTo) {
+    parts.push(
+      "If the caller needs a human, asks to be transferred, or has a request beyond what you can handle, use transfer_to_number to hand off.",
+    );
+  }
+  if (hasServerTools) {
+    parts.push(
+      "When you can't resolve a request, when the caller wants a callback, or when no other tool fits, use take_message to record it.",
+    );
+  }
+  parts.push("End the call with end_call once the caller is done and satisfied.");
 
+  const fallback = hasServerTools
+    ? "offer to take a message"
+    : "offer to have someone from the team follow up";
   parts.push(
-    "Use the knowledge base to answer questions about the business. If you don't know something, say so honestly and offer to take a message.",
+    `Use the knowledge base to answer questions about the business. If you don't know something, say so honestly and ${fallback} rather than making something up.`,
   );
   return parts.join("\n\n");
 }
@@ -159,11 +193,16 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
 
   const { docs, locators } = await uploadKnowledge(assistant, knowledge);
 
+  // The receptionist's actions: standalone webhook tools (referenced by id) +
+  // inline built-in system tools. Both are built from the assistant's settings.
+  const { toolIds, tools } = await createAgentTools(assistant);
+  const builtInTools = buildBuiltInTools(assistant);
+
   // Clamp the base to a language ElevenLabs supports (unsupported → English).
   const rawLanguage = baseLanguage(assistant.language);
   const language = ELEVENLABS_LANGUAGES.has(rawLanguage) ? rawLanguage : "en";
   const firstMessage = (assistant.greeting ?? "").trim() || DEFAULT_GREETING;
-  const systemPrompt = composeSystemPrompt(assistant, businessName);
+  const systemPrompt = composeSystemPrompt(assistant, businessName, toolIds.length > 0);
   const voiceId = (assistant.voice_id ?? "").trim() || DEFAULT_VOICE_ID;
 
   // Additional languages: every language we can greet a caller in, except the
@@ -175,11 +214,22 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
   const languagePresets: Record<string, ElevenLabs.LanguagePresetOutput> = {};
   for (const l of extraLanguages) languagePresets[l] = { overrides: {} };
 
+  // Typed as the Output prompt variant because that's what ConversationalConfig
+  // (agents.create/update) expects; the fields we set are identical across
+  // Input/Output — it's a shared-schema label difference, not a runtime one.
+  const promptConfig: ElevenLabs.PromptAgentApiModelOutput = {
+    prompt: systemPrompt,
+    llm: AGENT_LLM,
+    knowledgeBase: locators,
+    toolIds,
+    builtInTools,
+  };
+
   const multilingualConfig: ElevenLabs.ConversationalConfig = {
     agent: {
       firstMessage,
       language,
-      prompt: { prompt: systemPrompt, llm: AGENT_LLM, knowledgeBase: locators },
+      prompt: promptConfig,
     },
     tts: { voiceId, modelId: TTS_MODEL_MULTILINGUAL },
     languagePresets,
@@ -191,7 +241,7 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
     agent: {
       firstMessage,
       language: "en",
-      prompt: { prompt: systemPrompt, llm: AGENT_LLM, knowledgeBase: locators },
+      prompt: promptConfig,
     },
     tts: { voiceId, modelId: TTS_MODEL_ENGLISH },
   };
@@ -240,17 +290,26 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
       agentId = await write(englishConfig);
     }
   } catch (err) {
-    // Roll back the just-uploaded docs so a failed create/update doesn't orphan
-    // knowledge base entries, then surface the error to the caller.
+    // Roll back the just-created docs + tools so a failed create/update doesn't
+    // orphan knowledge base or tool objects, then surface the error to the caller.
     await deleteKnowledge(docs);
+    await deleteAgentTools(tools);
     throw err;
   }
 
-  // Agent is now pointed at the fresh docs — safe to remove the previous set.
-  const stale = assistant.elevenlabs_kb ?? [];
-  if (stale.length) await deleteKnowledge(stale);
+  // Persist the new agent id + fresh doc/tool refs BEFORE deleting the previous
+  // sets. If the DB write fails, we'd rather leave the stale objects in place (the
+  // row still references them) than delete objects the row still points at — and
+  // on a first-ever sync this ensures the brand-new agent id is saved so a retry
+  // reuses it instead of creating a duplicate agent.
+  await setAssistantAgent(assistantId, agentId, docs, tools);
 
-  await setAssistantAgent(assistantId, agentId, docs);
+  // Row now points at the fresh docs + tools — safe to remove the previous sets.
+  const staleDocs = assistant.elevenlabs_kb ?? [];
+  if (staleDocs.length) await deleteKnowledge(staleDocs);
+  const staleTools = assistant.elevenlabs_tools ?? [];
+  if (staleTools.length) await deleteAgentTools(staleTools);
+
   return agentId;
 }
 
@@ -262,6 +321,7 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
 export async function deleteAssistantAgent(assistant: {
   elevenlabs_agent_id: string | null;
   elevenlabs_kb?: AgentKbDoc[];
+  elevenlabs_tools?: AgentTool[];
 }): Promise<void> {
   const client = elevenClient();
   if (assistant.elevenlabs_agent_id) {
@@ -271,5 +331,8 @@ export async function deleteAssistantAgent(assistant: {
       console.error("[agent-sync] agent delete failed", assistant.elevenlabs_agent_id, err);
     }
   }
+  // Detach + delete the standalone tool objects before/after the agent is gone;
+  // force so a lingering agent reference doesn't block the delete.
+  if (assistant.elevenlabs_tools?.length) await deleteAgentTools(assistant.elevenlabs_tools);
   if (assistant.elevenlabs_kb?.length) await deleteKnowledge(assistant.elevenlabs_kb);
 }

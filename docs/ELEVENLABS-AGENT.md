@@ -51,21 +51,25 @@ Each dashboard **assistant** owns a managed ElevenLabs agent, built from its DB 
 
 Legacy `ELEVENLABS_AGENT_ID` is now only used for the outbound "Talk to our AI" demo button.
 
-### 2b. Connect the number
+### 2b. Connect the number (with pool reuse)
 
-- In our dashboard, open the assistant → **Get number** (buys + imports + assigns in one click) or connect an existing number to the assistant. This assigns **that assistant's** managed agent as the number's inbound agent and records it. Inbound calls now answer via ElevenLabs with the assistant's config.
+- In our dashboard, open the assistant → **Get number**. This **reuses a free number from the shared pool first** and only **buys a new Twilio number when the pool has none** (`claimFreeNumber` → else `buyTwilioNumber`), then imports it into ElevenLabs and assigns **that assistant's** managed agent as the number's inbound agent. The imported ElevenLabs phone-number id is stored on the row (`phone_numbers.elevenlabs_phone_number_id`) so later reassigns don't re-scan.
+- Deleting an assistant returns its numbers to the pool (`freeAssistantNumbers` unlinks, keeps them on Twilio) so the next assistant recycles them instead of buying.
+- You can also connect an existing number to an assistant from the numbers page; same import + assign + record path.
 
-### 3. Server tools
+### 3. Server + system tools (wired automatically)
 
-Add one **server tool (webhook)** per action on the agent. Method `POST`, the URL below, and a secret header `x-agent-secret: <AGENT_WEBHOOK_SECRET>` (or `Authorization: Bearer <AGENT_WEBHOOK_SECRET>`).
+The agent's tools are attached **automatically by `syncAssistantAgent`** (`lib/call-engine/agent/tools.ts`) from the assistant's settings — no manual dashboard tool setup. On every create/edit the sync creates standalone ElevenLabs tool objects (tracked in `assistants.elevenlabs_tools`, cleaned up on re-sync/delete) and references them via `prompt.toolIds`, plus inline built-in system tools via `prompt.builtInTools`.
 
-| Tool name | URL | Params (besides the shared 3) |
-|---|---|---|
-| `check_availability` | `${APP_BASE_URL}/api/agent/check-availability` | `start_time`, `end_time` (ISO 8601) |
-| `book_appointment` | `${APP_BASE_URL}/api/agent/book-appointment` | `title`, `start_time`, `end_time`, `attendee_name?`, `attendee_phone?`, `notes?` |
-| `take_message` | `${APP_BASE_URL}/api/agent/take-message` | `caller_name?`, `callback_number?`, `message`, `urgency?` |
+**Webhook (server) tools** — `POST` to the URLs below with header `x-agent-secret: <AGENT_WEBHOOK_SECRET>`:
 
-**Shared 3 fields every tool must send** — wire to ElevenLabs system dynamic variables:
+| Tool name | URL | Params (besides the shared 3) | Offered when |
+|---|---|---|---|
+| `check_availability` | `${APP_BASE_URL}/api/agent/check-availability` | `start_time`, `end_time` (ISO 8601) | calendar access granted |
+| `book_appointment` | `${APP_BASE_URL}/api/agent/book-appointment` | `title`, `start_time`, `end_time`, `attendee_name?`, `attendee_phone?`, `notes?` | calendar access granted |
+| `take_message` | `${APP_BASE_URL}/api/agent/take-message` | `caller_name?`, `callback_number?`, `message`, `urgency?` | always |
+
+**Shared 3 fields** — auto-populated from ElevenLabs system dynamic variables in each tool's body schema:
 
 ```
 to_number       = {{system__called_number}}     # resolves which business/assistant config
@@ -73,7 +77,7 @@ from_number     = {{system__caller_id}}
 conversation_id = {{system__conversation_id}}    # links tool calls + transcript to one call row
 ```
 
-Transfers: use ElevenLabs' native transfer-to-number tool — no webhook needed.
+**Built-in system tools** (via `builtInTools`): `end_call` (always), `voicemail_detection` + `language_detection` (always), `transfer_to_number` (only when the assistant has a transfer target in `routing.transferTo`).
 
 ### 4. Post-call webhook
 

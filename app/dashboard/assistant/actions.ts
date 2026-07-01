@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
+  claimFreeNumber,
   createAssistant,
   createNumber,
   deleteAssistant,
@@ -12,6 +13,7 @@ import {
   getAssistantNumber,
   listIntegrations,
   setNumberAssistant,
+  setNumberElevenLabsId,
   updateAssistant,
 } from "@/lib/dashboard/db";
 import { readKnowledge } from "@/lib/knowledge/sources";
@@ -193,11 +195,13 @@ export async function deleteAssistantAction(formData: FormData): Promise<void> {
   const existing = await getAssistant(id).catch(() => null);
 
   try {
-    // Unlink this assistant's numbers so they can be reconnected elsewhere, then
-    // soft-delete the assistant. Surface any failure instead of silently
-    // reporting success on a partial delete.
-    await freeAssistantNumbers(id);
+    // Soft-delete the assistant FIRST, then return its numbers to the shared pool.
+    // If the delete fails, the numbers stay linked — never expose a still-live
+    // assistant's numbers to the pool, where another assistant could claim and
+    // re-route them away. Surface any failure instead of reporting a partial
+    // delete as success.
     await deleteAssistant(id);
+    await freeAssistantNumbers(id);
   } catch (err) {
     redirect(`/dashboard/assistant/${id}?error=${encodeURIComponent((err as Error).message)}`);
   }
@@ -217,10 +221,13 @@ export async function deleteAssistantAction(formData: FormData): Promise<void> {
 // ── Phone number for an assistant ───────────────────────────────────────────
 
 /**
- * "Get number": provision a fresh number end to end — buy it from Twilio, import
- * it into ElevenLabs, assign the inbound agent, and record it against the
- * assistant. One click, fully serverless (ElevenLabs runs the call). Needs valid
- * Twilio credentials (the status badge shows whether they authenticate).
+ * "Get number": give this assistant a working phone line end to end. Reuses a
+ * spare number from the shared pool when one is free, and only buys a brand-new
+ * Twilio number when the pool has none — so freed numbers get recycled instead of
+ * racking up Twilio charges. Either way the number is imported into ElevenLabs and
+ * this assistant's managed agent is assigned as its inbound agent, so callers
+ * reach this assistant's config. One click, fully serverless (ElevenLabs runs the
+ * call). Buying a new number needs valid Twilio credentials.
  */
 export async function getAgentNumberAction(formData: FormData): Promise<void> {
   const assistantId = String(formData.get("assistant_id") ?? "");
@@ -228,21 +235,56 @@ export async function getAgentNumberAction(formData: FormData): Promise<void> {
   if (!assistantId) redirect("/dashboard/assistant");
   await requireAssistantOwner(assistantId);
 
+  // Idempotency: if this assistant already has a number, don't attach a second
+  // one — a double-click, a retry, or a concurrent submit would otherwise
+  // double-consume the pool or double-buy from Twilio. Checked BEFORE the try so
+  // its redirect (NEXT_REDIRECT) isn't swallowed by the catch.
+  const existingNumber = await getAssistantNumber(assistantId).catch(() => null);
+  if (existingNumber) {
+    revalidatePath(`/dashboard/assistant/${assistantId}`);
+    redirect(`/dashboard/assistant/${assistantId}?saved=1`);
+  }
+
   const allowance = await canAssignNumber(await currentUserId());
   if (!allowance.ok) {
     redirect(`/dashboard/assistant/${assistantId}?notice=${encodeURIComponent(allowance.reason ?? "")}`);
   }
 
   try {
-    // Make sure this assistant has its managed agent, then buy without our
-    // webhook (the ElevenLabs import takes over routing) and assign THAT agent as
-    // the number's inbound agent — so the caller reaches this assistant's config.
+    // Make sure this assistant has its managed agent before we point a number at it.
     const assistant = await getAssistant(assistantId);
     const agentId =
       assistant?.elevenlabs_agent_id ?? (await syncAssistantAgent(assistantId));
-    const bought = await buyTwilioNumber({ country }, { configureWebhook: false });
-    await routeNumberToAgent(bought.e164, agentId ?? undefined);
-    await createNumber({ e164: bought.e164, twilioSid: bought.sid, assistantId });
+
+    // 1) Reuse first: atomically claim a free pooled number if one exists. Only
+    //    when the pool is empty do we buy a new one from Twilio (without our
+    //    webhook — the ElevenLabs import owns routing once assigned).
+    let numberId: string;
+    let e164: string;
+    const claimed = await claimFreeNumber(assistantId);
+    if (claimed) {
+      numberId = claimed.id;
+      e164 = claimed.e164;
+    } else {
+      const bought = await buyTwilioNumber({ country }, { configureWebhook: false });
+      numberId = await createNumber({ e164: bought.e164, twilioSid: bought.sid, assistantId });
+      e164 = bought.e164;
+    }
+
+    // 2) Import into ElevenLabs (if needed) + assign THIS assistant's agent, then
+    //    record the ElevenLabs phone-number id. If routing fails, unlink the number
+    //    so it returns to the shared pool instead of being stranded attached-but-
+    //    unrouted (which would falsely show as "connected" while calls fail, and
+    //    drain the pool). A retry then reuses the very same number.
+    try {
+      const elevenLabsPhoneNumberId = await routeNumberToAgent(e164, agentId ?? undefined);
+      await setNumberElevenLabsId(numberId, elevenLabsPhoneNumberId);
+    } catch (routeErr) {
+      await setNumberAssistant(numberId, null).catch((e) =>
+        console.error("[assistant] release number after route failure", e),
+      );
+      throw routeErr;
+    }
   } catch (err) {
     redirect(`/dashboard/assistant/${assistantId}?error=${encodeURIComponent((err as Error).message)}`);
   }

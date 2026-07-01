@@ -29,6 +29,8 @@ export interface PhoneNumber {
   id: string;
   e164: string;
   twilio_sid: string | null;
+  /** The id ElevenLabs gives the number once imported; used to reassign/route it. */
+  elevenlabs_phone_number_id: string | null;
   enabled: boolean;
   assistant_id: string | null;
   created_at: string;
@@ -200,10 +202,20 @@ export interface Assistant {
   elevenlabs_agent_id: string | null;
   /** Knowledge-base docs we uploaded for this agent, tracked for re-sync cleanup. */
   elevenlabs_kb: AgentKbDoc[];
+  /** Standalone ElevenLabs tool objects we created for this agent (webhook server
+   *  tools), tracked so a re-sync can delete the previous set and a delete can
+   *  tear them down. Empty until the first sync that attaches tools. */
+  elevenlabs_tools: AgentTool[];
 }
 
 /** One ElevenLabs knowledge-base document we own on behalf of an assistant. */
 export interface AgentKbDoc {
+  id: string;
+  name: string;
+}
+
+/** One standalone ElevenLabs tool object we own on behalf of an assistant. */
+export interface AgentTool {
   id: string;
   name: string;
 }
@@ -303,16 +315,17 @@ export async function deleteAssistant(id: string): Promise<void> {
   if (error) throw error;
 }
 
-/** Record the managed ElevenLabs agent (and its uploaded KB docs) for an
- *  assistant after a sync. Passing null clears the link. */
+/** Record the managed ElevenLabs agent (its uploaded KB docs + created tool
+ *  objects) for an assistant after a sync. Passing null agentId clears the link. */
 export async function setAssistantAgent(
   id: string,
   agentId: string | null,
   kb: AgentKbDoc[],
+  tools: AgentTool[] = [],
 ): Promise<void> {
   const { error } = await db()
     .from("assistants")
-    .update({ elevenlabs_agent_id: agentId, elevenlabs_kb: kb })
+    .update({ elevenlabs_agent_id: agentId, elevenlabs_kb: kb, elevenlabs_tools: tools })
     .eq("id", id);
   if (error) throw error;
 }
@@ -446,6 +459,20 @@ export async function setNumberAssistant(
   const { error } = await db()
     .from("phone_numbers")
     .update({ assistant_id: assistantId })
+    .eq("id", numberId);
+  if (error) throw error;
+}
+
+/** Record the ElevenLabs phone-number id a Twilio number was imported as, so the
+ *  connect/reassign path can address it directly instead of re-scanning. */
+export async function setNumberElevenLabsId(
+  numberId: string,
+  elevenLabsPhoneNumberId: string,
+): Promise<void> {
+  if (!elevenLabsPhoneNumberId) return;
+  const { error } = await db()
+    .from("phone_numbers")
+    .update({ elevenlabs_phone_number_id: elevenLabsPhoneNumberId })
     .eq("id", numberId);
   if (error) throw error;
 }
