@@ -28,6 +28,15 @@ const AGENT_LLM = "gemini-2.5-flash";
 // English-only agent so the save still succeeds.
 const TTS_MODEL_MULTILINGUAL = "eleven_flash_v2_5";
 const TTS_MODEL_ENGLISH = "eleven_flash_v2";
+
+// Languages ElevenLabs accepts as agent language / preset "additional language".
+// Sourced from the API's own validation error; anything outside this set (e.g.
+// sl, th, he) is rejected with a 422, so we filter our served languages to it.
+const ELEVENLABS_LANGUAGES = new Set<string>([
+  "en", "zh", "es", "hi", "pt", "fr", "de", "ja", "ar", "ko", "id", "it", "nl",
+  "tr", "pl", "ru", "sv", "tl", "ms", "ro", "uk", "el", "cs", "da", "fi", "bg",
+  "hr", "sk", "ta", "vi", "no", "hu", "pt-br", "fil",
+]);
 const DEFAULT_GREETING = "Hello, thanks for calling. How can I help?";
 const DEFAULT_VOICE_ID = "21m00Tcm4TlvDq8ikWAM"; // ElevenLabs "Rachel"
 // Cap how many knowledge docs we push per agent so a runaway source list can't
@@ -150,7 +159,9 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
 
   const { docs, locators } = await uploadKnowledge(assistant, knowledge);
 
-  const language = baseLanguage(assistant.language);
+  // Clamp the base to a language ElevenLabs supports (unsupported → English).
+  const rawLanguage = baseLanguage(assistant.language);
+  const language = ELEVENLABS_LANGUAGES.has(rawLanguage) ? rawLanguage : "en";
   const firstMessage = (assistant.greeting ?? "").trim() || DEFAULT_GREETING;
   const systemPrompt = composeSystemPrompt(assistant, businessName);
   const voiceId = (assistant.voice_id ?? "").trim() || DEFAULT_VOICE_ID;
@@ -158,7 +169,9 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
   // Additional languages: every language we can greet a caller in, except the
   // base. Their presence makes the agent multilingual — which is what lets it use
   // the multilingual model AND accept the per-caller language override.
-  const extraLanguages = SUPPORTED_LANGUAGES.filter((l) => l !== language);
+  const extraLanguages = SUPPORTED_LANGUAGES.filter(
+    (l) => l !== language && ELEVENLABS_LANGUAGES.has(l),
+  );
   const languagePresets: Record<string, ElevenLabs.LanguagePresetOutput> = {};
   for (const l of extraLanguages) languagePresets[l] = { overrides: {} };
 
