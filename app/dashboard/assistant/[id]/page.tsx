@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getAssistant, getAssistantNumber, listIntegrations } from "@/lib/dashboard/db";
+import { getTwilioStatus } from "@/lib/dashboard/twilio";
 import { getOrganization } from "@/lib/dashboard/organizations";
 import { currentUserId } from "@/lib/auth";
 import { SectionCard } from "../../components/SectionCard";
@@ -67,6 +68,7 @@ export default async function AssistantSettingsPage({
   }
 
   const number = await getAssistantNumber(assistant.id).catch(() => null);
+  const twilio = await getTwilioStatus();
 
   return (
     <div className="space-y-6">
@@ -94,6 +96,28 @@ export default async function AssistantSettingsPage({
       )}
 
       <SectionCard title="Phone number" subtitle="The number callers dial to reach this assistant.">
+        <div
+          className={`mb-4 flex items-center gap-2 rounded-lg border px-3 py-2 ${
+            twilio.ok
+              ? "border-emerald-200 bg-emerald-50"
+              : "border-rose-200 bg-rose-50"
+          }`}
+        >
+          <span
+            className={`inline-flex h-2 w-2 shrink-0 rounded-full ${
+              twilio.ok ? "bg-emerald-500" : "bg-rose-500"
+            }`}
+          />
+          <span
+            className={`text-xs font-medium ${
+              twilio.ok ? "text-emerald-700" : "text-rose-600"
+            }`}
+          >
+            {twilio.ok
+              ? "Twilio integration connected"
+              : `Twilio integration: ${twilio.error ?? "not connected"}`}
+          </span>
+        </div>
         {number ? (
           <div className="flex items-center justify-between gap-3">
             <div>
@@ -127,8 +151,10 @@ export default async function AssistantSettingsPage({
               </button>
             </form>
             <p className="text-xs text-neutral-400 sm:pb-6">
-              Import the number into ElevenLabs (Phone Numbers) first. We route its
-              inbound calls to this assistant — no server needed.
+              Enter a Twilio number you own — we import it into ElevenLabs and route
+              its inbound calls to this assistant. No server needed.
+              {!twilio.ok &&
+                " Twilio credentials look invalid, so importing a new number will fail; only numbers already in ElevenLabs can be connected."}
             </p>
           </div>
         )}

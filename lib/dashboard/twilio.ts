@@ -28,6 +28,46 @@ export interface BoughtNumber {
   sid: string;
 }
 
+export interface TwilioStatus {
+  configured: boolean;
+  ok: boolean;
+  error?: string;
+}
+
+/**
+ * Live health check of the Twilio integration for the dashboard badge: are creds
+ * present, and do they actually authenticate? Does one cheap read (fetch the
+ * account) so an invalid/rotated key shows red, not just "unset". Never throws.
+ */
+export async function getTwilioStatus(): Promise<TwilioStatus> {
+  const accountSid = process.env.TWILIO_ACCOUNT_SID;
+  if (!twilioConfigured() || !accountSid) {
+    return { configured: false, ok: false, error: "Twilio credentials not set." };
+  }
+  const keySid = process.env.TWILIO_API_KEY_SID;
+  const keySecret = process.env.TWILIO_API_KEY_SECRET;
+  const token = process.env.TWILIO_AUTH_TOKEN;
+  const auth =
+    keySid && keySecret ? `${keySid}:${keySecret}` : `${accountSid}:${token ?? ""}`;
+  try {
+    const res = await fetch(
+      `https://api.twilio.com/2010-04-01/Accounts/${accountSid}.json`,
+      {
+        headers: { authorization: `Basic ${Buffer.from(auth).toString("base64")}` },
+        cache: "no-store",
+      },
+    );
+    if (res.ok) return { configured: true, ok: true };
+    return {
+      configured: true,
+      ok: false,
+      error: res.status === 401 ? "Invalid Twilio credentials." : `Twilio error ${res.status}.`,
+    };
+  } catch {
+    return { configured: true, ok: false, error: "Couldn't reach Twilio." };
+  }
+}
+
 /**
  * Regulated countries (DE, GB, …) require an Address and/or Regulatory Bundle
  * on the purchase. Attach the account's matching ones if they exist, otherwise

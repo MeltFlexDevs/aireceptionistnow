@@ -64,9 +64,50 @@ export async function assignInboundAgent(
 }
 
 /**
- * Route an E.164 number's inbound calls to the configured agent (tier A). The
- * number must already be imported into ElevenLabs (Phone Numbers). Returns the
- * ElevenLabs phone-number id. Defaults the agent to ELEVENLABS_AGENT_ID.
+ * Import a Twilio number the account owns into ElevenLabs and (optionally) assign
+ * an inbound agent in the same call. Uses the account's Twilio credentials so
+ * ElevenLabs can control the number. Returns the new ElevenLabs phone-number id.
+ */
+export async function importTwilioNumber(
+  e164: string,
+  agentId: string,
+  label?: string,
+): Promise<string> {
+  const apiKey = process.env.ELEVENLABS_API_KEY;
+  if (!apiKey) throw new Error("ELEVENLABS_API_KEY is not set.");
+  const sid = process.env.TWILIO_ACCOUNT_SID;
+  const token = process.env.TWILIO_AUTH_TOKEN;
+  if (!sid || !token) {
+    throw new Error(
+      "Twilio credentials aren't set, so the number can't be imported into ElevenLabs.",
+    );
+  }
+
+  const res = await fetch(PHONE_NUMBERS_URL, {
+    method: "POST",
+    headers: { "xi-api-key": apiKey, "content-type": "application/json" },
+    body: JSON.stringify({
+      provider: "twilio",
+      phone_number: e164,
+      label: label || e164,
+      sid,
+      token,
+      agent_id: agentId,
+    }),
+  });
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new Error(`ElevenLabs number import failed (${res.status}). ${detail}`.trim());
+  }
+  const data = (await res.json()) as { phone_number_id?: string };
+  return String(data.phone_number_id ?? "");
+}
+
+/**
+ * Route an E.164 Twilio number's inbound calls to the configured agent (tier A).
+ * If the number is already imported into ElevenLabs, just (re)assign the agent;
+ * otherwise import it from Twilio and assign in one step. Returns the ElevenLabs
+ * phone-number id. Defaults the agent to ELEVENLABS_AGENT_ID.
  */
 export async function routeNumberToAgent(
   e164: string,
@@ -76,14 +117,12 @@ export async function routeNumberToAgent(
   if (!agent) throw new Error("ELEVENLABS_AGENT_ID is not set.");
 
   const phoneNumberId = await findAgentPhoneNumberId(e164);
-  if (!phoneNumberId) {
-    throw new Error(
-      `${e164} isn't imported into ElevenLabs yet. Import it under Phone Numbers ` +
-        `in the ElevenLabs dashboard, then connect it here.`,
-    );
+  if (phoneNumberId) {
+    await assignInboundAgent(phoneNumberId, agent);
+    return phoneNumberId;
   }
-  await assignInboundAgent(phoneNumberId, agent);
-  return phoneNumberId;
+  // Not in ElevenLabs yet — import it from Twilio and assign the agent in one go.
+  return importTwilioNumber(e164, agent);
 }
 
 export interface PlaceAgentCallResult {
