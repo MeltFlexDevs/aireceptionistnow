@@ -74,32 +74,47 @@ export async function POST(req: Request): Promise<Response> {
   const durationSeconds = Number(metadata.call_duration_secs ?? 0) || undefined;
 
   const repo = getRepository();
-  const config = toNumber ? await repo.resolveInboundNumber(toNumber) : null;
-  if (!config) return json({ error: "unknown number" }, 404);
 
-  const callId = await repo.getOrCreateAgentCall({
-    conversationId,
-    businessId: config.businessId,
-    numberId: config.numberId,
-    from: fromNumber,
-    to: toNumber,
-  });
-
-  // Persist the transcript ElevenLabs captured (tier A doesn't stream turns live
-  // like tier B, so this is where they land).
-  const turns = mapTurns(data.transcript);
-  for (const turn of turns) {
-    await repo
-      .appendTurn(callId, turn)
-      .catch((e) => console.error("[agent/post-call] append turn", e));
+  // Resolve + claim. A transient DB error here returns 500 so ElevenLabs retries;
+  // the atomic claim makes that retry safe (only the first delivery processes).
+  let callId: string;
+  let claimed: boolean;
+  try {
+    const config = toNumber ? await repo.resolveInboundNumber(toNumber) : null;
+    if (!config) return json({ error: "unknown number" }, 404);
+    callId = await repo.getOrCreateAgentCall({
+      conversationId,
+      businessId: config.businessId,
+      numberId: config.numberId,
+      from: fromNumber,
+      to: toNumber,
+    });
+    claimed = await repo.claimAgentCallCompletion(callId);
+  } catch (err) {
+    console.error("[agent/post-call] resolve/claim failed", err);
+    return json({ error: "temporarily unavailable" }, 500);
   }
 
-  await repo
-    .finalizeCall(callId, { status: "completed", durationSeconds })
-    .catch((e) => console.error("[agent/post-call] finalize", e));
+  // A retry (or duplicate delivery) — already processed. No-op so we don't
+  // duplicate transcript turns or re-send summary emails / CRM pushes.
+  if (!claimed) return json({ ok: true, deduped: true });
 
-  // Summary + email/CRM delivery, identical to tier B.
-  await runPostCall(callId, repo);
+  // First delivery: persist the transcript, record duration, run summary +
+  // email/CRM delivery. Past the claim we swallow errors (returning 200) — a
+  // retry would be deduped anyway, so re-running wouldn't help.
+  try {
+    for (const turn of mapTurns(data.transcript)) {
+      await repo
+        .appendTurn(callId, turn)
+        .catch((e) => console.error("[agent/post-call] append turn", e));
+    }
+    await repo
+      .finalizeCall(callId, { status: "completed", durationSeconds })
+      .catch((e) => console.error("[agent/post-call] finalize", e));
+    await runPostCall(callId, repo);
+  } catch (err) {
+    console.error("[agent/post-call] enrichment failed", err);
+  }
 
   return json({ ok: true });
 }

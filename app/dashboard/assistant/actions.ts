@@ -16,6 +16,7 @@ import {
 import { readKnowledge } from "@/lib/knowledge/sources";
 import { registerCnam } from "@/lib/dashboard/twilio";
 import { currentUserId } from "@/lib/auth";
+import { authConfigured } from "@/lib/supabase/config";
 import { canAssignNumber } from "@/lib/dashboard/plan";
 import {
   assertUnderCallCaps,
@@ -24,6 +25,46 @@ import {
 } from "@/lib/call-engine/elevenlabs";
 
 const E164 = /^\+[1-9]\d{6,15}$/;
+
+/**
+ * Reject the request unless the caller owns this assistant. Server Actions are
+ * public POST endpoints (Next only enforces same-origin, not auth), and the DB
+ * helpers filter by id, not owner — without this any visitor could mutate
+ * another tenant's assistant by guessing its id. In single-tenant deploys with
+ * auth disabled (authConfigured() === false) ownership isn't enforced.
+ *
+ * Redirects (which throw NEXT_REDIRECT) on failure — call it BEFORE any
+ * try/catch so the redirect isn't swallowed.
+ */
+async function requireAssistantOwner(assistantId: string): Promise<void> {
+  if (!authConfigured()) return;
+  const ownerId = await currentUserId();
+  const assistant = assistantId
+    ? await getAssistant(assistantId).catch(() => null)
+    : null;
+  if (!ownerId || !assistant || (assistant.owner_id && assistant.owner_id !== ownerId)) {
+    redirect(`/dashboard/assistant?error=${encodeURIComponent("Not authorized.")}`);
+  }
+}
+
+/** Allow only public https URLs, blocking internal/link-local hosts, so a stored
+ *  CRM webhook URL can't be turned into an SSRF probe against internal infra or
+ *  cloud metadata. (Dispatch-time re-validation is still recommended as defense
+ *  in depth against DNS rebinding.) */
+function isSafeHttpsUrl(raw: string): boolean {
+  let u: URL;
+  try {
+    u = new URL(raw);
+  } catch {
+    return false;
+  }
+  if (u.protocol !== "https:") return false;
+  const h = u.hostname.toLowerCase();
+  if (h === "localhost" || h === "0.0.0.0" || h.endsWith(".local")) return false;
+  if (/^(127\.|10\.|192\.168\.|169\.254\.|::1|fd|fe80)/.test(h)) return false;
+  if (/^172\.(1[6-9]|2\d|3[01])\./.test(h)) return false;
+  return true;
+}
 
 export async function createAssistantAction(formData: FormData): Promise<void> {
   const name = String(formData.get("name") ?? "").trim() || "My assistant";
@@ -46,6 +87,7 @@ export async function createAssistantAction(formData: FormData): Promise<void> {
 export async function updateAssistantAction(formData: FormData): Promise<void> {
   const id = String(formData.get("id") ?? "");
   if (!id) redirect("/dashboard/assistant");
+  await requireAssistantOwner(id);
 
   const transferTo = String(formData.get("transfer_to") ?? "").trim();
 
@@ -78,6 +120,11 @@ export async function updateAssistantAction(formData: FormData): Promise<void> {
   // CRM / ERP push (optional).
   const crmUrl = String(formData.get("crm_url") ?? "").trim();
   if (formData.get("crm_enabled") === "on" && crmUrl) {
+    if (!isSafeHttpsUrl(crmUrl)) {
+      redirect(
+        `/dashboard/assistant/${id}?error=${encodeURIComponent("CRM URL must be a public https:// address.")}`,
+      );
+    }
     const crmSecret = String(formData.get("crm_secret") ?? "").trim();
     routing.crm = { enabled: true, url: crmUrl, ...(crmSecret ? { secret: crmSecret } : {}) };
   }
@@ -108,18 +155,19 @@ export async function updateAssistantAction(formData: FormData): Promise<void> {
 
 export async function deleteAssistantAction(formData: FormData): Promise<void> {
   const id = String(formData.get("id") ?? "");
-  if (id) {
-    try {
-      // Return this assistant's numbers to the shared pool (unlink, but keep them
-      // on Twilio) so another assistant can reuse them, then soft-delete the
-      // assistant. This is what makes a freed number reclaimable instead of lost.
-      await freeAssistantNumbers(id);
-      await deleteAssistant(id);
-    } catch {
-      // best-effort
-    }
-    revalidatePath("/dashboard/assistant");
+  if (!id) redirect("/dashboard/assistant");
+  await requireAssistantOwner(id);
+
+  try {
+    // Unlink this assistant's numbers so they can be reconnected elsewhere, then
+    // soft-delete the assistant. Surface any failure instead of silently
+    // reporting success on a partial delete.
+    await freeAssistantNumbers(id);
+    await deleteAssistant(id);
+  } catch (err) {
+    redirect(`/dashboard/assistant/${id}?error=${encodeURIComponent((err as Error).message)}`);
   }
+  revalidatePath("/dashboard/assistant");
   redirect("/dashboard/assistant");
 }
 
@@ -135,6 +183,7 @@ export async function connectAgentNumberAction(formData: FormData): Promise<void
   const assistantId = String(formData.get("assistant_id") ?? "");
   const e164 = String(formData.get("e164") ?? "").trim();
   if (!assistantId) redirect("/dashboard/assistant");
+  await requireAssistantOwner(assistantId);
   if (!E164.test(e164)) {
     redirect(
       `/dashboard/assistant/${assistantId}?error=${encodeURIComponent("Use E.164 format, e.g. +14155550142")}`,
@@ -164,6 +213,7 @@ export async function testCallAction(formData: FormData): Promise<void> {
   const assistantId = String(formData.get("assistant_id") ?? formData.get("id") ?? "");
   const to = String(formData.get("to") ?? formData.get("transfer_to") ?? "").trim();
   if (!assistantId) redirect("/dashboard/assistant");
+  await requireAssistantOwner(assistantId);
   if (!E164.test(to)) {
     redirect(
       `/dashboard/assistant/${assistantId}?error=${encodeURIComponent("Enter a number in E.164 format, e.g. +14155550142")}`,
@@ -183,12 +233,22 @@ export async function testCallAction(formData: FormData): Promise<void> {
 export async function unlinkNumberAction(formData: FormData): Promise<void> {
   const numberId = String(formData.get("number_id") ?? "");
   const assistantId = String(formData.get("assistant_id") ?? "");
-  if (numberId) {
-    try {
-      await setNumberAssistant(numberId, null);
-    } catch {
-      // ignore
-    }
+  if (!assistantId) redirect("/dashboard/assistant");
+  await requireAssistantOwner(assistantId);
+
+  // The number must actually belong to this assistant — otherwise a caller could
+  // unlink an arbitrary number by id.
+  const number = await getAssistantNumber(assistantId).catch(() => null);
+  if (!number || !numberId || number.id !== numberId) {
+    redirect(
+      `/dashboard/assistant/${assistantId}?error=${encodeURIComponent("That number isn't linked to this assistant.")}`,
+    );
+  }
+
+  try {
+    await setNumberAssistant(numberId, null);
+  } catch (err) {
+    redirect(`/dashboard/assistant/${assistantId}?error=${encodeURIComponent((err as Error).message)}`);
   }
   revalidatePath(`/dashboard/assistant/${assistantId}`);
   redirect(`/dashboard/assistant/${assistantId}?saved=1`);
@@ -197,6 +257,7 @@ export async function unlinkNumberAction(formData: FormData): Promise<void> {
 export async function registerCnamAction(formData: FormData): Promise<void> {
   const assistantId = String(formData.get("id") ?? formData.get("assistant_id") ?? "");
   if (!assistantId) redirect("/dashboard/assistant");
+  await requireAssistantOwner(assistantId);
 
   const assistant = await getAssistant(assistantId).catch(() => null);
   if (!assistant) redirect("/dashboard/assistant");

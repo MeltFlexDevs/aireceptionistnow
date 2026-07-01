@@ -36,7 +36,17 @@ export async function handleTool(
     return json({ error: fields.error.issues.map((i) => i.message).join("; ") }, 400);
   }
 
-  const ctx = await resolveAgentContext(fields.data);
+  let ctx;
+  try {
+    ctx = await resolveAgentContext(fields.data);
+  } catch (err) {
+    // resolveInboundNumber / getOrCreateAgentCall throw on any DB error. Return a
+    // spoken fallback (not a 500) so the live call recovers gracefully.
+    console.error("[agent] resolve context failed", err);
+    return json({
+      result: "I'm sorry, I can't access this account right now. Please try again later.",
+    });
+  }
   if (!ctx) {
     return json({
       result: "I'm sorry, I can't access this account right now. Please try again later.",

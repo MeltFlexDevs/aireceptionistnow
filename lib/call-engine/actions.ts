@@ -29,6 +29,17 @@ export interface ActionContext {
   to: string;
 }
 
+/** Coerce a tool argument to a bounded, control-char-free string. Tool inputs
+ *  come from the agent webhook (untrusted), so anything that lands in a stored
+ *  payload, a calendar event, or an outbound SMS is clipped and stripped of
+ *  control characters (defends against injected/oversized values). */
+function clip(value: unknown, max = 500): string {
+  return String(value ?? "")
+    .replace(new RegExp("[\\u0000-\\u001F\\u007F]", "g"), " ")
+    .trim()
+    .slice(0, max);
+}
+
 /** Calendars this assistant may read for availability (any granted level). */
 export function calendarAccessFrom(config: NumberConfig): CalendarAccessEntry[] {
   return (
@@ -95,12 +106,12 @@ export async function bookAppointmentAction(
   const writeEntry = access.find((a) => a.level === "write");
 
   const req: BookingRequest = {
-    title: String(input.title ?? "Appointment"),
-    startTime: String(input.start_time ?? ""),
-    endTime: String(input.end_time ?? ""),
-    attendeeName: input.attendee_name ? String(input.attendee_name) : undefined,
-    attendeePhone: input.attendee_phone ? String(input.attendee_phone) : ctx.from,
-    notes: input.notes ? String(input.notes) : undefined,
+    title: clip(input.title, 200) || "Appointment",
+    startTime: clip(input.start_time, 64),
+    endTime: clip(input.end_time, 64),
+    attendeeName: input.attendee_name ? clip(input.attendee_name, 120) : undefined,
+    attendeePhone: input.attendee_phone ? clip(input.attendee_phone, 40) : ctx.from,
+    notes: input.notes ? clip(input.notes, 1000) : undefined,
   };
 
   let resolved = writeEntry
@@ -138,27 +149,33 @@ export async function takeMessageAction(
   repo: CallRepository,
   input: Record<string, unknown>,
 ): Promise<string> {
+  // Clip/sanitize before storing or texting — these fields are untrusted tool args.
+  const payload = {
+    caller_name: clip(input.caller_name, 120),
+    callback_number: clip(input.callback_number, 40),
+    message: clip(input.message, 1000),
+    urgency: clip(input.urgency, 20),
+  };
   await repo.recordAction(ctx.callId, {
     type: "message",
     status: "done",
-    payload: input,
+    payload,
   });
-  await alertOwner(ctx, input);
+  await alertOwner(ctx, payload);
   return "Got it — I've saved your message.";
 }
 
-/** Text the owner's personal number when a message is taken (if enabled). */
+/** Text the owner's personal number when a message is taken (if enabled). Input
+ *  is already clipped/sanitized by the caller. */
 async function alertOwner(
   ctx: ActionContext,
-  input: Record<string, unknown>,
+  input: { caller_name: string; callback_number: string; message: string },
 ): Promise<void> {
   const r = ctx.config.routing as { transferTo?: string; smsAlerts?: boolean };
   if (!r.transferTo || r.smsAlerts === false) return;
-  const who = input.caller_name ? String(input.caller_name) : ctx.from;
-  const cb = input.callback_number ? ` (${String(input.callback_number)})` : "";
-  const body = `New message for ${ctx.config.businessName}: ${String(
-    input.message ?? "",
-  )} — from ${who}${cb}`;
+  const who = input.caller_name || ctx.from;
+  const cb = input.callback_number ? ` (${input.callback_number})` : "";
+  const body = `New message for ${ctx.config.businessName}: ${input.message} — from ${who}${cb}`;
   try {
     await sendSms(r.transferTo, ctx.to, body);
   } catch (err) {

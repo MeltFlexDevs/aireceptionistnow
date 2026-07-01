@@ -60,16 +60,24 @@ export class SupabaseCallRepository implements CallRepository {
     let businessId = cfgBiz?.id ? String(cfgBiz.id) : "";
     let businessName = cfgBiz?.name ?? "our business";
     if (!businessId) {
-      const { data: biz } = await db()
+      // The assistant has no resolvable business. Only fall back to "the" business
+      // when the deployment is unambiguously single-tenant (exactly one exists) —
+      // never silently borrow the first of several tenants, which would serve one
+      // tenant's config/integrations to another's caller. Otherwise fail closed.
+      const { data: bizList } = await db()
         .from("businesses")
         .select("id, name")
         .order("created_at", { ascending: true })
-        .limit(1)
-        .maybeSingle();
-      if (biz) {
-        businessId = String(biz.id);
-        businessName = (biz.name as string) ?? businessName;
+        .limit(2);
+      if (!bizList || bizList.length !== 1) {
+        console.error(
+          "[resolve] number has no linked business and tenancy is ambiguous; refusing",
+          toE164,
+        );
+        return null;
       }
+      businessId = String(bizList[0].id);
+      businessName = (bizList[0].name as string) ?? businessName;
     }
 
     const { data: integrations } = await db()
@@ -132,11 +140,20 @@ export class SupabaseCallRepository implements CallRepository {
   async getOrCreateAgentCall(input: AgentCallInput): Promise<string> {
     const existing = await db()
       .from("calls")
-      .select("id")
+      .select("id, business_id")
       .eq("elevenlabs_conversation_id", input.conversationId)
       .maybeSingle();
     if (existing.error) throw existing.error;
-    if (existing.data) return String(existing.data.id);
+    if (existing.data) {
+      // A conversation id is bound to one business. Reject a reused/forged id that
+      // arrives claiming a different tenant — otherwise a side effect (booking,
+      // SMS) would run against one tenant's config while being recorded against
+      // another's call row.
+      if (String(existing.data.business_id) !== input.businessId) {
+        throw new Error("conversation/business mismatch");
+      }
+      return String(existing.data.id);
+    }
 
     // On concurrent first tool calls two inserts can race; the partial unique
     // index on elevenlabs_conversation_id makes the loser fail, so we re-read.
@@ -162,6 +179,20 @@ export class SupabaseCallRepository implements CallRepository {
       .maybeSingle();
     if (retry.data) return String(retry.data.id);
     throw insert.error;
+  }
+
+  async claimAgentCallCompletion(callId: string): Promise<boolean> {
+    // Transition to completed only if not already completed; the returned rows
+    // tell us whether THIS call won the race (or the retry). Backed by a plain
+    // conditional UPDATE — no extra table needed.
+    const { data, error } = await db()
+      .from("calls")
+      .update({ status: "completed", ended_at: new Date().toISOString() })
+      .eq("id", callId)
+      .neq("status", "completed")
+      .select("id");
+    if (error) throw error;
+    return (data?.length ?? 0) > 0;
   }
 
   async markInProgress(callId: string, streamSid: string): Promise<void> {

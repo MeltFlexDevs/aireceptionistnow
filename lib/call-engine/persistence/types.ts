@@ -45,6 +45,11 @@ export interface CallRepository {
    *  Idempotent: repeated tool calls in one conversation return the same id. */
   getOrCreateAgentCall(input: AgentCallInput): Promise<string>;
 
+  /** Atomically mark a call completed. Returns true only for the FIRST caller;
+   *  a retried post-call webhook gets false and must skip re-processing (so
+   *  transcript turns and summary/email/CRM delivery don't duplicate). */
+  claimAgentCallCompletion(callId: string): Promise<boolean>;
+
   markInProgress(callId: string, streamSid: string): Promise<void>;
   appendTurn(callId: string, turn: TranscriptTurn): Promise<void>;
   finalizeCall(callId: string, input: FinalizeCallInput): Promise<void>;

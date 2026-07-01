@@ -46,9 +46,15 @@ export async function POST(req: Request): Promise<Response> {
   const calledNumber = pick(payload, ["called_number", "agent_number", "to_number"]);
   const callerId = pick(payload, ["caller_id", "from_number", "external_number"]);
 
-  const config = calledNumber
-    ? await getRepository().resolveInboundNumber(calledNumber)
-    : null;
+  let config = null;
+  try {
+    config = calledNumber
+      ? await getRepository().resolveInboundNumber(calledNumber)
+      : null;
+  } catch (err) {
+    // A DB hiccup must not 500 the call-start webhook — fall through to defaults.
+    console.error("[agent/init] resolve failed", err);
+  }
   // No overrides ⇒ ElevenLabs keeps the agent's configured defaults. Safe fallback.
   if (!config) return json({ type: "conversation_initiation_client_data" });
 
