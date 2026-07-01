@@ -12,7 +12,7 @@ interface Props {
 export function SectionCard({ title, subtitle, action, children, className = "", bodyClassName = "" }: Props) {
   const hasHeader = Boolean(title || action);
   return (
-    <section className={`rounded-2xl border border-neutral-200 bg-white ${className}`}>
+    <section className={`shape-card glass ${className}`}>
       {hasHeader && (
         <header className="flex items-start justify-between gap-4 px-5 pt-5">
           <div>

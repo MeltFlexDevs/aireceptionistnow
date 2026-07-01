@@ -98,7 +98,7 @@ export function VoiceSelect({ name = "voice_id", defaultValue = "" }: Props) {
         className="flex w-full items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition-colors hover:border-neutral-300 focus:border-neutral-900"
       >
         <span className="truncate">
-          {current ? current.name : selected || "Select a voice"}
+          {current ? current.name : loading ? "Loading…" : selected ? "Custom voice" : "Select a voice"}
           {current?.description ? <span className="ml-2 text-xs text-neutral-400">{current.description}</span> : null}
         </span>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-neutral-400">

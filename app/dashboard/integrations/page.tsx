@@ -2,6 +2,7 @@ import { listIntegrations, type Integration } from "@/lib/dashboard/db";
 import { getServiceStatuses } from "@/lib/dashboard/health";
 import { SectionCard } from "../components/SectionCard";
 import { StatusDot, StatusRow } from "../components/StatusBadge";
+import { SubmitButton } from "../components/SubmitButton";
 import { CALENDAR_PROVIDERS, type CalendarProviderDef } from "./providers";
 import { connectCalendarAction, disconnectCalendarAction } from "./actions";
 
@@ -71,12 +72,7 @@ function CredentialForm({ def }: { def: CalendarProviderDef }) {
           </div>
         ))}
       </div>
-      <button
-        type="submit"
-        className="inline-flex h-9 items-center rounded-lg bg-neutral-900 px-4 text-sm font-medium text-white transition-colors hover:bg-neutral-800"
-      >
-        Connect {def.name}
-      </button>
+      <SubmitButton pendingText="Connecting…">Connect {def.name}</SubmitButton>
     </form>
   );
 }
@@ -107,16 +103,24 @@ export default async function IntegrationsPage({
       <header>
         <h1 className="text-2xl font-medium tracking-tight text-neutral-900">Integrations</h1>
         <p className="mt-1 text-sm text-neutral-500">
-          Connect a calendar so the AI can book appointments during calls.
+          Connect a calendar. Your assistant books into it during calls.
         </p>
       </header>
 
-      <SectionCard title="Service status" subtitle="Live health of the core integrations.">
+      <SectionCard
+        title="Service status"
+        subtitle="Developer diagnostics. Not shown to end users."
+        action={
+          <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-500">
+            Dev
+          </span>
+        }
+      >
         <div className="grid gap-3 sm:grid-cols-2">
           {services.map((s) => (
             <StatusRow
               key={s.name}
-              ok={s.ok}
+              tone={s.ok ? "ok" : s.configured ? "error" : "warn"}
               label={s.name}
               detail={s.configured ? s.detail : "Not configured"}
             />
@@ -142,7 +146,7 @@ export default async function IntegrationsPage({
       <div className="grid gap-4 lg:grid-cols-2">
         {CALENDAR_PROVIDERS.map((def) => {
           const conn = byProvider.get(def.id);
-          const isPrimary = conn?.id === primaryId;
+          const isPrimary = Boolean(conn && primaryId && conn.id === primaryId);
           const summary = def.fields
             .filter((f) => !f.secret && conn?.config?.[f.name])
             .map((f) => `${f.label}: ${String(conn?.config?.[f.name])}`);
@@ -155,7 +159,7 @@ export default async function IntegrationsPage({
                     <h2 className="text-sm font-medium text-neutral-900">{def.name}</h2>
                     {conn ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-600">
-                        <StatusDot ok />
+                        <StatusDot tone="ok" />
                         Connected
                       </span>
                     ) : !def.live && !def.oauth ? (
@@ -163,8 +167,8 @@ export default async function IntegrationsPage({
                         Coming soon
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-0.5 text-[11px] font-medium text-rose-600">
-                        <StatusDot ok={false} />
+                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-600">
+                        <StatusDot tone="warn" />
                         Not connected
                       </span>
                     )}
@@ -189,12 +193,9 @@ export default async function IntegrationsPage({
                   )}
                   <form action={disconnectCalendarAction}>
                     <input type="hidden" name="id" value={conn.id} />
-                    <button
-                      type="submit"
-                      className="inline-flex h-9 items-center rounded-lg border border-rose-200 bg-white px-4 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50"
-                    >
+                    <SubmitButton variant="danger" pendingText="Disconnecting…">
                       Disconnect
-                    </button>
+                    </SubmitButton>
                   </form>
                 </div>
               ) : (

@@ -3,12 +3,14 @@
 :root {
   --font-geist: "Geist", sans-serif;
 
-  /* Dashboard design tokens. Monochrome: black accent, green = success,
-     red = error. No other hues in the UI. */
+  /* Dashboard design tokens. Near-black for text/controls; one restrained indigo
+     brand accent for decorative shapes + hover; green = success, red = error. */
   --accent: #171717;
   --accent-soft: color-mix(in oklab, var(--accent) 8%, white);
   --ring: color-mix(in oklab, var(--accent) 45%, white);
+  /* Only semantic colour in the UI: green = ok, yellow = warning, red = error. */
   --success: #16a34a;
+  --warning: #ca8a04;
   --error: #dc2626;
   --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 1px 3px rgb(15 23 42 / 0.06);
   --shadow-pop: 0 10px 30px -12px rgb(15 23 42 / 0.18);
@@ -32,6 +34,23 @@ html {
 
   ::selection {
     background: color-mix(in oklab, var(--accent) 22%, transparent);
+  }
+
+  /* Action cursors: clickable things get a pointer, disabled ones a block, and
+     anything mid-submit (aria-busy) shows the wait cursor. */
+  button:not(:disabled),
+  summary,
+  select:not(:disabled),
+  a[href],
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+  :disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+  [aria-busy="true"] {
+    cursor: wait;
   }
 
   /* One consistent keyboard-focus ring everywhere, so tabbing is always
@@ -69,6 +88,61 @@ html {
 /* Reusable card shadow utility for dashboard surfaces. */
 .shadow-card {
   box-shadow: var(--shadow-card);
+}
+
+/* ── COOL-SHAPE SYSTEM ──────────────────────────────────────────────────────
+   Minimal but non-generic: cards get an asymmetric silhouette (one sharp
+   corner); small decorative/icon elements use notches, hexagons, and blobs.
+   Clip-path clips shadows, so only shadow-less accents are clipped — cards keep
+   their shadow and use border-radius instead. */
+.shape-card {
+  border-radius: 20px 20px 20px 4px;
+}
+.shape-card-alt {
+  border-radius: 20px 4px 20px 20px;
+}
+.shape-pill {
+  border-radius: 14px 14px 14px 4px;
+}
+.shape-notch {
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
+}
+.shape-hex {
+  clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
+}
+.shape-blob {
+  border-radius: 42% 58% 63% 37% / 41% 44% 56% 59%;
+}
+/* Monochrome accent gradient (near-black → grey) for small shape accents. */
+.brand-grad {
+  background-image: linear-gradient(135deg, #171717, #525252);
+}
+
+/* Frosted-glass surface: translucent white + blur + a top inner highlight, so
+   the dotted backdrop shows through. Pair with .shape-card for the silhouette. */
+.glass {
+  background: color-mix(in oklab, white 72%, transparent);
+  backdrop-filter: blur(10px) saturate(1.15);
+  -webkit-backdrop-filter: blur(10px) saturate(1.15);
+  border: 1px solid rgb(255 255 255 / 0.55);
+  box-shadow:
+    var(--shadow-card),
+    inset 0 1px 0 rgb(255 255 255 / 0.7),
+    0 0 0 1px rgb(15 23 42 / 0.05);
+}
+.glass-dark {
+  background: color-mix(in oklab, #171717 70%, transparent);
+  backdrop-filter: blur(10px) saturate(1.15);
+  -webkit-backdrop-filter: blur(10px) saturate(1.15);
+  border: 1px solid rgb(255 255 255 / 0.08);
+}
+
+/* Minimal page backdrop: a faint neutral dot grid on off-white. No colour. */
+.dash-bg {
+  background-color: #fafafa;
+  background-image: radial-gradient(circle at 1px 1px, rgb(15 23 42 / 0.05) 1px, transparent 0);
+  background-size: 22px 22px;
+  background-attachment: fixed;
 }
 
 /* ── PRIVACY / TERMS PAGES ── */

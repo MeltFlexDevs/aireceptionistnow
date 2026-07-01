@@ -266,6 +266,12 @@ export async function updateAssistant(
   if (error) throw error;
 }
 
+/** Flip an assistant on/off without touching its other config. */
+export async function setAssistantEnabled(id: string, enabled: boolean): Promise<void> {
+  const { error } = await db().from("assistants").update({ enabled }).eq("id", id);
+  if (error) throw error;
+}
+
 /** Replace only the knowledge JSON (used by knowledge-source add/remove). */
 export async function updateAssistantKnowledge(
   id: string,

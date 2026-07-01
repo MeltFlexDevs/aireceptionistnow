@@ -20,7 +20,7 @@ export function StatCard({ kpi }: { kpi: Kpi }) {
   const stroke = isGood ? "#10b981" : "#f43f5e";
 
   return (
-    <div className="rounded-2xl border border-neutral-200 bg-white p-5">
+    <div className="shape-card glass p-5">
       <div className="flex items-center justify-between gap-2">
         <span className="text-xs font-medium uppercase tracking-wide text-neutral-500">{kpi.label}</span>
         {kpi.delta !== 0 && (

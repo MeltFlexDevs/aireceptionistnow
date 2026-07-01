@@ -6,6 +6,7 @@ import {
   createAssistant,
   createNumber,
   deleteAssistant,
+  setAssistantEnabled,
   freeAssistantNumbers,
   getAssistant,
   getAssistantNumber,
@@ -202,34 +203,19 @@ export async function getAgentNumberAction(formData: FormData): Promise<void> {
   redirect(`/dashboard/assistant/${assistantId}?saved=1`);
 }
 
-/**
- * Connect a Twilio number you already own to this assistant: import it into
- * ElevenLabs (if not already there) and assign the inbound agent, then record it.
- */
-export async function connectAgentNumberAction(formData: FormData): Promise<void> {
-  const assistantId = String(formData.get("assistant_id") ?? "");
-  const e164 = String(formData.get("e164") ?? "").trim();
-  if (!assistantId) redirect("/dashboard/assistant");
-  await requireAssistantOwner(assistantId);
-  if (!E164.test(e164)) {
-    redirect(
-      `/dashboard/assistant/${assistantId}?error=${encodeURIComponent("Use E.164 format, e.g. +14155550142")}`,
-    );
-  }
-
-  const allowance = await canAssignNumber(await currentUserId());
-  if (!allowance.ok) {
-    redirect(`/dashboard/assistant/${assistantId}?notice=${encodeURIComponent(allowance.reason ?? "")}`);
-  }
-
+/** Enable or disable an assistant from the list (quick toggle). */
+export async function toggleAssistantEnabledAction(formData: FormData): Promise<void> {
+  const id = String(formData.get("id") ?? "");
+  if (!id) redirect("/dashboard/assistant");
+  await requireAssistantOwner(id);
+  const enabled = String(formData.get("enabled") ?? "") === "1";
   try {
-    await routeNumberToAgent(e164); // ElevenLabs: assign inbound agent (no Twilio)
-    await createNumber({ e164, assistantId }); // DB only
+    await setAssistantEnabled(id, enabled);
   } catch (err) {
-    redirect(`/dashboard/assistant/${assistantId}?error=${encodeURIComponent((err as Error).message)}`);
+    redirect(`/dashboard/assistant?error=${encodeURIComponent((err as Error).message)}`);
   }
-  revalidatePath(`/dashboard/assistant/${assistantId}`);
-  redirect(`/dashboard/assistant/${assistantId}?saved=1`);
+  revalidatePath("/dashboard/assistant");
+  redirect("/dashboard/assistant");
 }
 
 export async function testCallAction(formData: FormData): Promise<void> {

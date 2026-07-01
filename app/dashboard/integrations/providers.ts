@@ -61,7 +61,7 @@ export const CALENDAR_PROVIDERS: CalendarProviderDef[] = [
   {
     id: "webhook",
     name: "Custom / Webhook",
-    blurb: "Send bookings to any URL - Zapier, Make, n8n, or your own endpoint.",
+    blurb: "Send bookings to any URL. Zapier, Make, n8n, or your own endpoint.",
     live: true,
     fields: [
       { name: "url", label: "Webhook URL", placeholder: "https://..." },

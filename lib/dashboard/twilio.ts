@@ -58,13 +58,9 @@ export async function getTwilioStatus(): Promise<TwilioStatus> {
       },
     );
     if (res.ok) return { configured: true, ok: true };
-    return {
-      configured: true,
-      ok: false,
-      error: res.status === 401 ? "Invalid Twilio credentials." : `Twilio error ${res.status}.`,
-    };
+    return { configured: true, ok: false, error: "Unavailable" };
   } catch {
-    return { configured: true, ok: false, error: "Couldn't reach Twilio." };
+    return { configured: true, ok: false, error: "Unavailable" };
   }
 }
 

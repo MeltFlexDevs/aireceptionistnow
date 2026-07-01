@@ -36,7 +36,7 @@ export function PlanUsage({ ctx }: Props) {
   const showUpgrade = !ctx.active || !ctx.canAddNumber;
 
   return (
-    <section className="rounded-2xl border border-neutral-200 bg-white p-5">
+    <div>
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
@@ -72,6 +72,6 @@ export function PlanUsage({ ctx }: Props) {
         <span>{ctx.limits.contacts.toLocaleString()} contacts</span>
         <span>{fmtLimit(ctx.limits.users)} user{ctx.limits.users === 1 ? "" : "s"}</span>
       </div>
-    </section>
+    </div>
   );
 }

@@ -56,13 +56,6 @@ export default async function CallsPage({ searchParams }: { searchParams: Search
       {header}
       <CallFilters q={filters.q} status={filters.status} />
 
-      {!log.twilioConnected && (
-        <div className="rounded-xl border border-neutral-300 bg-neutral-100 px-4 py-3 text-sm text-neutral-800">
-          Twilio isn&apos;t connected (or has no call logs yet), so statuses and durations come
-          from your own records and may lag the carrier.
-        </div>
-      )}
-
       <SectionCard
         title="Call log"
         subtitle={`${log.rows.length} call${log.rows.length === 1 ? "" : "s"}${filtered ? " matched" : ""}`}

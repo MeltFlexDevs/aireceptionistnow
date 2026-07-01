@@ -6,6 +6,7 @@ import { getAccountSettings, type AccountSettings } from "@/lib/dashboard/accoun
 import { getPlanContext } from "@/lib/dashboard/plan";
 import { SectionCard } from "../components/SectionCard";
 import { PageHeader } from "../components/PageHeader";
+import { SubmitButton } from "../components/SubmitButton";
 import { Hint } from "../components/Hint";
 import { PlanUsage } from "../components/PlanUsage";
 import { BillingPortalButton } from "./BillingPortalButton";
@@ -18,8 +19,6 @@ const field =
 const labelCls = "mb-1.5 block text-sm font-medium text-neutral-700";
 const toggle =
   "relative h-5 w-9 shrink-0 rounded-full bg-neutral-200 transition-colors peer-checked:bg-neutral-900 after:absolute after:left-0.5 after:top-0.5 after:h-4 after:w-4 after:rounded-full after:bg-white after:shadow-sm after:transition-all after:content-[''] peer-checked:after:translate-x-4";
-const primaryBtn =
-  "inline-flex h-9 items-center rounded-lg bg-neutral-900 px-4 text-sm font-medium text-white transition-colors hover:bg-neutral-800";
 
 export default async function SettingsPage({
   searchParams,
@@ -55,12 +54,12 @@ export default async function SettingsPage({
       />
 
       {saved && (
-        <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+        <div className="shape-pill border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm text-emerald-700">
           Saved.
         </div>
       )}
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
+        <div className="shape-pill border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm text-rose-700">{error}</div>
       )}
 
       {!userId && (
@@ -129,9 +128,9 @@ export default async function SettingsPage({
               <span className={toggle} />
             </label>
 
-            <button type="submit" className={primaryBtn} disabled={!userId}>
+            <SubmitButton pendingText="Saving…" disabled={!userId}>
               Save account
-            </button>
+            </SubmitButton>
           </div>
         </SectionCard>
       </form>
@@ -161,9 +160,9 @@ export default async function SettingsPage({
               <span className={toggle} />
             </label>
 
-            <button type="submit" className={primaryBtn} disabled={!userId}>
+            <SubmitButton pendingText="Saving…" disabled={!userId}>
               Save notifications
-            </button>
+            </SubmitButton>
           </div>
         </SectionCard>
       </form>
