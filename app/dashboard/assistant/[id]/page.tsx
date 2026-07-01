@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getAssistant, getAssistantNumber, listIntegrations } from "@/lib/dashboard/db";
 import { getTwilioStatus } from "@/lib/dashboard/twilio";
 import { getOrganization } from "@/lib/dashboard/organizations";
+import { getPlanContext } from "@/lib/dashboard/plan";
 import { currentUserId } from "@/lib/auth";
 import { SectionCard } from "../../components/SectionCard";
 import { PageHeader } from "../../components/PageHeader";
@@ -12,10 +13,12 @@ import { LanguageSelect } from "../../numbers/LanguageSelect";
 import { VoiceSelect } from "../../numbers/VoiceSelect";
 import {
   connectAgentNumberAction,
+  getAgentNumberAction,
   testCallAction,
   unlinkNumberAction,
   updateAssistantAction,
 } from "../actions";
+import { NumberCountrySelect } from "../NumberCountrySelect";
 import { DeleteAssistant } from "../DeleteAssistant";
 import { TestCallButton } from "../TestCallButton";
 
@@ -69,6 +72,8 @@ export default async function AssistantSettingsPage({
 
   const number = await getAssistantNumber(assistant.id).catch(() => null);
   const twilio = await getTwilioStatus();
+  const planCtx = await getPlanContext(ownerId).catch(() => null);
+  const credits = planCtx?.limits.minutesIncluded ?? 1000;
 
   return (
     <div className="space-y-6">
@@ -122,7 +127,7 @@ export default async function AssistantSettingsPage({
           <div className="flex items-center justify-between gap-3">
             <div>
               <div className="text-lg font-medium tracking-tight text-neutral-900">{number.e164}</div>
-              <div className="text-xs text-neutral-400">Linked · webhook configured</div>
+              <div className="text-xs text-neutral-400">Linked · routed via ElevenLabs</div>
             </div>
             <form action={unlinkNumberAction}>
               <input type="hidden" name="number_id" value={number.id} />
@@ -137,25 +142,40 @@ export default async function AssistantSettingsPage({
           </div>
         ) : (
           <div className="space-y-3">
-            <form action={connectAgentNumberAction} className="flex flex-col gap-3 sm:flex-row sm:items-end">
+            <form action={getAgentNumberAction} className="flex flex-col gap-3 sm:flex-row sm:items-end sm:pb-6">
               <input type="hidden" name="assistant_id" value={assistant.id} />
-              <div className="flex-1">
-                <label htmlFor="e164" className={labelCls}>Phone number</label>
-                <input id="e164" name="e164" required placeholder="+14155550142" pattern="\+[1-9][0-9]{6,15}" className={field} />
-              </div>
+              <NumberCountrySelect credits={credits} />
               <button
                 type="submit"
                 className="inline-flex h-[38px] items-center justify-center rounded-lg bg-neutral-900 px-4 text-sm font-medium text-white transition-colors hover:bg-neutral-800"
               >
-                Connect number
+                Get number
               </button>
             </form>
-            <p className="text-xs text-neutral-400 sm:pb-6">
-              Enter a Twilio number you own — we import it into ElevenLabs and route
-              its inbound calls to this assistant. No server needed.
+            <p className="text-xs text-neutral-400">
+              We buy a number from Twilio, import it into ElevenLabs, and route its
+              inbound calls to this assistant. No server needed.
               {!twilio.ok &&
-                " Twilio credentials look invalid, so importing a new number will fail; only numbers already in ElevenLabs can be connected."}
+                " Twilio credentials look invalid — fix them (badge above) before getting a number."}
             </p>
+            <details>
+              <summary className="cursor-pointer text-xs font-medium text-neutral-500 hover:text-neutral-700">
+                Connect a Twilio number you already own
+              </summary>
+              <form action={connectAgentNumberAction} className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end">
+                <input type="hidden" name="assistant_id" value={assistant.id} />
+                <div className="flex-1">
+                  <label htmlFor="e164" className={labelCls}>Phone number</label>
+                  <input id="e164" name="e164" required placeholder="+14155550142" pattern="\+[1-9][0-9]{6,15}" className={field} />
+                </div>
+                <button
+                  type="submit"
+                  className="inline-flex h-[38px] items-center justify-center rounded-lg border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50"
+                >
+                  Connect
+                </button>
+              </form>
+            </details>
           </div>
         )}
       </SectionCard>

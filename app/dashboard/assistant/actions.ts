@@ -14,7 +14,7 @@ import {
   updateAssistant,
 } from "@/lib/dashboard/db";
 import { readKnowledge } from "@/lib/knowledge/sources";
-import { registerCnam } from "@/lib/dashboard/twilio";
+import { buyTwilioNumber, registerCnam } from "@/lib/dashboard/twilio";
 import { currentUserId } from "@/lib/auth";
 import { authConfigured } from "@/lib/supabase/config";
 import { canAssignNumber } from "@/lib/dashboard/plan";
@@ -174,10 +174,37 @@ export async function deleteAssistantAction(formData: FormData): Promise<void> {
 // ── Phone number for an assistant ───────────────────────────────────────────
 
 /**
- * Connect an ElevenLabs-imported number to this assistant: assign the ElevenLabs
- * inbound agent so calls answer via ElevenLabs (no media server, no Twilio
- * webhook), then record the number against the assistant. The number must
- * already be imported under Phone Numbers in the ElevenLabs dashboard.
+ * "Get number": provision a fresh number end to end — buy it from Twilio, import
+ * it into ElevenLabs, assign the inbound agent, and record it against the
+ * assistant. One click, fully serverless (ElevenLabs runs the call). Needs valid
+ * Twilio credentials (the status badge shows whether they authenticate).
+ */
+export async function getAgentNumberAction(formData: FormData): Promise<void> {
+  const assistantId = String(formData.get("assistant_id") ?? "");
+  const country = String(formData.get("country") ?? "US").trim() || "US";
+  if (!assistantId) redirect("/dashboard/assistant");
+  await requireAssistantOwner(assistantId);
+
+  const allowance = await canAssignNumber(await currentUserId());
+  if (!allowance.ok) {
+    redirect(`/dashboard/assistant/${assistantId}?notice=${encodeURIComponent(allowance.reason ?? "")}`);
+  }
+
+  try {
+    // Buy without our webhook — the ElevenLabs import takes over routing.
+    const bought = await buyTwilioNumber({ country }, { configureWebhook: false });
+    await routeNumberToAgent(bought.e164); // import into ElevenLabs + assign agent
+    await createNumber({ e164: bought.e164, twilioSid: bought.sid, assistantId });
+  } catch (err) {
+    redirect(`/dashboard/assistant/${assistantId}?error=${encodeURIComponent((err as Error).message)}`);
+  }
+  revalidatePath(`/dashboard/assistant/${assistantId}`);
+  redirect(`/dashboard/assistant/${assistantId}?saved=1`);
+}
+
+/**
+ * Connect a Twilio number you already own to this assistant: import it into
+ * ElevenLabs (if not already there) and assign the inbound agent, then record it.
  */
 export async function connectAgentNumberAction(formData: FormData): Promise<void> {
   const assistantId = String(formData.get("assistant_id") ?? "");

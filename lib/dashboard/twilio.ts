@@ -99,11 +99,14 @@ async function regulatoryAttachments(
   return reg;
 }
 
-export async function buyTwilioNumber(opts: {
-  country: string;
-  areaCode?: string;
-}): Promise<BoughtNumber> {
-  const [first] = await buyTwilioNumbers(opts, 1);
+export async function buyTwilioNumber(
+  opts: {
+    country: string;
+    areaCode?: string;
+  },
+  buyOpts: { configureWebhook?: boolean } = {},
+): Promise<BoughtNumber> {
+  const [first] = await buyTwilioNumbers(opts, 1, buyOpts);
   if (!first) {
     const country = (opts.country || "US").toUpperCase();
     throw new Error(`Could not purchase a number in ${country}.`);
@@ -120,12 +123,17 @@ export async function buyTwilioNumber(opts: {
 export async function buyTwilioNumbers(
   opts: { country: string; areaCode?: string },
   count: number,
+  buyOpts: { configureWebhook?: boolean } = {},
 ): Promise<BoughtNumber[]> {
   if (!twilioConfigured()) {
     throw new Error("Twilio credentials are not set on the server.");
   }
   if (count < 1) return [];
-  const base = process.env.APP_BASE_URL;
+  // ElevenLabs-only: when the number will be imported into ElevenLabs (which then
+  // owns its voice webhook), skip pointing it at our app so a bought-but-not-yet-
+  // imported number never routes to a dead webhook.
+  const configureWebhook = buyOpts.configureWebhook !== false;
+  const base = configureWebhook ? process.env.APP_BASE_URL : undefined;
   const client = twilioClient();
   const country = (opts.country || "US").toUpperCase();
 

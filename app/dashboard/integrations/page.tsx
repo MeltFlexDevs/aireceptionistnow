@@ -1,5 +1,7 @@
 import { listIntegrations, type Integration } from "@/lib/dashboard/db";
+import { getServiceStatuses } from "@/lib/dashboard/health";
 import { SectionCard } from "../components/SectionCard";
+import { StatusDot, StatusRow } from "../components/StatusBadge";
 import { CALENDAR_PROVIDERS, type CalendarProviderDef } from "./providers";
 import { connectCalendarAction, disconnectCalendarAction } from "./actions";
 
@@ -98,6 +100,8 @@ export default async function IntegrationsPage({
   const byProvider = new Map(calendars.map((i) => [i.provider, i]));
   const primaryId = calendars.find((i) => i.enabled)?.id;
 
+  const services = await getServiceStatuses();
+
   return (
     <div className="space-y-6">
       <header>
@@ -106,6 +110,19 @@ export default async function IntegrationsPage({
           Connect a calendar so the AI can book appointments during calls.
         </p>
       </header>
+
+      <SectionCard title="Service status" subtitle="Live health of the core integrations.">
+        <div className="grid gap-3 sm:grid-cols-2">
+          {services.map((s) => (
+            <StatusRow
+              key={s.name}
+              ok={s.ok}
+              label={s.name}
+              detail={s.configured ? s.detail : "Not configured"}
+            />
+          ))}
+        </div>
+      </SectionCard>
 
       {connected && (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
@@ -138,14 +155,19 @@ export default async function IntegrationsPage({
                     <h2 className="text-sm font-medium text-neutral-900">{def.name}</h2>
                     {conn ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-600">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                        <StatusDot ok />
                         Connected
                       </span>
                     ) : !def.live && !def.oauth ? (
                       <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-500">
                         Coming soon
                       </span>
-                    ) : null}
+                    ) : (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-0.5 text-[11px] font-medium text-rose-600">
+                        <StatusDot ok={false} />
+                        Not connected
+                      </span>
+                    )}
                     {isPrimary && (
                       <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-900">
                         Primary
