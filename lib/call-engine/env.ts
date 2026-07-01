@@ -22,8 +22,12 @@ const schema = z.object({
   // ElevenLabs — the entire voice + agent runtime plus voice catalog lookups.
   ELEVENLABS_API_KEY: z.string().min(1),
   // The managed agent that answers/places calls, and the number connected to it.
+  // ELEVENLABS_AGENT_ID is now only the outbound "Talk to our AI" demo agent;
+  // inbound assistants each get their own managed agent (see agent/sync.ts).
   ELEVENLABS_AGENT_ID: z.string().optional(),
   ELEVENLABS_AGENT_PHONE_NUMBER_ID: z.string().optional(),
+  // Optional: workspace post-call webhook object id, wired by /api/agent/setup.
+  ELEVENLABS_POST_CALL_WEBHOOK_ID: z.string().optional(),
 
   // Gemini — our only backend LLM (post-call summary + greeting localization).
   GEMINI_API_KEY: z.string().min(1),

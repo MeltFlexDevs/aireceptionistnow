@@ -6,6 +6,8 @@ import { z } from "zod";
 import {
   createNumber,
   deleteNumber,
+  getAssistant,
+  getNumber,
   setNumberAssistant,
   updateNumber,
 } from "@/lib/dashboard/db";
@@ -14,6 +16,8 @@ import {
   ensureTwilioNumber,
   type BoughtNumber,
 } from "@/lib/dashboard/twilio";
+import { routeNumberToAgent } from "@/lib/call-engine/elevenlabs";
+import { syncAssistantAgent } from "@/lib/call-engine/agent/sync";
 
 const E164 = z
   .string()
@@ -56,7 +60,12 @@ export async function buyNumberAction(formData: FormData): Promise<void> {
 
   let bought: BoughtNumber;
   try {
-    bought = await buyTwilioNumber({ country, areaCode: areaCode || undefined });
+    // ElevenLabs owns routing once the number is connected to an assistant, so
+    // don't point Twilio at our app here.
+    bought = await buyTwilioNumber(
+      { country, areaCode: areaCode || undefined },
+      { configureWebhook: false },
+    );
   } catch (err) {
     redirect(`/dashboard/numbers?error=${encodeURIComponent((err as Error).message)}`);
   }
@@ -78,8 +87,23 @@ export async function setAssistantAction(formData: FormData): Promise<void> {
   if (id) {
     try {
       await setNumberAssistant(id, assistantId || null);
-    } catch {
-      // ignore
+      // Point the phone number at the chosen assistant's managed ElevenLabs
+      // agent so inbound calls answer with THAT assistant's config. Ensure the
+      // agent exists first (sync builds it if this is the assistant's first use).
+      if (assistantId) {
+        const [number, assistant] = await Promise.all([
+          getNumber(id),
+          getAssistant(assistantId),
+        ]);
+        const agentId =
+          assistant?.elevenlabs_agent_id ?? (await syncAssistantAgent(assistantId));
+        if (number?.e164) await routeNumberToAgent(number.e164, agentId ?? undefined);
+      }
+    } catch (err) {
+      console.error("[numbers] assign assistant/agent failed", err);
+      redirect(
+        `/dashboard/numbers/${id}?error=${encodeURIComponent(`Couldn't connect the number to the assistant: ${(err as Error).message}`)}`,
+      );
     }
     revalidatePath(`/dashboard/numbers/${id}`);
   }

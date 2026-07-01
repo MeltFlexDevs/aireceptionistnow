@@ -35,10 +35,25 @@ Optional: `TWILIO_*` (only for SMS message-alerts). See `.env.example`.
 
 Both webhook secrets fail closed — unset ⇒ the corresponding `/api/agent/*` routes reject everything.
 
-### 2. Create + connect the number
+### 1b. Wire the workspace webhooks (once)
 
-- Import your number under **Phone Numbers** in the ElevenLabs dashboard.
-- In our dashboard, open the assistant → **Connect number** → enter the E.164 number. This assigns `ELEVENLABS_AGENT_ID` as the number's **inbound agent** (via the ElevenLabs API) and records it. Inbound calls now answer via ElevenLabs.
+Run once after deploy — it points the workspace's **conversation-initiation** webhook at `/api/agent/init` (per-caller greeting/language/voice) via the ElevenLabs API:
+
+```bash
+curl -X POST "$APP_BASE_URL/api/agent/setup" -H "x-agent-secret: $AGENT_WEBHOOK_SECRET"
+```
+
+Then copy the workspace webhook **signing secret** (ElevenLabs dashboard → Conversational AI → Settings → Webhooks) into `ELEVENLABS_WEBHOOK_SECRET` so our routes accept the signed calls. For post-call transcripts, create a post-call webhook object in the dashboard and set its id as `ELEVENLABS_POST_CALL_WEBHOOK_ID` before running setup (optional).
+
+### 2. Managed agents (automatic)
+
+Each dashboard **assistant** owns a managed ElevenLabs agent, built from its DB settings — greeting → `first_message`, system prompt + business → prompt, `voice_id`, `language`, and its knowledge (notes + ingested sources uploaded as knowledge-base docs). Creating, editing, or deleting an assistant syncs (or tears down) its agent automatically; the assistant's `elevenlabs_agent_id` is stored on the row. Per-conversation **overrides** (first_message/language/voice/prompt) are enabled on every agent, so `/api/agent/init` can greet each caller in their own language.
+
+Legacy `ELEVENLABS_AGENT_ID` is now only used for the outbound "Talk to our AI" demo button.
+
+### 2b. Connect the number
+
+- In our dashboard, open the assistant → **Get number** (buys + imports + assigns in one click) or connect an existing number to the assistant. This assigns **that assistant's** managed agent as the number's inbound agent and records it. Inbound calls now answer via ElevenLabs with the assistant's config.
 
 ### 3. Server tools
 
@@ -68,7 +83,7 @@ Set the agent's **post-call transcription** webhook to `${APP_BASE_URL}/api/agen
 
 Set the **conversation-initiation client-data** webhook to `${APP_BASE_URL}/api/agent/init`. It guesses the caller's language from their number's country code, localizes the greeting into it (Gemini), and returns `first_message` + `language` + `voice_id` overrides — the caller is greeted in their language before saying a word.
 
-Requirements: enable **overrides** for `first_message`, `language`, and voice in the agent's *Security* settings; add the languages you serve to *Additional languages*; same `ELEVENLABS_WEBHOOK_SECRET`.
+Overrides for `first_message` / `language` / voice / prompt are enabled automatically on every managed agent by the sync (see §2), and the webhook URL is set by `/api/agent/setup` (see §1b) — no manual *Security*-tab toggling. Uses the same `ELEVENLABS_WEBHOOK_SECRET`.
 
 ---
 

@@ -24,6 +24,7 @@ import {
   placeAgentCall,
   routeNumberToAgent,
 } from "@/lib/call-engine/elevenlabs";
+import { syncAssistantAgent, deleteAssistantAgent } from "@/lib/call-engine/agent/sync";
 
 const E164 = /^\+[1-9]\d{6,15}$/;
 
@@ -76,6 +77,18 @@ export async function createAssistantAction(formData: FormData): Promise<void> {
     id = await createAssistant(name, ownerId ?? undefined);
   } catch (err) {
     redirect(`/dashboard/assistant?error=${encodeURIComponent((err as Error).message)}`);
+  }
+
+  // Build the managed ElevenLabs agent from the new assistant's settings so it
+  // can take a call immediately. The assistant is already saved; a sync failure
+  // is surfaced but non-fatal (saving again re-syncs).
+  try {
+    await syncAssistantAgent(id);
+  } catch (err) {
+    console.error("[assistant] agent sync failed on create", err);
+    redirect(
+      `/dashboard/assistant/${id}?error=${encodeURIComponent(`Assistant saved, but setting up its voice agent failed: ${(err as Error).message}`)}`,
+    );
   }
 
   // Numbers are attached from the assistant's settings (Connect number → assigns
@@ -149,6 +162,17 @@ export async function updateAssistantAction(formData: FormData): Promise<void> {
     redirect(`/dashboard/assistant/${id}?error=${encodeURIComponent((err as Error).message)}`);
   }
 
+  // Push the edited settings (greeting, prompt, voice, language, knowledge) to
+  // the managed ElevenLabs agent, creating it if this assistant has none yet.
+  try {
+    await syncAssistantAgent(id);
+  } catch (err) {
+    console.error("[assistant] agent sync failed on update", err);
+    redirect(
+      `/dashboard/assistant/${id}?error=${encodeURIComponent(`Saved, but updating the voice agent failed: ${(err as Error).message}`)}`,
+    );
+  }
+
   revalidatePath(`/dashboard/assistant/${id}`);
   revalidatePath("/dashboard/assistant");
   redirect(`/dashboard/assistant/${id}?saved=1`);
@@ -159,6 +183,10 @@ export async function deleteAssistantAction(formData: FormData): Promise<void> {
   if (!id) redirect("/dashboard/assistant");
   await requireAssistantOwner(id);
 
+  // Capture the managed-agent refs before the row is gone so we can tear the
+  // ElevenLabs agent + its knowledge down too.
+  const existing = await getAssistant(id).catch(() => null);
+
   try {
     // Unlink this assistant's numbers so they can be reconnected elsewhere, then
     // soft-delete the assistant. Surface any failure instead of silently
@@ -168,6 +196,15 @@ export async function deleteAssistantAction(formData: FormData): Promise<void> {
   } catch (err) {
     redirect(`/dashboard/assistant/${id}?error=${encodeURIComponent((err as Error).message)}`);
   }
+
+  // Best-effort teardown of the ElevenLabs agent + uploaded knowledge. Never
+  // block the delete on it — the DB row is already gone.
+  if (existing) {
+    await deleteAssistantAgent(existing).catch((err) =>
+      console.error("[assistant] agent teardown failed", err),
+    );
+  }
+
   revalidatePath("/dashboard/assistant");
   redirect("/dashboard/assistant");
 }
@@ -192,9 +229,14 @@ export async function getAgentNumberAction(formData: FormData): Promise<void> {
   }
 
   try {
-    // Buy without our webhook — the ElevenLabs import takes over routing.
+    // Make sure this assistant has its managed agent, then buy without our
+    // webhook (the ElevenLabs import takes over routing) and assign THAT agent as
+    // the number's inbound agent — so the caller reaches this assistant's config.
+    const assistant = await getAssistant(assistantId);
+    const agentId =
+      assistant?.elevenlabs_agent_id ?? (await syncAssistantAgent(assistantId));
     const bought = await buyTwilioNumber({ country }, { configureWebhook: false });
-    await routeNumberToAgent(bought.e164); // import into ElevenLabs + assign agent
+    await routeNumberToAgent(bought.e164, agentId ?? undefined);
     await createNumber({ e164: bought.e164, twilioSid: bought.sid, assistantId });
   } catch (err) {
     redirect(`/dashboard/assistant/${assistantId}?error=${encodeURIComponent((err as Error).message)}`);

@@ -183,9 +183,14 @@ export async function buyTwilioNumbers(
  */
 export async function ensureTwilioNumber(
   e164: string,
+  opts: { configureWebhook?: boolean } = {},
 ): Promise<{ sid: string | null; provisioned: boolean }> {
   if (!twilioConfigured()) return { sid: null, provisioned: false };
-  const base = process.env.APP_BASE_URL;
+  // ElevenLabs-only: routing is owned by ElevenLabs once the number is imported
+  // and assigned to an agent (on connect). Default to NOT pointing Twilio at our
+  // app — there is no /api/twilio/voice route, so setting it would dead-end a
+  // call made before the number is connected.
+  const base = opts.configureWebhook ? process.env.APP_BASE_URL : undefined;
   const client = twilioClient();
   const voiceUrl = base ? `${base}/api/twilio/voice` : undefined;
   const statusCallback = base ? `${base}/api/twilio/status` : undefined;

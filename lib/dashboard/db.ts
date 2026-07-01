@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { mergeKnowledge, type AssistantKnowledge } from "../knowledge/sources";
 
 // Dashboard data access. Intentionally separate from the call engine's
 // repository: managing phone numbers only needs Supabase, not the full set of
@@ -195,6 +196,16 @@ export interface Assistant {
   routing: Record<string, unknown>;
   enabled: boolean;
   created_at: string;
+  /** The managed ElevenLabs agent built from this assistant, or null pre-sync. */
+  elevenlabs_agent_id: string | null;
+  /** Knowledge-base docs we uploaded for this agent, tracked for re-sync cleanup. */
+  elevenlabs_kb: AgentKbDoc[];
+}
+
+/** One ElevenLabs knowledge-base document we own on behalf of an assistant. */
+export interface AgentKbDoc {
+  id: string;
+  name: string;
 }
 
 export interface UpdateAssistantInput {
@@ -290,6 +301,64 @@ export async function deleteAssistant(id: string): Promise<void> {
     .update({ deleted_at: new Date().toISOString() })
     .eq("id", id);
   if (error) throw error;
+}
+
+/** Record the managed ElevenLabs agent (and its uploaded KB docs) for an
+ *  assistant after a sync. Passing null clears the link. */
+export async function setAssistantAgent(
+  id: string,
+  agentId: string | null,
+  kb: AgentKbDoc[],
+): Promise<void> {
+  const { error } = await db()
+    .from("assistants")
+    .update({ elevenlabs_agent_id: agentId, elevenlabs_kb: kb })
+    .eq("id", id);
+  if (error) throw error;
+}
+
+export interface AssistantSyncContext {
+  assistant: Assistant;
+  businessName: string;
+  /** Assistant's own knowledge merged with its organization's shared knowledge. */
+  knowledge: AssistantKnowledge;
+}
+
+/**
+ * Everything needed to build/refresh an assistant's ElevenLabs agent: the
+ * assistant row, its business name (for the agent prompt/persona), and its
+ * effective knowledge (own + organization's shared), merged the same way the
+ * call engine merges it at pickup. Returns null if the assistant is gone.
+ */
+export async function getAssistantSyncContext(
+  id: string,
+): Promise<AssistantSyncContext | null> {
+  const { data, error } = await db()
+    .from("assistants")
+    .select("*, business:businesses(name), organization:organizations(knowledge)")
+    .eq("id", id)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+
+  const biz = (data.business as { name?: string } | null) ?? null;
+  const org = (data.organization as { knowledge?: Record<string, unknown> } | null) ?? null;
+  const knowledge = mergeKnowledge(
+    data.knowledge as Record<string, unknown>,
+    org?.knowledge ?? {},
+  );
+
+  // Strip the joined relations so the returned assistant matches the flat type.
+  const { business: _b, organization: _o, ...assistant } = data as Record<string, unknown>;
+  void _b;
+  void _o;
+
+  return {
+    assistant: assistant as unknown as Assistant,
+    businessName: biz?.name ?? "our business",
+    knowledge,
+  };
 }
 
 /** The phone number linked to an assistant, if any. */
