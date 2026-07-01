@@ -13,6 +13,78 @@
 const OUTBOUND_CALL_URL =
   "https://api.elevenlabs.io/v1/convai/twilio/outbound-call";
 const CONVERSATIONS_URL = "https://api.elevenlabs.io/v1/convai/conversations";
+const PHONE_NUMBERS_URL = "https://api.elevenlabs.io/v1/convai/phone-numbers";
+
+interface AgentPhoneNumber {
+  phone_number?: string;
+  phone_number_id?: string;
+}
+
+/**
+ * Find the ElevenLabs phone-number id for an E.164 number, or null if it isn't
+ * imported into the account. The list endpoint returns either a bare array or
+ * `{ phone_numbers: [...] }` depending on API version — handle both.
+ */
+export async function findAgentPhoneNumberId(e164: string): Promise<string | null> {
+  const apiKey = process.env.ELEVENLABS_API_KEY;
+  if (!apiKey) throw new Error("ELEVENLABS_API_KEY is not set.");
+
+  const res = await fetch(PHONE_NUMBERS_URL, { headers: { "xi-api-key": apiKey } });
+  if (!res.ok) {
+    throw new Error(`ElevenLabs phone-numbers list failed (${res.status}).`);
+  }
+  const data = (await res.json()) as
+    | AgentPhoneNumber[]
+    | { phone_numbers?: AgentPhoneNumber[] };
+  const list = Array.isArray(data) ? data : (data.phone_numbers ?? []);
+  const match = list.find((p) => p.phone_number === e164);
+  return match?.phone_number_id ?? null;
+}
+
+/** Assign an agent as the inbound agent on an imported phone number. Pass agentId
+ *  null-equivalent to unassign (not exposed here). */
+export async function assignInboundAgent(
+  phoneNumberId: string,
+  agentId: string,
+): Promise<void> {
+  const apiKey = process.env.ELEVENLABS_API_KEY;
+  if (!apiKey) throw new Error("ELEVENLABS_API_KEY is not set.");
+
+  const res = await fetch(`${PHONE_NUMBERS_URL}/${phoneNumberId}`, {
+    method: "PATCH",
+    headers: { "xi-api-key": apiKey, "content-type": "application/json" },
+    body: JSON.stringify({ agent_id: agentId }),
+  });
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new Error(
+      `ElevenLabs agent assignment failed (${res.status}). ${detail}`.trim(),
+    );
+  }
+}
+
+/**
+ * Route an E.164 number's inbound calls to the configured agent (tier A). The
+ * number must already be imported into ElevenLabs (Phone Numbers). Returns the
+ * ElevenLabs phone-number id. Defaults the agent to ELEVENLABS_AGENT_ID.
+ */
+export async function routeNumberToAgent(
+  e164: string,
+  agentId?: string,
+): Promise<string> {
+  const agent = agentId || process.env.ELEVENLABS_AGENT_ID;
+  if (!agent) throw new Error("ELEVENLABS_AGENT_ID is not set.");
+
+  const phoneNumberId = await findAgentPhoneNumberId(e164);
+  if (!phoneNumberId) {
+    throw new Error(
+      `${e164} isn't imported into ElevenLabs yet. Import it under Phone Numbers ` +
+        `in the ElevenLabs dashboard, then connect it here.`,
+    );
+  }
+  await assignInboundAgent(phoneNumberId, agent);
+  return phoneNumberId;
+}
 
 export interface PlaceAgentCallResult {
   conversationId?: string;

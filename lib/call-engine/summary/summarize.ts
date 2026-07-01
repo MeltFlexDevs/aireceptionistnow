@@ -1,4 +1,3 @@
-import { getAnthropic } from "../llm/claude";
 import { getGemini } from "../llm/gemini";
 import { getEnv } from "../env";
 import type {
@@ -67,13 +66,9 @@ export async function summarizeCall(
     `Actions the assistant took:\n${actionsBlock}\n\n` +
     `Produce the JSON summary.`;
 
-  // Summarize with the same brain that runs the calls, so a single-provider
-  // deploy needs only that provider's key. Not latency-sensitive — structured
-  // JSON output guarantees a clean, dashboard-ready shape.
-  const raw =
-    getEnv().LLM_PROVIDER === "claude"
-      ? await summarizeWithClaude(system, prompt)
-      : await summarizeWithGemini(system, prompt);
+  // Not latency-sensitive — structured JSON output guarantees a clean,
+  // dashboard-ready shape. Gemini is our only backend LLM.
+  const raw = await summarizeWithGemini(system, prompt);
 
   return {
     summary: raw.summary ?? "",
@@ -112,21 +107,6 @@ function parseSummary(text: string): RawSummary {
   } catch {
     return {} as RawSummary;
   }
-}
-
-async function summarizeWithClaude(system: string, prompt: string): Promise<RawSummary> {
-  const message = await getAnthropic().messages.create({
-    model: getEnv().CLAUDE_MODEL,
-    max_tokens: 600,
-    system,
-    messages: [{ role: "user", content: prompt }],
-    output_config: {
-      format: { type: "json_schema", schema: SUMMARY_SCHEMA },
-      effort: "medium",
-    },
-  });
-  const block = message.content.find((b) => b.type === "text");
-  return parseSummary(block && "text" in block ? block.text : "{}");
 }
 
 async function summarizeWithGemini(system: string, prompt: string): Promise<RawSummary> {

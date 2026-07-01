@@ -1,6 +1,5 @@
 import { getEnv } from "../env";
 import { languageName } from "../voice/phone-language";
-import { getAnthropic } from "./claude";
 import { getGemini } from "./gemini";
 
 // Localize a fixed greeting into the caller's language. Used at call start (tier
@@ -31,27 +30,13 @@ export async function localizeGreeting(
   const prompt = `Translate this greeting into ${name}:\n${greeting}`;
 
   try {
-    const text =
-      getEnv().LLM_PROVIDER === "claude"
-        ? await translateWithClaude(system, prompt)
-        : await translateWithGemini(system, prompt);
+    const text = await translateWithGemini(system, prompt);
     const cleaned = text.trim().replace(/^["']|["']$/g, "");
     return cleaned || greeting;
   } catch (err) {
     console.error("[greeting] localize failed", err);
     return greeting;
   }
-}
-
-async function translateWithClaude(system: string, prompt: string): Promise<string> {
-  const message = await getAnthropic().messages.create({
-    model: getEnv().CLAUDE_MODEL,
-    max_tokens: 200,
-    system,
-    messages: [{ role: "user", content: prompt }],
-  });
-  const block = message.content.find((b) => b.type === "text");
-  return block && "text" in block ? block.text : "";
 }
 
 async function translateWithGemini(system: string, prompt: string): Promise<string> {

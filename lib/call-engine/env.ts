@@ -1,95 +1,50 @@
 import { z } from "zod";
 
-// Server-side configuration. Validated once, lazily, so a missing key fails
-// fast with a clear message instead of surfacing as an opaque runtime error
-// deep in the call. None of these are NEXT_PUBLIC — they must stay server-side.
+// Server-side configuration. Validated once, lazily, so a missing key fails fast
+// with a clear message. None of these are NEXT_PUBLIC — they stay server-side.
 //
-// Provider keys are conditionally required (see superRefine): you only need a
-// key for the engines you actually run. The default stack is ElevenLabs (STT +
-// TTS) + Gemini (brain), so a minimal deploy needs only Twilio + ElevenLabs +
-// Gemini + Supabase keys.
+// The call runtime (STT + LLM brain + TTS + media) runs entirely inside
+// ElevenLabs. This backend only: serves the agent's tool webhooks, receives its
+// post-call transcript, and enriches with Gemini (post-call summary + greeting
+// localization). So the required keys are ElevenLabs + Gemini + Supabase; Twilio
+// is optional (only for SMS message-alerts).
 
-const schema = z
-  .object({
-    // Telephony
-    TWILIO_ACCOUNT_SID: z.string().min(1),
-    TWILIO_AUTH_TOKEN: z.string().min(1), // required: webhook signatures are signed with it
-    // Optional: scoped API Key for REST calls (recommended over the auth token).
-    TWILIO_API_KEY_SID: z.string().optional(),
-    TWILIO_API_KEY_SECRET: z.string().optional(),
-    // Optional: A2P-registered Messaging Service for US SMS (see docs/A2P-10DLC.md).
-    TWILIO_MESSAGING_SERVICE_SID: z.string().optional(),
+const schema = z.object({
+  // Telephony — optional. Only used to text the owner when the agent takes a
+  // message (take_message). Unset ⇒ SMS alerts are skipped, calls unaffected.
+  TWILIO_ACCOUNT_SID: z.string().optional(),
+  TWILIO_AUTH_TOKEN: z.string().optional(),
+  TWILIO_API_KEY_SID: z.string().optional(),
+  TWILIO_API_KEY_SECRET: z.string().optional(),
+  // A2P-registered Messaging Service for US SMS (see docs/A2P-10DLC.md).
+  TWILIO_MESSAGING_SERVICE_SID: z.string().optional(),
 
-    // Speech-to-text. Default is ElevenLabs Scribe so all voice (in + out) runs
-    // on one vendor; Deepgram stays available as a telephony-tuned alternative.
-    DEEPGRAM_API_KEY: z.string().optional(),
-    DEEPGRAM_MODEL: z.string().default("nova-2-phonecall"),
-    STT_PROVIDER: z.enum(["deepgram", "elevenlabs"]).default("elevenlabs"),
+  // ElevenLabs — the entire voice + agent runtime plus voice catalog lookups.
+  ELEVENLABS_API_KEY: z.string().min(1),
+  // The managed agent that answers/places calls, and the number connected to it.
+  ELEVENLABS_AGENT_ID: z.string().optional(),
+  ELEVENLABS_AGENT_PHONE_NUMBER_ID: z.string().optional(),
 
-    // LLM brain. Gemini is the default; Claude is the alternate.
-    LLM_PROVIDER: z.enum(["gemini", "claude"]).default("gemini"),
-    GEMINI_API_KEY: z.string().optional(),
-    GEMINI_MODEL: z.string().default("gemini-2.5-flash"),
-    ANTHROPIC_API_KEY: z.string().optional(),
-    CLAUDE_MODEL: z.string().default("claude-opus-4-8"),
+  // Gemini — our only backend LLM (post-call summary + greeting localization).
+  GEMINI_API_KEY: z.string().min(1),
+  GEMINI_MODEL: z.string().default("gemini-2.5-flash"),
 
-    // Text-to-speech (all voice synthesis runs here).
-    ELEVENLABS_API_KEY: z.string().min(1),
-    ELEVENLABS_MODEL: z.string().default("eleven_flash_v2_5"),
-    // Per-language voice overrides used in auto-detect mode: a JSON map of base
-    // language code -> ElevenLabs voice id, e.g. {"sk":"<slovak-voice-id>"}. When
-    // the caller's language is detected and has an entry here, that voice is used
-    // for the rest of the call; languages with no entry keep the assistant's own
-    // configured voice (the multilingual model still pronounces them correctly).
-    ELEVENLABS_VOICE_OVERRIDES: z.string().optional(),
+  // Persistence
+  SUPABASE_URL: z.string().url(),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
 
-    // Security. Stream parameters Twilio carries to the media server are signed
-    // with this secret so a stranger can't open a media stream against a callId.
-    // Falls back to TWILIO_AUTH_TOKEN when unset (both ends share the same env).
-    MEDIA_STREAM_SECRET: z.string().optional(),
+  // Deployment. Public HTTPS base URL of the Next app — the origin ElevenLabs
+  // webhooks and Twilio number config call back into.
+  APP_BASE_URL: z.string().url(),
 
-    // Persistence
-    SUPABASE_URL: z.string().url(),
-    SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
-
-    // Deployment
-    APP_BASE_URL: z.string().url(), // public https URL Twilio calls back into
-    MEDIA_WS_URL: z.string().min(1), // public wss URL of the media server
-    MEDIA_WS_PORT: z.coerce.number().default(8080),
-
-    // Tier A — ElevenLabs managed agent (serverless, no media server).
-    // Shared secret the agent's server tools present (Authorization: Bearer …,
-    // or x-agent-secret header) so only our configured agent can call the tool
-    // webhooks. Unset ⇒ the /api/agent/* tool routes refuse all calls (fail
-    // closed), which is correct for a tier-B-only deploy.
-    AGENT_WEBHOOK_SECRET: z.string().optional(),
-    // Secret ElevenLabs signs its post-call and conversation-init webhooks with
-    // (HMAC in the elevenlabs-signature header). Unset ⇒ those routes refuse.
-    ELEVENLABS_WEBHOOK_SECRET: z.string().optional(),
-  })
-  .superRefine((env, ctx) => {
-    if (env.STT_PROVIDER === "deepgram" && !env.DEEPGRAM_API_KEY) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["DEEPGRAM_API_KEY"],
-        message: "required when STT_PROVIDER=deepgram",
-      });
-    }
-    if (env.LLM_PROVIDER === "gemini" && !env.GEMINI_API_KEY) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["GEMINI_API_KEY"],
-        message: "required when LLM_PROVIDER=gemini",
-      });
-    }
-    if (env.LLM_PROVIDER === "claude" && !env.ANTHROPIC_API_KEY) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["ANTHROPIC_API_KEY"],
-        message: "required when LLM_PROVIDER=claude",
-      });
-    }
-  });
+  // ElevenLabs managed-agent webhooks (tier A).
+  // Shared secret the agent's server tools present (Authorization: Bearer … or
+  // x-agent-secret). Unset ⇒ the /api/agent/* tool routes refuse all calls.
+  AGENT_WEBHOOK_SECRET: z.string().optional(),
+  // Secret ElevenLabs signs its post-call + conversation-init webhooks with.
+  // Unset ⇒ those routes refuse.
+  ELEVENLABS_WEBHOOK_SECRET: z.string().optional(),
+});
 
 export type Env = z.infer<typeof schema>;
 
@@ -106,10 +61,4 @@ export function getEnv(): Env {
   }
   cached = parsed.data;
   return cached;
-}
-
-/** The secret used to sign/verify media-stream parameters. */
-export function streamSecret(): string {
-  const env = getEnv();
-  return env.MEDIA_STREAM_SECRET || env.TWILIO_AUTH_TOKEN;
 }

@@ -2,9 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getAssistant, getAssistantNumber, listIntegrations } from "@/lib/dashboard/db";
 import { getOrganization } from "@/lib/dashboard/organizations";
-import { getPlanContext } from "@/lib/dashboard/plan";
 import { currentUserId } from "@/lib/auth";
-import { NumberCountrySelect } from "../NumberCountrySelect";
 import { SectionCard } from "../../components/SectionCard";
 import { PageHeader } from "../../components/PageHeader";
 import { Tabs } from "../../components/Tabs";
@@ -12,8 +10,7 @@ import { CALENDAR_PROVIDERS } from "../../integrations/providers";
 import { LanguageSelect } from "../../numbers/LanguageSelect";
 import { VoiceSelect } from "../../numbers/VoiceSelect";
 import {
-  connectNumberForAssistantAction,
-  createNumberForAssistantAction,
+  connectAgentNumberAction,
   testCallAction,
   unlinkNumberAction,
   updateAssistantAction,
@@ -54,7 +51,6 @@ export default async function AssistantSettingsPage({
     (assistant.routing as { crm?: { enabled?: boolean; url?: string; secret?: string } })?.crm ?? {};
   const transferTo = String((assistant.routing as { transferTo?: string })?.transferTo ?? "");
   const smsAlerts = (assistant.routing as { smsAlerts?: boolean })?.smsAlerts ?? true;
-  const sttProvider = String((assistant.routing as { sttProvider?: string })?.sttProvider ?? "");
   const calAccess =
     (assistant.routing as { calendar?: { access?: Array<{ integrationId: string; level: string }> } })
       ?.calendar?.access ?? [];
@@ -71,8 +67,6 @@ export default async function AssistantSettingsPage({
   }
 
   const number = await getAssistantNumber(assistant.id).catch(() => null);
-  const planCtx = await getPlanContext(ownerId).catch(() => null);
-  const credits = planCtx?.limits.minutesIncluded ?? 1000;
 
   return (
     <div className="space-y-6">
@@ -119,34 +113,23 @@ export default async function AssistantSettingsPage({
           </div>
         ) : (
           <div className="space-y-3">
-            <form action={createNumberForAssistantAction} className="flex flex-col gap-3 sm:flex-row sm:items-end sm:pb-6">
+            <form action={connectAgentNumberAction} className="flex flex-col gap-3 sm:flex-row sm:items-end">
               <input type="hidden" name="assistant_id" value={assistant.id} />
-              <NumberCountrySelect credits={credits} />
+              <div className="flex-1">
+                <label htmlFor="e164" className={labelCls}>Phone number</label>
+                <input id="e164" name="e164" required placeholder="+14155550142" pattern="\+[1-9][0-9]{6,15}" className={field} />
+              </div>
               <button
                 type="submit"
                 className="inline-flex h-[38px] items-center justify-center rounded-lg bg-neutral-900 px-4 text-sm font-medium text-white transition-colors hover:bg-neutral-800"
               >
-                Create number
+                Connect number
               </button>
             </form>
-            <details>
-              <summary className="cursor-pointer text-xs font-medium text-neutral-500 hover:text-neutral-700">
-                Connect a number you own
-              </summary>
-              <form action={connectNumberForAssistantAction} className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end">
-                <input type="hidden" name="assistant_id" value={assistant.id} />
-                <div className="flex-1">
-                  <label htmlFor="e164" className={labelCls}>Phone number</label>
-                  <input id="e164" name="e164" required placeholder="+14155550142" pattern="\+[1-9][0-9]{6,15}" className={field} />
-                </div>
-                <button
-                  type="submit"
-                  className="inline-flex h-[38px] items-center justify-center rounded-lg border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50"
-                >
-                  Connect
-                </button>
-              </form>
-            </details>
+            <p className="text-xs text-neutral-400 sm:pb-6">
+              Import the number into ElevenLabs (Phone Numbers) first. We route its
+              inbound calls to this assistant — no server needed.
+            </p>
           </div>
         )}
       </SectionCard>
@@ -329,16 +312,6 @@ export default async function AssistantSettingsPage({
                     The AI detects the caller&apos;s language and replies in it - this is the fallback.
                   </p>
                 </div>
-              </div>
-            </SectionCard>
-
-            <SectionCard title="Speech-to-text" subtitle="Transcription engine for this assistant.">
-              <div className="sm:w-1/2">
-                <select id="stt_provider" name="stt_provider" defaultValue={sttProvider} className={field}>
-                  <option value="">Default</option>
-                  <option value="deepgram">Deepgram (best accuracy)</option>
-                  <option value="elevenlabs">ElevenLabs (budget)</option>
-                </select>
               </div>
             </SectionCard>
           </div>
