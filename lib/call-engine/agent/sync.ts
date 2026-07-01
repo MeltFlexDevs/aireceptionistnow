@@ -7,6 +7,7 @@ import {
   type Assistant,
 } from "../../dashboard/db";
 import { MAX_SOURCE_CHARS, type AssistantKnowledge } from "../../knowledge/sources";
+import { SUPPORTED_LANGUAGES } from "../voice/phone-language";
 
 // Sync a dashboard assistant to a managed ElevenLabs Conversational AI agent.
 // The agent IS the caller-facing runtime (voice + LLM + turn-taking); we build
@@ -18,15 +19,15 @@ import { MAX_SOURCE_CHARS, type AssistantKnowledge } from "../../knowledge/sourc
 // multilingual, good enough for reception.
 const AGENT_LLM = "gemini-2.5-flash";
 
-// TTS model. Both are multilingual, so one voice can speak the caller's language
-// (the init webhook localizes the greeting + swaps to a native voice per caller
-// country). ElevenLabs enforces "English agents must use turbo or flash v2", so
-// an English/auto base language must use the turbo v2.5 model (still
-// multilingual); non-English bases use flash v2.5. Picking flash_v2_5 for an
-// English agent is rejected with a 400.
-function ttsModelFor(baseLang: string): ElevenLabs.TtsConversationalModel {
-  return baseLang === "en" ? "eleven_turbo_v2_5" : "eleven_flash_v2_5";
-}
+// TTS models. flash_v2_5 is multilingual (one voice speaks the caller's
+// language); flash_v2 is the English-only model. ElevenLabs enforces that an
+// agent whose only language is English uses an English v2 model — so we make the
+// agent multilingual by attaching "additional languages" (language presets),
+// which lifts that restriction and lets the multilingual model + per-caller
+// language override work. If that's ever rejected, we fall back to an
+// English-only agent so the save still succeeds.
+const TTS_MODEL_MULTILINGUAL = "eleven_flash_v2_5";
+const TTS_MODEL_ENGLISH = "eleven_flash_v2";
 const DEFAULT_GREETING = "Hello, thanks for calling. How can I help?";
 const DEFAULT_VOICE_ID = "21m00Tcm4TlvDq8ikWAM"; // ElevenLabs "Rachel"
 // Cap how many knowledge docs we push per agent so a runaway source list can't
@@ -127,6 +128,20 @@ async function deleteKnowledge(docs: AgentKbDoc[]): Promise<void> {
  * so the conversation-initiation webhook (/api/agent/init) can greet each caller
  * in their own language before overrides are ignored on a locked-down agent.
  */
+/** True for ElevenLabs' "English Agents must use turbo or flash v2" family of
+ *  400s — the only case we retry with an English-only config. The message can
+ *  arrive on the error itself or in its response body, so check both. */
+function isModelLanguageError(err: unknown): boolean {
+  const e = err as { message?: unknown; body?: unknown };
+  let text = typeof e.message === "string" ? e.message : "";
+  try {
+    text += ` ${JSON.stringify(e.body ?? "")}`;
+  } catch {
+    // non-serialisable body — message check still applies
+  }
+  return /English Agents must use|turbo or flash v2/i.test(text);
+}
+
 export async function syncAssistantAgent(assistantId: string): Promise<string | null> {
   const ctx = await getAssistantSyncContext(assistantId);
   if (!ctx) return null;
@@ -136,20 +151,36 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
   const { docs, locators } = await uploadKnowledge(assistant, knowledge);
 
   const language = baseLanguage(assistant.language);
-  const conversationConfig: ElevenLabs.ConversationalConfig = {
+  const firstMessage = (assistant.greeting ?? "").trim() || DEFAULT_GREETING;
+  const systemPrompt = composeSystemPrompt(assistant, businessName);
+  const voiceId = (assistant.voice_id ?? "").trim() || DEFAULT_VOICE_ID;
+
+  // Additional languages: every language we can greet a caller in, except the
+  // base. Their presence makes the agent multilingual — which is what lets it use
+  // the multilingual model AND accept the per-caller language override.
+  const extraLanguages = SUPPORTED_LANGUAGES.filter((l) => l !== language);
+  const languagePresets: Record<string, ElevenLabs.LanguagePresetOutput> = {};
+  for (const l of extraLanguages) languagePresets[l] = { overrides: {} };
+
+  const multilingualConfig: ElevenLabs.ConversationalConfig = {
     agent: {
-      firstMessage: (assistant.greeting ?? "").trim() || DEFAULT_GREETING,
+      firstMessage,
       language,
-      prompt: {
-        prompt: composeSystemPrompt(assistant, businessName),
-        llm: AGENT_LLM,
-        knowledgeBase: locators,
-      },
+      prompt: { prompt: systemPrompt, llm: AGENT_LLM, knowledgeBase: locators },
     },
-    tts: {
-      voiceId: (assistant.voice_id ?? "").trim() || DEFAULT_VOICE_ID,
-      modelId: ttsModelFor(language),
+    tts: { voiceId, modelId: TTS_MODEL_MULTILINGUAL },
+    languagePresets,
+  };
+
+  // Fallback if ElevenLabs rejects the multilingual config (e.g. an English-only
+  // account/model policy): a plain English agent so the save still succeeds.
+  const englishConfig: ElevenLabs.ConversationalConfig = {
+    agent: {
+      firstMessage,
+      language: "en",
+      prompt: { prompt: systemPrompt, llm: AGENT_LLM, knowledgeBase: locators },
     },
+    tts: { voiceId, modelId: TTS_MODEL_ENGLISH },
   };
 
   // Whitelist the fields the init webhook is allowed to override per call, and
@@ -165,22 +196,35 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
     },
   };
 
-  let agentId = assistant.elevenlabs_agent_id;
+  // Create or update with the given config; returns the (existing or new) id.
+  const write = async (config: ElevenLabs.ConversationalConfig): Promise<string> => {
+    if (assistant.elevenlabs_agent_id) {
+      await client.conversationalAi.agents.update(assistant.elevenlabs_agent_id, {
+        name: assistant.name,
+        conversationConfig: config,
+        platformSettings,
+      });
+      return assistant.elevenlabs_agent_id;
+    }
+    const created = await client.conversationalAi.agents.create({
+      name: assistant.name,
+      conversationConfig: config,
+      platformSettings,
+      tags: ["aireceptionistnow"],
+    });
+    return created.agentId;
+  };
+
+  let agentId: string;
   try {
-    if (agentId) {
-      await client.conversationalAi.agents.update(agentId, {
-        name: assistant.name,
-        conversationConfig,
-        platformSettings,
-      });
-    } else {
-      const created = await client.conversationalAi.agents.create({
-        name: assistant.name,
-        conversationConfig,
-        platformSettings,
-        tags: ["aireceptionistnow"],
-      });
-      agentId = created.agentId;
+    try {
+      agentId = await write(multilingualConfig);
+    } catch (err) {
+      // Only fall back on the known model/language validation error — anything
+      // else (auth, quota, bad voice) should surface as-is.
+      if (!isModelLanguageError(err)) throw err;
+      console.warn("[agent-sync] multilingual config rejected, falling back to English", err);
+      agentId = await write(englishConfig);
     }
   } catch (err) {
     // Roll back the just-uploaded docs so a failed create/update doesn't orphan

@@ -79,6 +79,13 @@ const CODE_TO_LANGUAGE: Record<string, string> = {
   "60": "ms",
 };
 
+/** Distinct languages we can greet callers in (the values of CODE_TO_LANGUAGE).
+ *  Used to enable "additional languages" on a managed agent so it's multilingual
+ *  and the per-caller language override is accepted. */
+export const SUPPORTED_LANGUAGES: string[] = Array.from(
+  new Set(Object.values(CODE_TO_LANGUAGE)),
+);
+
 const LANGUAGE_NAMES: Record<string, string> = {
   en: "English",
   de: "German",
