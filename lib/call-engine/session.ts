@@ -15,17 +15,20 @@ import type { SttProvider, SttSession } from "./stt/types";
 import { openElevenLabsTts } from "./tts/elevenlabs";
 import type { TtsProvider, TtsSession } from "./tts/types";
 import { baseLanguage, bestVoiceForLanguage, isAutoLanguage } from "./voice/catalog";
+import { languageFromPhone } from "./voice/phone-language";
+import { localizeGreeting } from "./llm/greeting";
+import { type CalendarAccessEntry } from "./integrations/registry";
 import {
-  resolveCalendarById,
-  resolveCalendarProvider,
-  resolveCalendarsForAccess,
-  type CalendarAccessEntry,
-} from "./integrations/registry";
-import { checkAvailability } from "./integrations/availability";
-import { redirectCall, sendSms } from "./telephony";
+  bookAppointmentAction,
+  calendarAccessFrom,
+  checkAvailabilityAction,
+  takeMessageAction,
+  type ActionContext,
+} from "./actions";
+import { redirectCall } from "./telephony";
 import { runPostCall } from "./summary/dispatch";
 import type { CallRepository } from "./persistence/types";
-import type { BookingRequest, CallContext } from "./types";
+import type { CallContext } from "./types";
 
 export interface SessionHooks {
   /** Send synthesized μ-law audio back into the call. */
@@ -87,12 +90,21 @@ export class CallSession {
     this.system = buildSystemPrompt(ctx.config);
     this.currentVoiceId = ctx.config.voiceId;
     this.autoLanguage = isAutoLanguage(ctx.config.language);
+    // Guess the caller's language from their number so the greeting and voice are
+    // already right on the very first word. Live STT detection refines it once the
+    // caller actually speaks — the dialing code is only a hint.
+    if (this.autoLanguage) {
+      const guessed = languageFromPhone(ctx.from);
+      if (guessed) {
+        this.detectedLanguage = guessed;
+        this.currentVoiceId = bestVoiceForLanguage(guessed, ctx.config.voiceId);
+      }
+    }
     const llmName = ctx.config.routing.llmProvider as string | undefined;
     const selected = selectLlm(llmName);
     this.llm = selected.provider;
     this.llmModel = selected.model;
-    this.calendarAccess =
-      (ctx.config.routing.calendar as { access?: CalendarAccessEntry[] })?.access ?? [];
+    this.calendarAccess = calendarAccessFrom(ctx.config);
     this.tools = buildReceptionistTools({
       canCheckAvailability: this.calendarAccess.length > 0,
     });
@@ -120,9 +132,18 @@ export class CallSession {
     this.currentVoiceId = bestVoiceForLanguage(base, this.ctx.config.voiceId);
   }
 
-  /** Greet the caller as soon as the media stream is live. */
+  /** Greet the caller as soon as the media stream is live. When the caller's
+   *  language was guessed from their number, the greeting is spoken in it. */
   start(): void {
-    void this.speakText(this.ctx.config.greeting, "assistant");
+    void this.greetAndSpeak();
+  }
+
+  private async greetAndSpeak(): Promise<void> {
+    const base = this.ctx.config.greeting;
+    const greeting = this.detectedLanguage
+      ? await localizeGreeting(base, this.detectedLanguage)
+      : base;
+    await this.speakText(greeting, "assistant");
   }
 
   /** Raw μ-law from the caller (forwarded to STT). */
@@ -239,18 +260,11 @@ export class CallSession {
   ): Promise<string> {
     switch (name) {
       case TOOL_CHECK:
-        return this.checkAvailability(input);
+        return checkAvailabilityAction(this.actionCtx(), input);
       case TOOL_BOOK:
-        return this.bookAppointment(input);
-      case TOOL_MESSAGE: {
-        await this.deps.repo.recordAction(this.ctx.callId, {
-          type: "message",
-          status: "done",
-          payload: input,
-        });
-        await this.alertOwner(input);
-        return "Got it — I've saved your message.";
-      }
+        return bookAppointmentAction(this.actionCtx(), this.deps.repo, input);
+      case TOOL_MESSAGE:
+        return takeMessageAction(this.actionCtx(), this.deps.repo, input);
       case TOOL_TRANSFER: {
         const to = String(
           (this.ctx.config.routing as { transferTo?: string }).transferTo ?? "",
@@ -278,105 +292,15 @@ export class CallSession {
     }
   }
 
-  /** Read-only availability check across every calendar this assistant may read.
-   *  Returns guidance the model speaks; it deliberately surfaces only free/busy
-   *  and free alternatives — never what is scheduled, who, or why. */
-  private async checkAvailability(input: Record<string, unknown>): Promise<string> {
-    const start = String(input.start_time ?? "");
-    const end = String(input.end_time ?? "");
-    if (!start || !end) {
-      return "I need a specific start and end time to check availability.";
-    }
-    const calendars = resolveCalendarsForAccess(
-      this.ctx.config.integrations,
-      this.calendarAccess,
-    );
-    const answer = await checkAvailability(calendars, start, end).catch((err) => {
-      console.error("[session] availability", err);
-      return null;
-    });
-    if (!answer || !answer.ok) {
-      return "I couldn't check the calendar right now. Offer to take a message or have someone confirm, without guessing whether the time is free.";
-    }
-    if (answer.requestedFree) {
-      return "That time is free. You can confirm it and book if the caller agrees.";
-    }
-    if (answer.alternatives.length === 0) {
-      return "That time isn't available, and there are no nearby openings. Say only that it's unavailable and offer to take a message. Never reveal what is scheduled or why.";
-    }
-    return (
-      "That time isn't available. Tell the caller only that the time is taken " +
-      "(never what is scheduled or why) and offer these free times instead, " +
-      `phrased naturally: ${answer.alternatives.join(", ")}.`
-    );
-  }
-
-  private async bookAppointment(input: Record<string, unknown>): Promise<string> {
-    const access =
-      (
-        this.ctx.config.routing.calendar as {
-          access?: Array<{ integrationId: string; level: string }>;
-        }
-      )?.access ?? [];
-    const writeEntry = access.find((a) => a.level === "write");
-
-    const req: BookingRequest = {
-      title: String(input.title ?? "Appointment"),
-      startTime: String(input.start_time ?? ""),
-      endTime: String(input.end_time ?? ""),
-      attendeeName: input.attendee_name ? String(input.attendee_name) : undefined,
-      attendeePhone: input.attendee_phone
-        ? String(input.attendee_phone)
-        : this.ctx.from,
-      notes: input.notes ? String(input.notes) : undefined,
+  /** Bundle this call's transport-independent state for the shared action core.
+   *  Both tiers execute the same actions; the session just supplies its context. */
+  private actionCtx(): ActionContext {
+    return {
+      callId: this.ctx.callId,
+      config: this.ctx.config,
+      from: this.ctx.from,
+      to: this.ctx.to,
     };
-
-    let resolved = writeEntry
-      ? resolveCalendarById(this.ctx.config.integrations, writeEntry.integrationId)
-      : null;
-    if (!resolved) resolved = resolveCalendarProvider(this.ctx.config.integrations);
-    if (!resolved) {
-      await this.deps.repo.recordAction(this.ctx.callId, {
-        type: "booking",
-        status: "pending",
-        payload: input,
-      });
-      return "Saved the appointment request; the team will confirm shortly.";
-    }
-    const result = await resolved.provider.createEvent(req);
-    await this.deps.repo.recordAction(
-      this.ctx.callId,
-      {
-        type: "booking",
-        status: result.ok ? "done" : "failed",
-        externalId: result.externalId,
-        payload: input,
-        error: result.error,
-      },
-      resolved.integrationId,
-    );
-    return result.ok
-      ? "The appointment is booked and confirmed."
-      : "I couldn't reach the calendar, so I've saved it as a request to confirm.";
-  }
-
-  /** Text the owner's personal number when a message is taken (if enabled). */
-  private async alertOwner(input: Record<string, unknown>): Promise<void> {
-    const r = this.ctx.config.routing as {
-      transferTo?: string;
-      smsAlerts?: boolean;
-    };
-    if (!r.transferTo || r.smsAlerts === false) return;
-    const who = input.caller_name ? String(input.caller_name) : this.ctx.from;
-    const cb = input.callback_number ? ` (${String(input.callback_number)})` : "";
-    const body = `New message for ${this.ctx.config.businessName}: ${String(
-      input.message ?? "",
-    )} — from ${who}${cb}`;
-    try {
-      await sendSms(r.transferTo, this.ctx.to, body);
-    } catch (err) {
-      console.error("[session] sms alert", err);
-    }
   }
 
   /** Stop everything, finalize the call record, and trigger summarization. */

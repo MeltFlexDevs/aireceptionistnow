@@ -56,6 +56,16 @@ const schema = z
     APP_BASE_URL: z.string().url(), // public https URL Twilio calls back into
     MEDIA_WS_URL: z.string().min(1), // public wss URL of the media server
     MEDIA_WS_PORT: z.coerce.number().default(8080),
+
+    // Tier A — ElevenLabs managed agent (serverless, no media server).
+    // Shared secret the agent's server tools present (Authorization: Bearer …,
+    // or x-agent-secret header) so only our configured agent can call the tool
+    // webhooks. Unset ⇒ the /api/agent/* tool routes refuse all calls (fail
+    // closed), which is correct for a tier-B-only deploy.
+    AGENT_WEBHOOK_SECRET: z.string().optional(),
+    // Secret ElevenLabs signs its post-call and conversation-init webhooks with
+    // (HMAC in the elevenlabs-signature header). Unset ⇒ those routes refuse.
+    ELEVENLABS_WEBHOOK_SECRET: z.string().optional(),
   })
   .superRefine((env, ctx) => {
     if (env.STT_PROVIDER === "deepgram" && !env.DEEPGRAM_API_KEY) {

@@ -14,6 +14,16 @@ export interface CreateCallInput {
   to: string;
 }
 
+/** A tier-A (ElevenLabs managed agent) call, keyed by conversation id instead
+ *  of a Twilio call SID. */
+export interface AgentCallInput {
+  conversationId: string;
+  businessId: string;
+  numberId: string;
+  from: string;
+  to: string;
+}
+
 export interface FinalizeCallInput {
   status: CallStatus;
   durationSeconds?: number;
@@ -30,6 +40,11 @@ export interface CallRepository {
   resolveInboundNumber(toE164: string): Promise<NumberConfig | null>;
 
   createCall(input: CreateCallInput): Promise<string>;
+
+  /** Find the call row for an ElevenLabs conversation, creating it on first use.
+   *  Idempotent: repeated tool calls in one conversation return the same id. */
+  getOrCreateAgentCall(input: AgentCallInput): Promise<string>;
+
   markInProgress(callId: string, streamSid: string): Promise<void>;
   appendTurn(callId: string, turn: TranscriptTurn): Promise<void>;
   finalizeCall(callId: string, input: FinalizeCallInput): Promise<void>;

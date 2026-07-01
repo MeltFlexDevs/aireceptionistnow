@@ -9,6 +9,7 @@ import type {
   TranscriptTurn,
 } from "../types";
 import type {
+  AgentCallInput,
   CallRepository,
   CreateCallInput,
   FinalizeCallInput,
@@ -126,6 +127,41 @@ export class SupabaseCallRepository implements CallRepository {
       .single();
     if (error) throw error;
     return String(data.id);
+  }
+
+  async getOrCreateAgentCall(input: AgentCallInput): Promise<string> {
+    const existing = await db()
+      .from("calls")
+      .select("id")
+      .eq("elevenlabs_conversation_id", input.conversationId)
+      .maybeSingle();
+    if (existing.error) throw existing.error;
+    if (existing.data) return String(existing.data.id);
+
+    // On concurrent first tool calls two inserts can race; the partial unique
+    // index on elevenlabs_conversation_id makes the loser fail, so we re-read.
+    const insert = await db()
+      .from("calls")
+      .insert({
+        business_id: input.businessId,
+        phone_number_id: input.numberId,
+        elevenlabs_conversation_id: input.conversationId,
+        from_number: input.from,
+        to_number: input.to,
+        direction: "inbound",
+        status: "in_progress",
+      })
+      .select("id")
+      .single();
+    if (!insert.error) return String(insert.data.id);
+
+    const retry = await db()
+      .from("calls")
+      .select("id")
+      .eq("elevenlabs_conversation_id", input.conversationId)
+      .maybeSingle();
+    if (retry.data) return String(retry.data.id);
+    throw insert.error;
   }
 
   async markInProgress(callId: string, streamSid: string): Promise<void> {
