@@ -78,7 +78,7 @@ export function CallTable({ rows }: { rows: CallLogRow[] }) {
                   <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${statusTone(c.status)}`}>
                     {c.statusLabel}
                   </span>
-                  {c.outcome && (
+                  {c.outcome && c.outcome.toLowerCase() !== "abandoned" && (
                     <span className="ml-1.5 inline-flex rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-900">
                       {c.outcome}
                     </span>

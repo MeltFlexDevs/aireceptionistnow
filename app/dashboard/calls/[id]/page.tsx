@@ -77,7 +77,7 @@ export default async function CallDetailPage({ params }: { params: Promise<{ id:
             <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${statusTone(call.status)}`}>
               {call.statusLabel}
             </span>
-            {call.outcome && (
+            {call.outcome && call.outcome.toLowerCase() !== "abandoned" && (
               <span className="inline-flex rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-900">
                 {call.outcome}
               </span>

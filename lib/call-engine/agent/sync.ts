@@ -198,10 +198,17 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
   // init webhook does for the greeting. An empty override keeps the agent's base
   // voice, which the multilingual model still speaks the language in.
   const languagePresets: Record<string, ElevenLabs.LanguagePresetOutput> = {};
+  // Same language set but with no per-language voice override — a retry config for
+  // when the voice presets are what ElevenLabs rejects (e.g. a preset voice id not
+  // on the account). Keeping the languages (just not the voices) is what matters:
+  // it keeps the agent multilingual so Slovak et al. still work, spoken by the
+  // base multilingual voice, instead of collapsing all the way to English-only.
+  const languagePresetsPlain: Record<string, ElevenLabs.LanguagePresetOutput> = {};
   for (const l of extraLanguages) {
     const presetVoice = bestVoiceForLanguage(l, voiceId);
     languagePresets[l] =
       presetVoice === voiceId ? { overrides: {} } : { overrides: { tts: { voiceId: presetVoice } } };
+    languagePresetsPlain[l] = { overrides: {} };
   }
 
   // Typed as the Output prompt variant because that's what ConversationalConfig
@@ -223,6 +230,14 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
     },
     tts: { voiceId, modelId: TTS_MODEL_MULTILINGUAL },
     languagePresets,
+  };
+
+  // Retry tier between full-multilingual and English-only: multilingual agent
+  // with the languages enabled but no per-language voice overrides. Isolates a
+  // bad preset voice as the rejection cause so Slovak stays alive.
+  const multilingualPlainConfig: ElevenLabs.ConversationalConfig = {
+    ...multilingualConfig,
+    languagePresets: languagePresetsPlain,
   };
 
   // Fallback if ElevenLabs rejects the multilingual config (e.g. an English-only
@@ -275,19 +290,26 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
       agentId = await write(multilingualConfig);
     } catch (err) {
       // The multilingual config (language presets + multilingual model) is the
-      // part ElevenLabs is most likely to reject — English-only model/account
-      // policy, an unsupported language preset, etc. Retry once with a minimal
-      // English-only agent so a valid assistant still gets a working agent. If the
-      // fallback ALSO fails, throw the ORIGINAL error — it names the real problem
-      // (auth, quota, bad voice) rather than the English retry's symptom.
-      console.warn("[agent-sync] multilingual config rejected, retrying English-only", err);
+      // part ElevenLabs is most likely to reject. Before giving up multilingual
+      // entirely, retry WITHOUT the per-language voice overrides — a preset voice
+      // id that isn't on the account is a common cause, and dropping the voices
+      // keeps the languages (so Slovak et al. still work, in the base voice). Only
+      // if that also fails do we collapse to a plain English-only agent. If even
+      // the English retry fails, throw the ORIGINAL error — it names the real
+      // problem (auth, quota, bad base voice) rather than a downstream symptom.
       try {
-        agentId = await write(englishConfig);
-        // Agent is English-only now (no language presets) — the init webhook must
-        // not send a per-caller language override it can't honor. Persisted below.
-        multilingual = false;
-      } catch {
-        throw err;
+        console.warn("[agent-sync] multilingual config rejected, retrying without per-language voices", err);
+        agentId = await write(multilingualPlainConfig);
+      } catch (plainErr) {
+        console.warn("[agent-sync] plain multilingual config rejected, retrying English-only", plainErr);
+        try {
+          agentId = await write(englishConfig);
+          // Agent is English-only now (no language presets) — the init webhook must
+          // not send a per-caller language override it can't honor. Persisted below.
+          multilingual = false;
+        } catch {
+          throw err;
+        }
       }
     }
   } catch (err) {
