@@ -12,20 +12,6 @@ import { OrganizationPicker } from "./OrganizationPicker";
 
 export const dynamic = "force-dynamic";
 
-function latencyPoints(values: number[]): string {
-  if (values.length === 0) return "";
-  const max = Math.max(...values);
-  const min = Math.min(...values);
-  const span = max - min || 1;
-  return values
-    .map((v, i) => {
-      const x = (i / Math.max(values.length - 1, 1)) * 100;
-      const y = 24 - ((v - min) / span) * 20 - 2;
-      return `${x.toFixed(1)},${y.toFixed(1)}`;
-    })
-    .join(" ");
-}
-
 export default async function AnalyticsPage({
   searchParams,
 }: {
@@ -133,10 +119,10 @@ export default async function AnalyticsPage({
         </SectionCard>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <SectionCard title="Outcomes" subtitle="How calls resolved">
-          {data.outcomes.length > 0 ? (
-            <DonutChart segments={data.outcomes} centerLabel={String(data.totals.calls)} centerSub="calls" />
+      <div className="grid gap-4 lg:grid-cols-2">
+        <SectionCard title="Callers by country" subtitle="Where callers are calling from">
+          {data.countries.length > 0 ? (
+            <DonutChart segments={data.countries} centerLabel={String(data.totals.calls)} centerSub="calls" />
           ) : (
             <p className="text-sm text-neutral-500">No calls yet.</p>
           )}
@@ -148,21 +134,6 @@ export default async function AnalyticsPage({
           ) : (
             <p className="text-sm text-neutral-500">No calls yet.</p>
           )}
-        </SectionCard>
-
-        <SectionCard title="Voice latency" subtitle="Median reply time">
-          <div className="text-[28px] font-medium leading-none tracking-tight text-neutral-900">
-            {data.latency.medianMs > 0 ? data.latency.medianMs : "-"}
-            {data.latency.medianMs > 0 && <span className="ml-1 text-base font-normal text-neutral-400">ms</span>}
-          </div>
-          {data.latency.spark.length > 1 && (
-            <svg viewBox="0 0 100 24" preserveAspectRatio="none" className="mt-3 h-10 w-full">
-              <polyline points={latencyPoints(data.latency.spark)} fill="none" stroke="#171717" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
-            </svg>
-          )}
-          <div className="mt-3 border-t border-neutral-100 pt-3 text-sm text-neutral-500">
-            p95 <span className="font-medium text-neutral-900">{data.latency.p95Ms > 0 ? `${data.latency.p95Ms}ms` : "-"}</span>
-          </div>
         </SectionCard>
       </div>
     </div>

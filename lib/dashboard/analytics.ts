@@ -1,6 +1,6 @@
 import { ensureBusinessId, getOwnedNumbers } from "./db";
 import { serviceClient } from "./supabase";
-import { countryFromPhone } from "../call-engine/voice/phone-language";
+import { countryFromPhone, flagEmoji } from "../call-engine/voice/phone-language";
 
 // Dashboard analytics from the calls / call_turns tables (read-only, one business).
 export type Trend = "up" | "down";
@@ -21,12 +21,6 @@ export interface Segment {
   label: string;
   value: number;
   color: string;
-}
-export interface Latency {
-  medianMs: number;
-  p95Ms: number;
-  targetMs: number;
-  spark: number[];
 }
 export interface MonthUsage {
   callsThisMonth: number;
@@ -56,8 +50,7 @@ export interface Overview {
   kpis: Kpi[];
   callVolume: Bar[];
   talkRatio: Segment[];
-  outcomes: Segment[];
-  latency: Latency;
+  countries: Segment[];
   monthUsage: MonthUsage;
   recentCalls: Call[];
   summaries: Summary[];
@@ -66,9 +59,8 @@ export interface Overview {
 export interface Analytics {
   totals: { calls: number; avgDuration: string; answerRate: string; bookings: number };
   volume: Bar[];
-  outcomes: Segment[];
+  countries: Segment[];
   sentiment: Segment[];
-  latency: Latency;
 }
 
 interface CallRow {
@@ -80,7 +72,6 @@ interface CallRow {
   sentiment: string | null;
   from_number: string | null;
   to_number: string | null;
-  median_latency_ms: number | null;
   summary: string | null;
   phone_number_id: string | null;
 }
@@ -97,14 +88,8 @@ export interface AssistantStat {
   positivePct: number;
 }
 
-// Monochrome charts: green for good outcomes, red for bad, grays for the rest.
-const OUTCOME_COLORS: Record<string, string> = {
-  booked: "#16a34a",
-  resolved: "#22c55e",
-  message: "#737373",
-  transferred: "#a3a3a3",
-  abandoned: "#dc2626",
-};
+// Monochrome charts: grays cycled across the top caller countries.
+const COUNTRY_COLORS = ["#171717", "#404040", "#525252", "#737373", "#a3a3a3", "#d4d4d4"];
 const SENTIMENT_COLORS: Record<string, string> = {
   positive: "#16a34a",
   neutral: "#a3a3a3",
@@ -124,17 +109,6 @@ function relTime(iso: string): string {
   const h = Math.floor(m / 60);
   if (h < 24) return `${h} hr ago`;
   return `${Math.floor(h / 24)}d ago`;
-}
-function median(xs: number[]): number {
-  if (xs.length === 0) return 0;
-  const s = [...xs].sort((a, b) => a - b);
-  const mid = Math.floor(s.length / 2);
-  return s.length % 2 ? s[mid] : Math.round((s[mid - 1] + s[mid]) / 2);
-}
-function percentile(xs: number[], p: number): number {
-  if (xs.length === 0) return 0;
-  const s = [...xs].sort((a, b) => a - b);
-  return s[Math.min(s.length - 1, Math.floor((p / 100) * s.length))];
 }
 function pctDelta(recent: number, prior: number): number {
   if (prior === 0) return recent > 0 ? 100 : 0;
@@ -170,7 +144,7 @@ async function fetchCalls(
   let query = serviceClient()
     .from("calls")
     .select(
-      "id,started_at,duration_seconds,status,outcome,sentiment,from_number,to_number,median_latency_ms,summary,phone_number_id",
+      "id,started_at,duration_seconds,status,outcome,sentiment,from_number,to_number,summary,phone_number_id",
     )
     .eq("business_id", businessId)
     .gte("started_at", sinceIso);
@@ -187,32 +161,39 @@ async function scopedNumberIds(ownerId?: string | null): Promise<string[] | unde
   return (await getOwnedNumbers(ownerId)).map((n) => n.id);
 }
 
-function segmentsByOutcome(calls: CallRow[]): Segment[] {
-  const counts = new Map<string, number>();
-  for (const c of calls) {
-    const key = c.outcome ?? "other";
-    counts.set(key, (counts.get(key) ?? 0) + 1);
+// ISO 3166 alpha-2 → English country name, via the platform Intl data (no map to
+// maintain). Falls back to the raw code if the runtime can't resolve it.
+let regionNames: Intl.DisplayNames | null = null;
+function regionName(iso: string): string {
+  try {
+    regionNames ??= new Intl.DisplayNames(["en"], { type: "region" });
+    return regionNames.of(iso) ?? iso;
+  } catch {
+    return iso;
   }
-  const total = calls.length || 1;
-  return [...counts.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .map(([key, n]) => ({
-      label: capitalize(key),
-      value: Math.round((n / total) * 100),
-      color: OUTCOME_COLORS[key] ?? "#a3a3a3",
-    }));
 }
 
-function latencyFrom(calls: CallRow[]): Latency {
-  const vals = calls
-    .map((c) => c.median_latency_ms)
-    .filter((v): v is number => typeof v === "number" && v > 0);
-  return {
-    medianMs: median(vals),
-    p95Ms: percentile(vals, 95),
-    targetMs: 800,
-    spark: vals.slice(0, 7).reverse(),
-  };
+// Share of calls by the caller's country (guessed from their E.164 number). Top
+// six countries by volume, the rest folded into "Other".
+function countriesFrom(calls: CallRow[]): Segment[] {
+  const counts = new Map<string, number>();
+  for (const c of calls) {
+    const info = countryFromPhone(c.from_number ?? "");
+    if (!info) continue;
+    counts.set(info.iso, (counts.get(info.iso) ?? 0) + 1);
+  }
+  const total = [...counts.values()].reduce((a, b) => a + b, 0) || 1;
+  const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+  const segs: Segment[] = sorted.slice(0, 6).map(([iso, n], i) => ({
+    label: `${flagEmoji(iso)} ${regionName(iso)}`.trim(),
+    value: Math.round((n / total) * 100),
+    color: COUNTRY_COLORS[i % COUNTRY_COLORS.length],
+  }));
+  const rest = sorted.slice(6).reduce((s, [, n]) => s + n, 0);
+  if (rest > 0) {
+    segs.push({ label: "Other", value: Math.round((rest / total) * 100), color: "#e5e5e5" });
+  }
+  return segs;
 }
 
 async function talkRatio(callIds: string[]): Promise<Segment[]> {
@@ -315,20 +296,22 @@ export async function getOverview(ownerId?: string | null): Promise<Overview> {
   const summaries: Summary[] = calls
     .filter((c) => c.summary)
     .slice(0, 4)
-    .map((c) => ({
-      id: c.id,
-      name: c.from_number || "Unknown caller",
-      time: relTime(c.started_at),
-      text: c.summary ?? "",
-      tags: c.outcome ? [capitalize(c.outcome)] : [],
-    }));
+    .map((c) => {
+      const country = countryFromPhone(c.from_number ?? "");
+      return {
+        id: c.id,
+        name: c.from_number || "Unknown caller",
+        time: relTime(c.started_at),
+        text: c.summary ?? "",
+        tags: country ? [`${country.flag} ${regionName(country.iso)}`.trim()] : [],
+      };
+    });
 
   return {
     kpis,
     callVolume: dayBuckets(calls, 14),
     talkRatio: await talkRatio(recent.map((c) => c.id)),
-    outcomes: segmentsByOutcome(recent),
-    latency: latencyFrom(recent),
+    countries: countriesFrom(recent),
     monthUsage,
     recentCalls,
     summaries,
@@ -516,8 +499,7 @@ export async function getAnalytics(
       bookings: calls.filter((c) => c.outcome === "booked").length,
     },
     volume: dayBuckets(calls, 30),
-    outcomes: segmentsByOutcome(calls),
+    countries: countriesFrom(calls),
     sentiment,
-    latency: latencyFrom(calls),
   };
 }

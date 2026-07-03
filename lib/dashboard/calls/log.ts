@@ -188,12 +188,15 @@ export async function getCallLog(
     rows.push(dbOnlyRow(c));
   }
 
-  // Only surface real calls: a Call SID (the call id) and actual caller
-  // interaction. Duration is the reliable interaction signal — a ghost/no-answer
-  // call is 0s, a real conversation has length — and unlike the transcript it's
-  // always present (Twilio-authoritative), so it doesn't depend on the post-call
-  // webhook having persisted turns. Live calls (0s but ringing) stay via isLive.
-  const cleaned = rows.filter((r) => r.sid && (r.durationSec > 0 || isLiveStatus(r.status)));
+  // Only surface calls handled by one of the user's assistants. An assistant name
+  // is set solely on a DB-backed row (via phone_number → assistant), so this also
+  // guarantees a dbId — the row opens to its transcript + details on click. It
+  // drops raw Twilio-log noise (no assistant, nothing to open) and, by no longer
+  // requiring a Twilio SID, lets tier-A (ElevenLabs) calls — which have none —
+  // show too. Duration/live gates out ghost/no-answer rows; live calls stay.
+  const cleaned = rows.filter(
+    (r) => r.assistant && (r.durationSec > 0 || isLiveStatus(r.status)),
+  );
 
   cleaned.sort((a, b) => (b.date > a.date ? 1 : b.date < a.date ? -1 : 0));
   return { rows: applyFilters(cleaned, filters), twilioConnected: twilioCalls.length > 0 };

@@ -40,8 +40,7 @@ export function CallTable({ rows }: { rows: CallLogRow[] }) {
             <th className="pb-3 pr-4 font-medium">Assistant</th>
             <th className="pb-3 pr-4 font-medium">Status</th>
             <th className="pb-3 pr-4 font-medium">Duration</th>
-            <th className="pb-3 pr-4 font-medium">Date</th>
-            <th className="pb-3 text-right font-medium">Call SID</th>
+            <th className="pb-3 text-right font-medium">Date</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-neutral-100">
@@ -86,15 +85,7 @@ export function CallTable({ rows }: { rows: CallLogRow[] }) {
                   )}
                 </td>
                 <td className="py-3 pr-4 tabular-nums text-neutral-600">{c.durationLabel}</td>
-                <td className="py-3 pr-4 whitespace-nowrap text-neutral-500">{c.dateLabel}</td>
-                <td className="py-3 text-right">
-                  <span
-                    className="font-mono text-[11px] text-neutral-400 transition-colors group-hover:text-neutral-600"
-                    title={c.sid || "Not yet linked"}
-                  >
-                    {c.sid ? `${c.sid.slice(0, 10)}…` : "-"}
-                  </span>
-                </td>
+                <td className="py-3 text-right whitespace-nowrap text-neutral-500">{c.dateLabel}</td>
               </tr>
             );
           })}

@@ -1,5 +1,6 @@
 import { getGemini } from "../llm/gemini";
 import { getEnv } from "../env";
+import { languageFromPhone, languageName } from "../voice/phone-language";
 import type {
   CallAction,
   CallSummary,
@@ -43,6 +44,7 @@ export async function summarizeCall(
   turns: TranscriptTurn[],
   config: NumberConfig,
   actions: CallAction[] = [],
+  from = "",
 ): Promise<CallSummary> {
   if (turns.length === 0) {
     return {
@@ -60,6 +62,12 @@ export async function summarizeCall(
 
   const actionsBlock = formatActions(actions);
 
+  // Write the recap in the caller's own language — the one they spoke (best read
+  // from the transcript), falling back to the language of their phone number's
+  // country. The enum fields (outcome, sentiment) stay English for the dashboard.
+  const phoneLang = languageFromPhone(from);
+  const langHint = phoneLang ? ` (most likely ${languageName(phoneLang)})` : "";
+
   const system =
     "You summarize a phone call for a business dashboard. Recap what the caller " +
     "asked for, how the assistant responded, and what was actually done (the " +
@@ -69,7 +77,10 @@ export async function summarizeCall(
     "'message' if a message/callback was taken, 'transferred' if handed to a human, " +
     "'resolved' if the caller's question was answered. Use 'abandoned' ONLY when the " +
     "caller hung up before anything was accomplished — never for a call where the " +
-    "assistant actually helped. Also judge the caller's sentiment.";
+    "assistant actually helped. Also judge the caller's sentiment. " +
+    `Write the "summary" and every "action_items" entry in the language the caller ` +
+    `spoke${langHint}. Keep the "outcome" and "sentiment" values as the allowed ` +
+    "English enum values regardless of the caller's language.";
   const prompt =
     `Call for ${config.businessName} on the "${config.label}" line.\n\n` +
     `Transcript:\n${transcript}\n\n` +

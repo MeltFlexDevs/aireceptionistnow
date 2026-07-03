@@ -11,23 +11,9 @@ import { AssistantStats } from "./components/AssistantStats";
 import { PlanUsage } from "./components/PlanUsage";
 import { getPlanContext } from "@/lib/dashboard/plan";
 import { PageHeader } from "./components/PageHeader";
-import { Bolt, Plus } from "./icons";
+import { Plus } from "./icons";
 
 export const dynamic = "force-dynamic";
-
-function latencyPoints(values: number[]): string {
-  if (values.length === 0) return "";
-  const max = Math.max(...values);
-  const min = Math.min(...values);
-  const span = max - min || 1;
-  return values
-    .map((v, i) => {
-      const x = (i / Math.max(values.length - 1, 1)) * 100;
-      const y = 24 - ((v - min) / span) * 20 - 2;
-      return `${x.toFixed(1)},${y.toFixed(1)}`;
-    })
-    .join(" ");
-}
 
 export default async function OverviewPage() {
   let data: Awaited<ReturnType<typeof getOverview>> | null = null;
@@ -73,7 +59,6 @@ export default async function OverviewPage() {
   }
 
   const caller = data.talkRatio.find((s) => s.label === "Caller")?.value ?? 0;
-  const underTarget = data.latency.medianMs > 0 && data.latency.medianMs <= data.latency.targetMs;
 
   return (
     <div className="space-y-6">
@@ -104,36 +89,11 @@ export default async function OverviewPage() {
         </SectionCard>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <SectionCard title="Voice latency" subtitle="Caller stops → AI replies">
-          <div className="flex items-end justify-between">
-            <div>
-              <div className="text-[28px] font-medium leading-none tracking-tight text-neutral-900">
-                {data.latency.medianMs > 0 ? data.latency.medianMs : "-"}
-                {data.latency.medianMs > 0 && <span className="ml-1 text-base font-normal text-neutral-400">ms</span>}
-              </div>
-              {data.latency.medianMs > 0 && (
-                <span className={`mt-2 inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[11px] font-medium ${underTarget ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"}`}>
-                  <Bolt className="h-3 w-3" />
-                  {underTarget ? "Under" : "Over"} {data.latency.targetMs}ms target
-                </span>
-              )}
-            </div>
-            {data.latency.spark.length > 1 && (
-              <svg viewBox="0 0 100 24" preserveAspectRatio="none" className="h-10 w-28">
-                <polyline points={latencyPoints(data.latency.spark)} fill="none" stroke="#171717" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
-              </svg>
-            )}
-          </div>
-          <div className="mt-4 border-t border-neutral-100 pt-3 text-sm text-neutral-500">
-            p95 <span className="font-medium text-neutral-900">{data.latency.p95Ms > 0 ? `${data.latency.p95Ms}ms` : "-"}</span>
-          </div>
-        </SectionCard>
-
-        <SectionCard title="Call outcomes" subtitle="How recent calls resolved">
-          {data.outcomes.length > 0 ? (
+      <div className="grid gap-4 lg:grid-cols-2">
+        <SectionCard title="Callers by country" subtitle="Where recent callers are calling from">
+          {data.countries.length > 0 ? (
             <ul className="space-y-3">
-              {data.outcomes.map((o) => (
+              {data.countries.map((o) => (
                 <li key={o.label}>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-neutral-600">{o.label}</span>

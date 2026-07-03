@@ -1,13 +1,5 @@
 import type { Call, Sentiment } from "@/lib/dashboard/analytics";
 
-const outcomeStyle: Record<string, string> = {
-  Booked: "bg-neutral-100 text-neutral-900",
-  Resolved: "bg-emerald-50 text-emerald-700",
-  Message: "bg-neutral-100 text-neutral-700",
-  Transferred: "bg-neutral-100 text-neutral-700",
-  Abandoned: "bg-rose-50 text-rose-700",
-};
-
 const sentimentStyle: Record<Sentiment, string> = {
   positive: "bg-emerald-500",
   neutral: "bg-neutral-400",
@@ -27,7 +19,6 @@ export function RecentCalls({ calls }: { calls: Call[] }) {
           <tr className="border-b border-neutral-100 text-left text-xs font-medium uppercase tracking-wide text-neutral-400">
             <th className="pb-3 pr-4 font-medium">Caller</th>
             <th className="pb-3 pr-4 font-medium">Duration</th>
-            <th className="pb-3 pr-4 font-medium">Outcome</th>
             <th className="pb-3 pr-4 font-medium">Sentiment</th>
             <th className="pb-3 text-right font-medium">Time</th>
           </tr>
@@ -42,11 +33,6 @@ export function RecentCalls({ calls }: { calls: Call[] }) {
                 </div>
               </td>
               <td className="py-3 pr-4 tabular-nums text-neutral-600">{c.duration}</td>
-              <td className="py-3 pr-4">
-                <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${outcomeStyle[c.outcome] ?? "bg-neutral-100 text-neutral-500"}`}>
-                  {c.outcome}
-                </span>
-              </td>
               <td className="py-3 pr-4">
                 <span className="flex items-center gap-1.5 capitalize text-neutral-500">
                   <span className={`h-2 w-2 rounded-full ${sentimentStyle[c.sentiment]}`} />

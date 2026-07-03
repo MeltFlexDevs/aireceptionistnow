@@ -90,11 +90,10 @@ export default async function CallDetailPage({ params }: { params: Promise<{ id:
           </div>
         </div>
 
-        <div className="mt-5 grid grid-cols-2 gap-4 border-t border-neutral-100 pt-4 sm:grid-cols-4">
+        <div className="mt-5 grid grid-cols-2 gap-4 border-t border-neutral-100 pt-4 sm:grid-cols-3">
           <Meta label="Date" value={call.dateLabel} />
           <Meta label="Duration" value={call.durationLabel} />
           <Meta label="Assistant" value={call.assistant ?? "-"} />
-          <Meta label="Call SID" value={call.sid || "-"} />
         </div>
       </SectionCard>
 
