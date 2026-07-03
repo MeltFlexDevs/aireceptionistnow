@@ -58,7 +58,11 @@ export async function POST(req: Request): Promise<Response> {
   // No overrides ⇒ ElevenLabs keeps the agent's configured defaults. Safe fallback.
   if (!config) return json({ type: "conversation_initiation_client_data" });
 
-  const language = languageFromPhone(callerId);
+  // Only detect + override the caller's language when the agent is actually
+  // multilingual. An English-only fallback agent (config.multilingual === false)
+  // has no language presets, so a non-English override would be ignored or reject
+  // the call — greet in the agent's own configured language instead.
+  const language = config.multilingual ? languageFromPhone(callerId) : null;
   const firstMessage = language
     ? await localizeGreeting(config.greeting, language)
     : config.greeting;

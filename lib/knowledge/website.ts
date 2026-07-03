@@ -1,5 +1,6 @@
 import { extractTitle, htmlToMarkdown, truncate } from "./markdown";
 import { MAX_SOURCE_CHARS } from "./sources";
+import { isBlockedHost } from "../net/safe-url";
 
 // Fetch a public web page and process it to Markdown for the knowledge base.
 // User-supplied URL, so this guards against SSRF: https/http only, and no
@@ -12,27 +13,6 @@ export interface WebsiteResult {
   title: string;
   markdown: string;
   charCount: number;
-}
-
-function isBlockedHost(hostname: string): boolean {
-  const host = hostname.toLowerCase().replace(/\.$/, "");
-  if (host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local")) {
-    return true;
-  }
-  // IPv6 loopback / unique-local / link-local.
-  if (host === "::1" || host.startsWith("fc") || host.startsWith("fd") || host.startsWith("fe80")) {
-    return true;
-  }
-  // IPv4 private + loopback + link-local + cloud metadata.
-  const v4 = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(host);
-  if (v4) {
-    const [a, b] = [Number(v4[1]), Number(v4[2])];
-    if (a === 10 || a === 127 || a === 0) return true;
-    if (a === 169 && b === 254) return true; // link-local + 169.254.169.254 metadata
-    if (a === 172 && b >= 16 && b <= 31) return true;
-    if (a === 192 && b === 168) return true;
-  }
-  return false;
 }
 
 function assertSafeUrl(input: string): URL {

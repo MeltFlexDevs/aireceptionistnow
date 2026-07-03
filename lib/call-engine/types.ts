@@ -43,6 +43,10 @@ export interface NumberConfig {
   systemPrompt: string;
   voiceId: string;
   language: string;
+  /** Whether the assistant's ElevenLabs agent is multilingual. When false (English-
+   *  only fallback agent), the init webhook must not send a per-caller language
+   *  override the agent can't honor. */
+  multilingual: boolean;
   knowledge: Record<string, unknown>; // hours, services, pricing, FAQs
   routing: Record<string, unknown>; // transfer targets, business hours
   integrations: IntegrationConfig[];

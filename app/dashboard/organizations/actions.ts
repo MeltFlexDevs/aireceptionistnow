@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { currentUserId } from "@/lib/auth";
+import { authConfigured } from "@/lib/supabase/config";
 import {
   createOrganization,
   deleteOrganization,
@@ -44,9 +45,13 @@ export async function createOrganizationAction(formData: FormData): Promise<void
 async function ownedOrgOrRedirect(id: string): Promise<Organization> {
   const org = await getOrganization(id).catch(() => null);
   if (!org) redirect("/dashboard/organizations");
-  const ownerId = await currentUserId();
-  if (ownerId && org.owner_id && org.owner_id !== ownerId) {
-    redirect("/dashboard/organizations");
+  // Fail closed: when auth is on, an owned org may only be touched by its owner.
+  // Guarding on `ownerId &&` (as before) let an unauthenticated request — no
+  // session, so currentUserId() is null — skip the check and mutate any org by id.
+  // Unowned orgs (single-tenant, auth off) still pass. Mirrors requireAssistantOwner.
+  if (authConfigured() && org.owner_id) {
+    const ownerId = await currentUserId();
+    if (org.owner_id !== ownerId) redirect("/dashboard/organizations");
   }
   return org;
 }
@@ -97,11 +102,23 @@ export async function deleteOrganizationAction(formData: FormData): Promise<void
   const id = String(formData.get("id") ?? "");
   if (id) {
     await ownedOrgOrRedirect(id);
+    // Capture members BEFORE deleting — deleteOrganization unassigns them
+    // (organization_id → null), which changes the knowledge their agents bake in.
+    // Re-sync each afterward so the deleted org's shared knowledge stops appearing
+    // on their calls (same reason every other org-knowledge edit re-syncs).
+    const members = await listOrganizationAssistants(id).catch(() => []);
     try {
       await deleteOrganization(id);
-    } catch {
-      // best-effort
+    } catch (err) {
+      orgError(id, (err as Error).message);
     }
+    await Promise.all(
+      members.map((a) =>
+        syncAssistantAgent(a.id).catch((e) =>
+          console.error("[organizations] agent re-sync after org delete failed", a.id, e),
+        ),
+      ),
+    );
     revalidatePath("/dashboard/organizations");
   }
   redirect("/dashboard/organizations");
@@ -229,9 +246,9 @@ export async function toggleAssistantOrganizationAction(formData: FormData): Pro
   // Guard ownership of the assistant too, when auth is configured.
   const assistant = await getAssistant(assistantId).catch(() => null);
   if (!assistant) orgError(id, "Assistant not found.");
-  const ownerId = await currentUserId();
-  if (ownerId && assistant.owner_id && assistant.owner_id !== ownerId) {
-    orgError(id, "You don't own that assistant.");
+  if (authConfigured() && assistant.owner_id) {
+    const ownerId = await currentUserId();
+    if (assistant.owner_id !== ownerId) orgError(id, "You don't own that assistant.");
   }
 
   await setAssistantOrganization(assistantId, assign ? id : null).catch((err) =>

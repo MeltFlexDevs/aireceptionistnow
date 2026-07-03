@@ -257,6 +257,7 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
   };
 
   let agentId: string;
+  let multilingual = true;
   try {
     try {
       agentId = await write(multilingualConfig);
@@ -270,6 +271,9 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
       console.warn("[agent-sync] multilingual config rejected, retrying English-only", err);
       try {
         agentId = await write(englishConfig);
+        // Agent is English-only now (no language presets) — the init webhook must
+        // not send a per-caller language override it can't honor. Persisted below.
+        multilingual = false;
       } catch {
         throw err;
       }
@@ -287,7 +291,7 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
   // row still references them) than delete objects the row still points at — and
   // on a first-ever sync this ensures the brand-new agent id is saved so a retry
   // reuses it instead of creating a duplicate agent.
-  await setAssistantAgent(assistantId, agentId, docs, tools);
+  await setAssistantAgent(assistantId, agentId, docs, tools, multilingual);
 
   // Row now points at the fresh docs + tools — safe to remove the previous sets.
   const staleDocs = assistant.elevenlabs_kb ?? [];

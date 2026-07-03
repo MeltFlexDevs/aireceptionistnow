@@ -213,6 +213,11 @@ export interface Assistant {
   created_at: string;
   /** The managed ElevenLabs agent built from this assistant, or null pre-sync. */
   elevenlabs_agent_id: string | null;
+  /** Whether the agent was built multilingual (language presets accepted). When
+   *  false, the sync fell back to an English-only agent, so /api/agent/init must
+   *  NOT send a per-caller language override the agent can't honor. Defaults true
+   *  (undefined pre-migration is treated as multilingual). */
+  elevenlabs_multilingual?: boolean;
   /** Knowledge-base docs we uploaded for this agent, tracked for re-sync cleanup. */
   elevenlabs_kb: AgentKbDoc[];
   /** Standalone ElevenLabs tool objects we created for this agent (webhook server
@@ -335,27 +340,38 @@ export async function setAssistantAgent(
   agentId: string | null,
   kb: AgentKbDoc[],
   tools: AgentTool[] = [],
+  multilingual: boolean = true,
 ): Promise<void> {
   const { error } = await db()
     .from("assistants")
     .update({ elevenlabs_agent_id: agentId, elevenlabs_kb: kb, elevenlabs_tools: tools })
     .eq("id", id);
-  if (!error) return;
-  if (!isMissingColumnError(error)) throw error;
+  if (error) {
+    if (!isMissingColumnError(error)) throw error;
+    // Schema drift: the DB is missing elevenlabs_kb/elevenlabs_tools (migration
+    // 0005 not applied). Don't fail the whole "Get number"/save flow over the
+    // tracking columns — persist elevenlabs_agent_id alone (that one matters most:
+    // without it every sync would create a duplicate ElevenLabs agent). KB/tool
+    // cleanup stays disabled until the migration is applied.
+    console.warn(
+      "[db] assistants is missing elevenlabs_kb/elevenlabs_tools — apply migration 0005 for full tool/KB cleanup. Persisting agent id only for now.",
+    );
+    const { error: agentOnly } = await db()
+      .from("assistants")
+      .update({ elevenlabs_agent_id: agentId })
+      .eq("id", id);
+    if (agentOnly && !isMissingColumnError(agentOnly)) throw agentOnly;
+  }
 
-  // Schema drift: the DB is missing elevenlabs_kb/elevenlabs_tools (migration 0005
-  // not applied). Don't fail the whole "Get number"/save flow over the tracking
-  // columns — persist elevenlabs_agent_id alone (that one matters most: without it
-  // every sync would create a duplicate ElevenLabs agent). Knowledge-base/tool
-  // cleanup stays disabled until the migration is applied.
-  console.warn(
-    "[db] assistants is missing elevenlabs_kb/elevenlabs_tools — apply migration 0005 for full tool/KB cleanup. Persisting agent id only for now.",
-  );
-  const { error: agentOnly } = await db()
+  // Record the multilingual flag in a SEPARATE write so a missing
+  // elevenlabs_multilingual column (migration 0006 not applied) can't roll back
+  // the agent/kb/tools write above. Read side defaults to multilingual, so a drop
+  // here just means /api/agent/init keeps applying language overrides as before.
+  const { error: mlErr } = await db()
     .from("assistants")
-    .update({ elevenlabs_agent_id: agentId })
+    .update({ elevenlabs_multilingual: multilingual })
     .eq("id", id);
-  if (agentOnly && !isMissingColumnError(agentOnly)) throw agentOnly;
+  if (mlErr && !isMissingColumnError(mlErr)) throw mlErr;
 }
 
 export interface AssistantSyncContext {

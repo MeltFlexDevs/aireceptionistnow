@@ -2,8 +2,8 @@ import Link from "next/link";
 import { listAssistants, listNumbers, type Assistant } from "@/lib/dashboard/db";
 import { currentUserId } from "@/lib/auth";
 import { Bot, ChevronDown, Phone } from "../icons";
-import { SubmitButton } from "../components/SubmitButton";
-import { toggleAssistantEnabledAction } from "./actions";
+import { Tooltip } from "../components/Tooltip";
+import { EnabledToggle } from "./EnabledToggle";
 
 const LANGUAGE_LABELS: Record<string, string> = {
   en: "English",
@@ -132,34 +132,24 @@ export async function AssistantsList() {
               </div>
 
               <div className="relative z-10 flex items-center gap-3 sm:gap-4">
-                <span
-                  className={`hidden items-center gap-1.5 text-xs sm:inline-flex ${
-                    a.enabled ? "text-emerald-600" : "text-amber-600"
-                  }`}
-                >
-                  <span className={`h-1.5 w-1.5 rounded-full ${a.enabled ? "bg-emerald-500" : "bg-amber-500"}`} />
-                  {a.enabled ? "Active" : "Disabled"}
-                </span>
-                <span
-                  className={`hidden min-w-0 items-center gap-1.5 text-xs sm:inline-flex ${
+                <Tooltip
+                  side="top"
+                  label={
+                    number
+                      ? "The phone number callers dial to reach this assistant."
+                      : "No number yet — open the assistant to get one so it can take calls."
+                  }
+                  className={`hidden text-xs sm:inline-flex ${
                     number ? "font-medium text-neutral-700" : "text-neutral-400"
                   }`}
                 >
-                  <Phone className="h-3.5 w-3.5 shrink-0 text-neutral-400" />
-                  <span className="truncate font-mono tracking-tight">{number ?? "No number"}</span>
-                </span>
+                  <span className="inline-flex min-w-0 items-center gap-1.5">
+                    <Phone className="h-3.5 w-3.5 shrink-0 text-neutral-400" />
+                    <span className="truncate font-mono tracking-tight">{number ?? "No number"}</span>
+                  </span>
+                </Tooltip>
 
-                <form action={toggleAssistantEnabledAction}>
-                  <input type="hidden" name="id" value={a.id} />
-                  <input type="hidden" name="enabled" value={a.enabled ? "0" : "1"} />
-                  <SubmitButton
-                    variant={a.enabled ? "secondary" : "primary"}
-                    pendingText="…"
-                    className="h-7 px-2.5 text-xs"
-                  >
-                    {a.enabled ? "Disable" : "Enable"}
-                  </SubmitButton>
-                </form>
+                <EnabledToggle id={a.id} enabled={a.enabled} />
               </div>
 
               <ChevronDown className="h-4 w-4 shrink-0 -rotate-90 text-neutral-300 transition-all group-hover:translate-x-0.5 group-hover:text-neutral-900" />

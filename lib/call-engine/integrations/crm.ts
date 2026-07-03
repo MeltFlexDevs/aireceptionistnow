@@ -1,4 +1,5 @@
 import { createHmac } from "node:crypto";
+import { isSafeHttpsUrl } from "../../net/safe-url";
 import type { CallSummary, TranscriptTurn } from "../types";
 
 // Optional per-assistant CRM/ERP push. After a call wraps up, POST the call
@@ -41,6 +42,11 @@ export async function pushCallToCrm(
   payload: CrmPayload,
 ): Promise<{ ok: boolean; status?: number; error?: string }> {
   if (!crm.url) return { ok: false, error: "no crm url configured" };
+  // Re-validate at dispatch, not just at save time: a hostname that was public
+  // when saved can be repointed to an internal address before this fires (DNS
+  // rebinding). Combined with redirect:"manual" below (an open redirect would
+  // otherwise walk past the check), this is the dispatch-time SSRF guard.
+  if (!isSafeHttpsUrl(crm.url)) return { ok: false, error: "crm url not allowed" };
 
   const body = JSON.stringify({
     type: "call.completed",
@@ -65,6 +71,7 @@ export async function pushCallToCrm(
       headers,
       body,
       signal: controller.signal,
+      redirect: "manual", // don't follow a 3xx into an internal host
     });
     if (!res.ok) return { ok: false, status: res.status, error: `crm ${res.status}` };
     return { ok: true, status: res.status };

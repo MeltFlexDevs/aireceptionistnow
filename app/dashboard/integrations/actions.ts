@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { deleteIntegration, upsertCalendarIntegration } from "@/lib/dashboard/db";
+import { isSafeHttpsUrl } from "@/lib/net/safe-url";
 import { CALENDAR_PROVIDERS } from "./providers";
 
 export async function connectCalendarAction(formData: FormData): Promise<void> {
@@ -14,6 +15,14 @@ export async function connectCalendarAction(formData: FormData): Promise<void> {
   for (const f of def.fields) {
     const value = String(formData.get(f.name) ?? "").trim();
     if (value) config[f.name] = value;
+  }
+
+  // A "bring your own" webhook calendar is fetched server-side on every call, so a
+  // private/internal URL here is an SSRF vector. Require a public https address.
+  if (typeof config.url === "string" && !isSafeHttpsUrl(config.url)) {
+    redirect(
+      `/dashboard/integrations?error=${encodeURIComponent("Webhook URL must be a public https:// address.")}`,
+    );
   }
 
   try {

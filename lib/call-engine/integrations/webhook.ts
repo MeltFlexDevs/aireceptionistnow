@@ -1,3 +1,4 @@
+import { isSafeHttpsUrl } from "../../net/safe-url";
 import type { BookingRequest, BookingResult } from "../types";
 import type {
   AvailabilityResult,
@@ -22,8 +23,10 @@ export const createWebhookCalendar: CalendarFactory = (config): CalendarProvider
   return {
     async createEvent(req): Promise<BookingResult> {
       if (!cfg.url) return { ok: false, error: "no webhook url configured" };
+      if (!isSafeHttpsUrl(cfg.url)) return { ok: false, error: "webhook url not allowed" };
       const res = await fetch(cfg.url, {
         method: "POST",
+        redirect: "manual", // don't follow a 3xx into an internal host (SSRF)
         headers: {
           "content-type": "application/json",
           ...(cfg.secret ? { "x-webhook-secret": cfg.secret } : {}),
@@ -55,8 +58,10 @@ export const createWebhookCalendar: CalendarFactory = (config): CalendarProvider
     // don't support it, a non-2xx degrades the assistant to taking a message.
     async getBusy(query): Promise<AvailabilityResult> {
       if (!cfg.url) return { ok: false, busy: [], error: "no webhook url configured" };
+      if (!isSafeHttpsUrl(cfg.url)) return { ok: false, busy: [], error: "webhook url not allowed" };
       const res = await fetch(cfg.url, {
         method: "POST",
+        redirect: "manual", // don't follow a 3xx into an internal host (SSRF)
         headers: {
           "content-type": "application/json",
           ...(cfg.secret ? { "x-webhook-secret": cfg.secret } : {}),

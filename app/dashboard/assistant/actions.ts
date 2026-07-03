@@ -27,6 +27,7 @@ import {
   routeNumberToAgent,
 } from "@/lib/call-engine/elevenlabs";
 import { syncAssistantAgent, deleteAssistantAgent } from "@/lib/call-engine/agent/sync";
+import { isSafeHttpsUrl } from "@/lib/net/safe-url";
 
 const E164 = /^\+[1-9]\d{6,15}$/;
 
@@ -54,25 +55,6 @@ async function requireAssistantOwner(assistantId: string): Promise<void> {
   if (!assistant || (assistant.owner_id && assistant.owner_id !== ownerId)) {
     redirect(`/dashboard/assistant?error=${encodeURIComponent("Not authorized.")}`);
   }
-}
-
-/** Allow only public https URLs, blocking internal/link-local hosts, so a stored
- *  CRM webhook URL can't be turned into an SSRF probe against internal infra or
- *  cloud metadata. (Dispatch-time re-validation is still recommended as defense
- *  in depth against DNS rebinding.) */
-function isSafeHttpsUrl(raw: string): boolean {
-  let u: URL;
-  try {
-    u = new URL(raw);
-  } catch {
-    return false;
-  }
-  if (u.protocol !== "https:") return false;
-  const h = u.hostname.toLowerCase();
-  if (h === "localhost" || h === "0.0.0.0" || h.endsWith(".local")) return false;
-  if (/^(127\.|10\.|192\.168\.|169\.254\.|::1|fd|fe80)/.test(h)) return false;
-  if (/^172\.(1[6-9]|2\d|3[01])\./.test(h)) return false;
-  return true;
 }
 
 export async function createAssistantAction(formData: FormData): Promise<void> {
@@ -279,19 +261,26 @@ export async function getAgentNumberAction(formData: FormData): Promise<void> {
     //    so it returns to the shared pool instead of being stranded attached-but-
     //    unrouted (which would falsely show as "connected" while calls fail, and
     //    drain the pool). A retry then reuses the very same number.
+    let elevenLabsPhoneNumberId: string;
     try {
-      const elevenLabsPhoneNumberId = await routeNumberToAgent(
-        e164,
-        agentId ?? undefined,
-        numberId,
-      );
-      await setNumberElevenLabsId(numberId, elevenLabsPhoneNumberId);
+      elevenLabsPhoneNumberId = await routeNumberToAgent(e164, agentId ?? undefined, numberId);
     } catch (routeErr) {
+      // Routing itself failed — the number isn't answering as this assistant in
+      // ElevenLabs, so return it to the pool. Only here: a failure AFTER routing
+      // succeeded must not unlink a number that's already live (that would leave
+      // ElevenLabs ringing this assistant while the pool re-offers the number).
       await setNumberAssistant(numberId, null).catch((e) =>
         console.error("[assistant] release number after route failure", e),
       );
       throw routeErr;
     }
+    // Routing committed in ElevenLabs. Persist the phone-number id best-effort — a
+    // DB hiccup here must NOT unlink the number (it's already answering as this
+    // assistant); the id is only a cache for faster release/re-route and can be
+    // re-derived by lookup.
+    await setNumberElevenLabsId(numberId, elevenLabsPhoneNumberId).catch((e) =>
+      console.error("[assistant] persist ElevenLabs phone id failed (number is routed)", e),
+    );
   } catch (err) {
     redirect(`/dashboard/assistant/${assistantId}?error=${encodeURIComponent((err as Error).message)}`);
   }

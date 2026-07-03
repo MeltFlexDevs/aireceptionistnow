@@ -113,6 +113,10 @@ export class SupabaseCallRepository implements CallRepository {
       systemPrompt: String(cfg.system_prompt ?? ""),
       voiceId: String(cfg.voice_id ?? "21m00Tcm4TlvDq8ikWAM"),
       language: String(cfg.language ?? "en"),
+      // Default true: an assistant synced before migration 0006 (column absent) is
+      // multilingual; only an explicit false (English-only fallback) suppresses the
+      // per-caller language override in /api/agent/init.
+      multilingual: cfg.elevenlabs_multilingual !== false,
       knowledge,
       routing: (cfg.routing as Record<string, unknown>) ?? {},
       integrations: (integrations ?? []).map(mapIntegration),
