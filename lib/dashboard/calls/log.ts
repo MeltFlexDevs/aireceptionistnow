@@ -5,6 +5,7 @@ import { assistantName, num, str } from "./embed";
 import {
   fmtDateTime,
   fmtDuration,
+  isLiveStatus,
   normalizeDirection,
   statusBucket,
   statusLabel,
@@ -71,22 +72,6 @@ async function fetchDbCalls(
       assistant: assistantName(row),
     };
   });
-}
-
-// Call ids (from the given set) whose transcript has at least one caller turn.
-// Used to hide calls where the caller never spoke — only the AI talked, or the
-// line was picked up and abandoned — which are noise in the log.
-async function fetchCallsWithCallerTurn(ids: string[]): Promise<Set<string>> {
-  if (ids.length === 0) return new Set();
-  const { data, error } = await serviceClient()
-    .from("call_turns")
-    .select("call_id")
-    .eq("role", "caller")
-    .in("call_id", ids);
-  if (error) throw error;
-  const set = new Set<string>();
-  for (const r of data ?? []) set.add(str((r as Record<string, unknown>).call_id));
-  return set;
 }
 
 function mergeRow(t: TwilioCallLog, db: DbCallRow | null): CallLogRow {
@@ -203,12 +188,12 @@ export async function getCallLog(
     rows.push(dbOnlyRow(c));
   }
 
-  // Only surface real conversations: a call must have a Call SID and at least one
-  // caller turn. Drops SID-less rows and calls where the caller never spoke
-  // (agent-only or picked-up-and-abandoned), which are noise in the log. Rows with
-  // no DB row have no transcript, so they can't clear the caller-turn bar.
-  const callerSpoke = await fetchCallsWithCallerTurn(dbCalls.map((c) => c.id));
-  const cleaned = rows.filter((r) => r.sid && r.dbId !== null && callerSpoke.has(r.dbId));
+  // Only surface real calls: a Call SID (the call id) and actual caller
+  // interaction. Duration is the reliable interaction signal — a ghost/no-answer
+  // call is 0s, a real conversation has length — and unlike the transcript it's
+  // always present (Twilio-authoritative), so it doesn't depend on the post-call
+  // webhook having persisted turns. Live calls (0s but ringing) stay via isLive.
+  const cleaned = rows.filter((r) => r.sid && (r.durationSec > 0 || isLiveStatus(r.status)));
 
   cleaned.sort((a, b) => (b.date > a.date ? 1 : b.date < a.date ? -1 : 0));
   return { rows: applyFilters(cleaned, filters), twilioConnected: twilioCalls.length > 0 };
