@@ -8,12 +8,14 @@ import {
   createOrganization,
   deleteOrganization,
   getOrganization,
+  listOrganizationAssistants,
   setAssistantOrganization,
   updateOrganization,
   updateOrganizationKnowledge,
   type Organization,
 } from "@/lib/dashboard/organizations";
 import { getAssistant } from "@/lib/dashboard/db";
+import { syncAssistantAgent } from "@/lib/call-engine/agent/sync";
 import { fetchWebsiteMarkdown } from "@/lib/knowledge/website";
 import { parsePdfMarkdown } from "@/lib/knowledge/pdf";
 import {
@@ -51,6 +53,25 @@ async function ownedOrgOrRedirect(id: string): Promise<Organization> {
 
 function orgError(id: string, message: string): never {
   redirect(`/dashboard/organizations/${id}?error=${encodeURIComponent(message)}`);
+}
+
+/**
+ * Re-push this org's shared knowledge into every assigned assistant's ElevenLabs
+ * agent. The agent bakes in the org+assistant merged knowledge at sync time, so
+ * an org knowledge edit is invisible on calls until each assistant re-syncs —
+ * this closes that gap so knowledge changes take effect on the next call.
+ * Best-effort per assistant: a sync failure is logged, never blocks the save
+ * (the knowledge is already persisted; a later assistant save re-syncs too).
+ */
+async function resyncOrgAgents(orgId: string): Promise<void> {
+  const assistants = await listOrganizationAssistants(orgId).catch(() => []);
+  await Promise.all(
+    assistants.map((a) =>
+      syncAssistantAgent(a.id).catch((err) =>
+        console.error("[organizations] agent re-sync failed", a.id, err),
+      ),
+    ),
+  );
 }
 
 export async function updateOrganizationAction(formData: FormData): Promise<void> {
@@ -100,6 +121,7 @@ export async function updateOrganizationNotesAction(formData: FormData): Promise
   await updateOrganizationKnowledge(id, { ...knowledge }).catch((err) =>
     orgError(id, (err as Error).message),
   );
+  await resyncOrgAgents(id);
 
   revalidatePath(`/dashboard/organizations/${id}`);
   redirect(`/dashboard/organizations/${id}?saved=1`);
@@ -135,6 +157,7 @@ export async function addOrgWebsiteKnowledgeAction(formData: FormData): Promise<
   await updateOrganizationKnowledge(id, { ...next }).catch((err) =>
     orgError(id, (err as Error).message),
   );
+  await resyncOrgAgents(id);
 
   revalidatePath(`/dashboard/organizations/${id}`);
   redirect(`/dashboard/organizations/${id}?saved=1`);
@@ -170,6 +193,7 @@ export async function addOrgPdfKnowledgeAction(formData: FormData): Promise<void
   await updateOrganizationKnowledge(id, { ...next }).catch((err) =>
     orgError(id, (err as Error).message),
   );
+  await resyncOrgAgents(id);
 
   revalidatePath(`/dashboard/organizations/${id}`);
   redirect(`/dashboard/organizations/${id}?saved=1`);
@@ -184,6 +208,7 @@ export async function removeOrgKnowledgeSourceAction(formData: FormData): Promis
   const org = await ownedOrgOrRedirect(id);
   const next = removeSource(readKnowledge(org.knowledge), sourceId);
   await updateOrganizationKnowledge(id, { ...next }).catch(() => {});
+  await resyncOrgAgents(id);
 
   revalidatePath(`/dashboard/organizations/${id}`);
   redirect(`/dashboard/organizations/${id}?saved=1`);
@@ -211,6 +236,14 @@ export async function toggleAssistantOrganizationAction(formData: FormData): Pro
 
   await setAssistantOrganization(assistantId, assign ? id : null).catch((err) =>
     orgError(id, (err as Error).message),
+  );
+
+  // Assigning/unassigning changes the knowledge the assistant reads on calls
+  // (org shared knowledge is merged in at sync time), so rebuild its ElevenLabs
+  // agent now — this is the step that makes "assign to org → agent is ready with
+  // the org's knowledge" true. Best-effort: the membership change already saved.
+  await syncAssistantAgent(assistantId).catch((err) =>
+    console.error("[organizations] agent sync after assignment failed", assistantId, err),
   );
 
   revalidatePath(`/dashboard/organizations/${id}`);

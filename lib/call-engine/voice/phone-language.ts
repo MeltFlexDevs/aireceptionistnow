@@ -79,12 +79,23 @@ const CODE_TO_LANGUAGE: Record<string, string> = {
   "60": "ms",
 };
 
-/** Distinct languages we can greet callers in (the values of CODE_TO_LANGUAGE).
- *  Used to enable "additional languages" on a managed agent so it's multilingual
- *  and the per-caller language override is accepted. */
+// Languages ElevenLabs accepts as an agent language / preset "additional
+// language". Sourced from the API's own 422 validation error; anything outside
+// this set (e.g. he, sl, th) is rejected — so we never greet a caller in, or
+// enable, a language the agent can't actually speak. Shared with agent/sync.ts.
+export const ELEVENLABS_LANGUAGES = new Set<string>([
+  "en", "zh", "es", "hi", "pt", "fr", "de", "ja", "ar", "ko", "id", "it", "nl",
+  "tr", "pl", "ru", "sv", "tl", "ms", "ro", "uk", "el", "cs", "da", "fi", "bg",
+  "hr", "sk", "ta", "vi", "no", "hu", "pt-br", "fil",
+]);
+
+/** Distinct languages we can greet callers in (the values of CODE_TO_LANGUAGE),
+ *  restricted to those ElevenLabs supports. Used to enable "additional
+ *  languages" on a managed agent so it's multilingual and the per-caller
+ *  language override is accepted. */
 export const SUPPORTED_LANGUAGES: string[] = Array.from(
   new Set(Object.values(CODE_TO_LANGUAGE)),
-);
+).filter((l) => ELEVENLABS_LANGUAGES.has(l));
 
 const LANGUAGE_NAMES: Record<string, string> = {
   en: "English",
@@ -132,7 +143,9 @@ export function languageFromPhone(e164: string): string | null {
   for (let len = 4; len >= 1; len--) {
     const prefix = digits.slice(0, len);
     const lang = CODE_TO_LANGUAGE[prefix];
-    if (lang) return lang;
+    // Only guess a language the agent can actually speak — an unsupported code
+    // (he/sl/th) would make ElevenLabs reject the per-caller language override.
+    if (lang) return ELEVENLABS_LANGUAGES.has(lang) ? lang : null;
   }
   return null;
 }

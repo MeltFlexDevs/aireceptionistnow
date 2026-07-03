@@ -8,7 +8,7 @@ import {
   type Assistant,
 } from "../../dashboard/db";
 import { MAX_SOURCE_CHARS, type AssistantKnowledge } from "../../knowledge/sources";
-import { SUPPORTED_LANGUAGES } from "../voice/phone-language";
+import { ELEVENLABS_LANGUAGES, SUPPORTED_LANGUAGES } from "../voice/phone-language";
 import { buildBuiltInTools, createAgentTools, deleteAgentTools } from "./tools";
 
 // Sync a dashboard assistant to a managed ElevenLabs Conversational AI agent.
@@ -31,14 +31,6 @@ const AGENT_LLM = "gemini-2.5-flash";
 const TTS_MODEL_MULTILINGUAL = "eleven_flash_v2_5";
 const TTS_MODEL_ENGLISH = "eleven_flash_v2";
 
-// Languages ElevenLabs accepts as agent language / preset "additional language".
-// Sourced from the API's own validation error; anything outside this set (e.g.
-// sl, th, he) is rejected with a 422, so we filter our served languages to it.
-const ELEVENLABS_LANGUAGES = new Set<string>([
-  "en", "zh", "es", "hi", "pt", "fr", "de", "ja", "ar", "ko", "id", "it", "nl",
-  "tr", "pl", "ru", "sv", "tl", "ms", "ro", "uk", "el", "cs", "da", "fi", "bg",
-  "hr", "sk", "ta", "vi", "no", "hu", "pt-br", "fil",
-]);
 const DEFAULT_GREETING = "Hello, thanks for calling. How can I help?";
 const DEFAULT_VOICE_ID = "21m00Tcm4TlvDq8ikWAM"; // ElevenLabs "Rachel"
 // Cap how many knowledge docs we push per agent so a runaway source list can't
