@@ -1,7 +1,7 @@
 import { getRepository } from "@/lib/call-engine/persistence/supabase";
 import { verifyElevenLabsSignature } from "@/lib/call-engine/agent/auth";
 import { localizeGreeting } from "@/lib/call-engine/llm/greeting";
-import { bestVoiceForLanguage } from "@/lib/call-engine/voice/catalog";
+import { voiceForLanguage } from "@/lib/call-engine/voice/catalog";
 import { languageFromPhone } from "@/lib/call-engine/voice/phone-language";
 
 // Tier-A conversation-initiation webhook. ElevenLabs calls this when a call
@@ -101,7 +101,7 @@ export async function POST(req: Request): Promise<Response> {
 
   const overrides: Record<string, unknown> = { agent: agentOverride };
   if (language) {
-    overrides.tts = { voice_id: bestVoiceForLanguage(language, config.voiceId) };
+    overrides.tts = { voice_id: await voiceForLanguage(language, config.voiceId, true) };
   }
 
   return json({

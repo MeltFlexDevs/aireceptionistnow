@@ -9,7 +9,7 @@ import {
 } from "../../dashboard/db";
 import { MAX_SOURCE_CHARS, type AssistantKnowledge } from "../../knowledge/sources";
 import { ELEVENLABS_LANGUAGES, SUPPORTED_LANGUAGES } from "../voice/phone-language";
-import { bestVoiceForLanguage } from "../voice/catalog";
+import { voiceForLanguage } from "../voice/catalog";
 import { buildBuiltInTools, createAgentTools, deleteAgentTools } from "./tools";
 
 // Sync a dashboard assistant to a managed ElevenLabs Conversational AI agent.
@@ -209,7 +209,7 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
   // base multilingual voice, instead of collapsing all the way to English-only.
   const languagePresetsPlain: Record<string, ElevenLabs.LanguagePresetOutput> = {};
   for (const l of extraLanguages) {
-    const presetVoice = bestVoiceForLanguage(l, voiceId);
+    const presetVoice = await voiceForLanguage(l, voiceId);
     languagePresets[l] =
       presetVoice === voiceId ? { overrides: {} } : { overrides: { tts: { voiceId: presetVoice } } };
     languagePresetsPlain[l] = { overrides: {} };

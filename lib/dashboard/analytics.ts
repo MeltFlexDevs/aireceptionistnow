@@ -22,6 +22,12 @@ export interface Segment {
   value: number;
   color: string;
 }
+export interface Latency {
+  medianMs: number;
+  p95Ms: number;
+  targetMs: number;
+  spark: number[];
+}
 export interface MonthUsage {
   callsThisMonth: number;
   minutes: number;
@@ -51,6 +57,7 @@ export interface Overview {
   callVolume: Bar[];
   talkRatio: Segment[];
   countries: Segment[];
+  latency: Latency;
   monthUsage: MonthUsage;
   recentCalls: Call[];
   summaries: Summary[];
@@ -72,6 +79,7 @@ interface CallRow {
   sentiment: string | null;
   from_number: string | null;
   to_number: string | null;
+  median_latency_ms: number | null;
   summary: string | null;
   phone_number_id: string | null;
 }
@@ -110,6 +118,28 @@ function relTime(iso: string): string {
   if (h < 24) return `${h} hr ago`;
   return `${Math.floor(h / 24)}d ago`;
 }
+function median(xs: number[]): number {
+  if (xs.length === 0) return 0;
+  const s = [...xs].sort((a, b) => a - b);
+  const mid = Math.floor(s.length / 2);
+  return s.length % 2 ? s[mid] : Math.round((s[mid - 1] + s[mid]) / 2);
+}
+function percentile(xs: number[], p: number): number {
+  if (xs.length === 0) return 0;
+  const s = [...xs].sort((a, b) => a - b);
+  return s[Math.min(s.length - 1, Math.floor((p / 100) * s.length))];
+}
+function latencyFrom(calls: CallRow[]): Latency {
+  const vals = calls
+    .map((c) => c.median_latency_ms)
+    .filter((v): v is number => typeof v === "number" && v > 0);
+  return {
+    medianMs: median(vals),
+    p95Ms: percentile(vals, 95),
+    targetMs: 800,
+    spark: vals.slice(0, 7).reverse(),
+  };
+}
 function pctDelta(recent: number, prior: number): number {
   if (prior === 0) return recent > 0 ? 100 : 0;
   return Math.round(((recent - prior) / prior) * 1000) / 10;
@@ -144,7 +174,7 @@ async function fetchCalls(
   let query = serviceClient()
     .from("calls")
     .select(
-      "id,started_at,duration_seconds,status,outcome,sentiment,from_number,to_number,summary,phone_number_id",
+      "id,started_at,duration_seconds,status,outcome,sentiment,from_number,to_number,median_latency_ms,summary,phone_number_id",
     )
     .eq("business_id", businessId)
     .gte("started_at", sinceIso);
@@ -312,6 +342,7 @@ export async function getOverview(ownerId?: string | null): Promise<Overview> {
     callVolume: dayBuckets(calls, 14),
     talkRatio: await talkRatio(recent.map((c) => c.id)),
     countries: countriesFrom(recent),
+    latency: latencyFrom(recent),
     monthUsage,
     recentCalls,
     summaries,
