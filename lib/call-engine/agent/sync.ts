@@ -18,9 +18,22 @@ import { buildBuiltInTools, createAgentTools, deleteAgentTools } from "./tools";
 // and knowledge — so the dashboard is the single source of truth. Called after
 // an assistant is created or edited; deleteAssistantAgent tears it down.
 
-// Agent LLM: Gemini flash, matching the backend enrichment model — low latency,
-// multilingual, good enough for reception.
-const AGENT_LLM = "gemini-2.5-flash";
+// Agent LLM: Gemini flash-*lite* — the low-latency tier. It cuts LLM
+// time-to-first-token (the dominant stage in the per-turn latency metric, see
+// post-call/route.ts) roughly in half vs plain flash, and reception is a simple
+// enough task that flash-lite + the knowledge base handles it. Thinking is
+// disabled below (thinkingBudget: 0) so the model never pays a reasoning pass
+// before its first spoken token.
+const AGENT_LLM = "gemini-2.5-flash-lite";
+
+// Turn-taking tuned for a phone receptionist: start generating the reply during
+// the caller's trailing silence (speculativeTurn) and end-point eagerly, so the
+// LLM has a head start and the caller hears the first words sooner. Shared by
+// every config variant below.
+const TURN_CONFIG: ElevenLabs.TurnConfig = {
+  speculativeTurn: true,
+  turnEagerness: "eager",
+};
 
 // TTS models. flash_v2_5 is multilingual (one voice speaks the caller's
 // language); flash_v2 is the English-only model. ElevenLabs enforces that an
@@ -221,6 +234,10 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
   const promptConfig: ElevenLabs.PromptAgentApiModelOutput = {
     prompt: systemPrompt,
     llm: AGENT_LLM,
+    // Kill the thinking pass and reasoning summaries — both add latency before
+    // the first spoken token, and reception doesn't need chain-of-thought.
+    thinkingBudget: 0,
+    enableReasoningSummary: false,
     knowledgeBase: locators,
     toolIds,
     builtInTools,
@@ -232,6 +249,7 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
       language,
       prompt: promptConfig,
     },
+    turn: TURN_CONFIG,
     tts: { voiceId, modelId: TTS_MODEL_MULTILINGUAL },
     languagePresets,
   };
@@ -252,6 +270,7 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
       language: "en",
       prompt: promptConfig,
     },
+    turn: TURN_CONFIG,
     tts: { voiceId, modelId: TTS_MODEL_ENGLISH },
   };
 
