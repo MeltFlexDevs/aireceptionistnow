@@ -280,7 +280,11 @@ export async function getAgentNumberAction(formData: FormData): Promise<void> {
     //    unrouted (which would falsely show as "connected" while calls fail, and
     //    drain the pool). A retry then reuses the very same number.
     try {
-      const elevenLabsPhoneNumberId = await routeNumberToAgent(e164, agentId ?? undefined);
+      const elevenLabsPhoneNumberId = await routeNumberToAgent(
+        e164,
+        agentId ?? undefined,
+        numberId,
+      );
       await setNumberElevenLabsId(numberId, elevenLabsPhoneNumberId);
     } catch (routeErr) {
       await setNumberAssistant(numberId, null).catch((e) =>

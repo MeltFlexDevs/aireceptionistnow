@@ -96,14 +96,15 @@ export async function releaseNumberFromAgent(
 }
 
 /**
- * Import a Twilio number the account owns into ElevenLabs and (optionally) assign
- * an inbound agent in the same call. Uses the account's Twilio credentials so
- * ElevenLabs can control the number. Returns the new ElevenLabs phone-number id.
+ * Import a Twilio number the account owns into ElevenLabs, with a label and an
+ * OPTIONAL inbound agent. `agent_id` is only sent when provided, so a freshly
+ * bought pool number can be imported unassigned and assigned an agent later. Uses
+ * the account's Twilio credentials so ElevenLabs can control the number. Returns
+ * the new ElevenLabs phone-number id.
  */
 export async function importTwilioNumber(
   e164: string,
-  agentId: string,
-  label?: string,
+  opts: { agentId?: string; label?: string } = {},
 ): Promise<string> {
   const apiKey = process.env.ELEVENLABS_API_KEY;
   if (!apiKey) throw new Error("ELEVENLABS_API_KEY is not set.");
@@ -115,17 +116,19 @@ export async function importTwilioNumber(
     );
   }
 
+  const body: Record<string, unknown> = {
+    provider: "twilio",
+    phone_number: e164,
+    label: opts.label || e164,
+    sid,
+    token,
+  };
+  if (opts.agentId) body.agent_id = opts.agentId;
+
   const res = await fetch(PHONE_NUMBERS_URL, {
     method: "POST",
     headers: { "xi-api-key": apiKey, "content-type": "application/json" },
-    body: JSON.stringify({
-      provider: "twilio",
-      phone_number: e164,
-      label: label || e164,
-      sid,
-      token,
-      agent_id: agentId,
-    }),
+    body: JSON.stringify(body),
   });
   if (!res.ok) {
     const detail = await res.text().catch(() => "");
@@ -133,6 +136,28 @@ export async function importTwilioNumber(
   }
   const data = (await res.json()) as { phone_number_id?: string };
   return String(data.phone_number_id ?? "");
+}
+
+/** Delete an imported phone number from ElevenLabs entirely (used when the number
+ *  is deleted, not merely unlinked — unlink just unassigns and keeps it for reuse).
+ *  Prefers the stored id; falls back to a lookup. No-op if it was never imported
+ *  or is already gone. */
+export async function deleteImportedNumber(
+  e164: string,
+  phoneNumberId?: string | null,
+): Promise<void> {
+  const apiKey = process.env.ELEVENLABS_API_KEY;
+  if (!apiKey) throw new Error("ELEVENLABS_API_KEY is not set.");
+  const id = phoneNumberId || (await findAgentPhoneNumberId(e164));
+  if (!id) return;
+  const res = await fetch(`${PHONE_NUMBERS_URL}/${id}`, {
+    method: "DELETE",
+    headers: { "xi-api-key": apiKey },
+  });
+  if (!res.ok && res.status !== 404) {
+    const detail = await res.text().catch(() => "");
+    throw new Error(`ElevenLabs number delete failed (${res.status}). ${detail}`.trim());
+  }
 }
 
 /**
@@ -148,6 +173,7 @@ export async function importTwilioNumber(
 export async function routeNumberToAgent(
   e164: string,
   agentId?: string,
+  label?: string,
 ): Promise<string> {
   const agent = (agentId ?? "").trim();
   if (!agent) {
@@ -162,7 +188,7 @@ export async function routeNumberToAgent(
     return phoneNumberId;
   }
   // Not in ElevenLabs yet — import it from Twilio and assign the agent in one go.
-  return importTwilioNumber(e164, agent);
+  return importTwilioNumber(e164, { agentId: agent, label });
 }
 
 export interface PlaceAgentCallResult {

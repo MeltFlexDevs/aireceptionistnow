@@ -139,6 +139,16 @@ html {
 
 /* Minimal page backdrop: a faint neutral dot grid on off-white. No colour. */
 .dash-bg {
+  /* Dashboard "black" = Obsidian (#0B1215). Tailwind v4 utilities resolve to
+     var(--color-*), so overriding these theme tokens on the dashboard root
+     recolours every `neutral-900` and `black` utility (text, buttons, borders)
+     plus the accent focus ring in one place — scoped here so the marketing site
+     keeps the stock neutrals. Custom properties inherit, so this applies to the
+     root element itself and all dashboard descendants. */
+  --color-neutral-900: #0b1215;
+  --color-black: #0b1215;
+  --accent: #0b1215;
+
   background-color: #fafafa;
   background-image: radial-gradient(circle at 1px 1px, rgb(15 23 42 / 0.05) 1px, transparent 0);
   background-size: 22px 22px;

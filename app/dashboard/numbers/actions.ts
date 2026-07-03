@@ -18,7 +18,12 @@ import {
   releaseTwilioNumber,
   type BoughtNumber,
 } from "@/lib/dashboard/twilio";
-import { releaseNumberFromAgent, routeNumberToAgent } from "@/lib/call-engine/elevenlabs";
+import {
+  deleteImportedNumber,
+  importTwilioNumber,
+  releaseNumberFromAgent,
+  routeNumberToAgent,
+} from "@/lib/call-engine/elevenlabs";
 import { syncAssistantAgent } from "@/lib/call-engine/agent/sync";
 
 const E164 = z
@@ -79,6 +84,18 @@ export async function buyNumberAction(formData: FormData): Promise<void> {
     redirect(`/dashboard/numbers?error=${encodeURIComponent((err as Error).message)}`);
   }
 
+  // Import the freshly bought number into ElevenLabs right away — unassigned (no
+  // assistant yet), labeled with our number id so it's traceable in the ElevenLabs
+  // dashboard. Best-effort: if the import fails (e.g. Twilio auth token missing),
+  // the number is still bought and pooled, and gets imported when it's connected
+  // to an assistant.
+  try {
+    const elevenLabsPhoneNumberId = await importTwilioNumber(bought.e164, { label: id });
+    await setNumberElevenLabsId(id, elevenLabsPhoneNumberId);
+  } catch (err) {
+    console.error("[numbers] ElevenLabs import on buy failed", err);
+  }
+
   revalidatePath("/dashboard/numbers");
   redirect(`/dashboard/numbers/${id}`);
 }
@@ -103,6 +120,7 @@ export async function setAssistantAction(formData: FormData): Promise<void> {
           const elevenLabsPhoneNumberId = await routeNumberToAgent(
             number.e164,
             agentId ?? undefined,
+            id,
           );
           await setNumberElevenLabsId(id, elevenLabsPhoneNumberId);
         }
@@ -168,14 +186,14 @@ export async function updateNumberAction(formData: FormData): Promise<void> {
 export async function deleteNumberAction(formData: FormData): Promise<void> {
   const id = String(formData.get("id") ?? "");
   if (id) {
-    // Release the number from ElevenLabs (stop routing inbound calls) and Twilio
-    // (stop billing) before dropping the row — otherwise a "deleted" number keeps
-    // costing money and answering. Best-effort: a provider hiccup must not block
-    // removing it from the dashboard.
+    // Remove the number from ElevenLabs (delete the imported number entirely) and
+    // release it from Twilio (stop billing) before dropping the row — otherwise a
+    // "deleted" number keeps costing money and lingering in ElevenLabs. Best-
+    // effort: a provider hiccup must not block removing it from the dashboard.
     const number = await getNumber(id).catch(() => null);
     if (number) {
-      await releaseNumberFromAgent(number.e164, number.elevenlabs_phone_number_id).catch((e) =>
-        console.error("[numbers] ElevenLabs release on delete failed", e),
+      await deleteImportedNumber(number.e164, number.elevenlabs_phone_number_id).catch((e) =>
+        console.error("[numbers] ElevenLabs delete on number delete failed", e),
       );
       if (number.twilio_sid) {
         await releaseTwilioNumber(number.twilio_sid).catch((e) =>
