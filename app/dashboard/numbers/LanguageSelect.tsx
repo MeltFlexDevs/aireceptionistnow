@@ -40,7 +40,7 @@ export function LanguageSelect({ name = "language", defaultValue = "en" }: Props
   }
 
   return (
-    <div className="relative" ref={ref}>
+    <div className="relative" ref={ref} data-el-dropdown={open ? "open" : "closed"}>
       <input type="hidden" name={name} value={selected} />
 
       <button
@@ -61,7 +61,7 @@ export function LanguageSelect({ name = "language", defaultValue = "en" }: Props
       </button>
 
       {open && (
-        <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-lg">
+        <div className="absolute z-50 mt-1 w-full overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-lg">
           <div className="border-b border-neutral-100 p-2">
             <input
               autoFocus

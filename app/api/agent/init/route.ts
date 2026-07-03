@@ -30,6 +30,22 @@ function pick(obj: Record<string, unknown>, keys: string[]): string {
   return "";
 }
 
+/** ElevenLabs' payload shape varies by telephony path — the caller/called numbers
+ *  may sit at the top level or one object deep (e.g. under `call` or
+ *  `conversation_initiation_client_data`). Check the top level first, then scan
+ *  nested objects, so a number tucked one level down still resolves the language. */
+function deepPick(obj: Record<string, unknown>, keys: string[]): string {
+  const top = pick(obj, keys);
+  if (top) return top;
+  for (const v of Object.values(obj)) {
+    if (v && typeof v === "object" && !Array.isArray(v)) {
+      const nested = pick(v as Record<string, unknown>, keys);
+      if (nested) return nested;
+    }
+  }
+  return "";
+}
+
 export async function POST(req: Request): Promise<Response> {
   const raw = await req.text();
   if (!verifyElevenLabsSignature(raw, req.headers.get("elevenlabs-signature"))) {
@@ -43,8 +59,12 @@ export async function POST(req: Request): Promise<Response> {
     return json({ error: "invalid JSON" }, 400);
   }
 
-  const calledNumber = pick(payload, ["called_number", "agent_number", "to_number"]);
-  const callerId = pick(payload, ["caller_id", "from_number", "external_number"]);
+  const calledNumber = deepPick(payload, [
+    "called_number", "agent_number", "to_number", "system__called_number",
+  ]);
+  const callerId = deepPick(payload, [
+    "caller_id", "from_number", "external_number", "system__caller_id",
+  ]);
 
   let config = null;
   try {
@@ -63,6 +83,15 @@ export async function POST(req: Request): Promise<Response> {
   // has no language presets, so a non-English override would be ignored or reject
   // the call — greet in the agent's own configured language instead.
   const language = config.multilingual ? languageFromPhone(callerId) : null;
+  // One line per call so you can confirm from logs that init fired, saw the
+  // caller's number, and picked the language (e.g. +421 → sk). If this never
+  // logs, the workspace conversation-init webhook isn't wired — run /api/agent/setup.
+  console.log("[agent/init]", {
+    called: calledNumber,
+    caller: callerId,
+    language: language ?? "(agent default)",
+    multilingual: config.multilingual,
+  });
   const firstMessage = language
     ? await localizeGreeting(config.greeting, language)
     : config.greeting;

@@ -137,6 +137,15 @@ html {
   border: 1px solid rgb(255 255 255 / 0.08);
 }
 
+/* Each .glass card is its own stacking context (backdrop-filter), so a custom
+   dropdown overflowing one card gets painted over by the next card no matter how
+   high the dropdown's own z-index is. When a card holds an OPEN dropdown, lift the
+   whole card above its siblings so the menu shows in front. */
+.glass:has([data-el-dropdown="open"]) {
+  position: relative;
+  z-index: 30;
+}
+
 /* Minimal page backdrop: a faint neutral dot grid on off-white. No colour. */
 .dash-bg {
   /* Dashboard "black" = Obsidian (#0B1215). Tailwind v4 utilities resolve to
