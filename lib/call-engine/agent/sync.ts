@@ -18,13 +18,14 @@ import { buildBuiltInTools, createAgentTools, deleteAgentTools } from "./tools";
 // and knowledge — so the dashboard is the single source of truth. Called after
 // an assistant is created or edited; deleteAssistantAgent tears it down.
 
-// Agent LLM: Gemini flash-*lite* — the low-latency tier. It cuts LLM
-// time-to-first-token (the dominant stage in the per-turn latency metric, see
-// post-call/route.ts) roughly in half vs plain flash, and reception is a simple
-// enough task that flash-lite + the knowledge base handles it. Thinking is
-// disabled below (thinkingBudget: 0) so the model never pays a reasoning pass
-// before its first spoken token.
-const AGENT_LLM = "gemini-2.5-flash-lite";
+// Agent LLM: Gemini 2.5 flash. flash-lite was tried for lower latency but it's a
+// weaker model for multilingual replies (e.g. Slovak) and knowledge-base use —
+// the two things a receptionist most needs — so we keep full flash. The real
+// latency win is disabling thinking (thinkingBudget: 0 below): 2.5-flash runs a
+// dynamic reasoning pass before its first token by default, which was the bulk
+// of the ~1s time-to-first-token. Turning it off keeps flash's quality at
+// roughly flash-lite's latency.
+const AGENT_LLM = "gemini-2.5-flash";
 
 // Turn-taking tuned for a phone receptionist: start generating the reply during
 // the caller's trailing silence (speculativeTurn) and end-point eagerly, so the
