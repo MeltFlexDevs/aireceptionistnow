@@ -23,6 +23,19 @@ function db(): SupabaseClient {
   return client;
 }
 
+/**
+ * True for PostgREST's "column not in the schema cache" error (code PGRST204),
+ * i.e. writing a column the connected database doesn't have yet. Used to survive
+ * schema drift — a DB that hasn't applied migration 0004/0005 (the ElevenLabs
+ * agent/tool/phone-id columns) — instead of hard-failing the flow. Same spirit as
+ * migration 0003's drift fix.
+ */
+function isMissingColumnError(error: unknown): boolean {
+  const e = error as { code?: string; message?: string } | null;
+  if (!e) return false;
+  return e.code === "PGRST204" || /could not find the .*column/i.test(e.message ?? "");
+}
+
 export type NumberLabel = "Home" | "Work" | "Organization" | "Personal";
 
 export interface PhoneNumber {
@@ -327,7 +340,22 @@ export async function setAssistantAgent(
     .from("assistants")
     .update({ elevenlabs_agent_id: agentId, elevenlabs_kb: kb, elevenlabs_tools: tools })
     .eq("id", id);
-  if (error) throw error;
+  if (!error) return;
+  if (!isMissingColumnError(error)) throw error;
+
+  // Schema drift: the DB is missing elevenlabs_kb/elevenlabs_tools (migration 0005
+  // not applied). Don't fail the whole "Get number"/save flow over the tracking
+  // columns — persist elevenlabs_agent_id alone (that one matters most: without it
+  // every sync would create a duplicate ElevenLabs agent). Knowledge-base/tool
+  // cleanup stays disabled until the migration is applied.
+  console.warn(
+    "[db] assistants is missing elevenlabs_kb/elevenlabs_tools — apply migration 0005 for full tool/KB cleanup. Persisting agent id only for now.",
+  );
+  const { error: agentOnly } = await db()
+    .from("assistants")
+    .update({ elevenlabs_agent_id: agentId })
+    .eq("id", id);
+  if (agentOnly && !isMissingColumnError(agentOnly)) throw agentOnly;
 }
 
 export interface AssistantSyncContext {
@@ -474,7 +502,18 @@ export async function setNumberElevenLabsId(
     .from("phone_numbers")
     .update({ elevenlabs_phone_number_id: elevenLabsPhoneNumberId })
     .eq("id", numberId);
-  if (error) throw error;
+  if (!error) return;
+  // Schema drift: phone_numbers.elevenlabs_phone_number_id (migration 0005) not
+  // applied. This id is only a cache to skip re-scanning ElevenLabs on the next
+  // route, so skip persisting it rather than failing "Get number" — the connect
+  // still succeeded; a later reassign just re-looks-up the id.
+  if (isMissingColumnError(error)) {
+    console.warn(
+      "[db] phone_numbers.elevenlabs_phone_number_id missing — apply migration 0005; skipping (ElevenLabs id will be re-scanned when needed).",
+    );
+    return;
+  }
+  throw error;
 }
 
 /** All active numbers linked to an assistant (with their Twilio SIDs to release). */
