@@ -19,34 +19,11 @@ export interface CalendarProviderDef {
   fields: ProviderField[];
 }
 
+// Cal.com only — it mirrors the ElevenLabs Conversational AI agents' native
+// Cal.com booking integration, so the calendar the agent books into on a call is
+// the same one connected here. (Google, Microsoft/Outlook and custom-webhook
+// providers were removed from the catalog.)
 export const CALENDAR_PROVIDERS: CalendarProviderDef[] = [
-  {
-    id: "google",
-    name: "Google Calendar",
-    blurb: "Book appointments straight into a Google Calendar via OAuth.",
-    live: true,
-    oauth: true,
-    fields: [
-      { name: "client_id", label: "Client ID" },
-      { name: "client_secret", label: "Client secret", secret: true },
-      { name: "refresh_token", label: "Refresh token", secret: true },
-      { name: "calendar_id", label: "Calendar ID", placeholder: "primary", optional: true },
-    ],
-  },
-  {
-    id: "outlook",
-    name: "Microsoft Outlook",
-    blurb: "Microsoft 365 / Outlook calendar via Microsoft Graph.",
-    live: true,
-    oauth: true,
-    fields: [
-      { name: "client_id", label: "Application (client) ID" },
-      { name: "client_secret", label: "Client secret", secret: true },
-      { name: "tenant", label: "Tenant", placeholder: "common", optional: true },
-      { name: "refresh_token", label: "Refresh token", secret: true },
-      { name: "calendar_id", label: "Calendar ID", optional: true },
-    ],
-  },
   {
     id: "calcom",
     name: "Cal.com",
@@ -57,30 +34,5 @@ export const CALENDAR_PROVIDERS: CalendarProviderDef[] = [
       { name: "event_type_id", label: "Event type ID" },
       { name: "time_zone", label: "Time zone", placeholder: "UTC", optional: true },
     ],
-  },
-  {
-    id: "webhook",
-    name: "Custom / Webhook",
-    blurb: "Send bookings to any URL. Zapier, Make, n8n, or your own endpoint.",
-    live: true,
-    fields: [
-      { name: "url", label: "Webhook URL", placeholder: "https://..." },
-      { name: "secret", label: "Shared secret", secret: true, optional: true },
-    ],
-  },
-  {
-    id: "calendly",
-    name: "Calendly",
-    blurb: "Connect your Calendly account with one click.",
-    live: false,
-    oauth: true,
-    fields: [],
-  },
-  {
-    id: "apple",
-    name: "Apple iCloud (CalDAV)",
-    blurb: "iCloud calendar over CalDAV. Native adapter coming soon.",
-    live: false,
-    fields: [],
   },
 ];
