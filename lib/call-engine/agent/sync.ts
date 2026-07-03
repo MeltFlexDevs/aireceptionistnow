@@ -171,20 +171,6 @@ async function deleteKnowledge(docs: AgentKbDoc[]): Promise<void> {
  * so the conversation-initiation webhook (/api/agent/init) can greet each caller
  * in their own language before overrides are ignored on a locked-down agent.
  */
-/** True for ElevenLabs' "English Agents must use turbo or flash v2" family of
- *  400s — the only case we retry with an English-only config. The message can
- *  arrive on the error itself or in its response body, so check both. */
-function isModelLanguageError(err: unknown): boolean {
-  const e = err as { message?: unknown; body?: unknown };
-  let text = typeof e.message === "string" ? e.message : "";
-  try {
-    text += ` ${JSON.stringify(e.body ?? "")}`;
-  } catch {
-    // non-serialisable body — message check still applies
-  }
-  return /English Agents must use|turbo or flash v2/i.test(text);
-}
-
 export async function syncAssistantAgent(assistantId: string): Promise<string | null> {
   const ctx = await getAssistantSyncContext(assistantId);
   if (!ctx) return null;
@@ -283,11 +269,18 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
     try {
       agentId = await write(multilingualConfig);
     } catch (err) {
-      // Only fall back on the known model/language validation error — anything
-      // else (auth, quota, bad voice) should surface as-is.
-      if (!isModelLanguageError(err)) throw err;
-      console.warn("[agent-sync] multilingual config rejected, falling back to English", err);
-      agentId = await write(englishConfig);
+      // The multilingual config (language presets + multilingual model) is the
+      // part ElevenLabs is most likely to reject — English-only model/account
+      // policy, an unsupported language preset, etc. Retry once with a minimal
+      // English-only agent so a valid assistant still gets a working agent. If the
+      // fallback ALSO fails, throw the ORIGINAL error — it names the real problem
+      // (auth, quota, bad voice) rather than the English retry's symptom.
+      console.warn("[agent-sync] multilingual config rejected, retrying English-only", err);
+      try {
+        agentId = await write(englishConfig);
+      } catch {
+        throw err;
+      }
     }
   } catch (err) {
     // Roll back the just-created docs + tools so a failed create/update doesn't
