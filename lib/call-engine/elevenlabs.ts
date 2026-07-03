@@ -41,8 +41,7 @@ export async function findAgentPhoneNumberId(e164: string): Promise<string | nul
   return match?.phone_number_id ?? null;
 }
 
-/** Assign an agent as the inbound agent on an imported phone number. Pass agentId
- *  null-equivalent to unassign (not exposed here). */
+/** Assign an agent as the inbound agent on an imported phone number. */
 export async function assignInboundAgent(
   phoneNumberId: string,
   agentId: string,
@@ -63,6 +62,39 @@ export async function assignInboundAgent(
   }
 }
 
+/** Detach the inbound agent from an imported phone number so it stops routing
+ *  inbound calls. ElevenLabs treats a null agent_id as "no inbound agent". */
+export async function unassignInboundAgent(phoneNumberId: string): Promise<void> {
+  const apiKey = process.env.ELEVENLABS_API_KEY;
+  if (!apiKey) throw new Error("ELEVENLABS_API_KEY is not set.");
+
+  const res = await fetch(`${PHONE_NUMBERS_URL}/${phoneNumberId}`, {
+    method: "PATCH",
+    headers: { "xi-api-key": apiKey, "content-type": "application/json" },
+    body: JSON.stringify({ agent_id: null }),
+  });
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new Error(
+      `ElevenLabs agent unassignment failed (${res.status}). ${detail}`.trim(),
+    );
+  }
+}
+
+/**
+ * Stop an E.164 number from routing inbound calls to any agent — used when a
+ * number is unlinked from its assistant or deleted. Prefers the stored ElevenLabs
+ * phone-number id (no re-scan); falls back to a lookup by number. No-op if the
+ * number was never imported into ElevenLabs.
+ */
+export async function releaseNumberFromAgent(
+  e164: string,
+  phoneNumberId?: string | null,
+): Promise<void> {
+  const id = phoneNumberId || (await findAgentPhoneNumberId(e164));
+  if (id) await unassignInboundAgent(id);
+}
+
 /**
  * Import a Twilio number the account owns into ElevenLabs and (optionally) assign
  * an inbound agent in the same call. Uses the account's Twilio credentials so
@@ -79,7 +111,7 @@ export async function importTwilioNumber(
   const token = process.env.TWILIO_AUTH_TOKEN;
   if (!sid || !token) {
     throw new Error(
-      "Twilio credentials aren't set, so the number can't be imported into ElevenLabs.",
+      "ElevenLabs needs your Twilio Account SID + Auth Token to import a number (a scoped API key isn't enough). Set TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN.",
     );
   }
 
@@ -104,17 +136,25 @@ export async function importTwilioNumber(
 }
 
 /**
- * Route an E.164 Twilio number's inbound calls to the configured agent (tier A).
- * If the number is already imported into ElevenLabs, just (re)assign the agent;
- * otherwise import it from Twilio and assign in one step. Returns the ElevenLabs
- * phone-number id. Defaults the agent to ELEVENLABS_AGENT_ID.
+ * Route an E.164 Twilio number's inbound calls to a specific assistant's managed
+ * agent (tier A). If the number is already imported into ElevenLabs, just
+ * (re)assign the agent; otherwise import it from Twilio and assign in one step.
+ * Returns the ElevenLabs phone-number id.
+ *
+ * No demo fallback on purpose: this always points a number at a chosen assistant.
+ * Defaulting a missing agent to ELEVENLABS_AGENT_ID (the public "Talk to our AI"
+ * demo agent) would silently route a customer's number to the demo persona.
  */
 export async function routeNumberToAgent(
   e164: string,
   agentId?: string,
 ): Promise<string> {
-  const agent = agentId || process.env.ELEVENLABS_AGENT_ID;
-  if (!agent) throw new Error("ELEVENLABS_AGENT_ID is not set.");
+  const agent = (agentId ?? "").trim();
+  if (!agent) {
+    throw new Error(
+      "No ElevenLabs agent for this assistant yet — save the assistant first, then connect a number.",
+    );
+  }
 
   const phoneNumberId = await findAgentPhoneNumberId(e164);
   if (phoneNumberId) {
@@ -176,13 +216,23 @@ export async function assertUnderCallCaps(): Promise<void> {
   }
 }
 
-/** Have the configured ElevenLabs agent call `toNumber` (E.164). */
+/**
+ * Have an ElevenLabs agent call `toNumber` (E.164).
+ *
+ * Defaults to the public demo agent + its number (the landing page's "Talk to
+ * our AI" button). A per-assistant test call passes THAT assistant's agent id and
+ * its connected number's phone-number id, so the caller actually hears the
+ * assistant being tested — its greeting, voice, prompt, and knowledge — instead
+ * of the generic demo persona.
+ */
 export async function placeAgentCall(
   toNumber: string,
+  opts: { agentId?: string; agentPhoneNumberId?: string } = {},
 ): Promise<PlaceAgentCallResult> {
   const apiKey = process.env.ELEVENLABS_API_KEY;
-  const agentId = process.env.ELEVENLABS_AGENT_ID;
-  const agentPhoneNumberId = process.env.ELEVENLABS_AGENT_PHONE_NUMBER_ID;
+  const agentId = opts.agentId || process.env.ELEVENLABS_AGENT_ID;
+  const agentPhoneNumberId =
+    opts.agentPhoneNumberId || process.env.ELEVENLABS_AGENT_PHONE_NUMBER_ID;
 
   if (!apiKey || !agentId || !agentPhoneNumberId) {
     throw new Error("Calling isn't configured.");

@@ -15,9 +15,10 @@ import {
 import {
   buyTwilioNumber,
   ensureTwilioNumber,
+  releaseTwilioNumber,
   type BoughtNumber,
 } from "@/lib/dashboard/twilio";
-import { routeNumberToAgent } from "@/lib/call-engine/elevenlabs";
+import { releaseNumberFromAgent, routeNumberToAgent } from "@/lib/call-engine/elevenlabs";
 import { syncAssistantAgent } from "@/lib/call-engine/agent/sync";
 
 const E164 = z
@@ -105,6 +106,16 @@ export async function setAssistantAction(formData: FormData): Promise<void> {
           );
           await setNumberElevenLabsId(id, elevenLabsPhoneNumberId);
         }
+      } else {
+        // Unassigned: detach the ElevenLabs agent so the number stops answering
+        // as the assistant we just removed (the DB unlink alone doesn't).
+        const number = await getNumber(id).catch(() => null);
+        if (number?.e164) {
+          await releaseNumberFromAgent(
+            number.e164,
+            number.elevenlabs_phone_number_id,
+          ).catch((e) => console.error("[numbers] ElevenLabs release on unassign failed", e));
+        }
       }
     } catch (err) {
       console.error("[numbers] assign assistant/agent failed", err);
@@ -121,8 +132,28 @@ export async function updateNumberAction(formData: FormData): Promise<void> {
   const id = String(formData.get("id") ?? "");
   if (!id) redirect("/dashboard/numbers");
 
+  const enabled = formData.get("enabled") === "on";
   try {
-    await updateNumber(id, { enabled: formData.get("enabled") === "on" });
+    await updateNumber(id, { enabled });
+    // Keep ElevenLabs routing in sync with the toggle. EL routing is independent
+    // of our `enabled` flag, so without this a "disabled" number keeps answering.
+    // Disable → detach the agent; enable → reattach the linked assistant's agent.
+    // Best-effort: the DB toggle is authoritative for the dashboard.
+    const number = await getNumber(id).catch(() => null);
+    if (number?.e164) {
+      if (!enabled) {
+        await releaseNumberFromAgent(number.e164, number.elevenlabs_phone_number_id).catch((e) =>
+          console.error("[numbers] ElevenLabs release on disable failed", e),
+        );
+      } else if (number.assistant_id) {
+        const assistant = await getAssistant(number.assistant_id).catch(() => null);
+        if (assistant?.elevenlabs_agent_id) {
+          await routeNumberToAgent(number.e164, assistant.elevenlabs_agent_id).catch((e) =>
+            console.error("[numbers] ElevenLabs re-route on enable failed", e),
+          );
+        }
+      }
+    }
   } catch (err) {
     redirect(
       `/dashboard/numbers/${id}?error=${encodeURIComponent((err as Error).message)}`,
@@ -137,6 +168,21 @@ export async function updateNumberAction(formData: FormData): Promise<void> {
 export async function deleteNumberAction(formData: FormData): Promise<void> {
   const id = String(formData.get("id") ?? "");
   if (id) {
+    // Release the number from ElevenLabs (stop routing inbound calls) and Twilio
+    // (stop billing) before dropping the row — otherwise a "deleted" number keeps
+    // costing money and answering. Best-effort: a provider hiccup must not block
+    // removing it from the dashboard.
+    const number = await getNumber(id).catch(() => null);
+    if (number) {
+      await releaseNumberFromAgent(number.e164, number.elevenlabs_phone_number_id).catch((e) =>
+        console.error("[numbers] ElevenLabs release on delete failed", e),
+      );
+      if (number.twilio_sid) {
+        await releaseTwilioNumber(number.twilio_sid).catch((e) =>
+          console.error("[numbers] Twilio release on delete failed", e),
+        );
+      }
+    }
     try {
       await deleteNumber(id);
     } catch {

@@ -22,8 +22,8 @@ import { currentUserId } from "@/lib/auth";
 import { authConfigured } from "@/lib/supabase/config";
 import { canAssignNumber } from "@/lib/dashboard/plan";
 import {
-  assertUnderCallCaps,
   placeAgentCall,
+  releaseNumberFromAgent,
   routeNumberToAgent,
 } from "@/lib/call-engine/elevenlabs";
 import { syncAssistantAgent, deleteAssistantAgent } from "@/lib/call-engine/agent/sync";
@@ -202,6 +202,9 @@ export async function deleteAssistantAction(formData: FormData): Promise<void> {
     // delete as success.
     await deleteAssistant(id);
     await freeAssistantNumbers(id);
+    // ponytail: freed numbers keep their (now-deleted) ElevenLabs agent assigned
+    // until reclaimed, when getAgentNumberAction reassigns them. Eagerly unassign
+    // here if a freed-but-unreclaimed number ringing a dead agent becomes an issue.
   } catch (err) {
     redirect(`/dashboard/assistant/${id}?error=${encodeURIComponent((err as Error).message)}`);
   }
@@ -323,8 +326,19 @@ export async function testCallAction(formData: FormData): Promise<void> {
   }
 
   try {
-    await assertUnderCallCaps();
-    await placeAgentCall(to);
+    // Test the ACTUAL assistant, not the demo agent: place the call as this
+    // assistant's managed ElevenLabs agent, from its connected number when it has
+    // one (so both the persona and caller ID match). Sync builds the agent if the
+    // assistant hasn't been synced yet; the from-number falls back to the demo
+    // outbound number (env) when the assistant has no number of its own.
+    const assistant = await getAssistant(assistantId).catch(() => null);
+    const agentId =
+      assistant?.elevenlabs_agent_id ?? (await syncAssistantAgent(assistantId));
+    const number = await getAssistantNumber(assistantId).catch(() => null);
+    await placeAgentCall(to, {
+      agentId: agentId ?? undefined,
+      agentPhoneNumberId: number?.elevenlabs_phone_number_id ?? undefined,
+    });
   } catch (err) {
     redirect(`/dashboard/assistant/${assistantId}?error=${encodeURIComponent((err as Error).message)}`);
   }
@@ -349,6 +363,12 @@ export async function unlinkNumberAction(formData: FormData): Promise<void> {
 
   try {
     await setNumberAssistant(numberId, null);
+    // Detach the agent in ElevenLabs too, or the number keeps answering as this
+    // assistant despite the dashboard showing it unlinked. Best-effort: the DB
+    // unlink already succeeded, so a provider hiccup must not fail the action.
+    await releaseNumberFromAgent(number.e164, number.elevenlabs_phone_number_id).catch((e) =>
+      console.error("[assistant] ElevenLabs release on unlink failed", e),
+    );
   } catch (err) {
     redirect(`/dashboard/assistant/${assistantId}?error=${encodeURIComponent((err as Error).message)}`);
   }

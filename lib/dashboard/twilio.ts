@@ -125,10 +125,11 @@ export async function buyTwilioNumbers(
     throw new Error("Twilio credentials are not set on the server.");
   }
   if (count < 1) return [];
-  // ElevenLabs-only: when the number will be imported into ElevenLabs (which then
-  // owns its voice webhook), skip pointing it at our app so a bought-but-not-yet-
-  // imported number never routes to a dead webhook.
-  const configureWebhook = buyOpts.configureWebhook !== false;
+  // ElevenLabs-only: ElevenLabs owns a number's voice webhook once it's imported,
+  // and this app has no /api/twilio/voice route — so default to NOT pointing
+  // Twilio at us (a bought number would otherwise route to a dead endpoint until
+  // it's imported). Callers opt in explicitly for the legacy self-hosted path.
+  const configureWebhook = buyOpts.configureWebhook === true;
   const base = configureWebhook ? process.env.APP_BASE_URL : undefined;
   const client = twilioClient();
   const country = (opts.country || "US").toUpperCase();
