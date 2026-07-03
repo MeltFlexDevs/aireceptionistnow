@@ -156,3 +156,41 @@ export function languageName(code: string): string {
   const base = baseLanguage(code);
   return LANGUAGE_NAMES[base] ?? base;
 }
+
+// Dominant country (ISO 3166-1 alpha-2) per E.164 calling code, for showing a
+// caller's flag in the dashboard. Multi-country codes pick the most common one
+// (1 → US, 7 → RU). Longest matching prefix wins, same as the language map.
+const CODE_TO_COUNTRY: Record<string, string> = {
+  "1": "US", "44": "GB", "61": "AU", "64": "NZ", "353": "IE", "27": "ZA",
+  "63": "PH", "91": "IN", "49": "DE", "43": "AT", "41": "CH", "33": "FR",
+  "32": "BE", "34": "ES", "52": "MX", "54": "AR", "57": "CO", "56": "CL",
+  "51": "PE", "351": "PT", "55": "BR", "39": "IT", "31": "NL", "46": "SE",
+  "47": "NO", "45": "DK", "358": "FI", "421": "SK", "420": "CZ", "48": "PL",
+  "36": "HU", "40": "RO", "30": "GR", "359": "BG", "385": "HR", "386": "SI",
+  "380": "UA", "7": "RU", "90": "TR", "972": "IL", "971": "AE", "966": "SA",
+  "962": "JO", "965": "KW", "974": "QA", "20": "EG", "212": "MA", "81": "JP",
+  "82": "KR", "86": "CN", "852": "HK", "886": "TW", "84": "VN", "66": "TH",
+  "62": "ID", "60": "MY",
+};
+
+/** The flag emoji for an ISO 3166-1 alpha-2 country code (e.g. "SK" → 🇸🇰), or
+ *  "" for anything that isn't two ASCII letters. */
+export function flagEmoji(iso: string): string {
+  const cc = (iso || "").toUpperCase();
+  if (!/^[A-Z]{2}$/.test(cc)) return "";
+  return String.fromCodePoint(
+    ...[...cc].map((ch) => 0x1f1e6 + ch.charCodeAt(0) - 65),
+  );
+}
+
+/** Caller's country (ISO + flag emoji) guessed from their E.164 number, or null
+ *  when it's missing/malformed or the calling code isn't mapped. */
+export function countryFromPhone(e164: string): { iso: string; flag: string } | null {
+  const digits = (e164 || "").replace(/[^\d]/g, "");
+  if (!digits) return null;
+  for (let len = 4; len >= 1; len--) {
+    const iso = CODE_TO_COUNTRY[digits.slice(0, len)];
+    if (iso) return { iso, flag: flagEmoji(iso) };
+  }
+  return null;
+}

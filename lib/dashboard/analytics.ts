@@ -1,5 +1,6 @@
 import { ensureBusinessId, getOwnedNumbers } from "./db";
 import { serviceClient } from "./supabase";
+import { countryFromPhone } from "../call-engine/voice/phone-language";
 
 // Dashboard analytics from the calls / call_turns tables (read-only, one business).
 export type Trend = "up" | "down";
@@ -32,12 +33,12 @@ export interface MonthUsage {
   minutes: number;
   bookings: number;
 }
-export type Sentiment = "positive" | "neutral" | "negative";
+export type Sentiment = "positive" | "neutral" | "negative" | "frustrated" | "angry";
 export interface Call {
   id: string;
   name: string;
   number: string;
-  line: string;
+  flag: string; // caller's country flag emoji, "" when unknown
   duration: string;
   outcome: string;
   sentiment: Sentiment;
@@ -108,6 +109,8 @@ const SENTIMENT_COLORS: Record<string, string> = {
   positive: "#16a34a",
   neutral: "#a3a3a3",
   negative: "#dc2626",
+  frustrated: "#ea580c",
+  angry: "#b91c1c",
 };
 
 function fmtDuration(sec: number | null): string {
@@ -302,7 +305,7 @@ export async function getOverview(ownerId?: string | null): Promise<Overview> {
     id: c.id,
     name: c.from_number || "Unknown caller",
     number: c.from_number || "",
-    line: c.to_number || "",
+    flag: countryFromPhone(c.from_number ?? "")?.flag ?? "",
     duration: fmtDuration(c.duration_seconds),
     outcome: c.outcome ? capitalize(c.outcome) : "—",
     sentiment: (c.sentiment as Sentiment) || "neutral",

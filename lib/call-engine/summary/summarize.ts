@@ -19,7 +19,12 @@ const SUMMARY_SCHEMA = {
       type: "string",
       enum: ["booked", "message", "transferred", "resolved", "abandoned"],
     },
-    sentiment: { type: "string", enum: ["positive", "neutral", "negative"] },
+    sentiment: {
+      type: "string",
+      enum: ["positive", "neutral", "negative", "frustrated", "angry"],
+      description:
+        "The caller's overall mood: positive (happy/satisfied), neutral, negative (dissatisfied), frustrated (repeated trouble, impatient), or angry (hostile, raised tone, complaints).",
+    },
     action_items: { type: "array", items: { type: "string" } },
     tags: { type: "array", items: { type: "string" } },
   },
@@ -59,7 +64,12 @@ export async function summarizeCall(
     "You summarize a phone call for a business dashboard. Recap what the caller " +
     "asked for, how the assistant responded, and what was actually done (the " +
     "actions). Be concise, factual, and neutral. Reflect every action in the " +
-    "summary and surface anything that failed or is still pending as an action item.";
+    "summary and surface anything that failed or is still pending as an action item. " +
+    "Pick the outcome that best fits: 'booked' if an appointment was made, " +
+    "'message' if a message/callback was taken, 'transferred' if handed to a human, " +
+    "'resolved' if the caller's question was answered. Use 'abandoned' ONLY when the " +
+    "caller hung up before anything was accomplished — never for a call where the " +
+    "assistant actually helped. Also judge the caller's sentiment.";
   const prompt =
     `Call for ${config.businessName} on the "${config.label}" line.\n\n` +
     `Transcript:\n${transcript}\n\n` +

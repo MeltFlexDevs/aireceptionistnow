@@ -31,6 +31,39 @@ interface RawTurn {
   message?: string;
   text?: string;
   time_in_call_secs?: number;
+  conversation_turn_metrics?: { metrics?: Record<string, { elapsed_time?: number }> };
+}
+
+/**
+ * Median agent reply latency (ms) across the call — the "voice latency" the
+ * analytics page charts. ElevenLabs reports per-turn stage timings (LLM TTFB,
+ * TTS, …) under conversation_turn_metrics.metrics; we take each agent turn's
+ * slowest stage as its end-to-end reply time and return the median. undefined
+ * when no turn carries metrics (older calls / tier-B), so we store nothing.
+ *
+ * ponytail: slowest-stage-per-turn is a proxy for end-to-end latency; pin a
+ * specific metric key here once real payloads show which one is authoritative.
+ */
+function medianReplyLatencyMs(raw: unknown): number | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const perTurnMs: number[] = [];
+  for (const entry of raw as RawTurn[]) {
+    if (entry.role === "user") continue; // caller turns have no reply latency
+    const metrics = entry.conversation_turn_metrics?.metrics;
+    if (!metrics) continue;
+    let maxSecs = 0;
+    for (const m of Object.values(metrics)) {
+      const s = typeof m?.elapsed_time === "number" ? m.elapsed_time : 0;
+      if (s > maxSecs) maxSecs = s;
+    }
+    if (maxSecs > 0) perTurnMs.push(maxSecs * 1000);
+  }
+  if (perTurnMs.length === 0) return undefined;
+  perTurnMs.sort((a, b) => a - b);
+  const mid = Math.floor(perTurnMs.length / 2);
+  const med =
+    perTurnMs.length % 2 ? perTurnMs[mid] : (perTurnMs[mid - 1] + perTurnMs[mid]) / 2;
+  return Math.round(med);
 }
 
 /** Map ElevenLabs transcript entries to our turn shape. Their roles are
@@ -108,8 +141,9 @@ export async function POST(req: Request): Promise<Response> {
         .appendTurn(callId, turn)
         .catch((e) => console.error("[agent/post-call] append turn", e));
     }
+    const medianLatencyMs = medianReplyLatencyMs(data.transcript);
     await repo
-      .finalizeCall(callId, { status: "completed", durationSeconds })
+      .finalizeCall(callId, { status: "completed", durationSeconds, medianLatencyMs })
       .catch((e) => console.error("[agent/post-call] finalize", e));
     await runPostCall(callId, repo);
   } catch (err) {

@@ -12,7 +12,12 @@ export type CallOutcome =
   | "resolved"
   | "abandoned";
 
-export type Sentiment = "positive" | "neutral" | "negative";
+export type Sentiment =
+  | "positive"
+  | "neutral"
+  | "negative"
+  | "frustrated"
+  | "angry";
 
 /** A turn in the live transcript. `assistant` is the AI receptionist. */
 export type TurnRole = "caller" | "assistant";

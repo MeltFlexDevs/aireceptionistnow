@@ -1,4 +1,6 @@
-import Link from "next/link";
+"use client";
+
+import { useRouter } from "next/navigation";
 import type { CallLogRow } from "@/lib/dashboard/calls";
 import { ArrowDown, ArrowUp } from "../icons";
 import { statusTone } from "./status";
@@ -18,22 +20,16 @@ function Direction({ direction }: { direction: string }) {
 }
 
 function FromTo({ row }: { row: CallLogRow }) {
-  const inner = (
-    <>
+  return (
+    <div className="transition-transform duration-150 group-hover:translate-x-0.5">
       <div className="font-medium text-neutral-900">{row.from || "Unknown"}</div>
       <div className="text-xs text-neutral-400">→ {row.to || "-"}</div>
-    </>
-  );
-  return row.dbId ? (
-    <Link href={`/dashboard/calls/${row.dbId}`} className="block hover:text-neutral-900">
-      {inner}
-    </Link>
-  ) : (
-    <div>{inner}</div>
+    </div>
   );
 }
 
 export function CallTable({ rows }: { rows: CallLogRow[] }) {
+  const router = useRouter();
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
@@ -49,34 +45,59 @@ export function CallTable({ rows }: { rows: CallLogRow[] }) {
           </tr>
         </thead>
         <tbody className="divide-y divide-neutral-100">
-          {rows.map((c) => (
-            <tr key={c.key} className="transition-colors hover:bg-neutral-50">
-              <td className="py-3 pr-4">
-                <Direction direction={c.direction} />
-              </td>
-              <td className="py-3 pr-4">
-                <FromTo row={c} />
-              </td>
-              <td className="py-3 pr-4 text-neutral-500">{c.assistant ?? "-"}</td>
-              <td className="py-3 pr-4">
-                <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${statusTone(c.status)}`}>
-                  {c.statusLabel}
-                </span>
-                {c.outcome && (
-                  <span className="ml-1.5 inline-flex rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-900">
-                    {c.outcome}
+          {rows.map((c) => {
+            // A call is only openable when it has a DB row (transcript + details
+            // live there, keyed by id). Twilio-only rows have nothing to show.
+            const href = c.dbId ? `/dashboard/calls/${c.dbId}` : null;
+            return (
+              <tr
+                key={c.key}
+                onClick={href ? () => router.push(href) : undefined}
+                onKeyDown={
+                  href
+                    ? (e) => {
+                        if (e.key === "Enter") router.push(href);
+                      }
+                    : undefined
+                }
+                tabIndex={href ? 0 : undefined}
+                role={href ? "link" : undefined}
+                className={`group transition-colors duration-150 outline-none focus-visible:bg-neutral-50 ${
+                  href
+                    ? "cursor-pointer hover:bg-neutral-50 hover:shadow-[inset_2px_0_0_0_#171717]"
+                    : "cursor-default"
+                }`}
+              >
+                <td className="py-3 pr-4">
+                  <Direction direction={c.direction} />
+                </td>
+                <td className="py-3 pr-4">
+                  <FromTo row={c} />
+                </td>
+                <td className="py-3 pr-4 text-neutral-500">{c.assistant ?? "-"}</td>
+                <td className="py-3 pr-4">
+                  <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${statusTone(c.status)}`}>
+                    {c.statusLabel}
                   </span>
-                )}
-              </td>
-              <td className="py-3 pr-4 tabular-nums text-neutral-600">{c.durationLabel}</td>
-              <td className="py-3 pr-4 whitespace-nowrap text-neutral-500">{c.dateLabel}</td>
-              <td className="py-3 text-right">
-                <span className="font-mono text-[11px] text-neutral-400" title={c.sid || "Not yet linked"}>
-                  {c.sid ? `${c.sid.slice(0, 10)}…` : "-"}
-                </span>
-              </td>
-            </tr>
-          ))}
+                  {c.outcome && (
+                    <span className="ml-1.5 inline-flex rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-900">
+                      {c.outcome}
+                    </span>
+                  )}
+                </td>
+                <td className="py-3 pr-4 tabular-nums text-neutral-600">{c.durationLabel}</td>
+                <td className="py-3 pr-4 whitespace-nowrap text-neutral-500">{c.dateLabel}</td>
+                <td className="py-3 text-right">
+                  <span
+                    className="font-mono text-[11px] text-neutral-400 transition-colors group-hover:text-neutral-600"
+                    title={c.sid || "Not yet linked"}
+                  >
+                    {c.sid ? `${c.sid.slice(0, 10)}…` : "-"}
+                  </span>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
