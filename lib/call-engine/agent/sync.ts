@@ -9,6 +9,7 @@ import {
 } from "../../dashboard/db";
 import { MAX_SOURCE_CHARS, type AssistantKnowledge } from "../../knowledge/sources";
 import { ELEVENLABS_LANGUAGES, SUPPORTED_LANGUAGES } from "../voice/phone-language";
+import { bestVoiceForLanguage } from "../voice/catalog";
 import { buildBuiltInTools, createAgentTools, deleteAgentTools } from "./tools";
 
 // Sync a dashboard assistant to a managed ElevenLabs Conversational AI agent.
@@ -61,6 +62,9 @@ function composeSystemPrompt(
 ): string {
   const parts: string[] = [
     `You are the AI receptionist for ${businessName}. You answer inbound phone calls: be warm, concise, and natural, like a great front-desk person. Keep answers to a sentence or two and let the caller guide you on where to go deeper.`,
+    // The agent is multilingual (language_detection tool + language presets). Without
+    // this it defaults to English and tells callers it "can only speak English".
+    "Always reply in the language the caller is currently speaking. If they switch languages mid-call, switch with them and keep answering in their most recent language. Never say you can only speak one language.",
   ];
   const own = (assistant.system_prompt ?? "").trim();
   if (own) parts.push(own);
@@ -189,8 +193,16 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
   const extraLanguages = SUPPORTED_LANGUAGES.filter(
     (l) => l !== language && ELEVENLABS_LANGUAGES.has(l),
   );
+  // Give each preset its best per-language voice so a mid-call language switch
+  // (via the language_detection tool) also switches the voice — matching what the
+  // init webhook does for the greeting. An empty override keeps the agent's base
+  // voice, which the multilingual model still speaks the language in.
   const languagePresets: Record<string, ElevenLabs.LanguagePresetOutput> = {};
-  for (const l of extraLanguages) languagePresets[l] = { overrides: {} };
+  for (const l of extraLanguages) {
+    const presetVoice = bestVoiceForLanguage(l, voiceId);
+    languagePresets[l] =
+      presetVoice === voiceId ? { overrides: {} } : { overrides: { tts: { voiceId: presetVoice } } };
+  }
 
   // Typed as the Output prompt variant because that's what ConversationalConfig
   // (agents.create/update) expects; the fields we set are identical across
