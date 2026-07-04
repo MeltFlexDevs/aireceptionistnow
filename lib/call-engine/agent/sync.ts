@@ -418,6 +418,122 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
   return agentId;
 }
 
+// The public "Talk to our AI" demo agent (ELEVENLABS_AGENT_ID) is NOT a dashboard
+// assistant, so syncAssistantAgent never touches it — its greeting/LLM/voice were
+// hand-set in the ElevenLabs dashboard. That left it English-only, so when the
+// landing page places a call with a per-caller language override (e.g. Slovak),
+// ElevenLabs accepts the placement — the phone rings — then the agent can't run
+// in that language and drops the call the instant it's answered (an "instant
+// hangup, no greeting"). Provisioning it from code with the same multilingual
+// config the managed agents use fixes that at the root and makes the demo
+// reproducible instead of dashboard-dependent.
+const DEMO_GREETING =
+  "Hi there — you've reached AI Receptionist Now, the AI that answers the phone for small businesses. Ask me anything: how I work, what I can do for you, booking an appointment, whatever you like.";
+
+function composeDemoPrompt(): string {
+  return [
+    "You are a friendly, upbeat live demo of AI Receptionist Now — an AI phone receptionist for small businesses. The person on the line is a prospect trying you out from our website.",
+    "Show them what an AI receptionist feels like: answer their questions about the product (it answers calls 24/7, books appointments, takes messages, speaks the caller's language, connects to their calendar) and hold a natural, warm phone conversation.",
+    "Reply in the language the caller is speaking; if they switch languages mid-call, switch with them. Keep answers to a sentence or two and conversational.",
+    "If they ask something you genuinely don't know, be honest and point them to the website to sign up. Wrap up warmly with end_call once they're done.",
+  ].join("\n\n");
+}
+
+/**
+ * Provision the public demo agent from code: a multilingual agent with a greeting,
+ * an LLM, a voice, and language presets for every language we greet callers in, so
+ * the landing page's per-caller language override actually works instead of killing
+ * the call. Reuses the same LLM/turn/TTS/voice constants as the managed agents so
+ * the two can't drift. Called by /api/agent/setup. No-op (returns null) if
+ * ELEVENLABS_AGENT_ID is unset. Returns the agent id on success.
+ */
+export async function provisionDemoAgent(): Promise<string | null> {
+  const agentId = process.env.ELEVENLABS_AGENT_ID;
+  if (!agentId) return null;
+  const client = elevenClient();
+
+  // Every language we can greet a demo caller in, except the English base — their
+  // presence is what makes the agent multilingual (multilingual TTS model + accepts
+  // the per-caller language override). Base voice speaks them all (no per-language
+  // voice overrides — keeps this simple and dodges the preset-voice rejection path).
+  const extraLanguages = SUPPORTED_LANGUAGES.filter(
+    (l) => l !== "en" && ELEVENLABS_LANGUAGES.has(l),
+  );
+  const languagePresets: Record<string, ElevenLabs.LanguagePresetOutput> =
+    Object.fromEntries(extraLanguages.map((l) => [l, { overrides: {} }]));
+
+  // end_call so the agent can wrap up; language_detection so it switches languages
+  // mid-call (dropped in the English-only fallback — nothing to switch to).
+  const endCall: ElevenLabs.BuiltInToolsOutput = {
+    endCall: { name: "end_call", params: { systemToolType: "end_call" } },
+  };
+  const promptBase = {
+    prompt: composeDemoPrompt(),
+    llm: AGENT_LLM,
+    thinkingBudget: 0,
+    enableReasoningSummary: false,
+  } satisfies Partial<ElevenLabs.PromptAgentApiModelOutput>;
+
+  const multilingualConfig: ElevenLabs.ConversationalConfig = {
+    agent: {
+      firstMessage: DEMO_GREETING,
+      language: "en",
+      prompt: {
+        ...promptBase,
+        builtInTools: {
+          ...endCall,
+          languageDetection: {
+            name: "language_detection",
+            params: { systemToolType: "language_detection" },
+          },
+        },
+      },
+    },
+    turn: TURN_CONFIG,
+    tts: { voiceId: DEFAULT_VOICE_ID, modelId: TTS_MODEL_MULTILINGUAL },
+    languagePresets,
+  };
+
+  const englishConfig: ElevenLabs.ConversationalConfig = {
+    agent: {
+      firstMessage: DEMO_GREETING,
+      language: "en",
+      prompt: { ...promptBase, builtInTools: endCall },
+    },
+    turn: TURN_CONFIG,
+    tts: { voiceId: DEFAULT_VOICE_ID, modelId: TTS_MODEL_ENGLISH },
+  };
+
+  // Whitelist exactly the two fields placeAgentCall overrides per demo call.
+  const platformSettings: ElevenLabs.AgentPlatformSettingsRequestModel = {
+    overrides: {
+      conversationConfigOverride: {
+        agent: { firstMessage: true, language: true },
+      },
+    },
+  };
+
+  const write = (config: ElevenLabs.ConversationalConfig) =>
+    client.conversationalAi.agents.update(agentId, {
+      conversationConfig: config,
+      platformSettings,
+    });
+
+  try {
+    await write(multilingualConfig);
+  } catch (err) {
+    // Same rule as syncAssistantAgent: only fall back to English-only on a config
+    // rejection. A transient/auth error must surface, not silently strip
+    // multilingual and leave the Slovak demo broken with only a warn as evidence.
+    if (!(err instanceof ElevenLabsError && (err.statusCode === 400 || err.statusCode === 422))) {
+      throw err;
+    }
+    console.warn("[demo-agent] multilingual config rejected, provisioning English-only", err);
+    await write(englishConfig);
+  }
+  return agentId;
+}
+
 /**
  * Delete the managed ElevenLabs agent and its uploaded knowledge for an
  * assistant. Best-effort — called when the assistant is deleted; a failure here
