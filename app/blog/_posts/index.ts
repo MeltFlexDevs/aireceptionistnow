@@ -29,6 +29,9 @@ import LawFirmAnsweringService, {
 import AiReceptionistPrompts, {
   meta as aiReceptionistPromptsMeta,
 } from "./ai-receptionist-prompts";
+import AiReceptionistForHomeServices, {
+  meta as aiReceptionistForHomeServicesMeta,
+} from "./ai-receptionist-for-home-services";
 
 export type PostMeta = {
   slug: string;
@@ -62,6 +65,7 @@ const postAuthors: Record<string, AuthorKey> = {
   "dental-answering-service": "brano",
   "law-firm-answering-service": "matus",
   "ai-receptionist-prompts": "matus",
+  "ai-receptionist-for-home-services": "brano",
 };
 
 export const posts: Post[] = [
@@ -74,6 +78,7 @@ export const posts: Post[] = [
   { ...dentalAnsweringServiceMeta, Body: DentalAnsweringService },
   { ...lawFirmAnsweringServiceMeta, Body: LawFirmAnsweringService },
   { ...aiReceptionistPromptsMeta, Body: AiReceptionistPrompts },
+  { ...aiReceptionistForHomeServicesMeta, Body: AiReceptionistForHomeServices },
 ]
   .map((p) => ({ ...p, author: postAuthors[p.slug] ?? defaultAuthorKey }))
   .sort((a, b) => (a.date < b.date ? 1 : -1));

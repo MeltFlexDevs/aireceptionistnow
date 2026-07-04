@@ -145,7 +145,13 @@ export default function Body() {
         An <Strong>HVAC answering service</Strong>{" "}answers your calls when your
         office can&apos;t, triages the emergency, captures the customer, and
         either books the service call or dispatches your on-call tech. It can be
-        run by live operators, by an AI receptionist, or a hybrid. For most
+        run by live operators, by an AI receptionist, or a hybrid. (This guide
+        is part of our home-services series — for plumbing, electrical, and the
+        other trades, start with the{" "}
+        <Internal href="/blog/ai-receptionist-for-home-services">
+          AI receptionist for home services overview
+        </Internal>
+        .) For most
         residential and light-commercial HVAC companies, an AI service handles the
         high-volume routine calls (new service requests, &quot;when is my tech
         coming,&quot; maintenance scheduling, basic questions) around the clock for
