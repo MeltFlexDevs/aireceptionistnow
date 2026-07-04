@@ -23,7 +23,7 @@ export const meta = {
   title:
     "AI Receptionist vs. Virtual Receptionist vs. Answering Service",
   description:
-    "Vendors blur these three terms on purpose. An honest 2026 comparison of what each service actually does, what it really costs, and a simple way to pick the right one.",
+    "Vendors blur these three terms on purpose. What each service actually does, real 2026 costs, and a one-question test to pick the right one.",
   date: "2026-07-04",
   updated: "2026-07-04",
   readingTime: "10 min read",
