@@ -509,8 +509,11 @@ EMERGENCY TRIAGE
           [
             "HVAC / plumbing / trades",
             "Property address and access notes, no-heat/no-cooling and water-leak triage, service-area check before booking, on-call dispatch rules.",
-            <Internal key="hvac" href="/blog/hvac-answering-service">
-              HVAC answering service
+            <Internal
+              key="home-services"
+              href="/blog/ai-receptionist-for-home-services"
+            >
+              AI receptionist for home services
             </Internal>,
           ],
           [

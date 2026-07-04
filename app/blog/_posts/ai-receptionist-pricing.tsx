@@ -24,7 +24,7 @@ export const meta = {
   description:
     "A transparent 2026 breakdown of AI receptionist pricing: real price ranges, the four pricing models, the hidden fees vendors don't quote, and how it compares to a human.",
   date: "2026-06-27",
-  updated: "2026-06-27",
+  updated: "2026-07-04",
   readingTime: "10 min read",
   tag: "Guides",
   hero: "/blog/ai-receptionist-pricing.webp",
@@ -358,7 +358,12 @@ export default function Body() {
         <LI>
           <Strong>Compare to the all-in monthly fee.</Strong> For most service
           businesses, recovering a single missed job a month covers the entire
-          cost several times over.
+          cost several times over. The math is starkest in the trades, where one
+          replacement job runs into the thousands — we walk through it in our{" "}
+          <Internal href="/blog/ai-receptionist-for-home-services">
+            home services guide
+          </Internal>
+          .
         </LI>
       </OL>
       <P>

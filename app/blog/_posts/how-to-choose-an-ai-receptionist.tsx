@@ -182,6 +182,15 @@ export default function Body() {
         height={768}
         caption="The honest baseline for most small businesses isn't a perfectly staffed desk. It's this: hands full, phone ringing, lead gone. That's the call you're shopping to recover."
       />
+      <P>
+        If that photo is your business — plumbing, electrical, HVAC, cleaning —
+        we&apos;ve written a dedicated guide to the{" "}
+        <Internal href="/blog/ai-receptionist-for-home-services">
+          AI receptionist for home services
+        </Internal>
+        , including the emergency-triage rules the generic advice below
+        won&apos;t cover.
+      </P>
 
       <H2 id="what-matters">What actually matters (and what&apos;s noise)</H2>
       <P>
