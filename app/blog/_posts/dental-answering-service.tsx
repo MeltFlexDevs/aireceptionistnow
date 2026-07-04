@@ -25,7 +25,7 @@ export const meta = {
   description:
     "An honest guide to a dental answering service: catch every new-patient and recall call, book into your practice software, triage dental emergencies, and stay HIPAA-compliant.",
   date: "2026-06-30",
-  updated: "2026-06-30",
+  updated: "2026-07-04",
   readingTime: "12 min read",
   tag: "Industries",
   hero: "/blog/dental-new-patient-exam.webp",
@@ -367,7 +367,12 @@ export default function Body() {
       <P>
         The quality of an answering service lives in the script. Here is the shape
         of three calls worth modeling, kept short on purpose, because long scripts
-        are where AI and tired humans both go wrong.
+        are where AI and tired humans both go wrong. (If you&apos;d rather start
+        from a template, our{" "}
+        <Internal href="/blog/ai-receptionist-prompts">
+          AI receptionist prompts
+        </Internal>{" "}
+        include a dental intake module you can copy.)
       </P>
       <H3>New-patient booking</H3>
       <Callout>

@@ -25,7 +25,7 @@ export const meta = {
   description:
     "An honest guide to an HVAC answering service: capture every no-cooling and no-heat call 24/7, book and dispatch jobs, handle seasonal spikes, and know where a human still has to take the call.",
   date: "2026-06-29",
-  updated: "2026-06-29",
+  updated: "2026-07-04",
   readingTime: "12 min read",
   tag: "Industries",
   hero: "/blog/hvac-answering-service-hero.webp",
@@ -344,7 +344,12 @@ export default function Body() {
       <P>
         The quality of an answering service lives in the script. Here&apos;s the
         shape of three calls worth modeling, kept short on purpose, because long
-        scripts are where AI and tired humans both go wrong.
+        scripts are where AI and tired humans both go wrong. (If you&apos;d
+        rather start from a template, our{" "}
+        <Internal href="/blog/ai-receptionist-prompts">
+          AI receptionist prompts
+        </Internal>{" "}
+        include after-hours and emergency-triage modules you can copy.)
       </P>
       <H3>After-hours no-cooling emergency</H3>
       <Callout>

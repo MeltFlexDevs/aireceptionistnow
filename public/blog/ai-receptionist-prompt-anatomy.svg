@@ -1,0 +1,70 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Anatomy of an AI receptionist system prompt: identity, allowed facts, call flow, voice rules, and escalation rules, with escalation highlighted as the section most prompts are missing">
+  <rect width="1200" height="630" fill="#ffffff"/>
+
+  <!-- document card -->
+  <rect x="80" y="60" width="470" height="510" rx="12" fill="#ffffff" stroke="#e5e5e5" stroke-width="2"/>
+  <text x="105" y="100" font-family="Inter, sans-serif" font-size="12" font-weight="600" letter-spacing="0.08em" fill="#999">SYSTEM PROMPT</text>
+
+  <!-- 1 identity -->
+  <g transform="translate(105 120)">
+    <rect width="420" height="74" rx="8" fill="#fafafa" stroke="#e5e5e5" stroke-width="1.5"/>
+    <text x="20" y="31" font-family="Inter, sans-serif" font-size="16" font-weight="500" fill="#1a1a1a">1 · Identity &amp; role</text>
+    <text x="20" y="54" font-family="Inter, sans-serif" font-size="13" font-weight="300" fill="#888">Who it is, who it answers for, AI disclosure</text>
+  </g>
+
+  <!-- 2 facts -->
+  <g transform="translate(105 206)">
+    <rect width="420" height="74" rx="8" fill="#fafafa" stroke="#e5e5e5" stroke-width="1.5"/>
+    <text x="20" y="31" font-family="Inter, sans-serif" font-size="16" font-weight="500" fill="#1a1a1a">2 · Facts it may state</text>
+    <text x="20" y="54" font-family="Inter, sans-serif" font-size="13" font-weight="300" fill="#888">Hours, services, prices — and nothing else</text>
+  </g>
+
+  <!-- 3 call flow -->
+  <g transform="translate(105 292)">
+    <rect width="420" height="74" rx="8" fill="#fafafa" stroke="#e5e5e5" stroke-width="1.5"/>
+    <text x="20" y="31" font-family="Inter, sans-serif" font-size="16" font-weight="500" fill="#1a1a1a">3 · Call flow</text>
+    <text x="20" y="54" font-family="Inter, sans-serif" font-size="13" font-weight="300" fill="#888">Greet → find the reason → book, answer, or message</text>
+  </g>
+
+  <!-- 4 voice rules -->
+  <g transform="translate(105 378)">
+    <rect width="420" height="74" rx="8" fill="#fafafa" stroke="#e5e5e5" stroke-width="1.5"/>
+    <text x="20" y="31" font-family="Inter, sans-serif" font-size="16" font-weight="500" fill="#1a1a1a">4 · Voice rules &amp; boundaries</text>
+    <text x="20" y="54" font-family="Inter, sans-serif" font-size="13" font-weight="300" fill="#888">Short turns, one question at a time, never guess</text>
+  </g>
+
+  <!-- 5 escalation (highlighted) -->
+  <g transform="translate(105 464)">
+    <rect width="420" height="74" rx="8" fill="#1a1a1a"/>
+    <text x="20" y="31" font-family="Inter, sans-serif" font-size="16" font-weight="600" fill="#ffffff">5 · Escalation rules</text>
+    <text x="20" y="54" font-family="Inter, sans-serif" font-size="13" font-weight="300" fill="rgba(255,255,255,0.65)">When and how to hand the call to a human</text>
+  </g>
+
+  <!-- title -->
+  <text x="620" y="105" font-family="Inter, sans-serif" font-size="24" font-weight="500" fill="#1a1a1a">Anatomy of a working prompt</text>
+  <text x="620" y="132" font-family="Inter, sans-serif" font-size="14" font-weight="300" fill="#888">Five sections, in order of appearance — not importance.</text>
+
+  <!-- annotation: facts -->
+  <g stroke="#ccc" stroke-width="1.5" fill="none" stroke-linecap="round">
+    <path d="M 545 243 L 605 243"/>
+  </g>
+  <circle cx="545" cy="243" r="3" fill="#ccc"/>
+  <text x="620" y="238" font-family="Inter, sans-serif" font-size="14" font-weight="300" fill="#555">If a fact isn&#8217;t listed here, the AI must say so</text>
+  <text x="620" y="258" font-family="Inter, sans-serif" font-size="14" font-weight="300" fill="#555">and offer a callback — never improvise.</text>
+
+  <!-- annotation: voice rules -->
+  <g stroke="#ccc" stroke-width="1.5" fill="none" stroke-linecap="round">
+    <path d="M 545 415 L 605 415"/>
+  </g>
+  <circle cx="545" cy="415" r="3" fill="#ccc"/>
+  <text x="620" y="410" font-family="Inter, sans-serif" font-size="14" font-weight="300" fill="#555">Written for the ear, not the eye: this is what</text>
+  <text x="620" y="430" font-family="Inter, sans-serif" font-size="14" font-weight="300" fill="#555">makes it sound human on a phone line.</text>
+
+  <!-- annotation: escalation -->
+  <g stroke="#1a1a1a" stroke-width="1.5" fill="none" stroke-linecap="round">
+    <path d="M 545 501 L 605 501"/>
+  </g>
+  <circle cx="545" cy="501" r="3" fill="#1a1a1a"/>
+  <text x="620" y="496" font-family="Inter, sans-serif" font-size="14" font-weight="500" fill="#1a1a1a">The section most prompts skip entirely —</text>
+  <text x="620" y="516" font-family="Inter, sans-serif" font-size="14" font-weight="500" fill="#1a1a1a">and the one that saves your reviews.</text>
+</svg>

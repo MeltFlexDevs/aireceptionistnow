@@ -879,7 +879,7 @@ const defs: Answer[] = [
     ],
     category: "Setup",
     date: "2026-06-30",
-    updated: "2026-06-30",
+    updated: "2026-07-04",
     author: "brano",
     related: [
       "can-an-ai-receptionist-book-appointments",
@@ -950,6 +950,13 @@ const defs: Answer[] = [
               what it should hand to a person.
             </li>
           </ul>
+          <p>
+            If you want the actual wording rather than a checklist, our{" "}
+            <Link href="/blog/ai-receptionist-prompts">
+              AI receptionist prompt templates
+            </Link>{" "}
+            are the full brief, free to copy and adapt.
+          </p>
 
           <h2 id="youre-briefing-an-assistant-not-training-a-model">
             You&apos;re briefing an assistant, not training a model

@@ -25,7 +25,7 @@ export const meta = {
   description:
     "We sell AI receptionists, so read this skeptically. An honest 2026 look at where an AI phone agent beats a human front desk, and where it still loses badly.",
   date: "2026-06-25",
-  updated: "2026-06-25",
+  updated: "2026-07-04",
   readingTime: "9 min read",
   tag: "Guides",
   hero: "/blog/ai-receptionist-hero.webp",
@@ -302,7 +302,12 @@ export default function Body() {
           <Strong>Read the transcripts for the first few weeks.</Strong> Every
           call should leave a summary. Skim them, find the spots where it
           stumbled, and tighten the script. The product gets better the more you
-          treat it like a new hire in training, not a set-and-forget box.
+          treat it like a new hire in training, not a set-and-forget box. If
+          you&apos;re writing that script yourself, our{" "}
+          <Internal href="/blog/ai-receptionist-prompts">
+            AI receptionist prompt templates
+          </Internal>{" "}
+          are free to copy.
         </LI>
       </OL>
 
