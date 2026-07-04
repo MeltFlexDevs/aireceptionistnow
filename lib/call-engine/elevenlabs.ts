@@ -253,7 +253,7 @@ export async function assertUnderCallCaps(): Promise<void> {
  */
 export async function placeAgentCall(
   toNumber: string,
-  opts: { agentId?: string; agentPhoneNumberId?: string } = {},
+  opts: { agentId?: string; agentPhoneNumberId?: string; language?: string } = {},
 ): Promise<PlaceAgentCallResult> {
   const apiKey = process.env.ELEVENLABS_API_KEY;
   const agentId = opts.agentId || process.env.ELEVENLABS_AGENT_ID;
@@ -263,6 +263,18 @@ export async function placeAgentCall(
   if (!apiKey || !agentId || !agentPhoneNumberId) {
     throw new Error("Calling isn't configured.");
   }
+
+  // Outbound calls never hit the conversation-init webhook (that's inbound-only),
+  // so the caller's language is set here in the request body instead. Requires the
+  // agent to be multilingual with "overrides" enabled — an English-only agent
+  // ignores/rejects a non-English language override (same rule as /api/agent/init).
+  const clientData = opts.language
+    ? {
+        conversation_initiation_client_data: {
+          conversation_config_override: { agent: { language: opts.language } },
+        },
+      }
+    : {};
 
   const res = await fetch(OUTBOUND_CALL_URL, {
     method: "POST",
@@ -274,6 +286,7 @@ export async function placeAgentCall(
       agent_id: agentId,
       agent_phone_number_id: agentPhoneNumberId,
       to_number: toNumber,
+      ...clientData,
     }),
   });
 

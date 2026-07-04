@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 import { assertUnderCallCaps, placeAgentCall } from "@/lib/call-engine/elevenlabs";
+import { languageFromPhone } from "@/lib/call-engine/voice/phone-language";
 
 // Public "Talk to our AI now" endpoint: an ElevenLabs Conversational AI agent
 // places an outbound call to the visitor's number and talks to them live.
@@ -37,7 +38,8 @@ export async function POST(req: NextRequest): Promise<Response> {
   }
 
   try {
-    await placeAgentCall(to);
+    // Answer in the language of the selected country/dial code (null → agent default).
+    await placeAgentCall(to, { language: languageFromPhone(to) ?? undefined });
     return json({ ok: true });
   } catch (err) {
     console.error("[test-call] failed:", (err as Error).message);
