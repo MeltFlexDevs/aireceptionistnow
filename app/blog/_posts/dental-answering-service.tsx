@@ -147,7 +147,11 @@ export default function Body() {
         A <Strong>dental answering service</Strong> answers your calls when the
         front desk can&apos;t, captures the patient, books the visit, and flags
         anything urgent. It can be run by live operators, by an AI receptionist,
-        or a hybrid of the two. For most general and specialty practices, an AI
+        or a hybrid of the two (we&apos;ve compared{" "}
+        <Internal href="/blog/ai-receptionist-vs-virtual-receptionist-vs-answering-service">
+          AI receptionists, virtual receptionists, and answering services
+        </Internal>{" "}
+        head to head if you&apos;re weighing the models). For most general and specialty practices, an AI
         service handles the high-volume routine calls around the clock for a flat
         monthly fee: new-patient inquiries, recall and reactivation, rescheduling,
         insurance questions, and directions, then escalates a real emergency or a

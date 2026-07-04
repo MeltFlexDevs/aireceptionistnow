@@ -25,7 +25,7 @@ export const meta = {
   description:
     "An honest guide to a law firm answering service: answer every potential client 24/7, run intake and conflict capture, book consults, and stay inside your ethics rules.",
   date: "2026-06-30",
-  updated: "2026-06-30",
+  updated: "2026-07-04",
   readingTime: "12 min read",
   tag: "Industries",
   hero: "/blog/law-firm-consultation.webp",
@@ -146,7 +146,12 @@ export default function Body() {
         A <Strong>law firm answering service</Strong> answers your calls when no
         one at the firm can, captures and qualifies the potential client, and
         either books a consultation or hands you a clean intake. It can be run by
-        live operators, by an AI receptionist, or a hybrid. For most solo
+        live operators, by an AI receptionist, or a hybrid — the{" "}
+        <Internal href="/blog/ai-receptionist-vs-virtual-receptionist-vs-answering-service">
+          differences between the three models
+        </Internal>{" "}
+        matter more for law firms than most, and we&apos;ve compared them
+        honestly. For most solo
         attorneys and small firms, an AI service handles the high-volume routine
         intake around the clock for a flat monthly fee: new-matter inquiries,
         after-hours calls, basic questions about practice areas, then escalates an

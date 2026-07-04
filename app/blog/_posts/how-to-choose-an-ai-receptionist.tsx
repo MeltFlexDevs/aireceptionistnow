@@ -143,7 +143,13 @@ export default function Body() {
         It&apos;s shopping for features before you&apos;ve defined the job. An AI
         receptionist is not one product; it&apos;s a set of jobs (answering,
         booking, qualifying, message-taking, transferring) and you only need the
-        ones that map to calls you&apos;re currently mishandling.
+        ones that map to calls you&apos;re currently mishandling. (And if
+        you&apos;re not yet sure AI is even the right category, start with our
+        comparison of{" "}
+        <Internal href="/blog/ai-receptionist-vs-virtual-receptionist-vs-answering-service">
+          AI receptionists, virtual receptionists, and answering services
+        </Internal>
+        , then come back.)
       </P>
       <P>
         So spend ten minutes on this before you compare anyone:

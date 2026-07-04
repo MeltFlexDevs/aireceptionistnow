@@ -145,7 +145,11 @@ export default function Body() {
         An <Strong>HVAC answering service</Strong>{" "}answers your calls when your
         office can&apos;t, triages the emergency, captures the customer, and
         either books the service call or dispatches your on-call tech. It can be
-        run by live operators, by an AI receptionist, or a hybrid. (This guide
+        run by live operators, by an AI receptionist, or a hybrid — see{" "}
+        <Internal href="/blog/ai-receptionist-vs-virtual-receptionist-vs-answering-service">
+          how the three models compare
+        </Internal>{" "}
+        if you&apos;re choosing between them. (This guide
         is part of our home-services series — for plumbing, electrical, and the
         other trades, start with the{" "}
         <Internal href="/blog/ai-receptionist-for-home-services">

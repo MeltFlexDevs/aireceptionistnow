@@ -284,7 +284,13 @@ export default function Body() {
         . A human is the only option that gives you a true front-desk presence and
         full human judgment. An AI receptionist isn&apos;t buying that; it&apos;s
         buying coverage you were never going to staff (2&nbsp;a.m., the weekend
-        rush, three calls at once) for a fraction of the cost.
+        rush, three calls at once) for a fraction of the cost. If you&apos;re
+        still deciding between the three service categories themselves, we&apos;ve
+        compared{" "}
+        <Internal href="/blog/ai-receptionist-vs-virtual-receptionist-vs-answering-service">
+          AI receptionists, virtual receptionists, and answering services
+        </Internal>{" "}
+        head to head.
       </P>
 
       <H2 id="hidden-costs">The hidden costs nobody puts on the pricing page</H2>

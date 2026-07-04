@@ -182,7 +182,12 @@ export default function Body() {
           <Strong>It&apos;s cheap and flat-rate.</Strong> No salary, no benefits,
           no overtime for nights and weekends, no per-minute answering-service
           bill that spikes in your busy season. For coverage you were never going
-          to staff anyway, the cost comparison isn&apos;t close.
+          to staff anyway, the cost comparison isn&apos;t close. (If you&apos;re
+          weighing the outsourced options against each other, see our{" "}
+          <Internal href="/blog/ai-receptionist-vs-virtual-receptionist-vs-answering-service">
+            AI vs. virtual receptionist vs. answering service comparison
+          </Internal>
+          .)
         </LI>
       </UL>
       <Callout>
