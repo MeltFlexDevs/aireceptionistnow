@@ -2,7 +2,7 @@ import "server-only";
 
 import { getBilling } from "@/lib/billing";
 import { getPlan, limitsFor, type PlanId, type PlanLimits } from "@/lib/plans";
-import { getOwnedNumbers, listAssistants, listNumbers } from "./db";
+import { countFreeNumbers, getOwnedNumbers, listAssistants, listNumbers } from "./db";
 
 // Plan + live usage for the dashboard and the create/assign server actions.
 // The plan comes from Supabase (user_billing, via get_billing) so the browser
@@ -12,6 +12,10 @@ import { getOwnedNumbers, listAssistants, listNumbers } from "./db";
 export interface PlanUsage {
   numbers: number;
   assistants: number;
+  // ponytail: talk minutes are not metered — limits.minutesIncluded is
+  // display-only. To meter: sum calls.duration_seconds over the owner's numbers
+  // for the current billing period (anchor on user_billing's period) and
+  // surface it here + in PlanUsage.tsx.
 }
 
 export interface PlanContext {
@@ -37,19 +41,25 @@ function isActive(status: string | null | undefined): boolean {
  * Resolve the plan, its enforced limits, and current usage for an owner. Pass the
  * signed-in user id (from currentUserId()); pass null when auth is off, in which
  * case limits are not enforced (single-tenant/dev) but usage is still reported.
+ *
+ * Display callers tolerate a flaky DB (usage queries fall back to empty, the
+ * page still renders). The enforcement path (canAssignNumber) passes `strict`
+ * so a DB error propagates instead of zeroing usage — otherwise a transient
+ * Supabase failure would silently waive the number limit.
  */
 export async function getPlanContext(
   ownerId?: string | null,
+  opts?: { strict?: boolean },
 ): Promise<PlanContext> {
+  const soft = <T>(p: Promise<T[]>): Promise<T[]> =>
+    opts?.strict ? p : p.catch(() => []);
   // Usage: numbers assigned to this owner's assistants + assistant count.
   // Without an owner (auth off) fall back to the whole workspace.
   const [assistants, numbers] = await Promise.all([
-    listAssistants(ownerId ?? undefined).catch(() => []),
+    soft(listAssistants(ownerId ?? undefined)),
     ownerId
-      ? getOwnedNumbers(ownerId).catch(() => [])
-      : listNumbers()
-          .then((rows) => rows.filter((n) => n.assistant_id))
-          .catch(() => []),
+      ? soft(getOwnedNumbers(ownerId))
+      : soft(listNumbers().then((rows) => rows.filter((n) => n.assistant_id))),
   ]);
   const usage: PlanUsage = { numbers: numbers.length, assistants: assistants.length };
 
@@ -86,13 +96,41 @@ export async function getPlanContext(
  * Guard for the assign/buy paths: may this owner attach one more phone number?
  * Returns a reason when blocked (for surfacing in the redirect/notice). Auth-off
  * callers are always allowed.
+ *
+ * Pass `countPending` on the BUY/CONNECT paths: those create a brand-new billed
+ * line that starts UNASSIGNED, so it never shows up in usage.numbers (which
+ * counts only assistant-linked numbers). Without counting pending numbers a
+ * subscribed user could pass the quota on every buy and provision unlimited
+ * Twilio lines. Assign paths leave it off — re-pointing an existing number
+ * doesn't add a line.
  */
 export async function canAssignNumber(
   ownerId?: string | null,
+  opts?: { countPending?: boolean },
 ): Promise<{ ok: boolean; reason?: string }> {
   if (!ownerId) return { ok: true };
-  const ctx = await getPlanContext(ownerId);
-  if (ctx.canAddNumber) return { ok: true };
+  let ctx: PlanContext;
+  let pending = 0;
+  try {
+    ctx = await getPlanContext(ownerId, { strict: true });
+    // ponytail: countFreeNumbers is business-wide (no owner column on unassigned
+    // rows), so in a shared-business multi-tenant deploy this over-counts one
+    // buyer's ceiling against the whole pool — add a purchased_by column on
+    // phone_numbers to scope pending numbers precisely.
+    if (opts?.countPending) pending = await countFreeNumbers();
+  } catch {
+    // Fail closed: if usage can't be counted, don't hand out a number on
+    // fabricated zero usage. Returned (not thrown) so callers keep their
+    // friendly redirect instead of an error page.
+    return { ok: false, reason: "Couldn't verify your plan usage. Please try again." };
+  }
+  // No active subscription → no paid number. The Solo-sized fallback limits
+  // exist so the dashboard renders, not to hand Twilio numbers (real monthly
+  // charges) to accounts that never checked out.
+  if (ctx.enforced && !ctx.active) {
+    return { ok: false, reason: "Subscribe to a plan to add a phone number." };
+  }
+  if (ctx.usage.numbers + pending < ctx.limits.phoneNumbers) return { ok: true };
   const limit = ctx.limits.phoneNumbers;
   return {
     ok: false,

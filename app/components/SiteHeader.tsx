@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect, type CSSProperties } from "react";
+import Link from "next/link";
 
 import { useAuthDialog } from "./AuthDialog";
 import { createClient } from "@/lib/supabase/client";
+import { publicSupabaseEnv } from "@/lib/supabase/config";
 
 const PauseLogo = ({ color = "currentColor" }: { color?: string }) => (
   <svg width="7" height="15" viewBox="0 0 7 15" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -24,7 +26,10 @@ export default function SiteHeader() {
   const { open } = useAuthDialog();
   const [isScrolled, setIsScrolled] = useState(false);
   // null until checked, then true/false — avoids flashing the wrong buttons.
-  const [signedIn, setSignedIn] = useState<boolean | null>(null);
+  // With no Supabase env there's nothing to check, so start at false directly.
+  const [signedIn, setSignedIn] = useState<boolean | null>(() =>
+    publicSupabaseEnv() ? null : false,
+  );
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 30);
@@ -34,10 +39,7 @@ export default function SiteHeader() {
 
   useEffect(() => {
     const supabase = createClient();
-    if (!supabase) {
-      setSignedIn(false);
-      return;
-    }
+    if (!supabase) return; // signedIn already initialized to false
     let active = true;
     // getSession reads from local storage (no network call).
     supabase.auth
@@ -78,15 +80,15 @@ export default function SiteHeader() {
         }
       `}</style>
       <div className="site-header-left" style={{ display: "flex", alignItems: "center" }}>
-        <a href="/" style={{ display: "flex", alignItems: "center", gap: "6px", textDecoration: "none", color: "#000" }}>
+        <Link href="/" style={{ display: "flex", alignItems: "center", gap: "6px", textDecoration: "none", color: "#000" }}>
           <PauseLogo color="#000" />
           <span className="site-header-logo" style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontWeight: 500, fontSize: "18px", letterSpacing: "-0.02em", whiteSpace: "nowrap" }}>
             AI RECEPTIONIST
           </span>
-        </a>
+        </Link>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-        <a
+        <Link
           href="/pricing"
           className="site-header-pricing"
           style={{
@@ -96,11 +98,11 @@ export default function SiteHeader() {
           }}
         >
           PRICING
-        </a>
+        </Link>
         {signedIn === null ? null : signedIn ? (
-          <a href="/dashboard" className="site-header-cta" style={ctaStyle}>
+          <Link href="/dashboard" className="site-header-cta" style={ctaStyle}>
             DASHBOARD
-          </a>
+          </Link>
         ) : (
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <button

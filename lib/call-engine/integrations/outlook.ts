@@ -1,4 +1,5 @@
 import type { BookingRequest, BookingResult } from "../types";
+import { cachedAccessToken, persistAccessToken } from "./token-store";
 import type { CalendarFactory, CalendarProvider } from "./types";
 
 // Microsoft Outlook / Microsoft 365 adapter via Microsoft Graph. Config holds an
@@ -30,7 +31,9 @@ async function refreshAccessToken(cfg: OutlookConfig): Promise<string | null> {
   });
   if (!res.ok) return null;
   const json = (await res.json()) as { access_token?: string };
-  return json.access_token ?? null;
+  const token = json.access_token ?? null;
+  if (token) persistAccessToken(cfg as Record<string, unknown>, token);
+  return token;
 }
 
 export const createOutlookCalendar: CalendarFactory = (config): CalendarProvider => {
@@ -44,18 +47,25 @@ export const createOutlookCalendar: CalendarFactory = (config): CalendarProvider
     return fetch(path, {
       method: "POST",
       headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+      // Graph ignores any offset embedded in dateTime once timeZone is set, so
+      // convert to the actual UTC instant before pairing it with timeZone UTC.
       body: JSON.stringify({
         subject: req.title,
         body: { contentType: "text", content: req.notes ?? "" },
-        start: { dateTime: req.startTime, timeZone: "UTC" },
-        end: { dateTime: req.endTime, timeZone: "UTC" },
+        start: { dateTime: new Date(req.startTime).toISOString().slice(0, 19), timeZone: "UTC" },
+        end: { dateTime: new Date(req.endTime).toISOString().slice(0, 19), timeZone: "UTC" },
       }),
     });
   };
 
   return {
     async createEvent(req): Promise<BookingResult> {
-      let token = cfg.access_token ?? null;
+      // Fail out loud on an unparseable time — booking a wrong instant is worse
+      // than telling the caller we couldn't.
+      if (!Number.isFinite(Date.parse(req.startTime)) || !Number.isFinite(Date.parse(req.endTime))) {
+        return { ok: false, error: "invalid start/end time" };
+      }
+      let token = cachedAccessToken(cfg.refresh_token) ?? cfg.access_token ?? null;
       let res = token ? await post(token, req) : null;
       if (!res || res.status === 401) {
         token = await refreshAccessToken(cfg);

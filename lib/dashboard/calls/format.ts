@@ -27,16 +27,26 @@ export function normalizeDirection(dir: string | null | undefined): string {
 
 export type StatusBucket = "completed" | "unanswered" | "active";
 
-export function statusBucket(raw: string): StatusBucket {
+// A call can only really be live for a few hours; an older "live" row is a
+// call whose post-call webhook never arrived. Callers that pass the row date
+// get such rows treated as dead (unanswered) instead of eternally active.
+const LIVE_MAX_AGE_MS = 4 * 60 * 60 * 1000;
+function staleLive(dateIso?: string): boolean {
+  if (!dateIso) return false;
+  const t = Date.parse(dateIso);
+  return Number.isFinite(t) && Date.now() - t > LIVE_MAX_AGE_MS;
+}
+
+export function statusBucket(raw: string, dateIso?: string): StatusBucket {
   const s = raw.toLowerCase();
   if (["busy", "no-answer", "failed", "canceled", "cancelled", "abandoned"].includes(s)) {
     return "unanswered";
   }
   if (["completed", "resolved", "booked", "answered"].includes(s)) return "completed";
-  return "active";
+  return staleLive(dateIso) ? "unanswered" : "active";
 }
 
 const LIVE = ["in-progress", "in_progress", "ringing", "queued", "initiated"];
-export function isLiveStatus(raw: string): boolean {
-  return LIVE.includes(raw.toLowerCase());
+export function isLiveStatus(raw: string, dateIso?: string): boolean {
+  return LIVE.includes(raw.toLowerCase()) && !staleLive(dateIso);
 }

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { currentUserId } from "@/lib/auth";
 import { deleteIntegration, upsertCalendarIntegration } from "@/lib/dashboard/db";
 import { isSafeHttpsUrl } from "@/lib/net/safe-url";
 import { CALENDAR_PROVIDERS } from "./providers";
@@ -26,7 +27,7 @@ export async function connectCalendarAction(formData: FormData): Promise<void> {
   }
 
   try {
-    await upsertCalendarIntegration(provider, config);
+    await upsertCalendarIntegration(provider, config, (await currentUserId()) ?? undefined);
   } catch (err) {
     redirect(`/dashboard/integrations?error=${encodeURIComponent((err as Error).message)}`);
   }
@@ -39,7 +40,7 @@ export async function disconnectCalendarAction(formData: FormData): Promise<void
   const id = String(formData.get("id") ?? "");
   if (id) {
     try {
-      await deleteIntegration(id);
+      await deleteIntegration(id, (await currentUserId()) ?? undefined);
     } catch {
       // already gone
     }

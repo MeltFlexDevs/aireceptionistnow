@@ -10,10 +10,12 @@
 //   ELEVENLABS_AGENT_ID            — the agent that answers (the AI persona)
 //   ELEVENLABS_AGENT_PHONE_NUMBER_ID — the connected Twilio number to call from
 
-const OUTBOUND_CALL_URL =
-  "https://api.elevenlabs.io/v1/convai/twilio/outbound-call";
-const CONVERSATIONS_URL = "https://api.elevenlabs.io/v1/convai/conversations";
-const PHONE_NUMBERS_URL = "https://api.elevenlabs.io/v1/convai/phone-numbers";
+import { localizeGreeting } from "./llm/greeting";
+
+const XI_BASE = "https://api.elevenlabs.io";
+const OUTBOUND_CALL_URL = `${XI_BASE}/v1/convai/twilio/outbound-call`;
+const CONVERSATIONS_URL = `${XI_BASE}/v1/convai/conversations`;
+const PHONE_NUMBERS_URL = `${XI_BASE}/v1/convai/phone-numbers`;
 
 interface AgentPhoneNumber {
   phone_number?: string;
@@ -197,47 +199,55 @@ export interface PlaceAgentCallResult {
 }
 
 /**
- * Count how many calls this agent has started within the last `windowSecs`.
- * Used to cap usage so nobody can drain ElevenLabs credits by spamming the
- * public button. Fails open (returns 0) if the metrics call itself errors, so a
- * transient ElevenLabs hiccup doesn't take the button down.
+ * Start times (unix seconds) of the demo agent's recent conversations, newest
+ * first. Used to cap usage so nobody can drain ElevenLabs credits by spamming
+ * the public button. Fails open (returns []) if the metrics call itself errors,
+ * so a transient ElevenLabs hiccup doesn't take the button down.
+ * ponytail: single page of 100 — caps above 100 can't trigger; count demo
+ * calls in our own DB if bigger caps (or a watertight cap) are ever needed.
  */
-async function countRecentCalls(windowSecs: number): Promise<number> {
+async function recentCallStarts(): Promise<number[]> {
   const apiKey = process.env.ELEVENLABS_API_KEY;
   const agentId = process.env.ELEVENLABS_AGENT_ID;
-  if (!apiKey || !agentId) return 0;
+  if (!apiKey || !agentId) return [];
 
-  const sinceUnix = Math.floor(Date.now() / 1000) - windowSecs;
   const url = `${CONVERSATIONS_URL}?agent_id=${encodeURIComponent(agentId)}&page_size=100`;
   try {
     const res = await fetch(url, { headers: { "xi-api-key": apiKey } });
-    if (!res.ok) return 0;
+    if (!res.ok) return [];
     const data = (await res.json()) as {
       conversations?: { start_time_unix_secs?: number }[];
     };
-    return (data.conversations ?? []).filter(
-      (c) => (c.start_time_unix_secs ?? 0) >= sinceUnix,
-    ).length;
+    return (data.conversations ?? []).map((c) => c.start_time_unix_secs ?? 0);
   } catch {
-    return 0;
+    return [];
   }
+}
+
+/** A cap from env, or the default when unset/malformed — `Number("15 calls")`
+ *  is NaN and every `>= NaN` check is false, which would silently uncap the
+ *  public demo line. */
+function capFromEnv(raw: string | undefined, fallback: number): number {
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? n : fallback;
 }
 
 /**
  * Reject the call if the agent has hit its hourly or daily usage cap. Caps are
  * configurable via env; defaults are generous enough for real demo traffic but
  * bound worst-case spend. Throws with a user-friendly message when over a cap.
+ * One conversations fetch covers both windows.
  */
 export async function assertUnderCallCaps(): Promise<void> {
-  const hourlyCap = Number(process.env.ELEVENLABS_HOURLY_CALL_CAP || 15);
-  const dailyCap = Number(process.env.ELEVENLABS_DAILY_CALL_CAP || 50);
+  const hourlyCap = capFromEnv(process.env.ELEVENLABS_HOURLY_CALL_CAP, 15);
+  const dailyCap = capFromEnv(process.env.ELEVENLABS_DAILY_CALL_CAP, 50);
 
-  const lastDay = await countRecentCalls(24 * 3600);
-  if (lastDay >= dailyCap) {
+  const starts = await recentCallStarts();
+  const now = Math.floor(Date.now() / 1000);
+  if (starts.filter((t) => t >= now - 24 * 3600).length >= dailyCap) {
     throw new Error("Our AI demo line is busy today — please try again tomorrow.");
   }
-  const lastHour = await countRecentCalls(3600);
-  if (lastHour >= hourlyCap) {
+  if (starts.filter((t) => t >= now - 3600).length >= hourlyCap) {
     throw new Error("Our AI demo line is busy right now — please try again in a bit.");
   }
 }
@@ -265,30 +275,55 @@ export async function placeAgentCall(
   }
 
   // Outbound calls never hit the conversation-init webhook (that's inbound-only),
-  // so the caller's language is set here in the request body instead. Requires the
-  // agent to be multilingual with "overrides" enabled — an English-only agent
-  // ignores/rejects a non-English language override (same rule as /api/agent/init).
-  const clientData = opts.language
-    ? {
-        conversation_initiation_client_data: {
-          conversation_config_override: { agent: { language: opts.language } },
-        },
-      }
-    : {};
+  // so the caller's language AND a localized greeting are set here in the request
+  // body instead. Requires the agent to have "overrides" enabled for language +
+  // first_message (asserted by /api/agent/setup for the demo agent). English is
+  // never sent as an override — it's the agent's default, and skipping it means a
+  // misconfigured overrides toggle can't break US/UK demo calls.
+  let clientData: Record<string, unknown> = {};
+  if (opts.language && opts.language !== "en") {
+    const agentOverride: Record<string, unknown> = { language: opts.language };
+    const greeting = await agentFirstMessage(agentId, apiKey);
+    if (greeting) {
+      // Cached per (greeting, language) — repeat demo calls skip the Gemini trip.
+      const localized = await localizeGreeting(greeting, opts.language);
+      if (localized !== greeting) agentOverride.first_message = localized;
+    }
+    clientData = {
+      conversation_initiation_client_data: {
+        conversation_config_override: { agent: agentOverride },
+      },
+    };
+  }
 
-  const res = await fetch(OUTBOUND_CALL_URL, {
-    method: "POST",
-    headers: {
-      "xi-api-key": apiKey,
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      agent_id: agentId,
-      agent_phone_number_id: agentPhoneNumberId,
-      to_number: toNumber,
-      ...clientData,
-    }),
-  });
+  const place = (body: Record<string, unknown>) =>
+    fetch(OUTBOUND_CALL_URL, {
+      method: "POST",
+      headers: {
+        "xi-api-key": apiKey,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+  const base = {
+    agent_id: agentId,
+    agent_phone_number_id: agentPhoneNumberId,
+    to_number: toNumber,
+  };
+  let res = await place({ ...base, ...clientData });
+
+  // If the override is what ElevenLabs rejected (overrides not whitelisted on the
+  // agent, or the language missing from its presets), the flagship demo button
+  // must still ring — retry once in the agent's default language. Only a
+  // validation rejection (400/422) points at the override; a 429/5xx is a real
+  // outage and must NOT trigger a second call placement (would double-dial).
+  if ((res.status === 400 || res.status === 422) && Object.keys(clientData).length > 0) {
+    console.warn(
+      `[demo-call] language override rejected (${res.status}), retrying without override`,
+    );
+    res = await place(base);
+  }
 
   const data = (await res.json().catch(() => ({}))) as {
     success?: boolean;
@@ -302,4 +337,35 @@ export async function placeAgentCall(
   }
 
   return { conversationId: data.conversation_id, callSid: data.callSid };
+}
+
+// The demo agent's configured greeting, fetched once per instance. Used as the
+// source text for the localized first_message override on demo calls. null on
+// any failure — the call then just uses the agent's own greeting.
+const firstMessageCache = new Map<string, Promise<string | null>>();
+
+function agentFirstMessage(agentId: string, apiKey: string): Promise<string | null> {
+  if (!firstMessageCache.has(agentId)) {
+    const p = (async () => {
+      try {
+        const res = await fetch(`${XI_BASE}/v1/convai/agents/${encodeURIComponent(agentId)}`, {
+          headers: { "xi-api-key": apiKey },
+        });
+        if (!res.ok) return null;
+        const data = (await res.json()) as {
+          conversation_config?: { agent?: { first_message?: string } };
+        };
+        return data.conversation_config?.agent?.first_message?.trim() || null;
+      } catch {
+        return null;
+      }
+    })();
+    // Don't cache a miss forever — a transient failure would permanently disable
+    // the localized greeting on this warm instance. Evict on null so it retries.
+    p.then((v) => {
+      if (v === null) firstMessageCache.delete(agentId);
+    });
+    firstMessageCache.set(agentId, p);
+  }
+  return firstMessageCache.get(agentId)!;
 }

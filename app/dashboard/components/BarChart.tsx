@@ -1,16 +1,18 @@
 import type { Bar } from "@/lib/dashboard/analytics";
 
 export function BarChart({ data }: { data: Bar[] }) {
-  const max = Math.max(...data.map((d) => d.value));
+  // Floor of 1 keeps all-zero data from dividing by zero (NaN% heights).
+  const max = Math.max(1, ...data.map((d) => d.value));
 
   return (
     <div>
       <div className="flex h-44 items-end gap-1.5">
+        {/* Day-of-month labels repeat across month boundaries, so key by index. */}
         {data.map((d, i) => {
           const heightPct = (d.value / max) * 100;
           const isLast = i === data.length - 1;
           return (
-            <div key={d.label} className="group flex flex-1 items-end justify-center">
+            <div key={i} className="group flex flex-1 items-end justify-center">
               <div
                 title={`${d.value} calls`}
                 style={{ height: `${Math.max(heightPct, 3)}%` }}
@@ -22,7 +24,7 @@ export function BarChart({ data }: { data: Bar[] }) {
       </div>
       <div className="mt-2 flex gap-1.5">
         {data.map((d, i) => (
-          <span key={d.label} className="flex-1 text-center text-[10px] text-neutral-400">
+          <span key={i} className="flex-1 text-center text-[10px] text-neutral-400">
             {i % 2 === 0 ? d.label : ""}
           </span>
         ))}

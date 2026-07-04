@@ -13,10 +13,11 @@ export function VoiceSelect({ name = "voice_id", defaultValue = "" }: Props) {
   const [selected, setSelected] = useState(defaultValue);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [voices, setVoices] = useState<VoiceOption[]>([]);
-  const [loaded, setLoaded] = useState(false);
-  const [loading, setLoading] = useState(false);
+  // null = not fetched yet; loading is derived from it so the effect never has
+  // to set a flag synchronously.
+  const [voices, setVoices] = useState<VoiceOption[] | null>(null);
   const [playingId, setPlayingId] = useState<string | null>(null);
+  const loading = voices === null && (open || selected !== "");
 
   const ref = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -33,30 +34,26 @@ export function VoiceSelect({ name = "voice_id", defaultValue = "" }: Props) {
   }, []);
 
   useEffect(() => {
-    if (loaded) return;
+    if (voices !== null) return;
     // Load when the dropdown opens, or on mount when a voice is already set - so
     // the trigger shows its name instead of the raw voice ID.
     if (!open && !selected) return;
-    setLoading(true);
     loadVoices()
       .then((list) => setVoices(list.length > 0 ? list : FALLBACK_VOICES))
-      .catch(() => setVoices(FALLBACK_VOICES))
-      .finally(() => {
-        setLoaded(true);
-        setLoading(false);
-      });
-  }, [open, loaded, selected]);
+      .catch(() => setVoices(FALLBACK_VOICES));
+  }, [open, voices, selected]);
 
-  const current = voices.find((v) => v.voiceId === selected);
+  const voiceList = voices ?? [];
+  const current = voiceList.find((v) => v.voiceId === selected);
   const q = query.trim().toLowerCase();
   const filtered = q
-    ? voices.filter(
+    ? voiceList.filter(
         (v) =>
           v.name.toLowerCase().includes(q) ||
           (v.description ?? "").toLowerCase().includes(q) ||
           v.voiceId.toLowerCase().includes(q),
       )
-    : voices;
+    : voiceList;
 
   function stopAudio() {
     audioRef.current?.pause();

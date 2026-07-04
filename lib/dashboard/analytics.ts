@@ -1,3 +1,4 @@
+import { getAccountSettings } from "./account";
 import { ensureBusinessId, getOwnedNumbers } from "./db";
 import { serviceClient } from "./supabase";
 import { countryFromPhone, flagEmoji } from "../call-engine/voice/phone-language";
@@ -82,6 +83,7 @@ interface CallRow {
   median_latency_ms: number | null;
   summary: string | null;
   phone_number_id: string | null;
+  assistant_id: string | null;
 }
 
 // Per-assistant rollup shown on the Overview and Analytics pages.
@@ -144,20 +146,39 @@ function pctDelta(recent: number, prior: number): number {
   if (prior === 0) return recent > 0 ? 100 : 0;
   return Math.round(((recent - prior) / prior) * 1000) / 10;
 }
-function dayBuckets(calls: CallRow[], days: number): Bar[] {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+// Days are bucketed in the user's timezone (account settings), not the
+// server's, so an evening call lands on the day the user saw it. en-CA
+// formats dates as ISO "YYYY-MM-DD"; an empty or invalid timezone (the
+// settings field is free text) falls back to UTC.
+function dayKeyFn(tz: string): (d: Date) => string {
+  const opts = { year: "numeric", month: "2-digit", day: "2-digit" } as const;
+  let fmt: Intl.DateTimeFormat;
+  try {
+    fmt = new Intl.DateTimeFormat("en-CA", { timeZone: tz || "UTC", ...opts });
+  } catch {
+    fmt = new Intl.DateTimeFormat("en-CA", { timeZone: "UTC", ...opts });
+  }
+  return (d) => fmt.format(d);
+}
+async function ownerTimezone(ownerId?: string | null): Promise<string> {
+  if (!ownerId) return "UTC";
+  return (await getAccountSettings(ownerId)).timezone.trim() || "UTC";
+}
+function dayBuckets(calls: CallRow[], days: number, toKey: (d: Date) => string): Bar[] {
+  const counts = new Map<string, number>();
+  for (const c of calls) {
+    const key = toKey(new Date(c.started_at));
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  const [y, m, d] = toKey(new Date()).split("-").map(Number);
   const out: Bar[] = [];
   for (let i = days - 1; i >= 0; i--) {
-    const start = new Date(today);
-    start.setDate(today.getDate() - i);
-    const end = new Date(start);
-    end.setDate(start.getDate() + 1);
-    const value = calls.filter((c) => {
-      const t = new Date(c.started_at);
-      return t >= start && t < end;
-    }).length;
-    out.push({ label: String(start.getDate()), value });
+    // Pure calendar arithmetic on the day key — no DST edge cases.
+    const day = new Date(Date.UTC(y, m - 1, d - i));
+    out.push({
+      label: String(day.getUTCDate()),
+      value: counts.get(day.toISOString().slice(0, 10)) ?? 0,
+    });
   }
   return out;
 }
@@ -171,17 +192,31 @@ async function fetchCalls(
   numberIds?: string[],
 ): Promise<CallRow[]> {
   if (numberIds && numberIds.length === 0) return [];
-  let query = serviceClient()
-    .from("calls")
-    .select(
-      "id,started_at,duration_seconds,status,outcome,sentiment,from_number,to_number,median_latency_ms,summary,phone_number_id",
-    )
-    .eq("business_id", businessId)
-    .gte("started_at", sinceIso);
-  if (numberIds) query = query.in("phone_number_id", numberIds);
-  const { data, error } = await query.order("started_at", { ascending: false });
-  if (error) throw error;
-  return (data ?? []) as CallRow[];
+  // PostgREST silently caps a select at 1000 rows, so page until a short page.
+  const PAGE = 1000;
+  const rows: CallRow[] = [];
+  for (let page = 0; ; page++) {
+    let query = serviceClient()
+      .from("calls")
+      .select(
+        "id,started_at,duration_seconds,status,outcome,sentiment,from_number,to_number,median_latency_ms,summary,phone_number_id,assistant_id",
+      )
+      .eq("business_id", businessId)
+      .gte("started_at", sinceIso);
+    if (numberIds) query = query.in("phone_number_id", numberIds);
+    const { data, error } = await query
+      .order("started_at", { ascending: false })
+      .range(page * PAGE, (page + 1) * PAGE - 1);
+    if (error) throw error;
+    rows.push(...((data ?? []) as CallRow[]));
+    if (!data || data.length < PAGE) break;
+    if (page >= 19) {
+      // ponytail: 20k-row ceiling; move to server-side aggregation past that.
+      console.warn(`fetchCalls: hit ${rows.length}-row cap, stats truncated`);
+      break;
+    }
+  }
+  return rows;
 }
 
 // Restrict stats to a user's assistants' numbers. undefined = no scoping
@@ -231,7 +266,8 @@ async function talkRatio(callIds: string[]): Promise<Segment[]> {
   const { data } = await serviceClient()
     .from("call_turns")
     .select("role,text")
-    .in("call_id", callIds.slice(0, 500));
+    .in("call_id", callIds.slice(0, 500))
+    .limit(1000); // deliberate sample (like the 500-call slice) — ratio is approximate
   let caller = 0;
   let ai = 0;
   for (const t of data ?? []) {
@@ -247,25 +283,56 @@ async function talkRatio(callIds: string[]): Promise<Segment[]> {
   ];
 }
 
+// Ground truth for bookings: a completed "booking" action row (the calendar
+// event really got created), not the LLM-labeled outcome — that stays a
+// display label only. Chunked so the id list fits in a request URL.
+async function bookedCallIds(callIds: string[]): Promise<Set<string>> {
+  const out = new Set<string>();
+  for (let i = 0; i < callIds.length; i += 500) {
+    const { data, error } = await serviceClient()
+      .from("call_actions")
+      .select("call_id")
+      .eq("type", "booking")
+      .eq("status", "done")
+      .in("call_id", callIds.slice(i, i + 500));
+    if (error) throw error;
+    for (const r of data ?? []) out.add(String((r as { call_id: string }).call_id));
+  }
+  return out;
+}
+
 export async function getOverview(ownerId?: string | null): Promise<Overview> {
   const businessId = await ensureBusinessId();
   const numberIds = await scopedNumberIds(ownerId);
+  const toKey = dayKeyFn(await ownerTimezone(ownerId));
   const now = new Date();
   const since = new Date(now);
   since.setDate(now.getDate() - 14);
-  const calls = await fetchCalls(businessId, since.toISOString(), numberIds);
+  // "This month" is a true calendar month in the user's timezone, so fetch back
+  // to the month start once it predates the 14-day KPI window (one day of slack
+  // covers the timezone offset; the filters below trim the excess).
+  const monthStartKey = `${toKey(now).slice(0, 8)}01`;
+  const monthFetch = new Date(`${monthStartKey}T00:00:00Z`);
+  monthFetch.setUTCDate(monthFetch.getUTCDate() - 1);
+  const fetchSince = monthFetch < since ? monthFetch : since;
+  const calls = await fetchCalls(businessId, fetchSince.toISOString(), numberIds);
+  const bookedIds = await bookedCallIds(calls.map((c) => c.id));
 
   const split = new Date(now);
   split.setDate(now.getDate() - 7);
   const recent = calls.filter((c) => new Date(c.started_at) >= split);
-  const prior = calls.filter((c) => new Date(c.started_at) < split);
+  // Bounded below too: the fetch can reach past the KPI window to month start.
+  const prior = calls.filter((c) => {
+    const t = new Date(c.started_at);
+    return t >= since && t < split;
+  });
 
-  const spark = dayBuckets(recent, 7).map((b) => b.value);
+  const spark = dayBuckets(recent, 7, toKey).map((b) => b.value);
   const avg = (cs: CallRow[]) =>
     cs.length ? cs.reduce((s, c) => s + (c.duration_seconds ?? 0), 0) / cs.length : 0;
   const answerRate = (cs: CallRow[]) =>
     cs.length ? (cs.filter((c) => c.status === "completed").length / cs.length) * 100 : 0;
-  const booked = (cs: CallRow[]) => cs.filter((c) => c.outcome === "booked").length;
+  const booked = (cs: CallRow[]) => cs.filter((c) => bookedIds.has(c.id)).length;
 
   const kpis: Kpi[] = [
     {
@@ -302,8 +369,7 @@ export async function getOverview(ownerId?: string | null): Promise<Overview> {
     },
   ];
 
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const monthCalls = calls.filter((c) => new Date(c.started_at) >= monthStart);
+  const monthCalls = calls.filter((c) => toKey(new Date(c.started_at)) >= monthStartKey);
   const monthUsage: MonthUsage = {
     callsThisMonth: monthCalls.length,
     minutes: Math.round(
@@ -339,7 +405,7 @@ export async function getOverview(ownerId?: string | null): Promise<Overview> {
 
   return {
     kpis,
-    callVolume: dayBuckets(calls, 14),
+    callVolume: dayBuckets(calls, 14, toKey),
     talkRatio: await talkRatio(recent.map((c) => c.id)),
     countries: countriesFrom(recent),
     latency: latencyFrom(recent),
@@ -397,27 +463,45 @@ export async function getAssistantStats(
     fetchCalls(businessId, since.toISOString(), numberIds),
     numberMeta(numberIds),
   ]);
+  const bookedIds = await bookedCallIds(calls.map((c) => c.id));
 
+  // Group on the call's own assistant_id — snapshotted at insert by the
+  // set_call_assignment trigger, so history survives number reassignment. The
+  // number's current assistant only names the group and covers legacy rows.
+  const byAssistant = new Map<string, { name: string; e164: string }>();
+  for (const m of meta.values()) {
+    if (m.assistantId) byAssistant.set(m.assistantId, { name: m.assistantName, e164: m.e164 });
+  }
   const groups = new Map<string, { name: string; number: string; calls: CallRow[] }>();
   for (const c of calls) {
-    const m = c.phone_number_id ? meta.get(c.phone_number_id) : undefined;
-    const id = m?.assistantId ?? "unassigned";
+    const id =
+      c.assistant_id ??
+      (c.phone_number_id ? meta.get(c.phone_number_id)?.assistantId : null) ??
+      "unassigned";
     if (!groups.has(id)) {
-      groups.set(id, {
-        name: m?.assistantName || "Unassigned",
-        number: m?.e164 ?? "",
-        calls: [],
-      });
+      const m = byAssistant.get(id);
+      groups.set(id, { name: m?.name || "Unassigned", number: m?.e164 ?? "", calls: [] });
     }
     groups.get(id)!.calls.push(c);
   }
 
   // Surface assistants that own a number but have no calls yet, so each shows up.
-  for (const [numberId, m] of meta) {
-    void numberId;
+  for (const m of meta.values()) {
     const id = m.assistantId ?? "unassigned";
     if (m.assistantId && !groups.has(id)) {
       groups.set(id, { name: m.assistantName || "Assistant", number: m.e164, calls: [] });
+    }
+  }
+
+  // Name assistants that no longer hold a number (deleted/reassigned away) but
+  // still own call history via the snapshot.
+  const unnamed = [...groups.keys()].filter((id) => id !== "unassigned" && !byAssistant.has(id));
+  if (unnamed.length > 0) {
+    const { data } = await serviceClient().from("assistants").select("id,name").in("id", unnamed);
+    for (const r of data ?? []) {
+      const row = r as { id: string; name: string | null };
+      const g = groups.get(String(row.id));
+      if (g) g.name = row.name || "Assistant";
     }
   }
 
@@ -436,7 +520,7 @@ export async function getAssistantStats(
         calls: total,
         avgDuration: fmtDuration(avgSec),
         answerRate: total ? Math.round((completed / total) * 100) : 0,
-        bookings: g.calls.filter((c) => c.outcome === "booked").length,
+        bookings: g.calls.filter((c) => bookedIds.has(c.id)).length,
         positivePct: total ? Math.round((positive / total) * 100) : 0,
       };
     })
@@ -491,19 +575,33 @@ export async function getAnalytics(
 ): Promise<Analytics> {
   const businessId = await ensureBusinessId();
   // Owner scopes to all their numbers; an organization filter narrows to its
-  // assistants' numbers, and an assistant filter narrows further — each
-  // intersected with the owner scope so a filter can never widen it.
+  // assistants' numbers, intersected with the owner scope so a filter can never
+  // widen it. The assistant filter applies per call, below.
   let numberIds = await scopedNumberIds(ownerId);
   if (organizationId) {
     numberIds = intersectScope(numberIds, await organizationNumberIds(organizationId));
   }
-  if (assistantId) {
-    numberIds = intersectScope(numberIds, await assistantNumberIds(assistantId));
-  }
+  const toKey = dayKeyFn(await ownerTimezone(ownerId));
   const now = new Date();
   const since = new Date(now);
   since.setDate(now.getDate() - 30);
-  const calls = await fetchCalls(businessId, since.toISOString(), numberIds);
+  let calls = await fetchCalls(businessId, since.toISOString(), numberIds);
+  // Trim the rolling fetch window to whole bucket days so the volume chart
+  // sums to the totals tile.
+  const [y, m, d] = toKey(now).split("-").map(Number);
+  const firstKey = new Date(Date.UTC(y, m - 1, d - 29)).toISOString().slice(0, 10);
+  calls = calls.filter((c) => toKey(new Date(c.started_at)) >= firstKey);
+  if (assistantId) {
+    // Filter on the call's snapshotted assistant_id (set at insert, immune to
+    // number reassignment); the current-number mapping covers legacy rows.
+    const fallback = new Set(await assistantNumberIds(assistantId));
+    calls = calls.filter((c) =>
+      c.assistant_id
+        ? c.assistant_id === assistantId
+        : c.phone_number_id !== null && fallback.has(c.phone_number_id),
+    );
+  }
+  const bookedIds = await bookedCallIds(calls.map((c) => c.id));
 
   const completed = calls.filter((c) => c.status === "completed").length;
   const sentimentCounts = new Map<string, number>();
@@ -527,9 +625,9 @@ export async function getAnalytics(
           : 0,
       ),
       answerRate: `${calls.length ? Math.round((completed / calls.length) * 100) : 0}%`,
-      bookings: calls.filter((c) => c.outcome === "booked").length,
+      bookings: calls.filter((c) => bookedIds.has(c.id)).length,
     },
-    volume: dayBuckets(calls, 30),
+    volume: dayBuckets(calls, 30, toKey),
     countries: countriesFrom(calls),
     sentiment,
   };

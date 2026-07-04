@@ -80,11 +80,20 @@ export class SupabaseCallRepository implements CallRepository {
       businessName = (bizList[0].name as string) ?? businessName;
     }
 
-    const { data: integrations } = await db()
+    const ownerId = cfg.owner_id ? String(cfg.owner_id) : "";
+
+    // Scope calendars to the assistant's owner (unowned/legacy rows allowed, same
+    // rule as the dashboard). Without this, a caller's appointment could be booked
+    // into another tenant's calendar via the resolveCalendarProvider fallback.
+    let integrationsQuery = db()
       .from("integrations")
       .select("*")
       .eq("business_id", businessId)
       .eq("enabled", true);
+    if (ownerId) {
+      integrationsQuery = integrationsQuery.or(`owner_id.eq.${ownerId},owner_id.is.null`);
+    }
+    const { data: integrations } = await integrationsQuery;
 
     // Knowledge precedence, all merged into one block the assistant reads:
     //   assistant's own  +  its organization's shared  +  the owner's profile.
@@ -92,7 +101,6 @@ export class SupabaseCallRepository implements CallRepository {
       ? mergeKnowledge(cfg.knowledge as Record<string, unknown>, cfgOrg.knowledge)
       : ((cfg.knowledge as Record<string, unknown>) ?? {});
 
-    const ownerId = cfg.owner_id ? String(cfg.owner_id) : "";
     if (ownerId) {
       const { data: acct } = await db()
         .from("account_settings")
@@ -144,7 +152,7 @@ export class SupabaseCallRepository implements CallRepository {
   async getOrCreateAgentCall(input: AgentCallInput): Promise<string> {
     const existing = await db()
       .from("calls")
-      .select("id, business_id")
+      .select("id, business_id, direction")
       .eq("elevenlabs_conversation_id", input.conversationId)
       .maybeSingle();
     if (existing.error) throw existing.error;
@@ -156,11 +164,23 @@ export class SupabaseCallRepository implements CallRepository {
       if (String(existing.data.business_id) !== input.businessId) {
         throw new Error("conversation/business mismatch");
       }
-      return String(existing.data.id);
+      const id = String(existing.data.id);
+      // A row created mid-call by a tool webhook defaulted to "inbound" (tools
+      // don't know direction); the post-call payload does, so correct it here.
+      if (input.direction && existing.data.direction !== input.direction) {
+        const { error } = await db()
+          .from("calls")
+          .update({ direction: input.direction })
+          .eq("id", id);
+        if (error) throw error;
+      }
+      return id;
     }
 
     // On concurrent first tool calls two inserts can race; the partial unique
     // index on elevenlabs_conversation_id makes the loser fail, so we re-read.
+    // assistant_id/owner_id are filled by the calls_set_assignment trigger from
+    // phone_number_id (see 0001/0008), so per-assistant history needs no join.
     const insert = await db()
       .from("calls")
       .insert({
@@ -169,7 +189,7 @@ export class SupabaseCallRepository implements CallRepository {
         elevenlabs_conversation_id: input.conversationId,
         from_number: input.from,
         to_number: input.to,
-        direction: "inbound",
+        direction: input.direction ?? "inbound",
         status: "in_progress",
       })
       .select("id")
@@ -199,6 +219,16 @@ export class SupabaseCallRepository implements CallRepository {
     return (data?.length ?? 0) > 0;
   }
 
+  async releaseAgentCallCompletion(callId: string): Promise<void> {
+    // Inverse of claimAgentCallCompletion: reopen the call after a post-claim
+    // failure so ElevenLabs' retry can claim it again and reprocess.
+    const { error } = await db()
+      .from("calls")
+      .update({ status: "in_progress" })
+      .eq("id", callId);
+    if (error) throw error;
+  }
+
   async markInProgress(callId: string, streamSid: string): Promise<void> {
     const { error } = await db()
       .from("calls")
@@ -208,13 +238,22 @@ export class SupabaseCallRepository implements CallRepository {
     void streamSid; // stream id is transient; not persisted
   }
 
-  async appendTurn(callId: string, turn: TranscriptTurn): Promise<void> {
-    const { error } = await db().from("call_turns").insert({
-      call_id: callId,
-      role: turn.role,
-      text: turn.text,
-      ts_ms: turn.tsMs,
-    });
+  async appendTurns(callId: string, turns: TranscriptTurn[]): Promise<void> {
+    // Delete-first makes a retried post-call webhook safe: a retry after a
+    // partial failure replaces the call's turns instead of duplicating them.
+    const del = await db().from("call_turns").delete().eq("call_id", callId);
+    if (del.error) throw del.error;
+    if (turns.length === 0) return;
+    const { error } = await db()
+      .from("call_turns")
+      .insert(
+        turns.map((t) => ({
+          call_id: callId,
+          role: t.role,
+          text: t.text,
+          ts_ms: t.tsMs,
+        })),
+      );
     if (error) throw error;
   }
 

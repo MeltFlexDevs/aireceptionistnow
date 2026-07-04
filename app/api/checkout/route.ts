@@ -8,11 +8,12 @@ import { getPlan, priceIdFor, type BillingCycle } from "@/lib/plans";
 export const runtime = "nodejs";
 
 /** Base URL to send the customer back to, preferring the real request origin
- *  (so previews and localhost work) and falling back to the configured site. */
+ *  (so previews and localhost work) and falling back to the configured site
+ *  (APP_BASE_URL — the canonical base URL the rest of the app uses). */
 function baseUrl(req: Request): string {
   return (
     req.headers.get("origin") ||
-    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.APP_BASE_URL ||
     "https://aireceptionistnow.com"
   );
 }

@@ -183,7 +183,12 @@ export default function Home() {
   const [callMsg, setCallMsg] = useState<string | null>(null);
 
   async function placeTestCall() {
-    const to = `${dialCode}${phone.replace(/[^\d]/g, "")}`;
+    // Europeans habitually type the national trunk "0" (0912…, 07911…) which
+    // would dial a nonexistent number in E.164 — strip it. Italy is the
+    // exception: its leading 0 is a real part of the international number.
+    const digits = phone.replace(/[^\d]/g, "");
+    const national = dialCode === "+39" ? digits : digits.replace(/^0+/, "");
+    const to = `${dialCode}${national}`;
     if (!/^\+[1-9]\d{6,15}$/.test(to)) {
       setCallMsg("Enter a valid phone number.");
       return;

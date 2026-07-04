@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import type { ElevenLabs } from "@elevenlabs/elevenlabs-js";
 import { elevenClient } from "./eleven-client";
 import type { AgentTool, Assistant } from "../../dashboard/db";
@@ -66,11 +67,13 @@ function webhookToolSpecs(assistant: Assistant): WebhookToolSpec[] {
       params: {
         start_time: {
           type: "string",
-          description: "Requested start, ISO 8601 (e.g. 2026-07-02T15:00:00Z).",
+          description:
+            "Requested start, ISO 8601 with explicit UTC offset (e.g. 2026-07-02T15:00:00+02:00).",
         },
         end_time: {
           type: "string",
-          description: "Requested end, ISO 8601 (e.g. 2026-07-02T15:30:00Z).",
+          description:
+            "Requested end, ISO 8601 with explicit UTC offset (e.g. 2026-07-02T15:30:00+02:00).",
         },
       },
       required: ["start_time", "end_time"],
@@ -85,8 +88,8 @@ function webhookToolSpecs(assistant: Assistant): WebhookToolSpec[] {
           type: "string",
           description: "Short title for the appointment, e.g. 'Consultation with Jane Doe'.",
         },
-        start_time: { type: "string", description: "Start, ISO 8601." },
-        end_time: { type: "string", description: "End, ISO 8601." },
+        start_time: { type: "string", description: "Start, ISO 8601 with explicit UTC offset." },
+        end_time: { type: "string", description: "End, ISO 8601 with explicit UTC offset." },
         attendee_name: { type: "string", description: "Caller's full name, if given." },
         attendee_phone: { type: "string", description: "Callback number, if different from caller ID." },
         notes: { type: "string", description: "Any relevant details the caller mentioned." },
@@ -117,11 +120,43 @@ function webhookToolSpecs(assistant: Assistant): WebhookToolSpec[] {
   return specs;
 }
 
+// Locator for the workspace secret holding AGENT_WEBHOOK_SECRET, resolved once
+// per process. Referencing the secret by id keeps the raw value out of every
+// tool config (readable by anyone with workspace access in the dashboard). The
+// secret's name embeds a hash of its value, so rotating the env secret
+// automatically creates and uses a fresh workspace secret on the next sync.
+let secretLocatorPromise: Promise<ElevenLabs.ConvAiSecretLocator | null> | null = null;
+
+function workspaceSecretLocator(secret: string): Promise<ElevenLabs.ConvAiSecretLocator | null> {
+  secretLocatorPromise ??= (async () => {
+    const name = `agent-webhook-${crypto.createHash("sha256").update(secret).digest("hex").slice(0, 8)}`;
+    try {
+      const client = elevenClient();
+      const existing = (await client.conversationalAi.secrets.list({ search: name })).secrets.find(
+        (s) => s.name === name,
+      );
+      if (existing) return { secretId: existing.secretId };
+      const created = await client.conversationalAi.secrets.create({ name, value: secret });
+      return { secretId: created.secretId };
+    } catch (err) {
+      // Best-effort hardening: fall back to the plaintext header value so tool
+      // creation (and therefore agent sync) never breaks on the secrets API.
+      // Clear the memo so a transient failure doesn't pin every future sync to
+      // the plaintext header for the whole process lifetime — the next sync
+      // retries the secrets API.
+      console.error("[agent-tools] workspace secret setup failed, using plaintext header", err);
+      secretLocatorPromise = null;
+      return null;
+    }
+  })();
+  return secretLocatorPromise;
+}
+
 /** Turn a spec into the ElevenLabs standalone-tool create request. */
 function toToolRequest(
   spec: WebhookToolSpec,
   baseUrl: string,
-  secret: string,
+  secret: string | ElevenLabs.ConvAiSecretLocator,
 ): ElevenLabs.ToolRequestModel {
   return {
     toolConfig: {
@@ -152,20 +187,27 @@ function toToolRequest(
 // agents.create/update accept) is built from the shared Output-typed schema; the
 // system-tool bodies are structurally identical to the Input variant, so this is
 // purely a which-label question, not a runtime difference.
-export function buildBuiltInTools(assistant: Assistant): ElevenLabs.BuiltInToolsOutput {
+export function buildBuiltInTools(
+  assistant: Assistant,
+  // False for the English-only fallback agent: with no language presets there is
+  // nothing for language_detection to switch to.
+  includeLanguageDetection = true,
+): ElevenLabs.BuiltInToolsOutput {
   const { transferTo } = capabilities(assistant);
 
   const tools: ElevenLabs.BuiltInToolsOutput = {
     endCall: { name: "end_call", params: { systemToolType: "end_call" } },
-    languageDetection: {
-      name: "language_detection",
-      params: { systemToolType: "language_detection" },
-    },
     voicemailDetection: {
       name: "voicemail_detection",
       params: { systemToolType: "voicemail_detection" },
     },
   };
+  if (includeLanguageDetection) {
+    tools.languageDetection = {
+      name: "language_detection",
+      params: { systemToolType: "language_detection" },
+    };
+  }
 
   if (transferTo) {
     tools.transferToNumber = {
@@ -215,10 +257,14 @@ export async function createAgentTools(
   const toolIds: string[] = [];
   const tools: AgentTool[] = [];
 
+  // Prefer referencing the secret from the workspace secrets manager; falls
+  // back to the raw value if that setup fails.
+  const headerValue = (await workspaceSecretLocator(secret)) ?? secret;
+
   for (const spec of webhookToolSpecs(assistant)) {
     try {
       const created = await client.conversationalAi.tools.create(
-        toToolRequest(spec, baseUrl, secret),
+        toToolRequest(spec, baseUrl, headerValue),
       );
       toolIds.push(created.id);
       tools.push({ id: created.id, name: spec.name });

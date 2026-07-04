@@ -8,31 +8,33 @@ interface Props {
 
 export function DonutChart({ segments, centerLabel, centerSub }: Props) {
   const total = segments.reduce((sum, s) => sum + s.value, 0) || 1;
+  // Precompute each arc's running-sum offset — no reassignment during render.
+  const arcs: { seg: Segment; dash: number; offset: number }[] = [];
   let acc = 0;
+  for (const s of segments) {
+    const dash = (s.value / total) * 100;
+    arcs.push({ seg: s, dash, offset: acc });
+    acc += dash;
+  }
 
   return (
     <div className="flex items-center gap-6">
       <div className="relative h-32 w-32 shrink-0">
         <svg viewBox="0 0 36 36" className="h-full w-full -rotate-90">
           <circle cx="18" cy="18" r="15.915" fill="none" stroke="#f3f4f6" strokeWidth="3.5" />
-          {segments.map((s) => {
-            const dash = (s.value / total) * 100;
-            const circle = (
-              <circle
-                key={s.label}
-                cx="18"
-                cy="18"
-                r="15.915"
-                fill="none"
-                stroke={s.color}
-                strokeWidth="3.5"
-                strokeDasharray={`${dash} ${100 - dash}`}
-                strokeDashoffset={-acc}
-              />
-            );
-            acc += dash;
-            return circle;
-          })}
+          {arcs.map(({ seg, dash, offset }) => (
+            <circle
+              key={seg.label}
+              cx="18"
+              cy="18"
+              r="15.915"
+              fill="none"
+              stroke={seg.color}
+              strokeWidth="3.5"
+              strokeDasharray={`${dash} ${100 - dash}`}
+              strokeDashoffset={-offset}
+            />
+          ))}
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span className="text-xl font-medium text-neutral-900">{centerLabel}</span>

@@ -1,6 +1,11 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
+import Link from "next/link";
+
+const resourceLinkStyle: CSSProperties = {
+  color: "rgba(255,255,255,0.6)", fontSize: "13px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.01em",
+};
 
 const PauseLogo = ({ color = "currentColor" }: { color?: string }) => (
   <svg width="7" height="15" viewBox="0 0 7 15" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -146,9 +151,11 @@ export default function SiteFooter() {
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
               <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", fontWeight: 400, letterSpacing: "0.08em", textTransform: "uppercase" }}>Resources</span>
               <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
-                {[{ label: "Blog", href: "/blog" }, { label: "Answers", href: "/answers" }, { label: "AI Information", href: "/llms.txt" }].map((l) => (
-                  <li key={l.label}><a href={l.href} style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.01em" }}>{l.label}</a></li>
+                {[{ label: "Blog", href: "/blog" }, { label: "Answers", href: "/answers" }].map((l) => (
+                  <li key={l.label}><Link href={l.href} style={resourceLinkStyle}>{l.label}</Link></li>
                 ))}
+                {/* Static file in public/ — plain <a>, client navigation can't serve it. */}
+                <li><a href="/llms.txt" style={resourceLinkStyle}>AI Information</a></li>
               </ul>
             </div>
           </nav>
@@ -163,12 +170,12 @@ export default function SiteFooter() {
         <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 40px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
           {/* Left: copyright + links */}
           <div style={{ display: "flex", alignItems: "center", gap: "20px", flexWrap: "wrap" }}>
-            <a href="/" style={{ display: "flex", alignItems: "center", gap: "6px", textDecoration: "none", color: "#fff" }}>
+            <Link href="/" style={{ display: "flex", alignItems: "center", gap: "6px", textDecoration: "none", color: "#fff" }}>
               <PauseLogo color="#fff" />
               <span style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontWeight: 500, fontSize: "16px", letterSpacing: "-0.02em" }}>AI RECEPTIONIST</span>
-            </a>
+            </Link>
             <span style={{ color: "#fff", fontSize: "11px", fontWeight: 300 }}>© 2026 MeltFlex s. r. o.</span>
-            <a href="/privacy-policy" style={{ color: "#fff", fontSize: "11px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.02em" }}>Data protection</a>
+            <Link href="/privacy-policy" style={{ color: "#fff", fontSize: "11px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.02em" }}>Data protection</Link>
           </div>
 
           {/* Right: GDPR badge */}

@@ -67,9 +67,17 @@ export async function sendTranscriptEmail(
   const { subject, text } = renderBody(input);
 
   if (!apiKey || !from) {
-    console.info(
-      `[email] transcript ready for ${cfg.to} but no email provider configured (set RESEND_API_KEY + EMAIL_FROM) — skipping send`,
-    );
+    // Half-configured is loud: one var set with the other missing is almost
+    // certainly a typo'd env var name, not an intentional opt-out.
+    if (apiKey || from) {
+      console.error(
+        `[email] transcript email for ${cfg.to} NOT sent: ${apiKey ? "EMAIL_FROM" : "RESEND_API_KEY"} is missing while ${apiKey ? "RESEND_API_KEY" : "EMAIL_FROM"} is set — check the env var names`,
+      );
+    } else {
+      console.info(
+        `[email] transcript ready for ${cfg.to} but no email provider configured (set RESEND_API_KEY + EMAIL_FROM) — skipping send`,
+      );
+    }
     return { ok: false, skipped: true };
   }
 

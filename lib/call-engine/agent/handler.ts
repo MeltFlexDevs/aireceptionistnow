@@ -44,12 +44,12 @@ export async function handleTool(
     // spoken fallback (not a 500) so the live call recovers gracefully.
     console.error("[agent] resolve context failed", err);
     return json({
-      result: "I'm sorry, I can't access this account right now. Please try again later.",
+      result: "I'm sorry, our system is having a little trouble right now. Please try again in a moment.",
     });
   }
   if (!ctx) {
     return json({
-      result: "I'm sorry, I can't access this account right now. Please try again later.",
+      result: "I'm sorry, our system is having a little trouble right now. Please try again in a moment.",
     });
   }
 
@@ -60,7 +60,7 @@ export async function handleTool(
     console.error("[agent] tool run failed", err);
     return json({
       result:
-        "I ran into a problem doing that. I'll take a message so the team can follow up.",
+        "I ran into a problem doing that. I'll take a message so our team can follow up.",
     });
   }
 }

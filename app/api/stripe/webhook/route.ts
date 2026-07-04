@@ -134,7 +134,13 @@ export async function POST(req: Request) {
 
       case "customer.subscription.created":
       case "customer.subscription.updated": {
-        await applySubscription(event.data.object as Stripe.Subscription);
+        // Stripe doesn't guarantee delivery order, so never apply the event
+        // payload directly — a delayed stale "updated" (status: active) after a
+        // "deleted" would re-activate a canceled plan indefinitely. Fetch the
+        // subscription fresh instead: retrieve returns current truth (including
+        // status "canceled" for a deleted sub) regardless of event order.
+        const sub = event.data.object as Stripe.Subscription;
+        await applySubscription(await stripe.subscriptions.retrieve(sub.id));
         break;
       }
 

@@ -7,6 +7,14 @@ import { getGemini } from "./gemini";
 // caller hears is in their own language. Best-effort: any failure falls back to
 // the original greeting, so a translation hiccup never blocks the call.
 
+// A greeting translation is fully deterministic per (greeting, language) — the
+// greeting text is static assistant config and the language set is fixed — so
+// never pay the same Gemini round trip twice on the pickup-blocking path.
+// Failures are NOT cached, so a Gemini hiccup retries on the next call.
+// ponytail: per-warm-instance memo; persist per-assistant translations at save
+// time (greeting_i18n) if cold-start latency ever matters.
+const translationCache = new Map<string, string>();
+
 /**
  * Return the greeting rewritten in `languageCode`, or the original greeting when
  * the target language is English/unknown or translation fails. Kept to one short
@@ -22,16 +30,22 @@ export async function localizeGreeting(
     return greeting;
   }
 
+  const cacheKey = `${languageCode} ${greeting}`;
+  const cached = translationCache.get(cacheKey);
+  if (cached) return cached;
+
   const system =
-    "You translate a short phone greeting for an AI receptionist. Return ONLY " +
-    "the translated greeting — no quotes, no notes, no alternatives. Keep it to " +
-    "one natural, warm sentence as a receptionist would answer the phone. " +
-    "Preserve any business name verbatim.";
+    "You translate a short phone greeting for a business's phone receptionist. " +
+    "Return ONLY the translated greeting — no quotes, no notes, no alternatives. " +
+    "Keep it to one natural, warm sentence as a receptionist would answer the " +
+    "phone. Preserve any business name verbatim, and keep the greeting speaking " +
+    "as the business itself (we/our), never about it in the third person.";
   const prompt = `Translate this greeting into ${name}:\n${greeting}`;
 
   try {
     const text = await translateWithGemini(system, prompt);
     const cleaned = text.trim().replace(/^["']|["']$/g, "");
+    if (cleaned) translationCache.set(cacheKey, cleaned);
     return cleaned || greeting;
   } catch (err) {
     console.error("[greeting] localize failed", err);

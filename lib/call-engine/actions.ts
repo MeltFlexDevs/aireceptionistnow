@@ -77,7 +77,7 @@ export async function checkAvailabilityAction(
     return null;
   });
   if (!answer || !answer.ok) {
-    return "I couldn't check the calendar right now. Offer to take a message or have someone confirm, without guessing whether the time is free.";
+    return "I couldn't check the calendar right now. Offer to take a message or have someone from our team confirm, without guessing whether the time is free.";
   }
   if (answer.requestedFree) {
     return "That time is free. You can confirm it and book if the caller agrees.";
@@ -114,6 +114,14 @@ export async function bookAppointmentAction(
     notes: input.notes ? clip(input.notes, 1000) : undefined,
   };
 
+  // Reject garbage before it reaches a provider — a malformed range would fail
+  // opaquely there and be spoken as an outage instead of a re-ask.
+  const startMs = Date.parse(req.startTime);
+  const endMs = Date.parse(req.endTime);
+  if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs <= startMs) {
+    return "I need a valid start and end time to book — please confirm the exact date and time with the caller.";
+  }
+
   let resolved = writeEntry
     ? resolveCalendarById(ctx.config.integrations, writeEntry.integrationId)
     : null;
@@ -124,8 +132,22 @@ export async function bookAppointmentAction(
       status: "pending",
       payload: input,
     });
-    return "Saved the appointment request; the team will confirm shortly.";
+    return "Saved the appointment request; our team will confirm shortly.";
   }
+
+  // Last-moment conflict re-check: nothing guarantees check_availability was
+  // called, or that its answer is still current. Providers create overlapping
+  // events without complaint, so re-verify on every readable calendar right
+  // before writing. ponytail: narrows the race, can't eliminate it — no
+  // conflict-rejecting atomic create exists on Google/Graph.
+  const readable = resolveCalendarsForAccess(ctx.config.integrations, access);
+  if (readable.length > 0) {
+    const check = await checkAvailability(readable, req.startTime, req.endTime).catch(() => null);
+    if (check?.ok && !check.requestedFree) {
+      return "That time was just taken. Apologize briefly and offer the caller a different time — never say what else is scheduled.";
+    }
+  }
+
   const result = await resolved.provider.createEvent(req);
   await repo.recordAction(
     ctx.callId,

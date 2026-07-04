@@ -25,10 +25,49 @@ import {
   routeNumberToAgent,
 } from "@/lib/call-engine/elevenlabs";
 import { syncAssistantAgent } from "@/lib/call-engine/agent/sync";
+import { currentUserId } from "@/lib/auth";
+import { authConfigured } from "@/lib/supabase/config";
+import { canAssignNumber } from "@/lib/dashboard/plan";
 
 const E164 = z
   .string()
   .regex(/^\+[1-9]\d{6,15}$/, "Use E.164 format, e.g. +14155550142");
+
+/**
+ * Reject the request unless the caller owns this number (via its assistant's
+ * owner). Server Actions are public POST endpoints (Next only enforces
+ * same-origin, not auth), and the DB helpers filter by id, not owner — without
+ * this any signed-in visitor could re-route, disable or delete another tenant's
+ * live line by posting its id. Blocks only genuine cross-tenant access: a number
+ * held by an OWNED assistant whose owner isn't the caller. A pooled/unassigned
+ * number (or one held by an unowned assistant) is single-tenant territory and
+ * allowed, same rule as requireAssistantOwner in the assistant actions. In
+ * deploys with auth disabled (authConfigured() === false) ownership isn't
+ * enforced.
+ *
+ * Redirects (which throw NEXT_REDIRECT) on failure — call it BEFORE any
+ * try/catch so the redirect isn't swallowed.
+ */
+async function requireNumberOwner(id: string): Promise<void> {
+  if (!authConfigured()) return;
+  const userId = await currentUserId();
+  const number = id ? await getNumber(id).catch(() => null) : null;
+  // Distinguish a lookup FAILURE from a genuinely missing assistant: a thrown
+  // error resolves to `undefined` (fail closed — don't authorize on a transient
+  // DB hiccup), while `null` means no such assistant. A soft-delete leaves
+  // phone_numbers.assistant_id dangling, so a null lookup is a legit unowned
+  // number and stays allowed (same single-tenant rule as requireAssistantOwner).
+  const assistant = number?.assistant_id
+    ? await getAssistant(number.assistant_id).catch(() => undefined)
+    : null;
+  if (
+    !number ||
+    assistant === undefined ||
+    (assistant?.owner_id && assistant.owner_id !== userId)
+  ) {
+    redirect(`/dashboard/numbers?error=${encodeURIComponent("Not authorized.")}`);
+  }
+}
 
 export async function addNumberAction(formData: FormData): Promise<void> {
   const e164 = String(formData.get("e164") ?? "").trim();
@@ -37,6 +76,17 @@ export async function addNumberAction(formData: FormData): Promise<void> {
     redirect(
       `/dashboard/numbers?error=${encodeURIComponent(parsed.error.issues[0].message)}`,
     );
+  }
+
+  // Connecting a number still adds a billed line to the account — enforce the
+  // plan's number quota and an active subscription, same gate as
+  // getAgentNumberAction. countPending so the newly-added UNASSIGNED line presses
+  // against the quota (usage.numbers only counts assistant-linked numbers, so
+  // without this repeated connects would blow the limit). Before the try/catches
+  // so the redirect isn't swallowed.
+  const allowance = await canAssignNumber(await currentUserId(), { countPending: true });
+  if (!allowance.ok) {
+    redirect(`/dashboard/numbers?error=${encodeURIComponent(allowance.reason ?? "")}`);
   }
 
   // Connect it if the Twilio account already owns it (and point its webhook at
@@ -64,6 +114,17 @@ export async function addNumberAction(formData: FormData): Promise<void> {
 export async function buyNumberAction(formData: FormData): Promise<void> {
   const country = String(formData.get("country") ?? "US").trim() || "US";
   const areaCode = String(formData.get("area_code") ?? "").trim();
+
+  // Buying provisions a real Twilio number with recurring charges — enforce the
+  // plan's number quota and an active subscription BEFORE spending money, same
+  // gate as getAgentNumberAction. countPending so each bought (UNASSIGNED) line
+  // presses against the quota — usage.numbers counts only assistant-linked
+  // numbers, so without this a subscribed user could buy unlimited lines. Without
+  // the gate any signed-in user (even one who never checked out) could provision.
+  const allowance = await canAssignNumber(await currentUserId(), { countPending: true });
+  if (!allowance.ok) {
+    redirect(`/dashboard/numbers?error=${encodeURIComponent(allowance.reason ?? "")}`);
+  }
 
   let bought: BoughtNumber;
   try {
@@ -104,6 +165,33 @@ export async function setAssistantAction(formData: FormData): Promise<void> {
   const id = String(formData.get("id") ?? "");
   const assistantId = String(formData.get("assistant_id") ?? "");
   if (id) {
+    // Ownership + quota gates BEFORE the try so their redirects (NEXT_REDIRECT)
+    // aren't swallowed by the catch below.
+    await requireNumberOwner(id);
+    if (assistantId) {
+      // The target assistant must be the caller's too (same rule as
+      // toggleAssistantOrganizationAction) — otherwise a caller could route
+      // their number to, or hijack numbers for, another tenant's assistant.
+      const target = await getAssistant(assistantId).catch(() => null);
+      if (!target) {
+        redirect(`/dashboard/numbers/${id}?error=${encodeURIComponent("Assistant not found.")}`);
+      }
+      if (authConfigured() && target.owner_id && target.owner_id !== (await currentUserId())) {
+        redirect(
+          `/dashboard/numbers/${id}?error=${encodeURIComponent("You don't own that assistant.")}`,
+        );
+      }
+      // Claiming a pooled (unassigned) number counts against the plan's number
+      // quota, exactly like getAgentNumberAction. Re-pointing a number the
+      // caller already holds doesn't change usage, so it's exempt.
+      const current = await getNumber(id).catch(() => null);
+      if (!current?.assistant_id) {
+        const allowance = await canAssignNumber(await currentUserId());
+        if (!allowance.ok) {
+          redirect(`/dashboard/numbers/${id}?error=${encodeURIComponent(allowance.reason ?? "")}`);
+        }
+      }
+    }
     try {
       await setNumberAssistant(id, assistantId || null);
       // Point the phone number at the chosen assistant's managed ElevenLabs
@@ -149,6 +237,7 @@ export async function setAssistantAction(formData: FormData): Promise<void> {
 export async function updateNumberAction(formData: FormData): Promise<void> {
   const id = String(formData.get("id") ?? "");
   if (!id) redirect("/dashboard/numbers");
+  await requireNumberOwner(id);
 
   const enabled = formData.get("enabled") === "on";
   try {
@@ -186,6 +275,9 @@ export async function updateNumberAction(formData: FormData): Promise<void> {
 export async function deleteNumberAction(formData: FormData): Promise<void> {
   const id = String(formData.get("id") ?? "");
   if (id) {
+    // Deleting releases the Twilio number and removes it from ElevenLabs — a
+    // cross-tenant delete would destroy another tenant's live line for good.
+    await requireNumberOwner(id);
     // Remove the number from ElevenLabs (delete the imported number entirely) and
     // release it from Twilio (stop billing) before dropping the row — otherwise a
     // "deleted" number keeps costing money and lingering in ElevenLabs. Best-

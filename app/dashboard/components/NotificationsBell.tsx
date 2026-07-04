@@ -29,13 +29,16 @@ export function NotificationsBell() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  // Load persisted "last seen" once, then fetch the feed.
+  // Fetch the feed, restoring the persisted "last seen" in the same callback —
+  // one render for both, and no synchronous setState in the effect body.
   useEffect(() => {
-    setLastSeen(localStorage.getItem(SEEN_KEY) ?? "");
     const controller = new AbortController();
     fetch("/api/notifications", { signal: controller.signal })
       .then((r) => r.json())
-      .then((d: { items?: NotificationItem[] }) => setItems(d.items ?? []))
+      .then((d: { items?: NotificationItem[] }) => {
+        setItems(d.items ?? []);
+        setLastSeen(localStorage.getItem(SEEN_KEY) ?? "");
+      })
       .catch(() => {});
     return () => controller.abort();
   }, []);

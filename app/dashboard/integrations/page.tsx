@@ -1,3 +1,4 @@
+import { currentUserId } from "@/lib/auth";
 import { listIntegrations, type Integration } from "@/lib/dashboard/db";
 import { getServiceStatuses } from "@/lib/dashboard/health";
 import { SectionCard } from "../components/SectionCard";
@@ -87,7 +88,7 @@ export default async function IntegrationsPage({
   let integrations: Integration[] = [];
   let loadError = "";
   try {
-    integrations = await listIntegrations();
+    integrations = await listIntegrations((await currentUserId()) ?? undefined);
   } catch (err) {
     loadError = (err as Error).message;
   }

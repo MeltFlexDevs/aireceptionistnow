@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     }
     const origin =
       req.headers.get("origin") ||
-      process.env.NEXT_PUBLIC_SITE_URL ||
+      process.env.APP_BASE_URL ||
       "https://aireceptionistnow.com";
     const stripe = getStripe();
     const session = await stripe.billingPortal.sessions.create({

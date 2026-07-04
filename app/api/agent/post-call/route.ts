@@ -104,6 +104,11 @@ export async function POST(req: Request): Promise<Response> {
   const phone = (metadata.phone_call as Record<string, unknown>) ?? {};
   const toNumber = pick(phone, ["agent_number", "called_number", "to_number"]);
   const fromNumber = pick(phone, ["external_number", "caller_id", "from_number"]);
+  // Telephony payloads carry the real direction; agent_number is the assistant's
+  // own connected number either way (external_number is the other party), so an
+  // outbound test/demo call still resolves — record it as outbound, not as a
+  // customer call. Anything unexpected/absent defaults to inbound.
+  const direction = pick(phone, ["direction"]) === "outbound" ? "outbound" : "inbound";
   const durationSeconds = Number(metadata.call_duration_secs ?? 0) || undefined;
 
   const repo = getRepository();
@@ -121,6 +126,7 @@ export async function POST(req: Request): Promise<Response> {
       numberId: config.numberId,
       from: fromNumber,
       to: toNumber,
+      direction,
     });
     claimed = await repo.claimAgentCallCompletion(callId);
   } catch (err) {
@@ -132,23 +138,29 @@ export async function POST(req: Request): Promise<Response> {
   // duplicate transcript turns or re-send summary emails / CRM pushes.
   if (!claimed) return json({ ok: true, deduped: true });
 
-  // First delivery: persist the transcript, record duration, run summary +
-  // email/CRM delivery. Past the claim we swallow errors (returning 200) — a
-  // retry would be deduped anyway, so re-running wouldn't help.
+  // First delivery: persist the transcript and duration. If either fails we
+  // release the claim and return 500 so ElevenLabs' retry reprocesses instead
+  // of being answered as a duplicate — appendTurns replaces the call's turns,
+  // so the retry can't duplicate them.
   try {
-    for (const turn of mapTurns(data.transcript)) {
-      await repo
-        .appendTurn(callId, turn)
-        .catch((e) => console.error("[agent/post-call] append turn", e));
-    }
+    await repo.appendTurns(callId, mapTurns(data.transcript));
     const medianLatencyMs = medianReplyLatencyMs(data.transcript);
-    await repo
-      .finalizeCall(callId, { status: "completed", durationSeconds, medianLatencyMs })
-      .catch((e) => console.error("[agent/post-call] finalize", e));
-    await runPostCall(callId, repo);
+    await repo.finalizeCall(callId, {
+      status: "completed",
+      durationSeconds,
+      medianLatencyMs,
+    });
   } catch (err) {
     console.error("[agent/post-call] enrichment failed", err);
+    await repo
+      .releaseAgentCallCompletion(callId)
+      .catch((e) => console.error("[agent/post-call] release claim", e));
+    return json({ error: "temporarily unavailable" }, 500);
   }
+
+  // Summary + email/CRM delivery log their own failures (runPostCall never
+  // throws); a webhook retry here would risk double emails/CRM pushes.
+  await runPostCall(callId, repo);
 
   return json({ ok: true });
 }

@@ -66,7 +66,7 @@ export default async function AssistantSettingsPage({
 
   let calendars: Awaited<ReturnType<typeof listIntegrations>> = [];
   try {
-    calendars = (await listIntegrations()).filter((i) => i.type === "calendar");
+    calendars = (await listIntegrations(ownerId ?? undefined)).filter((i) => i.type === "calendar");
   } catch {
     calendars = [];
   }

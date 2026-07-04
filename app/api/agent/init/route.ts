@@ -1,15 +1,36 @@
 import { getRepository } from "@/lib/call-engine/persistence/supabase";
-import { verifyElevenLabsSignature } from "@/lib/call-engine/agent/auth";
+import { verifyElevenLabsSignature, verifyToolSecret } from "@/lib/call-engine/agent/auth";
 import { localizeGreeting } from "@/lib/call-engine/llm/greeting";
 import { voiceForLanguage } from "@/lib/call-engine/voice/catalog";
 import { languageFromPhone } from "@/lib/call-engine/voice/phone-language";
 
 // Tier-A conversation-initiation webhook. ElevenLabs calls this when a call
-// starts (signed with ELEVENLABS_WEBHOOK_SECRET) and applies the overrides we
-// return before the agent speaks. We use it to greet the caller in the language
-// guessed from their number and match the voice — the tier-A equivalent of the
-// tier-B pre-seed in CallSession. Requires "overrides" to be enabled for the
-// agent's first_message / language / voice in the ElevenLabs security settings.
+// starts and applies the overrides we return before the agent speaks. We use it
+// to greet the caller in the language guessed from their number and match the
+// voice — the tier-A equivalent of the tier-B pre-seed in CallSession. Requires
+// "overrides" to be enabled for the agent's first_message / language / voice in
+// the ElevenLabs security settings.
+//
+// Auth: unlike the post-call webhook, ElevenLabs does NOT HMAC-sign this one —
+// it authenticates via the custom x-agent-secret header configured on the
+// workspace webhook (workspace.ts). We accept that header (primary) or a valid
+// HMAC signature (in case ElevenLabs ever starts signing it).
+
+// ElevenLabs blocks the caller's greeting on this webhook's response, so every
+// awaited millisecond here is dead air before the agent speaks. Bound the
+// per-call personalization work: past this budget we degrade to the configured
+// greeting/voice instead of stalling pickup past the webhook timeout.
+const OVERRIDE_BUDGET_MS = 1500;
+
+/** Resolve to `fallback` if `p` hasn't settled within `ms`. The underlying
+ *  promise keeps running (e.g. a voice-library import completes in the
+ *  background and is cached for the next call). */
+function withDeadline<T>(p: Promise<T>, ms: number, fallback: T): Promise<T> {
+  return Promise.race([
+    p.catch(() => fallback),
+    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms)),
+  ]);
+}
 
 export const dynamic = "force-dynamic";
 
@@ -48,8 +69,11 @@ function deepPick(obj: Record<string, unknown>, keys: string[]): string {
 
 export async function POST(req: Request): Promise<Response> {
   const raw = await req.text();
-  if (!verifyElevenLabsSignature(raw, req.headers.get("elevenlabs-signature"))) {
-    return json({ error: "invalid signature" }, 401);
+  if (
+    !verifyToolSecret(req.headers) &&
+    !verifyElevenLabsSignature(raw, req.headers.get("elevenlabs-signature"))
+  ) {
+    return json({ error: "unauthorized" }, 401);
   }
 
   let payload: Record<string, unknown> = {};
@@ -92,16 +116,24 @@ export async function POST(req: Request): Promise<Response> {
     language: language ?? "(agent default)",
     multilingual: config.multilingual,
   });
-  const firstMessage = language
-    ? await localizeGreeting(config.greeting, language)
-    : config.greeting;
+  // The greeting translation and the voice lookup are independent — run them
+  // concurrently, each racing the shared budget so a slow Gemini call or a
+  // call-time voice-library import degrades to the configured default instead
+  // of stalling pickup. Timed-out work still completes and lands in its module
+  // cache, so the next caller in that language gets the personalized result.
+  const [firstMessage, voiceId] = language
+    ? await Promise.all([
+        withDeadline(localizeGreeting(config.greeting, language), OVERRIDE_BUDGET_MS, config.greeting),
+        withDeadline(voiceForLanguage(language, config.voiceId, true), OVERRIDE_BUDGET_MS, config.voiceId),
+      ])
+    : [config.greeting, null];
 
   const agentOverride: Record<string, unknown> = { first_message: firstMessage };
   if (language) agentOverride.language = language;
 
   const overrides: Record<string, unknown> = { agent: agentOverride };
-  if (language) {
-    overrides.tts = { voice_id: await voiceForLanguage(language, config.voiceId, true) };
+  if (language && voiceId) {
+    overrides.tts = { voice_id: voiceId };
   }
 
   return json({

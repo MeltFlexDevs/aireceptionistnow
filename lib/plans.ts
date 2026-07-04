@@ -25,6 +25,16 @@ export function annualAmountCents(monthlyCents: number): number {
  * X can this account have". Kept next to the price so the quotas a customer pays
  * for and the quotas the app enforces can never drift apart. `Infinity` means no
  * cap. Used by lib/dashboard/plan.ts and the create/assign server actions.
+ *
+ * ponytail: only phoneNumbers (and assistants, trivially — Infinity) are
+ * enforced today, via canAssignNumber on every number-acquisition path.
+ * minutesIncluded / concurrentCalls are display-only: nothing sums
+ * calls.duration_seconds against the plan and no Stripe metered item bills the
+ * "€0.09 per extra minute" overage. Enforcing means metering the owner's
+ * minutes per billing period (anchored on user_billing) in the post-call
+ * webhook and reporting overage to a Stripe metered subscription item —
+ * whether to also block calls at the cap is a product decision, not a bug fix.
+ * contacts has no backing feature/table at all yet.
  */
 export interface PlanLimits {
   /** Concurrent phone numbers assigned to the account's assistants. */

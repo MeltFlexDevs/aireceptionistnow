@@ -12,21 +12,23 @@ const STEPS = ["Creating your assistant", "Almost ready"];
 
 function Progress() {
   const { pending } = useFormStatus();
+  // Mount the overlay only while pending: each submit starts a fresh one with
+  // step 0, so no effect has to reset state when pending flips back.
+  if (!pending) return null;
+  return <ProgressOverlay />;
+}
+
+function ProgressOverlay() {
   const [step, setStep] = useState(0);
 
   useEffect(() => {
-    if (!pending) {
-      setStep(0);
-      return;
-    }
     const id = setInterval(
       () => setStep((s) => Math.min(s + 1, STEPS.length - 1)),
       1400,
     );
     return () => clearInterval(id);
-  }, [pending]);
+  }, []);
 
-  if (!pending) return null;
   const pct = Math.min(((step + 1) / STEPS.length) * 100, 95);
 
   return (

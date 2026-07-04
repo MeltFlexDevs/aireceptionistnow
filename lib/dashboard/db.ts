@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { authConfigured } from "@/lib/supabase/config";
 import { mergeKnowledge, type AssistantKnowledge } from "../knowledge/sources";
 
 // Dashboard data access. Intentionally separate from the call engine's
@@ -146,35 +147,64 @@ export interface Integration {
   config: Record<string, unknown>;
   enabled: boolean;
   created_at: string;
+  /** The user who connected it (null on single-tenant-era rows). Scopes who may
+   *  see/use/disconnect the integration — its config holds OAuth tokens.
+   *  Requires migration 0008. */
+  owner_id?: string | null;
 }
 
-export async function listIntegrations(): Promise<Integration[]> {
-  const { data, error } = await db()
-    .from("integrations")
-    .select("*")
-    .order("created_at", { ascending: true });
+/**
+ * Integrations, scoped to an owner when one is passed (same contract as
+ * listAssistants — pass currentUserId(); null/undefined skips scoping for
+ * auth-off single-tenant deploys). An integration's config carries calendar
+ * OAuth tokens, so an unscoped list would let one tenant see, book into, and
+ * disconnect another tenant's calendar.
+ */
+export async function listIntegrations(ownerId?: string | null): Promise<Integration[]> {
+  let query = db().from("integrations").select("*");
+  // Unowned-allowed, same rule as deleteIntegration/upsertCalendarIntegration: a
+  // strict .eq would hide legacy owner_id-null rows (migration 0008 does not
+  // backfill), silently stripping pre-0008 calendars from assistant routing on
+  // the next save.
+  if (ownerId) query = query.or(`owner_id.eq.${ownerId},owner_id.is.null`);
+  const { data, error } = await query.order("created_at", { ascending: true });
   if (error) throw error;
   return (data ?? []) as Integration[];
 }
 
-/** Connect (or re-connect) a calendar provider — one row per provider. */
+/** Connect (or re-connect) a calendar provider — one row per provider PER
+ *  OWNER. Pass the connecting user (currentUserId()) so one tenant reconnecting
+ *  a provider can't overwrite another tenant's stored tokens; a legacy unowned
+ *  row for the provider is claimed (stamped) rather than duplicated. */
 export async function upsertCalendarIntegration(
   provider: string,
   config: Record<string, unknown>,
+  ownerId?: string | null,
 ): Promise<void> {
+  // Fail closed: with auth on, an owner is required. Without it the match below
+  // runs unscoped and could overwrite another tenant's stored OAuth tokens (the
+  // ungated OAuth callback reaches here with no session otherwise).
+  if (authConfigured() && !ownerId) throw new Error("Not signed in.");
   const businessId = await ensureBusinessId();
-  const existing = await db()
+  let match = db()
     .from("integrations")
     .select("id")
     .eq("business_id", businessId)
     .eq("type", "calendar")
-    .eq("provider", provider)
+    .eq("provider", provider);
+  // Per-owner key: reuse the caller's own row or an unowned single-tenant-era
+  // one, never another tenant's. Owned rows sort first so the claim prefers the
+  // caller's existing row over a legacy unowned one.
+  if (ownerId) match = match.or(`owner_id.eq.${ownerId},owner_id.is.null`);
+  const existing = await match
+    .order("owner_id", { ascending: true, nullsFirst: false })
+    .limit(1)
     .maybeSingle();
 
   if (existing.data?.id) {
     const { error } = await db()
       .from("integrations")
-      .update({ config, enabled: true })
+      .update({ config, enabled: true, ...(ownerId ? { owner_id: ownerId } : {}) })
       .eq("id", existing.data.id);
     if (error) throw error;
     return;
@@ -186,12 +216,23 @@ export async function upsertCalendarIntegration(
     provider,
     config,
     enabled: true,
+    ...(ownerId ? { owner_id: ownerId } : {}),
   });
   if (error) throw error;
 }
 
-export async function deleteIntegration(id: string): Promise<void> {
-  const { error } = await db().from("integrations").delete().eq("id", id);
+/** Delete an integration. When an ownerId is passed (auth on), only the
+ *  caller's own — or a legacy unowned — row matches, so one tenant can't
+ *  disconnect another's calendar (same unowned-allowed rule as
+ *  requireAssistantOwner). */
+export async function deleteIntegration(id: string, ownerId?: string | null): Promise<void> {
+  // Fail closed: with auth on, an owner is required so no future unscoped caller
+  // can delete another tenant's integration by id (defense-in-depth — the only
+  // caller today, disconnectCalendarAction, is already behind the auth proxy).
+  if (authConfigured() && !ownerId) throw new Error("Not signed in.");
+  let query = db().from("integrations").delete().eq("id", id);
+  if (ownerId) query = query.or(`owner_id.eq.${ownerId},owner_id.is.null`);
+  const { error } = await query;
   if (error) throw error;
 }
 

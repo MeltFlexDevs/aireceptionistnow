@@ -94,7 +94,7 @@ export async function updateAssistantAction(formData: FormData): Promise<void> {
 
   const transferTo = String(formData.get("transfer_to") ?? "").trim();
 
-  const calendars = await listIntegrations().catch(() => []);
+  const calendars = await listIntegrations((await currentUserId()) ?? undefined).catch(() => []);
   const access: Array<{ integrationId: string; level: string }> = [];
   for (const c of calendars) {
     if (c.type !== "calendar") continue;

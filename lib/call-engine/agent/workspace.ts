@@ -16,15 +16,22 @@ export interface WorkspaceSetupResult {
 
 /** Point the workspace's conversation-init webhook at our /api/agent/init, and
  *  (if ELEVENLABS_POST_CALL_WEBHOOK_ID is set) wire the post-call transcript
- *  webhook. ElevenLabs signs both with the workspace webhook secret — set that
- *  same value as ELEVENLABS_WEBHOOK_SECRET so our routes accept them. */
+ *  webhook. Auth differs per webhook: the post-call webhook is HMAC-signed by
+ *  ElevenLabs (ELEVENLABS_WEBHOOK_SECRET), but the conversation-init webhook is
+ *  NOT signed — it's secured by the custom request header we attach here, the
+ *  same shared secret the tool webhooks present (AGENT_WEBHOOK_SECRET). */
 export async function configureWorkspaceWebhooks(): Promise<WorkspaceSetupResult> {
   const base = (process.env.APP_BASE_URL ?? "").replace(/\/$/, "");
   if (!base) throw new Error("APP_BASE_URL is not set.");
+  const secret = process.env.AGENT_WEBHOOK_SECRET;
+  if (!secret) throw new Error("AGENT_WEBHOOK_SECRET is not set.");
   const initUrl = `${base}/api/agent/init`;
 
   const request: ElevenLabs.conversationalAi.PatchConvAiSettingsRequest = {
-    conversationInitiationClientDataWebhook: { url: initUrl, requestHeaders: {} },
+    conversationInitiationClientDataWebhook: {
+      url: initUrl,
+      requestHeaders: { "x-agent-secret": secret },
+    },
   };
 
   // Post-call webhooks are referenced by a workspace webhook id (create the
