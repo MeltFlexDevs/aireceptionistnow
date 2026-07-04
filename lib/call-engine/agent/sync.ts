@@ -10,7 +10,7 @@ import {
 } from "../../dashboard/db";
 import { MAX_SOURCE_CHARS, type AssistantKnowledge } from "../../knowledge/sources";
 import { ELEVENLABS_LANGUAGES, SUPPORTED_LANGUAGES } from "../voice/phone-language";
-import { voiceForLanguage } from "../voice/catalog";
+import { DEFAULT_VOICE_ID, voiceForLanguage } from "../voice/catalog";
 import { routeNumberToAgent } from "../elevenlabs";
 import { buildBuiltInTools, createAgentTools, deleteAgentTools } from "./tools";
 
@@ -49,7 +49,6 @@ const TTS_MODEL_MULTILINGUAL = "eleven_flash_v2_5";
 const TTS_MODEL_ENGLISH = "eleven_flash_v2";
 
 const DEFAULT_GREETING = "Hello, thanks for calling. How can I help?";
-const DEFAULT_VOICE_ID = "21m00Tcm4TlvDq8ikWAM"; // ElevenLabs "Rachel"
 // Cap how many knowledge docs we push per agent so a runaway source list can't
 // balloon the upload; mirrors the engine's MAX_SOURCES intent.
 const MAX_KB_DOCS = 25;
@@ -444,23 +443,39 @@ function composeDemoPrompt(): string {
  * an LLM, a voice, and language presets for every language we greet callers in, so
  * the landing page's per-caller language override actually works instead of killing
  * the call. Reuses the same LLM/turn/TTS/voice constants as the managed agents so
- * the two can't drift. Called by /api/agent/setup. No-op (returns null) if
- * ELEVENLABS_AGENT_ID is unset. Returns the agent id on success.
+ * the two can't drift. Called by /api/agent/setup AND self-healing from the
+ * test-call route (memoized per instance there). No-op (returns null) if
+ * ELEVENLABS_AGENT_ID is unset. Returns the agent id + whether the multilingual
+ * config stuck — callers must NOT send a per-caller language override when it
+ * didn't (an override to a language the agent lacks drops the call at pickup).
  */
-export async function provisionDemoAgent(): Promise<string | null> {
+export async function provisionDemoAgent(): Promise<{
+  agentId: string;
+  multilingual: boolean;
+} | null> {
   const agentId = process.env.ELEVENLABS_AGENT_ID;
   if (!agentId) return null;
   const client = elevenClient();
 
   // Every language we can greet a demo caller in, except the English base — their
   // presence is what makes the agent multilingual (multilingual TTS model + accepts
-  // the per-caller language override). Base voice speaks them all (no per-language
-  // voice overrides — keeps this simple and dodges the preset-voice rejection path).
+  // the per-caller language override). Same voiced-presets + plain-presets pair as
+  // syncAssistantAgent: each preset gets its best per-language account voice so a
+  // language switch also switches to a native-sounding voice; the plain variant is
+  // the retry tier for when a preset voice is what ElevenLabs rejects.
   const extraLanguages = SUPPORTED_LANGUAGES.filter(
     (l) => l !== "en" && ELEVENLABS_LANGUAGES.has(l),
   );
-  const languagePresets: Record<string, ElevenLabs.LanguagePresetOutput> =
-    Object.fromEntries(extraLanguages.map((l) => [l, { overrides: {} }]));
+  const languagePresets: Record<string, ElevenLabs.LanguagePresetOutput> = {};
+  const languagePresetsPlain: Record<string, ElevenLabs.LanguagePresetOutput> = {};
+  for (const l of extraLanguages) {
+    const presetVoice = await voiceForLanguage(l, DEFAULT_VOICE_ID);
+    languagePresets[l] =
+      presetVoice === DEFAULT_VOICE_ID
+        ? { overrides: {} }
+        : { overrides: { tts: { voiceId: presetVoice } } };
+    languagePresetsPlain[l] = { overrides: {} };
+  }
 
   // end_call so the agent can wrap up; language_detection so it switches languages
   // mid-call (dropped in the English-only fallback — nothing to switch to).
@@ -504,11 +519,17 @@ export async function provisionDemoAgent(): Promise<string | null> {
     tts: { voiceId: DEFAULT_VOICE_ID, modelId: TTS_MODEL_ENGLISH },
   };
 
-  // Whitelist exactly the two fields placeAgentCall overrides per demo call.
+  // Whitelist exactly the fields placeAgentCall overrides per demo call:
+  // greeting + language + the per-language voice. Webhook-sourced init data is
+  // explicitly OFF: the demo agent gets its per-call config from the outbound
+  // request body, and a hand-enabled toggle + a failing workspace init webhook
+  // would otherwise drop every demo call at pickup.
   const platformSettings: ElevenLabs.AgentPlatformSettingsRequestModel = {
     overrides: {
+      enableConversationInitiationClientDataFromWebhook: false,
       conversationConfigOverride: {
         agent: { firstMessage: true, language: true },
+        tts: { voiceId: true },
       },
     },
   };
@@ -519,19 +540,28 @@ export async function provisionDemoAgent(): Promise<string | null> {
       platformSettings,
     });
 
+  // Same ladder + rule as syncAssistantAgent: walk voiced-multilingual →
+  // plain-multilingual → English-only, but ONLY on config rejections. A
+  // transient/auth error must surface, not silently strip multilingual and leave
+  // the Slovak demo broken with only a warn as evidence.
+  const isRejection = (err: unknown): boolean =>
+    err instanceof ElevenLabsError && (err.statusCode === 400 || err.statusCode === 422);
+  let multilingual = true;
   try {
     await write(multilingualConfig);
   } catch (err) {
-    // Same rule as syncAssistantAgent: only fall back to English-only on a config
-    // rejection. A transient/auth error must surface, not silently strip
-    // multilingual and leave the Slovak demo broken with only a warn as evidence.
-    if (!(err instanceof ElevenLabsError && (err.statusCode === 400 || err.statusCode === 422))) {
-      throw err;
+    if (!isRejection(err)) throw err;
+    console.warn("[demo-agent] voiced multilingual config rejected, retrying without per-language voices", err);
+    try {
+      await write({ ...multilingualConfig, languagePresets: languagePresetsPlain });
+    } catch (plainErr) {
+      if (!isRejection(plainErr)) throw plainErr;
+      console.warn("[demo-agent] multilingual config rejected, provisioning English-only", plainErr);
+      await write(englishConfig);
+      multilingual = false;
     }
-    console.warn("[demo-agent] multilingual config rejected, provisioning English-only", err);
-    await write(englishConfig);
   }
-  return agentId;
+  return { agentId, multilingual };
 }
 
 /**

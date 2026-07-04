@@ -11,6 +11,7 @@
 //   ELEVENLABS_AGENT_PHONE_NUMBER_ID — the connected Twilio number to call from
 
 import { localizeGreeting } from "./llm/greeting";
+import { DEFAULT_VOICE_ID, voiceForLanguage } from "./voice/catalog";
 
 const XI_BASE = "https://api.elevenlabs.io";
 const OUTBOUND_CALL_URL = `${XI_BASE}/v1/convai/twilio/outbound-call`;
@@ -289,9 +290,21 @@ export async function placeAgentCall(
       const localized = await localizeGreeting(greeting, opts.language);
       if (localized !== greeting) agentOverride.first_message = localized;
     }
+    // Match the voice to the caller's language too (a native voice when the
+    // account has one), mirroring the inbound init webhook. Deadline-guarded so
+    // a slow voice-library import degrades to the agent's base voice instead of
+    // stalling call placement; the timed-out import still lands in the module
+    // cache for the next call. Only sent when it differs from the default —
+    // DEFAULT_VOICE_ID is the demo agent's base voice (see provisionDemoAgent).
+    const voiceId = await Promise.race([
+      voiceForLanguage(opts.language, DEFAULT_VOICE_ID, true).catch(() => DEFAULT_VOICE_ID),
+      new Promise<string>((r) => setTimeout(() => r(DEFAULT_VOICE_ID), 2000)),
+    ]);
+    const override: Record<string, unknown> = { agent: agentOverride };
+    if (voiceId !== DEFAULT_VOICE_ID) override.tts = { voice_id: voiceId };
     clientData = {
       conversation_initiation_client_data: {
-        conversation_config_override: { agent: agentOverride },
+        conversation_config_override: override,
       },
     };
   }

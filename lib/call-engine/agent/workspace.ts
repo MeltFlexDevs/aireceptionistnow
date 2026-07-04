@@ -1,5 +1,10 @@
 import type { ElevenLabs } from "@elevenlabs/elevenlabs-js";
 import { elevenClient } from "./eleven-client";
+import { findAgentPhoneNumberId, importTwilioNumber } from "../elevenlabs";
+import {
+  listNumbersMissingElevenLabsId,
+  setNumberElevenLabsId,
+} from "../../dashboard/db";
 
 // One-time workspace wiring for the ElevenLabs Conversational AI integration.
 // Agents are per-assistant (see sync.ts), but two settings are workspace-global:
@@ -43,4 +48,35 @@ export async function configureWorkspaceWebhooks(): Promise<WorkspaceSetupResult
 
   await elevenClient().conversationalAi.settings.update(request);
   return { conversationInitiationWebhook: initUrl, postCallWebhookId: postCallId ?? null };
+}
+
+/**
+ * Import every DB pool number that isn't in ElevenLabs yet and backfill its
+ * ElevenLabs phone-number id. Numbers are imported UNASSIGNED (no inbound agent)
+ * — they stay free for assistants to claim, and outbound demo calls address them
+ * by id with an explicit agent. Idempotent: already-imported numbers are matched
+ * by a lookup instead of re-imported, and each success is persisted immediately,
+ * so a re-run only touches what's still missing. Best-effort per number.
+ */
+export async function importPoolNumbersToElevenLabs(): Promise<{
+  imported: number;
+  failed: number;
+}> {
+  const rows = await listNumbersMissingElevenLabsId();
+  let imported = 0;
+  let failed = 0;
+  for (const row of rows) {
+    try {
+      const id =
+        (await findAgentPhoneNumberId(row.e164)) ??
+        (await importTwilioNumber(row.e164));
+      if (!id) throw new Error("ElevenLabs returned no phone_number_id");
+      await setNumberElevenLabsId(row.id, id);
+      imported++;
+    } catch (err) {
+      failed++;
+      console.error("[agent/setup] number import failed", row.e164, err);
+    }
+  }
+  return { imported, failed };
 }

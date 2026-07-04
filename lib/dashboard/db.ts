@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { authConfigured } from "@/lib/supabase/config";
 import { mergeKnowledge, type AssistantKnowledge } from "../knowledge/sources";
+import { DEFAULT_VOICE_ID } from "../call-engine/voice/catalog";
 
 // Dashboard data access. Intentionally separate from the call engine's
 // repository: managing phone numbers only needs Supabase, not the full set of
@@ -101,7 +102,6 @@ export async function getNumber(id: string): Promise<PhoneNumber | null> {
 }
 
 // Defaults applied to a freshly created assistant so it can take a call right away.
-const DEFAULT_VOICE_ID = "21m00Tcm4TlvDq8ikWAM"; // ElevenLabs "Rachel"
 const DEFAULT_ROUTING = { sttProvider: "elevenlabs" };
 // "multi" = auto-detect the caller's language and reply in it (the engine
 // matches voice + pronunciation). Users can pin a fixed language in settings.
@@ -508,6 +508,36 @@ export async function claimFreeNumber(
     if (claimed) return claimed as PhoneNumber;
   }
   return null;
+}
+
+/** Active Twilio-backed numbers not yet imported into ElevenLabs — the setup
+ *  endpoint sweeps these, imports each, and backfills the ElevenLabs id. */
+export async function listNumbersMissingElevenLabsId(): Promise<
+  { id: string; e164: string }[]
+> {
+  const { data, error } = await db()
+    .from("phone_numbers")
+    .select("id, e164")
+    .is("deleted_at", null)
+    .not("twilio_sid", "is", null)
+    .is("elevenlabs_phone_number_id", null);
+  if (error) throw error;
+  return (data ?? []).map((r) => ({ id: String(r.id), e164: String(r.e164) }));
+}
+
+/** Free pool numbers already imported into ElevenLabs — usable as the outbound
+ *  caller ID for the public demo call (free = not linked to any assistant, so a
+ *  customer's number is never used as the demo's caller ID). */
+export async function listImportedFreeNumbers(): Promise<PhoneNumber[]> {
+  const { data, error } = await db()
+    .from("phone_numbers")
+    .select("*")
+    .is("deleted_at", null)
+    .is("assistant_id", null)
+    .eq("enabled", true)
+    .not("elevenlabs_phone_number_id", "is", null);
+  if (error) throw error;
+  return (data ?? []) as PhoneNumber[];
 }
 
 /** How many free numbers the pool currently holds (same "free" rule as claim). */

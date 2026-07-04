@@ -37,7 +37,7 @@ Both webhook secrets fail closed — unset ⇒ the corresponding `/api/agent/*` 
 
 ### 1b. Wire the workspace webhooks (once)
 
-Run once after deploy — it points the workspace's **conversation-initiation** webhook at `/api/agent/init` (per-caller greeting/language/voice) via the ElevenLabs API:
+Run once after deploy — it points the workspace's **conversation-initiation** webhook at `/api/agent/init` (per-caller greeting/language/voice), fully provisions the public demo agent (`ELEVENLABS_AGENT_ID`: greeting + LLM + voice + multilingual presets), and imports any seeded pool numbers into ElevenLabs (backfilling `phone_numbers.elevenlabs_phone_number_id`; needs `TWILIO_ACCOUNT_SID`/`TWILIO_AUTH_TOKEN`):
 
 ```bash
 curl -X POST "$APP_BASE_URL/api/agent/setup" -H "x-agent-secret: $AGENT_WEBHOOK_SECRET"

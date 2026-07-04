@@ -10,6 +10,10 @@ export function baseLanguage(code: string): string {
   return (code || "").split("-")[0].toLowerCase();
 }
 
+/** Default TTS voice (ElevenLabs "Rachel") — the base voice for the demo agent
+ *  and any assistant without an explicit voice. Single source of truth. */
+export const DEFAULT_VOICE_ID = "21m00Tcm4TlvDq8ikWAM";
+
 /**
  * Built-in override voices keyed by base language code. Empty by default except
  * English, which intentionally has no override so the assistant's own configured
