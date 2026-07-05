@@ -253,6 +253,52 @@ export async function assertUnderCallCaps(): Promise<void> {
   }
 }
 
+// The demo call isn't a live conversation yet — we're about to PLACE it, the
+// visitor's phone rings only after this returns — so we can afford to wait for a
+// native per-language voice to resolve/import instead of the ~2s a live webhook
+// allows. Capped so a wedged import can't hang the "call me" button forever.
+// ponytail: 4s is a heuristic for one library import (search + add); the first
+// call in a new language may still miss it and use the base voice, later calls
+// hit the module cache. Pin ids in VOICE_BY_LANGUAGE/ELEVENLABS_VOICE_OVERRIDES
+// to make it instant and deterministic.
+const DEMO_VOICE_BUDGET_MS = 4000;
+
+/**
+ * Ordered per-call override candidates for a demo/test call: richest first, an
+ * empty (English-default) override always last. The caller's language + localized
+ * greeting are the POINT of the call; the per-language voice is a bonus layered on
+ * top — so they're separable. If ElevenLabs rejects a voice it won't accept, the
+ * next candidate keeps the language (base voice) instead of collapsing all the way
+ * to English, which is what made the demo answer in the wrong language. Each entry
+ * is the body spread onto the base outbound-call payload; `{}` = agent defaults.
+ */
+export function demoOverrideCandidates(opts: {
+  language?: string;
+  firstMessage?: string;
+  voiceId?: string;
+  defaultVoiceId: string;
+}): Record<string, unknown>[] {
+  const { language, firstMessage, voiceId, defaultVoiceId } = opts;
+  const candidates: Record<string, unknown>[] = [];
+  // English is the agent's own default — never overridden (a misconfigured
+  // overrides toggle then can't break US/UK demo calls).
+  if (language && language !== "en") {
+    const agent: Record<string, unknown> = { language };
+    if (firstMessage) agent.first_message = firstMessage;
+    const wrap = (override: Record<string, unknown>) => ({
+      conversation_initiation_client_data: { conversation_config_override: override },
+    });
+    // Voice + language first, then language alone. Only add the voiced tier when
+    // the voice actually differs from the base — otherwise it's the same request.
+    if (voiceId && voiceId !== defaultVoiceId) {
+      candidates.push(wrap({ agent, tts: { voice_id: voiceId } }));
+    }
+    candidates.push(wrap({ agent }));
+  }
+  candidates.push({}); // English default — the phone rings no matter what.
+  return candidates;
+}
+
 /**
  * Have an ElevenLabs agent call `toNumber` (E.164).
  *
@@ -276,37 +322,27 @@ export async function placeAgentCall(
   }
 
   // Outbound calls never hit the conversation-init webhook (that's inbound-only),
-  // so the caller's language AND a localized greeting are set here in the request
-  // body instead. Requires the agent to have "overrides" enabled for language +
-  // first_message (asserted by /api/agent/setup for the demo agent). English is
-  // never sent as an override — it's the agent's default, and skipping it means a
-  // misconfigured overrides toggle can't break US/UK demo calls.
-  let clientData: Record<string, unknown> = {};
+  // so the caller's language, a localized greeting, AND a native voice are set here
+  // in the request body instead. Requires the agent to have "overrides" enabled for
+  // language + first_message + voice (asserted by /api/agent/setup for the demo
+  // agent).
+  let firstMessage: string | undefined;
+  let voiceId: string | undefined;
   if (opts.language && opts.language !== "en") {
-    const agentOverride: Record<string, unknown> = { language: opts.language };
     const greeting = await agentFirstMessage(agentId, apiKey);
     if (greeting) {
       // Cached per (greeting, language) — repeat demo calls skip the Gemini trip.
       const localized = await localizeGreeting(greeting, opts.language);
-      if (localized !== greeting) agentOverride.first_message = localized;
+      if (localized !== greeting) firstMessage = localized;
     }
-    // Match the voice to the caller's language too (a native voice when the
-    // account has one), mirroring the inbound init webhook. Deadline-guarded so
-    // a slow voice-library import degrades to the agent's base voice instead of
-    // stalling call placement; the timed-out import still lands in the module
-    // cache for the next call. Only sent when it differs from the default —
-    // DEFAULT_VOICE_ID is the demo agent's base voice (see provisionDemoAgent).
-    const voiceId = await Promise.race([
+    // Match the voice to the caller's language (a native one when the account has
+    // or can import it), mirroring the inbound init webhook. Deadline-guarded so a
+    // slow import degrades to the base voice; the timed-out import still lands in
+    // the module cache for the next call.
+    voiceId = await Promise.race([
       voiceForLanguage(opts.language, DEFAULT_VOICE_ID, true).catch(() => DEFAULT_VOICE_ID),
-      new Promise<string>((r) => setTimeout(() => r(DEFAULT_VOICE_ID), 2000)),
+      new Promise<string>((r) => setTimeout(() => r(DEFAULT_VOICE_ID), DEMO_VOICE_BUDGET_MS)),
     ]);
-    const override: Record<string, unknown> = { agent: agentOverride };
-    if (voiceId !== DEFAULT_VOICE_ID) override.tts = { voice_id: voiceId };
-    clientData = {
-      conversation_initiation_client_data: {
-        conversation_config_override: override,
-      },
-    };
   }
 
   const place = (body: Record<string, unknown>) =>
@@ -324,18 +360,25 @@ export async function placeAgentCall(
     agent_phone_number_id: agentPhoneNumberId,
     to_number: toNumber,
   };
-  let res = await place({ ...base, ...clientData });
 
-  // If the override is what ElevenLabs rejected (overrides not whitelisted on the
-  // agent, or the language missing from its presets), the flagship demo button
-  // must still ring — retry once in the agent's default language. Only a
-  // validation rejection (400/422) points at the override; a 429/5xx is a real
-  // outage and must NOT trigger a second call placement (would double-dial).
-  if ((res.status === 400 || res.status === 422) && Object.keys(clientData).length > 0) {
-    console.warn(
-      `[demo-call] language override rejected (${res.status}), retrying without override`,
-    );
-    res = await place(base);
+  // Place with the richest override, stepping down ONLY on a validation rejection
+  // (400/422 = the override was refused and the call was NOT placed, so retrying
+  // can't double-dial). This decouples the voice from the language: a per-language
+  // voice ElevenLabs won't accept drops to the base voice but KEEPS the language,
+  // instead of the old single-retry that collapsed straight back to English and
+  // made the demo answer in the wrong language. A 429/5xx is a real outage and
+  // breaks out immediately — a second placement there would double-dial.
+  const candidates = demoOverrideCandidates({
+    language: opts.language,
+    firstMessage,
+    voiceId,
+    defaultVoiceId: DEFAULT_VOICE_ID,
+  });
+  let res = await place({ ...base, ...candidates[0] });
+  for (let i = 1; i < candidates.length; i++) {
+    if (res.status !== 400 && res.status !== 422) break;
+    console.warn(`[demo-call] override rejected (${res.status}), retrying leaner`);
+    res = await place({ ...base, ...candidates[i] });
   }
 
   const data = (await res.json().catch(() => ({}))) as {
