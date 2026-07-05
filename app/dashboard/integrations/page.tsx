@@ -1,6 +1,7 @@
 import { currentUserId } from "@/lib/auth";
 import { listIntegrations, type Integration } from "@/lib/dashboard/db";
 import { getServiceStatuses } from "@/lib/dashboard/health";
+import { PageHeader } from "../components/PageHeader";
 import { SectionCard } from "../components/SectionCard";
 import { StatusDot, StatusRow } from "../components/StatusBadge";
 import { SubmitButton } from "../components/SubmitButton";
@@ -101,12 +102,10 @@ export default async function IntegrationsPage({
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-medium tracking-tight text-neutral-900">Integrations</h1>
-        <p className="mt-1 text-sm text-neutral-500">
-          Connect a calendar. Your assistant books into it during calls.
-        </p>
-      </header>
+      <PageHeader
+        title="Integrations"
+        description="Connect a calendar. Your assistant books into it during calls."
+      />
 
       <SectionCard
         title="Service status"

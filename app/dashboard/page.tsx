@@ -11,7 +11,7 @@ import { AssistantStats } from "./components/AssistantStats";
 import { PlanUsage } from "./components/PlanUsage";
 import { getPlanContext } from "@/lib/dashboard/plan";
 import { PageHeader } from "./components/PageHeader";
-import { Bolt, Plus } from "./icons";
+import { Bolt, Phone, Plus } from "./icons";
 
 export const dynamic = "force-dynamic";
 
@@ -29,21 +29,27 @@ function latencyPoints(values: number[]): string {
     .join(" ");
 }
 
+function SectionError({ what }: { what: string }) {
+  return (
+    <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+      Couldn&apos;t load {what}. Refresh to try again.
+    </div>
+  );
+}
+
 export default async function OverviewPage() {
-  let data: Awaited<ReturnType<typeof getOverview>> | null = null;
-  let assistants: Awaited<ReturnType<typeof getAssistantStats>> = [];
-  let planCtx: Awaited<ReturnType<typeof getPlanContext>> | null = null;
-  let loadError = "";
-  try {
-    const ownerId = await currentUserId();
-    [data, assistants, planCtx] = await Promise.all([
-      getOverview(ownerId),
-      getAssistantStats(ownerId, 14),
-      getPlanContext(ownerId),
-    ]);
-  } catch (err) {
-    loadError = (err as Error).message;
-  }
+  // Each source loads independently so one failed query degrades its own
+  // section instead of blanking the whole overview.
+  const ownerId = await currentUserId();
+  const [dataR, assistantsR, planR] = await Promise.allSettled([
+    getOverview(ownerId),
+    getAssistantStats(ownerId, 14),
+    getPlanContext(ownerId),
+  ]);
+  const data = dataR.status === "fulfilled" ? dataR.value : null;
+  const assistants = assistantsR.status === "fulfilled" ? assistantsR.value : null;
+  const planCtx = planR.status === "fulfilled" ? planR.value : null;
+  const loadError = dataR.status === "rejected" ? (dataR.reason as Error).message : "";
 
   const header = (
     <PageHeader
@@ -62,12 +68,57 @@ export default async function OverviewPage() {
   );
 
   if (!data) {
+    // Analytics down: still show what did load (plan, assistants) so the page
+    // stays useful instead of a single error banner.
     return (
       <div className="space-y-6">
         {header}
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
           Couldn&apos;t load analytics{loadError ? `: ${loadError}` : ""}.
         </div>
+        {planCtx && <PlanUsage ctx={planCtx} />}
+        {assistants && assistants.length > 0 && (
+          <SectionCard title="Assistants" subtitle="Each assistant's results over the last 14 days">
+            <AssistantStats stats={assistants} />
+          </SectionCard>
+        )}
+      </div>
+    );
+  }
+
+  // Brand-new account: no call has ever reached this owner's assistants inside
+  // the fetch window. Zero-filled KPI tiles and empty charts read as "broken",
+  // so show a single get-started card instead.
+  if (data.recentCalls.length === 0) {
+    return (
+      <div className="space-y-6">
+        {header}
+        {planCtx && <PlanUsage ctx={planCtx} />}
+        <SectionCard>
+          <div className="flex flex-col items-center gap-3 py-10 text-center">
+            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-neutral-900 text-white">
+              <Phone className="h-5 w-5" />
+            </span>
+            <div>
+              <h2 className="text-base font-medium text-neutral-900">No calls yet</h2>
+              <p className="mx-auto mt-1 max-w-md text-sm text-neutral-500">
+                Once your AI receptionist answers its first call, live stats — volume, sentiment,
+                bookings and latency — show up here.
+              </p>
+            </div>
+            <Link
+              href="/dashboard/assistant"
+              className="mt-2 inline-flex h-9 items-center gap-2 rounded-lg bg-neutral-900 px-4 text-sm font-medium text-white shadow-card transition-colors hover:bg-neutral-800"
+            >
+              Set up your assistant
+            </Link>
+          </div>
+        </SectionCard>
+        {assistants && assistants.length > 0 && (
+          <SectionCard title="Assistants" subtitle="Each assistant's results over the last 14 days">
+            <AssistantStats stats={assistants} />
+          </SectionCard>
+        )}
       </div>
     );
   }
@@ -88,7 +139,7 @@ export default async function OverviewPage() {
       {planCtx && <PlanUsage ctx={planCtx} />}
 
       <SectionCard title="Assistants" subtitle="Each assistant's results over the last 14 days">
-        <AssistantStats stats={assistants} />
+        {assistants ? <AssistantStats stats={assistants} /> : <SectionError what="assistant stats" />}
       </SectionCard>
 
       <div className="grid gap-4 lg:grid-cols-3">
@@ -169,7 +220,18 @@ export default async function OverviewPage() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <SectionCard className="lg:col-span-2" title="Recent calls">
+        <SectionCard
+          className="lg:col-span-2"
+          title="Recent calls"
+          action={
+            <Link
+              href="/dashboard/calls"
+              className="text-xs font-medium text-neutral-500 transition-colors hover:text-neutral-900"
+            >
+              View all →
+            </Link>
+          }
+        >
           <RecentCalls calls={data.recentCalls} />
         </SectionCard>
         <SectionCard title="AI call summaries" subtitle="Auto-generated after each call">

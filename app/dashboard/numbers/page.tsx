@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { listNumbers, type PhoneNumber } from "@/lib/dashboard/db";
+import { PageHeader } from "../components/PageHeader";
 import { SectionCard } from "../components/SectionCard";
 import { Hash, Plus } from "../icons";
 import { buyNumberAction } from "./actions";
@@ -35,14 +36,10 @@ export default async function NumbersPage({
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-medium tracking-tight text-neutral-900">Phone numbers</h1>
-          <p className="mt-1 text-sm text-neutral-500">
-            Register the numbers your AI answers and configure each one.
-          </p>
-        </div>
-      </header>
+      <PageHeader
+        title="Phone numbers"
+        description="Register the numbers your AI answers and configure each one."
+      />
 
       {(error || loadError) && (
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">

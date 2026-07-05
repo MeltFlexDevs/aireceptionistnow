@@ -44,11 +44,15 @@ export interface Call {
   outcome: string;
   sentiment: Sentiment;
   time: string;
+  /** Absolute timestamp in the user's timezone (tooltip next to `time`). */
+  at: string;
 }
 export interface Summary {
   id: string;
   name: string;
   time: string;
+  /** Absolute timestamp in the user's timezone (tooltip next to `time`). */
+  at: string;
   text: string;
   tags: string[];
 }
@@ -182,16 +186,97 @@ function dayBuckets(calls: CallRow[], days: number, toKey: (d: Date) => string):
   }
   return out;
 }
+/** Per-day values over the trailing `days`, oldest first (for KPI sparklines). */
+function dailySeries(
+  calls: CallRow[],
+  days: number,
+  toKey: (d: Date) => string,
+  value: (dayCalls: CallRow[]) => number,
+): number[] {
+  const byDay = new Map<string, CallRow[]>();
+  for (const c of calls) {
+    const key = toKey(new Date(c.started_at));
+    const bucket = byDay.get(key);
+    if (bucket) bucket.push(c);
+    else byDay.set(key, [c]);
+  }
+  const [y, m, d] = toKey(new Date()).split("-").map(Number);
+  const out: number[] = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const key = new Date(Date.UTC(y, m - 1, d - i)).toISOString().slice(0, 10);
+    out.push(value(byDay.get(key) ?? []));
+  }
+  return out;
+}
+
+// Absolute timestamp in the user's timezone, for tooltips next to "2 hr ago".
+function timeFmt(tz: string): (iso: string) => string {
+  const opts = { dateStyle: "medium", timeStyle: "short" } as const;
+  let fmt: Intl.DateTimeFormat;
+  try {
+    fmt = new Intl.DateTimeFormat("en-GB", { timeZone: tz || "UTC", ...opts });
+  } catch {
+    fmt = new Intl.DateTimeFormat("en-GB", { timeZone: "UTC", ...opts });
+  }
+  return (iso) => fmt.format(new Date(iso));
+}
+
 function capitalize(s: string): string {
   return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+}
+
+/** A user's stats scope. Calls are matched primarily on the insert-time
+ *  owner_id / assistant_id snapshots (same rule as the call log), so history
+ *  survives a number being unassigned, pooled, or deleted — scoping on the
+ *  numbers *currently* linked to the owner's assistants silently dropped all
+ *  of it. The owner's assistants and current numbers only serve as fallbacks
+ *  for unstamped rows (owner_id null). undefined = auth off, no scoping. */
+interface CallScope {
+  ownerId: string;
+  assistantIds: string[];
+  numberIds: string[];
+}
+
+async function ownerScope(ownerId?: string | null): Promise<CallScope | undefined> {
+  if (!ownerId) return undefined;
+  // Includes soft-deleted assistants on purpose: their call history still
+  // belongs to this owner.
+  const { data: assistants, error } = await serviceClient()
+    .from("assistants")
+    .select("id")
+    .eq("owner_id", ownerId);
+  if (error) throw error;
+  const assistantIds = (assistants ?? []).map((a) => String((a as { id: string }).id));
+  return {
+    ownerId,
+    assistantIds,
+    numberIds: (await getOwnedNumbers(ownerId)).map((n) => n.id),
+  };
+}
+
+function scopeFilter(scope: CallScope): string {
+  // The assistant/number arms are fallbacks for unstamped rows ONLY — they must
+  // not match a call another tenant owns. Numbers are pooled and recycled
+  // across tenants, so an unconditioned phone_number_id arm would hand the new
+  // holder the previous tenant's stamped call history (same recycled-number
+  // rule the call log enforces in calls/log.ts).
+  // ponytail: or-filter lives in the request URL, fine for tens of assistants
+  // per owner; move to an RPC if a tenant ever owns hundreds.
+  const parts = [`owner_id.eq.${scope.ownerId}`];
+  if (scope.assistantIds.length > 0) {
+    parts.push(`and(owner_id.is.null,assistant_id.in.(${scope.assistantIds.join(",")}))`);
+  }
+  if (scope.numberIds.length > 0) {
+    parts.push(`and(owner_id.is.null,phone_number_id.in.(${scope.numberIds.join(",")}))`);
+  }
+  return parts.join(",");
 }
 
 async function fetchCalls(
   businessId: string,
   sinceIso: string,
-  numberIds?: string[],
+  scope?: CallScope,
 ): Promise<CallRow[]> {
-  if (numberIds && numberIds.length === 0) return [];
   // PostgREST silently caps a select at 1000 rows, so page until a short page.
   const PAGE = 1000;
   const rows: CallRow[] = [];
@@ -203,7 +288,7 @@ async function fetchCalls(
       )
       .eq("business_id", businessId)
       .gte("started_at", sinceIso);
-    if (numberIds) query = query.in("phone_number_id", numberIds);
+    if (scope) query = query.or(scopeFilter(scope));
     const { data, error } = await query
       .order("started_at", { ascending: false })
       .range(page * PAGE, (page + 1) * PAGE - 1);
@@ -217,13 +302,6 @@ async function fetchCalls(
     }
   }
   return rows;
-}
-
-// Restrict stats to a user's assistants' numbers. undefined = no scoping
-// (auth off); [] = the user owns no numbers, so no calls.
-async function scopedNumberIds(ownerId?: string | null): Promise<string[] | undefined> {
-  if (!ownerId) return undefined;
-  return (await getOwnedNumbers(ownerId)).map((n) => n.id);
 }
 
 // ISO 3166 alpha-2 → English country name, via the platform Intl data (no map to
@@ -263,11 +341,15 @@ function countriesFrom(calls: CallRow[]): Segment[] {
 
 async function talkRatio(callIds: string[]): Promise<Segment[]> {
   if (callIds.length === 0) return [];
-  const { data } = await serviceClient()
+  const { data, error } = await serviceClient()
     .from("call_turns")
     .select("role,text")
     .in("call_id", callIds.slice(0, 500))
     .limit(1000); // deliberate sample (like the 500-call slice) — ratio is approximate
+  if (error) {
+    console.warn("talkRatio: call_turns query failed, hiding the chart", error.message);
+    return [];
+  }
   let caller = 0;
   let ai = 0;
   for (const t of data ?? []) {
@@ -302,9 +384,13 @@ async function bookedCallIds(callIds: string[]): Promise<Set<string>> {
 }
 
 export async function getOverview(ownerId?: string | null): Promise<Overview> {
-  const businessId = await ensureBusinessId();
-  const numberIds = await scopedNumberIds(ownerId);
-  const toKey = dayKeyFn(await ownerTimezone(ownerId));
+  const [businessId, scope, tz] = await Promise.all([
+    ensureBusinessId(),
+    ownerScope(ownerId),
+    ownerTimezone(ownerId),
+  ]);
+  const toKey = dayKeyFn(tz);
+  const atFmt = timeFmt(tz);
   const now = new Date();
   const since = new Date(now);
   since.setDate(now.getDate() - 14);
@@ -315,24 +401,42 @@ export async function getOverview(ownerId?: string | null): Promise<Overview> {
   const monthFetch = new Date(`${monthStartKey}T00:00:00Z`);
   monthFetch.setUTCDate(monthFetch.getUTCDate() - 1);
   const fetchSince = monthFetch < since ? monthFetch : since;
-  const calls = await fetchCalls(businessId, fetchSince.toISOString(), numberIds);
-  const bookedIds = await bookedCallIds(calls.map((c) => c.id));
+  const calls = await fetchCalls(businessId, fetchSince.toISOString(), scope);
 
-  const split = new Date(now);
-  split.setDate(now.getDate() - 7);
-  const recent = calls.filter((c) => new Date(c.started_at) >= split);
-  // Bounded below too: the fetch can reach past the KPI window to month start.
+  // KPI windows are whole calendar days in the user's timezone (today-6..today
+  // vs the 7 days before), matching the sparkline buckets — a rolling cutoff
+  // counted calls the sparks silently dropped, so the spark didn't sum to the
+  // tile (getAnalytics trims its window the same way).
+  const [y, m, d] = toKey(now).split("-").map(Number);
+  const keyAt = (back: number) => new Date(Date.UTC(y, m - 1, d - back)).toISOString().slice(0, 10);
+  const recentStartKey = keyAt(6);
+  const priorStartKey = keyAt(13);
+  const dayKey = (c: CallRow) => toKey(new Date(c.started_at));
+  const recent = calls.filter((c) => dayKey(c) >= recentStartKey);
   const prior = calls.filter((c) => {
-    const t = new Date(c.started_at);
-    return t >= since && t < split;
+    const k = dayKey(c);
+    return k >= priorStartKey && k < recentStartKey;
   });
 
-  const spark = dayBuckets(recent, 7, toKey).map((b) => b.value);
+  const [bookedIds, ratio] = await Promise.all([
+    bookedCallIds(calls.map((c) => c.id)),
+    talkRatio(recent.map((c) => c.id)),
+  ]);
+
   const avg = (cs: CallRow[]) =>
     cs.length ? cs.reduce((s, c) => s + (c.duration_seconds ?? 0), 0) / cs.length : 0;
   const answerRate = (cs: CallRow[]) =>
     cs.length ? (cs.filter((c) => c.status === "completed").length / cs.length) * 100 : 0;
   const booked = (cs: CallRow[]) => cs.filter((c) => bookedIds.has(c.id)).length;
+
+  // Each KPI gets its own daily series — one shared call-count spark under
+  // "Avg call time" or "Answer rate" would just be a wrong chart.
+  const spark = (value: (dayCalls: CallRow[]) => number) =>
+    dailySeries(recent, 7, toKey, value);
+  // Rates/averages are undefined (not zero) on days with no calls — plotting 0
+  // would draw fake outage dips, so those days are skipped instead.
+  const rateSpark = (value: (dayCalls: CallRow[]) => number) =>
+    dailySeries(recent, 7, toKey, (cs) => (cs.length ? value(cs) : NaN)).filter(Number.isFinite);
 
   const kpis: Kpi[] = [
     {
@@ -341,7 +445,7 @@ export async function getOverview(ownerId?: string | null): Promise<Overview> {
       value: String(recent.length),
       delta: pctDelta(recent.length, prior.length),
       goodWhen: "up",
-      spark,
+      spark: spark((cs) => cs.length),
     },
     {
       key: "avg",
@@ -349,7 +453,7 @@ export async function getOverview(ownerId?: string | null): Promise<Overview> {
       value: fmtDuration(avg(recent)),
       delta: pctDelta(avg(recent), avg(prior)),
       goodWhen: "down",
-      spark,
+      spark: rateSpark(avg),
     },
     {
       key: "answer",
@@ -357,7 +461,7 @@ export async function getOverview(ownerId?: string | null): Promise<Overview> {
       value: `${Math.round(answerRate(recent))}%`,
       delta: pctDelta(answerRate(recent), answerRate(prior)),
       goodWhen: "up",
-      spark,
+      spark: rateSpark(answerRate),
     },
     {
       key: "booked",
@@ -365,7 +469,7 @@ export async function getOverview(ownerId?: string | null): Promise<Overview> {
       value: String(booked(recent)),
       delta: pctDelta(booked(recent), booked(prior)),
       goodWhen: "up",
-      spark,
+      spark: spark(booked),
     },
   ];
 
@@ -387,6 +491,7 @@ export async function getOverview(ownerId?: string | null): Promise<Overview> {
     outcome: c.outcome ? capitalize(c.outcome) : "—",
     sentiment: (c.sentiment as Sentiment) || "neutral",
     time: relTime(c.started_at),
+    at: atFmt(c.started_at),
   }));
 
   const summaries: Summary[] = calls
@@ -398,6 +503,7 @@ export async function getOverview(ownerId?: string | null): Promise<Overview> {
         id: c.id,
         name: c.from_number || "Unknown caller",
         time: relTime(c.started_at),
+        at: atFmt(c.started_at),
         text: c.summary ?? "",
         tags: country ? [`${country.flag} ${regionName(country.iso)}`.trim()] : [],
       };
@@ -406,7 +512,7 @@ export async function getOverview(ownerId?: string | null): Promise<Overview> {
   return {
     kpis,
     callVolume: dayBuckets(calls, 14, toKey),
-    talkRatio: await talkRatio(recent.map((c) => c.id)),
+    talkRatio: ratio,
     countries: countriesFrom(recent),
     latency: latencyFrom(recent),
     monthUsage,
@@ -451,18 +557,19 @@ export async function getAssistantStats(
   days = 30,
   organizationId?: string | null,
 ): Promise<AssistantStat[]> {
-  const businessId = await ensureBusinessId();
-  let numberIds = await scopedNumberIds(ownerId);
-  if (organizationId) {
-    numberIds = intersectScope(numberIds, await organizationNumberIds(organizationId));
-  }
+  const [businessId, scope, org] = await Promise.all([
+    ensureBusinessId(),
+    ownerScope(ownerId),
+    organizationId ? organizationScope(organizationId) : null,
+  ]);
   const since = new Date();
   since.setDate(since.getDate() - days);
 
-  const [calls, meta] = await Promise.all([
-    fetchCalls(businessId, since.toISOString(), numberIds),
-    numberMeta(numberIds),
+  const [fetched, meta] = await Promise.all([
+    fetchCalls(businessId, since.toISOString(), scope),
+    numberMeta(scope?.numberIds),
   ]);
+  const calls = org ? fetched.filter(inOrganization(org)) : fetched;
   const bookedIds = await bookedCallIds(calls.map((c) => c.id));
 
   // Group on the call's own assistant_id — snapshotted at insert by the
@@ -485,9 +592,11 @@ export async function getAssistantStats(
     groups.get(id)!.calls.push(c);
   }
 
-  // Surface assistants that own a number but have no calls yet, so each shows up.
+  // Surface assistants that own a number but have no calls yet, so each shows
+  // up (restricted to the organization when that filter is active).
   for (const m of meta.values()) {
     const id = m.assistantId ?? "unassigned";
+    if (org && !(m.assistantId && org.assistantIds.has(m.assistantId))) continue;
     if (m.assistantId && !groups.has(id)) {
       groups.set(id, { name: m.assistantName || "Assistant", number: m.e164, calls: [] });
     }
@@ -538,8 +647,14 @@ async function assistantNumberIds(assistantId: string): Promise<string[]> {
   return (data ?? []).map((r) => String((r as { id: string }).id));
 }
 
-/** Active phone-number ids across every assistant in an organization. */
-async function organizationNumberIds(organizationId: string): Promise<string[]> {
+/** An organization's assistants + their active numbers, for post-filtering
+ *  calls (on the snapshot columns, same rule as the owner scope). */
+interface OrgScope {
+  assistantIds: Set<string>;
+  numberIds: Set<string>;
+}
+
+async function organizationScope(organizationId: string): Promise<OrgScope> {
   const sb = serviceClient();
   const { data: assistants, error: aErr } = await sb
     .from("assistants")
@@ -547,45 +662,48 @@ async function organizationNumberIds(organizationId: string): Promise<string[]> 
     .eq("organization_id", organizationId)
     .is("deleted_at", null);
   if (aErr) throw aErr;
-  const assistantIds = (assistants ?? []).map((a) => String((a as { id: string }).id));
-  if (assistantIds.length === 0) return [];
+  const assistantIds = new Set((assistants ?? []).map((a) => String((a as { id: string }).id)));
+  if (assistantIds.size === 0) return { assistantIds, numberIds: new Set() };
 
   const { data: numbers, error: nErr } = await sb
     .from("phone_numbers")
     .select("id")
-    .in("assistant_id", assistantIds)
+    .in("assistant_id", [...assistantIds])
     .is("deleted_at", null);
   if (nErr) throw nErr;
-  return (numbers ?? []).map((r) => String((r as { id: string }).id));
+  return {
+    assistantIds,
+    numberIds: new Set((numbers ?? []).map((r) => String((r as { id: string }).id))),
+  };
 }
 
-/** Intersect a number-id scope with an extra filter set. undefined scope (auth
- *  off) becomes the filter; otherwise keep only ids present in both. */
-function intersectScope(
-  scope: string[] | undefined,
-  filter: string[],
-): string[] {
-  return scope ? scope.filter((id) => filter.includes(id)) : filter;
-}
+const inOrganization =
+  (org: OrgScope) =>
+  (c: CallRow): boolean =>
+    (c.assistant_id !== null && org.assistantIds.has(c.assistant_id)) ||
+    (c.phone_number_id !== null && org.numberIds.has(c.phone_number_id));
 
 export async function getAnalytics(
   ownerId?: string | null,
   assistantId?: string | null,
   organizationId?: string | null,
 ): Promise<Analytics> {
-  const businessId = await ensureBusinessId();
-  // Owner scopes to all their numbers; an organization filter narrows to its
-  // assistants' numbers, intersected with the owner scope so a filter can never
-  // widen it. The assistant filter applies per call, below.
-  let numberIds = await scopedNumberIds(ownerId);
-  if (organizationId) {
-    numberIds = intersectScope(numberIds, await organizationNumberIds(organizationId));
-  }
-  const toKey = dayKeyFn(await ownerTimezone(ownerId));
+  // Owner scope matches calls on the insert-time owner/assistant snapshots (plus
+  // current numbers for legacy rows); an organization filter then narrows within
+  // that scope, so it can never widen it. The assistant filter applies per call,
+  // below.
+  const [businessId, scope, org, tz] = await Promise.all([
+    ensureBusinessId(),
+    ownerScope(ownerId),
+    organizationId ? organizationScope(organizationId) : null,
+    ownerTimezone(ownerId),
+  ]);
+  const toKey = dayKeyFn(tz);
   const now = new Date();
   const since = new Date(now);
   since.setDate(now.getDate() - 30);
-  let calls = await fetchCalls(businessId, since.toISOString(), numberIds);
+  let calls = await fetchCalls(businessId, since.toISOString(), scope);
+  if (org) calls = calls.filter(inOrganization(org));
   // Trim the rolling fetch window to whole bucket days so the volume chart
   // sums to the totals tile.
   const [y, m, d] = toKey(now).split("-").map(Number);

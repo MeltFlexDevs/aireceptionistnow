@@ -1,6 +1,7 @@
 import { getCallLog } from "@/lib/dashboard/calls";
 import { currentUserId } from "@/lib/auth";
 import { SectionCard } from "../components/SectionCard";
+import { PageHeader } from "../components/PageHeader";
 import { Phone } from "../icons";
 import { CallFilters } from "./CallFilters";
 import { CallTable } from "./CallTable";
@@ -30,12 +31,10 @@ export default async function CallsPage({ searchParams }: { searchParams: Search
   }
 
   const header = (
-    <header>
-      <h1 className="text-2xl font-medium tracking-tight text-neutral-900">Calls</h1>
-      <p className="mt-1 text-sm text-neutral-500">
-        Every incoming call, reconciled with your Twilio call logs by Call SID.
-      </p>
-    </header>
+    <PageHeader
+      title="Calls"
+      description="Every incoming call, reconciled with your Twilio call logs by Call SID."
+    />
   );
 
   if (!log) {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Logo, Grid, Phone, Bot, Building, Plug, ChartBar, Gear, Sparkle } from "../icons";
+import { Logo, Grid, Phone, Bot, Building, Plug, ChartBar, Gear, Sparkle, Hash } from "../icons";
 
 interface NavItem {
   href: string;
@@ -32,6 +32,7 @@ const groups: NavGroup[] = [
     items: [
       { href: "/dashboard/organizations", label: "Organizations", hint: "Your company & shared knowledge", Icon: Building },
       { href: "/dashboard/assistant", label: "Assistants", hint: "The AI that answers calls", Icon: Bot },
+      { href: "/dashboard/numbers", label: "Numbers", hint: "Your phone lines", Icon: Hash },
       { href: "/dashboard/integrations", label: "Integrations", hint: "Calendars, CRM & more", Icon: Plug },
     ],
   },
@@ -73,42 +74,56 @@ function NavLink({ item, active }: { item: NavItem; active: boolean }) {
   );
 }
 
-export function Sidebar() {
+export function Brand() {
+  return (
+    <Link href="/dashboard" className="flex items-center gap-2.5 px-2 text-neutral-900">
+      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-neutral-900 text-white">
+        <Logo className="h-3.5 w-3.5" />
+      </span>
+      <span className="text-[15px] font-semibold tracking-tight">AI Receptionist</span>
+    </Link>
+  );
+}
+
+// Single source of truth for the nav — rendered by both the desktop sidebar
+// and the mobile drawer.
+export function DashboardNav() {
   const pathname = usePathname();
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-neutral-200 bg-white px-4 py-5 md:flex">
-      <Link href="/dashboard" className="flex items-center gap-2.5 px-2 text-neutral-900">
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-neutral-900 text-white">
-          <Logo className="h-3.5 w-3.5" />
-        </span>
-        <span className="text-[15px] font-semibold tracking-tight">AI Receptionist</span>
-      </Link>
+    <nav className="mt-7 flex flex-1 flex-col gap-6">
+      {groups.map((group) => (
+        <div key={group.title}>
+          <span className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
+            {group.title}
+          </span>
+          <ul className="space-y-1">
+            {group.items.map((item) => (
+              <li key={item.href}>
+                <NavLink item={item} active={isActive(pathname, item.href)} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
 
-      <nav className="mt-7 flex flex-1 flex-col gap-6">
-        {groups.map((group) => (
-          <div key={group.title}>
-            <span className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
-              {group.title}
-            </span>
-            <ul className="space-y-1">
-              {group.items.map((item) => (
-                <li key={item.href}>
-                  <NavLink item={item} active={isActive(pathname, item.href)} />
-                </li>
-              ))}
-            </ul>
-          </div>
+      <ul className="mt-auto space-y-1">
+        {footer.map((item) => (
+          <li key={item.href}>
+            <NavLink item={item} active={isActive(pathname, item.href)} />
+          </li>
         ))}
+      </ul>
+    </nav>
+  );
+}
 
-        <ul className="mt-auto space-y-1">
-          {footer.map((item) => (
-            <li key={item.href}>
-              <NavLink item={item} active={isActive(pathname, item.href)} />
-            </li>
-          ))}
-        </ul>
-      </nav>
+export function Sidebar() {
+  return (
+    <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-neutral-200 bg-white px-4 py-5 md:flex">
+      <Brand />
+
+      <DashboardNav />
 
       <div className="mt-4 rounded-xl bg-gradient-to-br from-neutral-900 to-neutral-800 p-4 text-white shadow-sm">
         <div className="flex items-center gap-2 text-sm font-medium">

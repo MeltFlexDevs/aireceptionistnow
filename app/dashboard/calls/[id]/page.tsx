@@ -8,6 +8,7 @@ import { statusTone } from "../status";
 import { ActionItems } from "./ActionItems";
 import { LiveRefresh } from "./LiveRefresh";
 import { Recording } from "./Recording";
+import { ReportIssue } from "./ReportIssue";
 import { Transcript } from "./Transcript";
 
 export const dynamic = "force-dynamic";
@@ -104,7 +105,11 @@ export default async function CallDetailPage({ params }: { params: Promise<{ id:
               <Recording url={call.recordingUrl} />
             </SectionCard>
           )}
-          <SectionCard title="Transcript" subtitle={`${call.turns.length} turn${call.turns.length === 1 ? "" : "s"}`}>
+          <SectionCard
+            title="Transcript"
+            subtitle={`${call.turns.length} turn${call.turns.length === 1 ? "" : "s"}`}
+            action={<ReportIssue callId={call.id} />}
+          >
             <Transcript turns={call.turns} />
           </SectionCard>
         </div>

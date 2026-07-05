@@ -2,6 +2,8 @@ import type { Kpi } from "@/lib/dashboard/analytics";
 import { ArrowUp, ArrowDown } from "../icons";
 
 function sparkPoints(values: number[]): string {
+  // A polyline needs 2+ points; fewer would divide by zero into NaN coords.
+  if (values.length < 2) return "";
   const max = Math.max(...values);
   const min = Math.min(...values);
   const span = max - min || 1;

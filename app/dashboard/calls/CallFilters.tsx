@@ -1,8 +1,8 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
-import { Search } from "../icons";
+import { useEffect, useRef, useState, useTransition } from "react";
+import { Search, Spinner } from "../icons";
 
 interface Props {
   q: string;
@@ -22,16 +22,32 @@ export function CallFilters({ q, status }: Props) {
   const params = useSearchParams();
   const [text, setText] = useState(q);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Set when Clear empties the input so the debounce doesn't re-push q.
+  const skipDebounce = useRef(false);
+  const [isPending, startTransition] = useTransition();
 
   function setParam(key: string, value: string) {
     const next = new URLSearchParams(params.toString());
     if (value && value !== "all") next.set(key, value);
     else next.delete(key);
-    router.replace(`${pathname}?${next.toString()}`, { scroll: false });
+    startTransition(() => router.replace(`${pathname}?${next.toString()}`, { scroll: false }));
+  }
+
+  function clearFilters() {
+    if (timer.current) clearTimeout(timer.current);
+    if (text) {
+      skipDebounce.current = true;
+      setText("");
+    }
+    startTransition(() => router.replace(pathname, { scroll: false }));
   }
 
   // Debounce the free-text search so each keystroke doesn't navigate.
   useEffect(() => {
+    if (skipDebounce.current) {
+      skipDebounce.current = false;
+      return;
+    }
     if (text === q) return;
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => setParam("q", text.trim()), 300);
@@ -41,13 +57,19 @@ export function CallFilters({ q, status }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [text]);
 
+  const filtered = Boolean(q) || status !== "all";
+
   const selectClass =
     "h-10 rounded-lg border border-neutral-200 bg-white px-3 text-sm text-neutral-700 outline-none focus:border-neutral-900";
 
   return (
-    <div className="flex flex-col gap-3 sm:flex-row">
+    <div className="flex flex-col gap-3 sm:flex-row" aria-busy={isPending}>
       <div className="relative flex-1">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
+        {isPending ? (
+          <Spinner className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-neutral-400" />
+        ) : (
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
+        )}
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -62,6 +84,15 @@ export function CallFilters({ q, status }: Props) {
           </option>
         ))}
       </select>
+      {filtered && (
+        <button
+          type="button"
+          onClick={clearFilters}
+          className="h-10 self-start px-2 text-sm font-medium text-neutral-500 transition-colors hover:text-neutral-900"
+        >
+          Clear
+        </button>
+      )}
     </div>
   );
 }

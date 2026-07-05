@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Call, Sentiment } from "@/lib/dashboard/analytics";
 
 const sentimentStyle: Record<Sentiment, string> = {
@@ -27,10 +28,13 @@ export function RecentCalls({ calls }: { calls: Call[] }) {
           {calls.map((c) => (
             <tr key={c.id} className="transition-colors hover:bg-neutral-50">
               <td className="py-3 pr-4">
-                <div className="flex items-center gap-2 font-medium text-neutral-900">
+                <Link
+                  href={`/dashboard/calls/${c.id}`}
+                  className="flex items-center gap-2 font-medium text-neutral-900 hover:underline"
+                >
                   {c.flag && <span aria-hidden>{c.flag}</span>}
                   {c.number || c.name}
-                </div>
+                </Link>
               </td>
               <td className="py-3 pr-4 tabular-nums text-neutral-600">{c.duration}</td>
               <td className="py-3 pr-4">
@@ -39,7 +43,9 @@ export function RecentCalls({ calls }: { calls: Call[] }) {
                   {c.sentiment}
                 </span>
               </td>
-              <td className="py-3 text-right text-xs text-neutral-400">{c.time}</td>
+              <td className="py-3 text-right text-xs text-neutral-400" title={c.at}>
+                {c.time}
+              </td>
             </tr>
           ))}
         </tbody>

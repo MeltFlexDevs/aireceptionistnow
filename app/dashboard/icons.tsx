@@ -110,3 +110,7 @@ export const Lightbulb = ({ className = base }: IconProps) => (
 export const Check = ({ className = base }: IconProps) => (
   <Stroke className={className}><path d="M20 6 9 17l-5-5" /></Stroke>
 );
+
+export const Spinner = ({ className = base }: IconProps) => (
+  <Stroke className={className}><path d="M21 12a9 9 0 1 1-9-9" /></Stroke>
+);
