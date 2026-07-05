@@ -495,8 +495,8 @@ export default function Home() {
         paddingTop: "110px", overflow: "hidden",
       }}>
         {/* H1 — direct flex child so section's alignItems:center truly centers it */}
-        <h1 className="hero-h1" style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "min(4.3vw, 62px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#111", lineHeight: 1.06, marginTop: "56px", marginBottom: "44px", whiteSpace: "nowrap", textTransform: "uppercase", position: "relative", zIndex: 2, textAlign: "center", maxWidth: "100%" }}>
-          Let our AI take care of your calls
+        <h1 className="hero-h1" style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "min(4.6vw, 62px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#111", lineHeight: 1.06, marginTop: "56px", marginBottom: "44px", whiteSpace: "normal", textWrap: "balance", textTransform: "uppercase", position: "relative", zIndex: 2, textAlign: "center", maxWidth: "min(92vw, 900px)" }}>
+          AI Receptionist That Answers Every Call 24/7
         </h1>
 
         <VoiceOrb />

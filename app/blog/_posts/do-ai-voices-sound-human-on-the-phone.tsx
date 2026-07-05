@@ -23,7 +23,7 @@ export const meta = {
   slug: "do-ai-voices-sound-human-on-the-phone",
   title: "Do AI Voices Sound Human on the Phone? An Honest 2026 Breakdown",
   description:
-    "How human do AI voices really sound on a phone call in 2026? An honest look at the tech behind AI voice agents — latency, turn-taking, prosody — and where they still give themselves away.",
+    "How human do AI voices really sound on the phone in 2026? An honest look at latency, turn-taking, and prosody — and where they still give themselves away.",
   date: "2026-06-29",
   updated: "2026-06-29",
   readingTime: "12 min read",

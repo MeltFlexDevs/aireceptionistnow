@@ -23,7 +23,7 @@ export const meta = {
   slug: "law-firm-answering-service",
   title: "Law Firm Answering Service: Never Miss a Case",
   description:
-    "An honest guide to a law firm answering service: answer every potential client 24/7, run intake and conflict capture, book consults, and stay inside your ethics rules.",
+    "A law firm answering service that answers every potential client 24/7, runs intake and conflict capture, books consults, and respects your ethics rules.",
   date: "2026-06-30",
   updated: "2026-07-04",
   readingTime: "12 min read",

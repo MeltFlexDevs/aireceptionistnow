@@ -23,7 +23,7 @@ export const meta = {
   slug: "dental-answering-service",
   title: "Dental Answering Service: Stop Missing New Patients",
   description:
-    "An honest guide to a dental answering service: catch every new-patient and recall call, book into your practice software, triage dental emergencies, and stay HIPAA-compliant.",
+    "A dental answering service that catches every new-patient and recall call, books into your practice software, and triages emergencies — HIPAA-compliant.",
   date: "2026-06-30",
   updated: "2026-07-04",
   readingTime: "12 min read",

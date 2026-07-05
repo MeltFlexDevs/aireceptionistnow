@@ -9,6 +9,7 @@ import {
   siteKeywords,
   logoUrl,
   sameAs,
+  authors,
 } from "@/lib/site";
 
 const inter = Inter({
@@ -68,7 +69,14 @@ const orgJsonLd = {
   name: siteName,
   url: siteUrl,
   logo: { "@type": "ImageObject", url: logoUrl, width: 512, height: 512 },
+  image: logoUrl,
   description: siteDescription,
+  founder: Object.values(authors).map((a) => ({
+    "@type": "Person",
+    name: a.name,
+    jobTitle: a.role,
+    sameAs: [a.linkedin],
+  })),
   ...(sameAs.length ? { sameAs } : {}),
 };
 
