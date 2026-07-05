@@ -99,7 +99,15 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify([orgJsonLd, websiteJsonLd]),
+            // @graph form (not a bare array) so the top-level object always has
+            // an "@context". Consumers that read `data["@context"]` directly —
+            // e.g. some browser SEO/schema extensions — throw on an array
+            // (data["@context"] is undefined), and that thrown inline script can
+            // abort the page's client bootstrap. @graph keeps them happy.
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@graph": [orgJsonLd, websiteJsonLd],
+            }),
           }}
         />
         <AuthDialogProvider>{children}</AuthDialogProvider>
