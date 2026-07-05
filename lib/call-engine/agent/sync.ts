@@ -235,6 +235,12 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
   // it keeps the agent multilingual so Slovak et al. still work, spoken by the
   // base multilingual voice, instead of collapsing all the way to English-only.
   const languagePresetsPlain: Record<string, ElevenLabs.LanguagePresetOutput> = {};
+  // Presets are a sync-time snapshot: voiceForLanguage runs WITHOUT library import
+  // here (bulk path), so a language with no account voice yet gets the base voice.
+  // The per-call init webhook imports a native voice on the first caller in that
+  // language; it reaches this preset only on the NEXT re-sync (the import resets
+  // the account-voice cache — see catalog.ts). Until then a mid-call switch to
+  // that language is spoken by the base multilingual voice, which is acceptable.
   for (const l of extraLanguages) {
     const presetVoice = await voiceForLanguage(l, voiceId);
     languagePresets[l] =
@@ -427,7 +433,7 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
 // config the managed agents use fixes that at the root and makes the demo
 // reproducible instead of dashboard-dependent.
 const DEMO_GREETING =
-  "Hi there — you've reached AI Receptionist Now, the AI that answers the phone for small businesses. Ask me anything: how I work, what I can do for you, booking an appointment, whatever you like.";
+  "Hi there you've reached AI Receptionist Now, the AI that answers the phone for small businesses. Ask me anything: how I work, what I can do for you, booking an appointment, whatever you like.";
 
 function composeDemoPrompt(): string {
   return [

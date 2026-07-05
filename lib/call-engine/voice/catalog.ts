@@ -124,6 +124,11 @@ async function importSharedVoiceForLanguage(base: string, key: string): Promise<
   });
   if (!add.ok) return null;
   const added = (await add.json()) as { voice_id?: string };
+  // The account scan was cached before this import, so it doesn't include the
+  // new voice. Reset it so the next scan re-fetches — that's how a later agent
+  // sync picks up this voice for the language's preset (mid-call switch target)
+  // instead of leaving the preset on the base voice.
+  if (added.voice_id) voiceMapPromise = null;
   return added.voice_id ?? null;
 }
 
