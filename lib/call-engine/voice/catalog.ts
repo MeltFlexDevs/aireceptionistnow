@@ -60,9 +60,11 @@ function envVoiceOverrides(): Record<string, string> {
 // The account's voices grouped by the base language they're verified/labeled for,
 // fetched once from /v1/voices (best-effort, cached). This is how a language gets
 // a voice that natively fits it: add e.g. a Slovak voice from the Voice Library to
-// your account and Slovak calls pick it up automatically. Premade multilingual
-// voices carry no per-language verification, so they don't get mapped here — which
-// is correct: they're spoken by the base voice, not mistaken for native.
+// your account and Slovak calls pick it up automatically. Two priority tiers:
+// labels.language marks a voice as NATIVELY that language and always wins;
+// verified_languages is only a fallback, because premade English voices now carry
+// verified_languages too (e.g. "George" is verified for cs) and sit first in the
+// list — without the tiering they shadow the real native voices on the account.
 let voiceMapPromise: Promise<Record<string, string>> | null = null;
 
 interface RawVoice {
@@ -80,18 +82,23 @@ async function accountVoicesByLanguage(): Promise<Record<string, string>> {
     });
     if (!res.ok) return {};
     const data = (await res.json()) as { voices?: RawVoice[] };
-    const map: Record<string, string> = {};
+    // First voice seen per language wins WITHIN a tier (stable API order →
+    // deterministic); a native (labels.language) match beats any verified one.
+    const native: Record<string, string> = {};
+    const verified: Record<string, string> = {};
     for (const v of data.voices ?? []) {
       if (!v.voice_id) continue;
-      const langs = new Set<string>();
-      for (const vl of v.verified_languages ?? []) {
-        if (vl.language) langs.add(baseLanguage(vl.language));
+      if (v.labels?.language) {
+        const l = baseLanguage(v.labels.language);
+        if (!native[l]) native[l] = v.voice_id;
       }
-      if (v.labels?.language) langs.add(baseLanguage(v.labels.language));
-      // First voice seen for a language wins (stable API order → deterministic).
-      for (const l of langs) if (!map[l]) map[l] = v.voice_id;
+      for (const vl of v.verified_languages ?? []) {
+        if (!vl.language) continue;
+        const l = baseLanguage(vl.language);
+        if (!verified[l]) verified[l] = v.voice_id;
+      }
     }
-    return map;
+    return { ...verified, ...native };
   } catch {
     return {};
   }

@@ -38,15 +38,18 @@ const TURN_CONFIG: ElevenLabs.TurnConfig = {
   turnEagerness: "eager",
 };
 
-// TTS models. flash_v2_5 is multilingual (one voice speaks the caller's
-// language); flash_v2 is the English-only model. ElevenLabs enforces that an
-// agent whose only language is English uses an English v2 model — so we make the
-// agent multilingual by attaching "additional languages" (language presets),
-// which lifts that restriction and lets the multilingual model + per-caller
-// language override work. If that's ever rejected, we fall back to an
-// English-only agent so the save still succeeds.
+// TTS models. ElevenLabs picks the allowed model from the agent's BASE language
+// only — "English Agents must use turbo or flash v2" — and language presets do
+// NOT lift that restriction (verified against the live API: en base +
+// flash_v2_5 is 400-rejected with or without presets; en base + flash_v2 +
+// presets is accepted and stored). So an English-base agent uses flash_v2 even
+// when multilingual; the platform swaps to a multilingual model automatically
+// when a call runs in a preset language. A non-English base uses flash_v2_5.
 const TTS_MODEL_MULTILINGUAL = "eleven_flash_v2_5";
 const TTS_MODEL_ENGLISH = "eleven_flash_v2";
+/** The TTS model ElevenLabs will accept for a given base language. */
+const ttsModelForBase = (base: string): ElevenLabs.TtsConversationalModel =>
+  base === "en" ? TTS_MODEL_ENGLISH : TTS_MODEL_MULTILINGUAL;
 
 const DEFAULT_GREETING = "Hello, thanks for calling. How can I help?";
 // Cap how many knowledge docs we push per agent so a runaway source list can't
@@ -270,7 +273,7 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
       prompt: promptConfig,
     },
     turn: TURN_CONFIG,
-    tts: { voiceId, modelId: TTS_MODEL_MULTILINGUAL },
+    tts: { voiceId, modelId: ttsModelForBase(language) },
     languagePresets,
   };
 
@@ -511,7 +514,8 @@ export async function provisionDemoAgent(): Promise<{
       },
     },
     turn: TURN_CONFIG,
-    tts: { voiceId: DEFAULT_VOICE_ID, modelId: TTS_MODEL_MULTILINGUAL },
+    // Demo agent's base is English, so flash_v2 — see ttsModelForBase.
+    tts: { voiceId: DEFAULT_VOICE_ID, modelId: ttsModelForBase("en") },
     languagePresets,
   };
 
