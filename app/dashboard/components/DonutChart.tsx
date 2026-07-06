@@ -8,7 +8,7 @@ interface Props {
 
 export function DonutChart({ segments, centerLabel, centerSub }: Props) {
   const total = segments.reduce((sum, s) => sum + s.value, 0) || 1;
-  // Precompute each arc's running-sum offset — no reassignment during render.
+  // Precompute each arc's running-sum offset - no reassignment during render.
   const arcs: { seg: Segment; dash: number; offset: number }[] = [];
   let acc = 0;
   for (const s of segments) {

@@ -23,7 +23,7 @@ export interface AgentCallInput {
   from: string;
   to: string;
   /** Real call direction from the post-call payload (metadata.phone_call.direction).
-   *  Optional — tool webhooks don't know it — defaulting to "inbound", so outbound
+   *  Optional - tool webhooks don't know it - defaulting to "inbound", so outbound
    *  test/demo calls only get labeled once the post-call webhook lands. */
   direction?: "inbound" | "outbound";
 }
@@ -56,13 +56,13 @@ export interface CallRepository {
 
   /** Inverse of claimAgentCallCompletion: reopen the call after a post-claim
    *  failure so the webhook retry can claim it again and reprocess. Release
-   *  ONLY on failure — releasing after success would break the dedup. */
+   *  ONLY on failure - releasing after success would break the dedup. */
   releaseAgentCallCompletion(callId: string): Promise<void>;
 
   markInProgress(callId: string, streamSid: string): Promise<void>;
 
   /** Persist the full transcript in one batch, replacing any turns already
-   *  stored for the call — so a retried post-call webhook can't duplicate them. */
+   *  stored for the call - so a retried post-call webhook can't duplicate them. */
   appendTurns(callId: string, turns: TranscriptTurn[]): Promise<void>;
   finalizeCall(callId: string, input: FinalizeCallInput): Promise<void>;
   saveSummary(callId: string, summary: CallSummary): Promise<void>;

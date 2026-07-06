@@ -177,7 +177,7 @@ function dayBuckets(calls: CallRow[], days: number, toKey: (d: Date) => string):
   const [y, m, d] = toKey(new Date()).split("-").map(Number);
   const out: Bar[] = [];
   for (let i = days - 1; i >= 0; i--) {
-    // Pure calendar arithmetic on the day key — no DST edge cases.
+    // Pure calendar arithmetic on the day key - no DST edge cases.
     const day = new Date(Date.UTC(y, m - 1, d - i));
     out.push({
       label: String(day.getUTCDate()),
@@ -227,7 +227,7 @@ function capitalize(s: string): string {
 
 /** A user's stats scope. Calls are matched primarily on the insert-time
  *  owner_id / assistant_id snapshots (same rule as the call log), so history
- *  survives a number being unassigned, pooled, or deleted — scoping on the
+ *  survives a number being unassigned, pooled, or deleted - scoping on the
  *  numbers *currently* linked to the owner's assistants silently dropped all
  *  of it. The owner's assistants and current numbers only serve as fallbacks
  *  for unstamped rows (owner_id null). undefined = auth off, no scoping. */
@@ -255,7 +255,7 @@ async function ownerScope(ownerId?: string | null): Promise<CallScope | undefine
 }
 
 function scopeFilter(scope: CallScope): string {
-  // The assistant/number arms are fallbacks for unstamped rows ONLY — they must
+  // The assistant/number arms are fallbacks for unstamped rows ONLY - they must
   // not match a call another tenant owns. Numbers are pooled and recycled
   // across tenants, so an unconditioned phone_number_id arm would hand the new
   // holder the previous tenant's stamped call history (same recycled-number
@@ -345,7 +345,7 @@ async function talkRatio(callIds: string[]): Promise<Segment[]> {
     .from("call_turns")
     .select("role,text")
     .in("call_id", callIds.slice(0, 500))
-    .limit(1000); // deliberate sample (like the 500-call slice) — ratio is approximate
+    .limit(1000); // deliberate sample (like the 500-call slice) - ratio is approximate
   if (error) {
     console.warn("talkRatio: call_turns query failed, hiding the chart", error.message);
     return [];
@@ -366,7 +366,7 @@ async function talkRatio(callIds: string[]): Promise<Segment[]> {
 }
 
 // Ground truth for bookings: a completed "booking" action row (the calendar
-// event really got created), not the LLM-labeled outcome — that stays a
+// event really got created), not the LLM-labeled outcome - that stays a
 // display label only. Chunked so the id list fits in a request URL.
 async function bookedCallIds(callIds: string[]): Promise<Set<string>> {
   const out = new Set<string>();
@@ -404,7 +404,7 @@ export async function getOverview(ownerId?: string | null): Promise<Overview> {
   const calls = await fetchCalls(businessId, fetchSince.toISOString(), scope);
 
   // KPI windows are whole calendar days in the user's timezone (today-6..today
-  // vs the 7 days before), matching the sparkline buckets — a rolling cutoff
+  // vs the 7 days before), matching the sparkline buckets - a rolling cutoff
   // counted calls the sparks silently dropped, so the spark didn't sum to the
   // tile (getAnalytics trims its window the same way).
   const [y, m, d] = toKey(now).split("-").map(Number);
@@ -429,11 +429,11 @@ export async function getOverview(ownerId?: string | null): Promise<Overview> {
     cs.length ? (cs.filter((c) => c.status === "completed").length / cs.length) * 100 : 0;
   const booked = (cs: CallRow[]) => cs.filter((c) => bookedIds.has(c.id)).length;
 
-  // Each KPI gets its own daily series — one shared call-count spark under
+  // Each KPI gets its own daily series - one shared call-count spark under
   // "Avg call time" or "Answer rate" would just be a wrong chart.
   const spark = (value: (dayCalls: CallRow[]) => number) =>
     dailySeries(recent, 7, toKey, value);
-  // Rates/averages are undefined (not zero) on days with no calls — plotting 0
+  // Rates/averages are undefined (not zero) on days with no calls - plotting 0
   // would draw fake outage dips, so those days are skipped instead.
   const rateSpark = (value: (dayCalls: CallRow[]) => number) =>
     dailySeries(recent, 7, toKey, (cs) => (cs.length ? value(cs) : NaN)).filter(Number.isFinite);
@@ -488,7 +488,7 @@ export async function getOverview(ownerId?: string | null): Promise<Overview> {
     number: c.from_number || "",
     flag: countryFromPhone(c.from_number ?? "")?.flag ?? "",
     duration: fmtDuration(c.duration_seconds),
-    outcome: c.outcome ? capitalize(c.outcome) : "—",
+    outcome: c.outcome ? capitalize(c.outcome) : "-",
     sentiment: (c.sentiment as Sentiment) || "neutral",
     time: relTime(c.started_at),
     at: atFmt(c.started_at),
@@ -572,7 +572,7 @@ export async function getAssistantStats(
   const calls = org ? fetched.filter(inOrganization(org)) : fetched;
   const bookedIds = await bookedCallIds(calls.map((c) => c.id));
 
-  // Group on the call's own assistant_id — snapshotted at insert by the
+  // Group on the call's own assistant_id - snapshotted at insert by the
   // set_call_assignment trigger, so history survives number reassignment. The
   // number's current assistant only names the group and covers legacy rows.
   const byAssistant = new Map<string, { name: string; e164: string }>();

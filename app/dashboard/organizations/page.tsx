@@ -3,6 +3,7 @@ import { PageHeader } from "../components/PageHeader";
 import { ListSkeleton } from "../components/ListSkeleton";
 import { CreateOrganizationForm } from "./CreateOrganizationForm";
 import { OrganizationsList } from "./OrganizationsList";
+import { getDictionary } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
 
@@ -11,14 +12,11 @@ export default async function OrganizationsPage({
 }: {
   searchParams: Promise<{ error?: string }>;
 }) {
-  const { error } = await searchParams;
+  const [{ error }, t] = await Promise.all([searchParams, getDictionary()]);
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Organizations"
-        description="Group your assistants under one company and share knowledge across them."
-      />
+      <PageHeader title={t.organizations.title} description={t.organizations.description} />
 
       {error && (
         <div className="rise shape-pill border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm text-rose-700">
@@ -26,7 +24,7 @@ export default async function OrganizationsPage({
         </div>
       )}
 
-      {/* Create row paints immediately — no waiting on the list query. */}
+      {/* Create row paints immediately - no waiting on the list query. */}
       <section className="rise shape-card glass p-5">
         <CreateOrganizationForm />
       </section>

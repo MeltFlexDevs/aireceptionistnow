@@ -1,7 +1,7 @@
 // OAuth "Login with…" for calendar providers. The app's own OAuth client
 // credentials live in env (GOOGLE_OAUTH_*, MICROSOFT_OAUTH_*, CALENDLY_OAUTH_*);
 // the user authorizes with their own account and we store the returned tokens
-// as the integration config. Optional — when a provider's creds aren't set, the
+// as the integration config. Optional - when a provider's creds aren't set, the
 // integrations page falls back to manual credential entry.
 
 interface OAuthDef {

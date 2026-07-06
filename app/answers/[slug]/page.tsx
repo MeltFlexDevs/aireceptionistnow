@@ -214,7 +214,7 @@ export default async function AnswerPage({
           </aside>
         )}
 
-        {/* CTA funnels to the homepage — the page that ranks for "AI receptionist" */}
+        {/* CTA funnels to the homepage - the page that ranks for "AI receptionist" */}
         <div className="answer-page__cta">
           <div className="answer-page__cta-box">
             <p className="answer-page__cta-title">Hear it answer your calls</p>

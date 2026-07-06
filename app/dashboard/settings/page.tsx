@@ -11,6 +11,7 @@ import { Hint } from "../components/Hint";
 import { PlanUsage } from "../components/PlanUsage";
 import { BillingPortalButton } from "./BillingPortalButton";
 import { saveAccountAction, saveNotificationsAction } from "./actions";
+import { getDictionary } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +26,8 @@ export default async function SettingsPage({
 }: {
   searchParams: Promise<{ saved?: string; error?: string }>;
 }) {
-  const { saved, error } = await searchParams;
+  const [{ saved, error }, t] = await Promise.all([searchParams, getDictionary()]);
+  const s = t.settings;
 
   const userId = await currentUserId();
 
@@ -48,14 +50,11 @@ export default async function SettingsPage({
 
   return (
     <div className="space-y-6 rise">
-      <PageHeader
-        title="Settings"
-        description="Your account details, what your assistants know about you, notifications, and billing."
-      />
+      <PageHeader title={s.title} description={s.description} />
 
       {saved && (
         <div className="shape-pill border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm text-emerald-700">
-          Saved.
+          {t.common.saved}
         </div>
       )}
       {error && (
@@ -63,48 +62,42 @@ export default async function SettingsPage({
       )}
 
       {!userId && (
-        <Hint title="Sign in to edit your account">
-          You can view your plan below. Signing in unlocks saving your profile and notification
-          settings.
-        </Hint>
+        <Hint title={s.signInTitle}>{s.signInBody}</Hint>
       )}
 
       {/* ── Account ─────────────────────────────────────────────────────── */}
       <form action={saveAccountAction}>
-        <SectionCard
-          title="Account"
-          subtitle="Who you are. The details you choose to share are read by your assistants on calls."
-        >
+        <SectionCard title={s.account} subtitle={s.accountSub}>
           <div className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label htmlFor="full_name" className={labelCls}>Full name</label>
+                <label htmlFor="full_name" className={labelCls}>{s.fullName}</label>
                 <input id="full_name" name="full_name" defaultValue={account?.full_name ?? ""} placeholder="Jane Doe" className={field} disabled={!userId} />
               </div>
               <div>
-                <label htmlFor="email_display" className={labelCls}>Email</label>
+                <label htmlFor="email_display" className={labelCls}>{s.email}</label>
                 <input id="email_display" value={email} disabled readOnly className={`${field} bg-neutral-50 text-neutral-500`} />
               </div>
               <div>
-                <label htmlFor="company" className={labelCls}>Company</label>
+                <label htmlFor="company" className={labelCls}>{s.company}</label>
                 <input id="company" name="company" defaultValue={account?.company ?? ""} placeholder="Acme Corp" className={field} disabled={!userId} />
               </div>
               <div>
-                <label htmlFor="role" className={labelCls}>Your role</label>
+                <label htmlFor="role" className={labelCls}>{s.role}</label>
                 <input id="role" name="role" defaultValue={account?.role ?? ""} placeholder="Owner" className={field} disabled={!userId} />
               </div>
               <div>
-                <label htmlFor="phone" className={labelCls}>Phone</label>
+                <label htmlFor="phone" className={labelCls}>{s.phone}</label>
                 <input id="phone" name="phone" defaultValue={account?.phone ?? ""} placeholder="+1 415 555 0142" className={field} disabled={!userId} />
               </div>
               <div>
-                <label htmlFor="timezone" className={labelCls}>Time zone</label>
+                <label htmlFor="timezone" className={labelCls}>{s.timezone}</label>
                 <input id="timezone" name="timezone" defaultValue={account?.timezone ?? ""} placeholder="America/New_York" className={field} disabled={!userId} />
               </div>
             </div>
 
             <div>
-              <label htmlFor="about" className={labelCls}>About you</label>
+              <label htmlFor="about" className={labelCls}>{s.aboutYou}</label>
               <textarea
                 id="about"
                 name="about"
@@ -118,18 +111,15 @@ export default async function SettingsPage({
 
             <label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-neutral-200 px-4 py-3 transition-colors hover:border-neutral-300">
               <span>
-                <span className="block text-sm font-medium text-neutral-800">Share with my assistants</span>
-                <span className="block text-xs text-neutral-400">
-                  When on, your name, role, company, and the note above are added to what your
-                  assistants know about you.
-                </span>
+                <span className="block text-sm font-medium text-neutral-800">{s.shareTitle}</span>
+                <span className="block text-xs text-neutral-400">{s.shareBody}</span>
               </span>
               <input type="checkbox" name="share_with_assistants" defaultChecked={account?.share_with_assistants ?? true} className="peer sr-only" disabled={!userId} />
               <span className={toggle} />
             </label>
 
-            <SubmitButton pendingText="Saving…" disabled={!userId} className="press w-full sm:w-auto">
-              Save account
+            <SubmitButton pendingText={t.common.saving} disabled={!userId} className="press w-full sm:w-auto">
+              {s.saveAccount}
             </SubmitButton>
           </div>
         </SectionCard>
@@ -137,15 +127,12 @@ export default async function SettingsPage({
 
       {/* ── Notifications ───────────────────────────────────────────────── */}
       <form action={saveNotificationsAction}>
-        <SectionCard
-          title="Notifications"
-          subtitle="What your AI assistants send you after calls. They use your account email and phone above."
-        >
+        <SectionCard title={s.notifications} subtitle={s.notificationsSub}>
           <div className="space-y-4">
             <label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-neutral-200 px-4 py-3 transition-colors hover:border-neutral-300">
               <span>
-                <span className="block text-sm font-medium text-neutral-800">Receive email notifications</span>
-                <span className="block text-xs text-neutral-400">Call summaries from your AI assistants, by email.</span>
+                <span className="block text-sm font-medium text-neutral-800">{s.emailNotif}</span>
+                <span className="block text-xs text-neutral-400">{s.emailNotifSub}</span>
               </span>
               <input type="checkbox" name="notify_email" defaultChecked={account?.notify_email ?? true} className="peer sr-only" disabled={!userId} />
               <span className={toggle} />
@@ -153,15 +140,15 @@ export default async function SettingsPage({
 
             <label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-neutral-200 px-4 py-3 transition-colors hover:border-neutral-300">
               <span>
-                <span className="block text-sm font-medium text-neutral-800">Receive SMS notifications</span>
-                <span className="block text-xs text-neutral-400">Urgent message alerts from your AI assistants, by text.</span>
+                <span className="block text-sm font-medium text-neutral-800">{s.smsNotif}</span>
+                <span className="block text-xs text-neutral-400">{s.smsNotifSub}</span>
               </span>
               <input type="checkbox" name="notify_sms" defaultChecked={account?.notify_sms ?? false} className="peer sr-only" disabled={!userId} />
               <span className={toggle} />
             </label>
 
-            <SubmitButton pendingText="Saving…" disabled={!userId} className="press w-full sm:w-auto">
-              Save notifications
+            <SubmitButton pendingText={t.common.saving} disabled={!userId} className="press w-full sm:w-auto">
+              {s.saveNotifications}
             </SubmitButton>
           </div>
         </SectionCard>
@@ -169,17 +156,17 @@ export default async function SettingsPage({
 
       {/* ── Billing ─────────────────────────────────────────────────────── */}
       <SectionCard
-        title="Billing"
-        subtitle="Your plan and usage."
+        title={s.billing}
+        subtitle={s.billingSub}
         action={planCtx?.active ? <BillingPortalButton /> : undefined}
       >
         <div className="space-y-4">
           {planCtx && <PlanUsage ctx={planCtx} />}
           {!planCtx?.active && (
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700">
-              <span>No active subscription. Pick a plan to lift your limits.</span>
+              <span>{s.noSubscription}</span>
               <Link href="/pricing" className="font-medium text-neutral-900 underline underline-offset-2 hover:text-neutral-700">
-                View plans
+                {t.common.viewPlans}
               </Link>
             </div>
           )}

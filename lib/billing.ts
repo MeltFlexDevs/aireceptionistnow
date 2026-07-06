@@ -4,8 +4,8 @@
  * service-role key, so the browser can never grant itself a subscription or
  * tamper with its billing state.
  *
- * The user id is always derived from a trusted source — the Supabase user
- * recorded on the Stripe customer / subscription metadata — never from the
+ * The user id is always derived from a trusted source - the Supabase user
+ * recorded on the Stripe customer / subscription metadata - never from the
  * browser.
  */
 import "server-only";

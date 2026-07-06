@@ -184,7 +184,7 @@ export default function Body() {
         software) and <Strong>what they can complete</Strong> (relay a message
         vs. finish the job on the call). And for completeness: none of these
         three is an IVR, the &quot;press 1 for sales&quot; phone tree, which
-        only routes calls and handles nothing — we&apos;ve untangled{" "}
+        only routes calls and handles nothing - we&apos;ve untangled{" "}
         <Internal href="/answers/ai-receptionist-vs-ivr">
           AI receptionist vs. IVR
         </Internal>{" "}
@@ -257,7 +257,7 @@ export default function Body() {
         alt="Diagram: an incoming call is answered by the AI, which then books the appointment, qualifies the lead, or escalates to a human"
         width={1200}
         height={630}
-        caption="What the software option does with a call: answer, understand the reason, then book, qualify, or hand off to a human — the same outcomes a good front desk produces."
+        caption="What the software option does with a call: answer, understand the reason, then book, qualify, or hand off to a human - the same outcomes a good front desk produces."
       />
       <P>
         An AI receptionist is a voice agent on your phone number. It answers

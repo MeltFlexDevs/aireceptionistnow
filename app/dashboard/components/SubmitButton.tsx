@@ -56,7 +56,7 @@ export function SubmitButton({
       type="submit"
       disabled={pending || disabled}
       aria-busy={pending}
-      className={`inline-flex h-9 items-center justify-center gap-2 rounded-lg px-4 text-sm font-medium transition-colors disabled:cursor-wait disabled:opacity-70 ${VARIANTS[variant]} ${className}`}
+      className={`press inline-flex h-9 items-center justify-center gap-2 rounded-lg px-4 text-sm font-medium disabled:cursor-wait disabled:opacity-70 ${VARIANTS[variant]} ${className}`}
     >
       {pending ? <Spinner /> : icon}
       {pending ? pendingText : children}

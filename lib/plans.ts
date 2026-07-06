@@ -6,7 +6,7 @@
  * Two tiers, each billable monthly or annually. Annual is billed once per year
  * at a 15% discount (≈10.2 months for the price of 12). The per-plan Stripe
  * Price ids come from the environment so the same code runs against test prices
- * locally and live prices in production — create them once with
+ * locally and live prices in production - create them once with
  * `node scripts/setup-stripe.mjs` and paste the ids into the env.
  */
 export type PlanId = "solo" | "team";
@@ -26,13 +26,13 @@ export function annualAmountCents(monthlyCents: number): number {
  * for and the quotas the app enforces can never drift apart. `Infinity` means no
  * cap. Used by lib/dashboard/plan.ts and the create/assign server actions.
  *
- * ponytail: only phoneNumbers (and assistants, trivially — Infinity) are
+ * ponytail: only phoneNumbers (and assistants, trivially - Infinity) are
  * enforced today, via canAssignNumber on every number-acquisition path.
  * minutesIncluded / concurrentCalls are display-only: nothing sums
  * calls.duration_seconds against the plan and no Stripe metered item bills the
  * "€0.09 per extra minute" overage. Enforcing means metering the owner's
  * minutes per billing period (anchored on user_billing) in the post-call
- * webhook and reporting overage to a Stripe metered subscription item —
+ * webhook and reporting overage to a Stripe metered subscription item -
  * whether to also block calls at the cap is a product decision, not a bug fix.
  * contacts has no backing feature/table at all yet.
  */
@@ -81,7 +81,7 @@ export const PLANS: Plan[] = [
   {
     id: "solo",
     name: "Solo",
-    tagline: "Suitable for 1–20 calls/day",
+    tagline: "Suitable for 1-20 calls/day",
     monthlyAmountCents: 9900,
     currency: "eur",
     limits: {
@@ -94,10 +94,10 @@ export const PLANS: Plan[] = [
     },
     highlight: false,
     included: [
-      "1000 minutes — €0.09 per extra minute",
+      "1000 minutes - €0.09 per extra minute",
       "1,000 contacts",
       "No parallel calls",
-      "1 phone number — €7/mo per additional",
+      "1 phone number - €7/mo per additional",
       "Assistants",
       "1 user",
     ],
@@ -110,7 +110,7 @@ export const PLANS: Plan[] = [
   {
     id: "team",
     name: "Team",
-    tagline: "Suitable for 20–100 calls/day",
+    tagline: "Suitable for 20-100 calls/day",
     monthlyAmountCents: 29900,
     currency: "eur",
     limits: {
@@ -123,10 +123,10 @@ export const PLANS: Plan[] = [
     },
     highlight: true,
     included: [
-      "3000 minutes — €0.09 per extra minute",
+      "3000 minutes - €0.09 per extra minute",
       "3,000 contacts",
       "3 concurrent calls",
-      "3 phone numbers — €7/mo per additional",
+      "3 phone numbers - €7/mo per additional",
       "Assistants",
       "Users",
     ],

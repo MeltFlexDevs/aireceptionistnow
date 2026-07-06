@@ -2,7 +2,7 @@ export const siteUrl = "https://aireceptionistnow.com";
 
 export const siteName = "AI Receptionist Now";
 
-/** Default meta description — keyword-rich, ~155 chars, used site-wide. */
+/** Default meta description - keyword-rich, ~155 chars, used site-wide. */
 export const siteDescription =
   "AI Receptionist Now answers your business calls 24/7, books appointments, captures leads, and texts you a summary. No code, live in 10 minutes.";
 

@@ -1,15 +1,25 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { loadVoices } from "./voiceActions";
+import { loadVoices, loadLibraryVoices } from "./voiceActions";
 import { FALLBACK_VOICES, type VoiceOption } from "./voices";
 
 interface Props {
   name?: string;
   defaultValue?: string;
+  /** Trigger text when nothing is selected. Defaults to "Select a voice". */
+  placeholder?: string;
+  /** When set, only voices labeled/verified for this language are listed (e.g.
+   *  "sk" shows only Slovak-capable voices). */
+  language?: string;
 }
 
-export function VoiceSelect({ name = "voice_id", defaultValue = "" }: Props) {
+export function VoiceSelect({
+  name = "voice_id",
+  defaultValue = "",
+  placeholder = "Select a voice",
+  language = "",
+}: Props) {
   const [selected, setSelected] = useState(defaultValue);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -36,24 +46,34 @@ export function VoiceSelect({ name = "voice_id", defaultValue = "" }: Props) {
   useEffect(() => {
     if (voices !== null) return;
     // Load when the dropdown opens, or on mount when a voice is already set - so
-    // the trigger shows its name instead of the raw voice ID.
+    // the trigger shows its name instead of the raw voice ID. In language mode we
+    // pull that language's voices from the ElevenLabs library (no English
+    // fallback - an empty result should read as "none for this language yet").
     if (!open && !selected) return;
-    loadVoices()
-      .then((list) => setVoices(list.length > 0 ? list : FALLBACK_VOICES))
-      .catch(() => setVoices(FALLBACK_VOICES));
-  }, [open, voices, selected]);
+    const load = language ? loadLibraryVoices(language) : loadVoices();
+    const empty = language ? [] : FALLBACK_VOICES;
+    load
+      .then((list) => setVoices(list.length > 0 ? list : empty))
+      .catch(() => setVoices(empty));
+  }, [open, voices, selected, language]);
 
   const voiceList = voices ?? [];
   const current = voiceList.find((v) => v.voiceId === selected);
+  // Restrict to voices that can speak the chosen language before searching. The
+  // selected voice still resolves its name from the full list above.
+  const langBase = language.split("-")[0].toLowerCase();
+  const inLanguage = langBase
+    ? voiceList.filter((v) => v.languages?.includes(langBase))
+    : voiceList;
   const q = query.trim().toLowerCase();
   const filtered = q
-    ? voiceList.filter(
+    ? inLanguage.filter(
         (v) =>
           v.name.toLowerCase().includes(q) ||
           (v.description ?? "").toLowerCase().includes(q) ||
           v.voiceId.toLowerCase().includes(q),
       )
-    : voiceList;
+    : inLanguage;
 
   function stopAudio() {
     audioRef.current?.pause();
@@ -95,7 +115,7 @@ export function VoiceSelect({ name = "voice_id", defaultValue = "" }: Props) {
         className="flex w-full items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition-colors hover:border-neutral-300 focus:border-neutral-900"
       >
         <span className="truncate">
-          {current ? current.name : loading ? "Loading…" : selected ? "Custom voice" : "Select a voice"}
+          {current ? current.name : loading ? "Loading…" : selected ? "Custom voice" : placeholder}
           {current?.description ? <span className="ml-2 text-xs text-neutral-400">{current.description}</span> : null}
         </span>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-neutral-400">
@@ -126,7 +146,11 @@ export function VoiceSelect({ name = "voice_id", defaultValue = "" }: Props) {
             {loading ? (
               <li className="px-3 py-3 text-sm text-neutral-400">Loading voices…</li>
             ) : filtered.length === 0 ? (
-              <li className="px-3 py-3 text-sm text-neutral-400">No voices found</li>
+              <li className="px-3 py-3 text-sm text-neutral-400">
+                {langBase && !q
+                  ? "No voices for this language on your account yet - paste a voice ID below."
+                  : "No voices found"}
+              </li>
             ) : (
               filtered.map((v) => (
                 <li key={v.voiceId} role="option" aria-selected={v.voiceId === selected}>

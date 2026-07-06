@@ -7,7 +7,7 @@ import { publicSupabaseEnv } from "./config";
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
-  // Auth not configured yet — let everything through so the app still serves.
+  // Auth not configured yet - let everything through so the app still serves.
   const env = publicSupabaseEnv();
   if (!env) return supabaseResponse;
 

@@ -5,7 +5,7 @@ import { DEFAULT_VOICE_ID } from "../call-engine/voice/catalog";
 
 // Dashboard data access. Intentionally separate from the call engine's
 // repository: managing phone numbers only needs Supabase, not the full set of
-// telephony/LLM/voice secrets the engine's getEnv() demands. Server-side only —
+// telephony/LLM/voice secrets the engine's getEnv() demands. Server-side only -
 // uses the service-role key (RLS is added with auth later).
 
 let client: SupabaseClient | null = null;
@@ -28,8 +28,8 @@ function db(): SupabaseClient {
 /**
  * True for PostgREST's "column not in the schema cache" error (code PGRST204),
  * i.e. writing a column the connected database doesn't have yet. Used to survive
- * schema drift — a DB that hasn't applied migration 0004/0005 (the ElevenLabs
- * agent/tool/phone-id columns) — instead of hard-failing the flow. Same spirit as
+ * schema drift - a DB that hasn't applied migration 0004/0005 (the ElevenLabs
+ * agent/tool/phone-id columns) - instead of hard-failing the flow. Same spirit as
  * migration 0003's drift fix.
  */
 function isMissingColumnError(error: unknown): boolean {
@@ -148,14 +148,14 @@ export interface Integration {
   enabled: boolean;
   created_at: string;
   /** The user who connected it (null on single-tenant-era rows). Scopes who may
-   *  see/use/disconnect the integration — its config holds OAuth tokens.
+   *  see/use/disconnect the integration - its config holds OAuth tokens.
    *  Requires migration 0008. */
   owner_id?: string | null;
 }
 
 /**
  * Integrations, scoped to an owner when one is passed (same contract as
- * listAssistants — pass currentUserId(); null/undefined skips scoping for
+ * listAssistants - pass currentUserId(); null/undefined skips scoping for
  * auth-off single-tenant deploys). An integration's config carries calendar
  * OAuth tokens, so an unscoped list would let one tenant see, book into, and
  * disconnect another tenant's calendar.
@@ -172,7 +172,7 @@ export async function listIntegrations(ownerId?: string | null): Promise<Integra
   return (data ?? []) as Integration[];
 }
 
-/** Connect (or re-connect) a calendar provider — one row per provider PER
+/** Connect (or re-connect) a calendar provider - one row per provider PER
  *  OWNER. Pass the connecting user (currentUserId()) so one tenant reconnecting
  *  a provider can't overwrite another tenant's stored tokens; a legacy unowned
  *  row for the provider is claimed (stamped) rather than duplicated. */
@@ -222,12 +222,12 @@ export async function upsertCalendarIntegration(
 }
 
 /** Delete an integration. When an ownerId is passed (auth on), only the
- *  caller's own — or a legacy unowned — row matches, so one tenant can't
+ *  caller's own - or a legacy unowned - row matches, so one tenant can't
  *  disconnect another's calendar (same unowned-allowed rule as
  *  requireAssistantOwner). */
 export async function deleteIntegration(id: string, ownerId?: string | null): Promise<void> {
   // Fail closed: with auth on, an owner is required so no future unscoped caller
-  // can delete another tenant's integration by id (defense-in-depth — the only
+  // can delete another tenant's integration by id (defense-in-depth - the only
   // caller today, disconnectCalendarAction, is already behind the auth proxy).
   if (authConfigured() && !ownerId) throw new Error("Not signed in.");
   let query = db().from("integrations").delete().eq("id", id);
@@ -391,11 +391,11 @@ export async function setAssistantAgent(
     if (!isMissingColumnError(error)) throw error;
     // Schema drift: the DB is missing elevenlabs_kb/elevenlabs_tools (migration
     // 0005 not applied). Don't fail the whole "Get number"/save flow over the
-    // tracking columns — persist elevenlabs_agent_id alone (that one matters most:
+    // tracking columns - persist elevenlabs_agent_id alone (that one matters most:
     // without it every sync would create a duplicate ElevenLabs agent). KB/tool
     // cleanup stays disabled until the migration is applied.
     console.warn(
-      "[db] assistants is missing elevenlabs_kb/elevenlabs_tools — apply migration 0005 for full tool/KB cleanup. Persisting agent id only for now.",
+      "[db] assistants is missing elevenlabs_kb/elevenlabs_tools - apply migration 0005 for full tool/KB cleanup. Persisting agent id only for now.",
     );
     const { error: agentOnly } = await db()
       .from("assistants")
@@ -479,7 +479,7 @@ export async function getAssistantNumber(
  * Claim the first free pooled number for an assistant. "Free" = active, enabled,
  * backed by a real Twilio number, and not yet linked to any assistant. The update
  * is guarded by `assistant_id IS NULL` so two concurrent creates can't grab the
- * same row — the loser's update matches zero rows and we try the next candidate.
+ * same row - the loser's update matches zero rows and we try the next candidate.
  * Returns the claimed number, or null when the pool has none free.
  */
 export async function claimFreeNumber(
@@ -510,7 +510,7 @@ export async function claimFreeNumber(
   return null;
 }
 
-/** Active Twilio-backed numbers not yet imported into ElevenLabs — the setup
+/** Active Twilio-backed numbers not yet imported into ElevenLabs - the setup
  *  endpoint sweeps these, imports each, and backfills the ElevenLabs id. */
 export async function listNumbersMissingElevenLabsId(): Promise<
   { id: string; e164: string }[]
@@ -525,7 +525,7 @@ export async function listNumbersMissingElevenLabsId(): Promise<
   return (data ?? []).map((r) => ({ id: String(r.id), e164: String(r.e164) }));
 }
 
-/** Free pool numbers already imported into ElevenLabs — usable as the outbound
+/** Free pool numbers already imported into ElevenLabs - usable as the outbound
  *  caller ID for the public demo call (free = not linked to any assistant, so a
  *  customer's number is never used as the demo's caller ID). */
 export async function listImportedFreeNumbers(): Promise<PhoneNumber[]> {
@@ -592,11 +592,11 @@ export async function setNumberElevenLabsId(
   if (!error) return;
   // Schema drift: phone_numbers.elevenlabs_phone_number_id (migration 0005) not
   // applied. This id is only a cache to skip re-scanning ElevenLabs on the next
-  // route, so skip persisting it rather than failing "Get number" — the connect
+  // route, so skip persisting it rather than failing "Get number" - the connect
   // still succeeded; a later reassign just re-looks-up the id.
   if (isMissingColumnError(error)) {
     console.warn(
-      "[db] phone_numbers.elevenlabs_phone_number_id missing — apply migration 0005; skipping (ElevenLabs id will be re-scanned when needed).",
+      "[db] phone_numbers.elevenlabs_phone_number_id missing - apply migration 0005; skipping (ElevenLabs id will be re-scanned when needed).",
     );
     return;
   }

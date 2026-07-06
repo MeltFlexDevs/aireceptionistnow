@@ -3,7 +3,7 @@ import { isSafeHttpsUrl } from "../../net/safe-url";
 import type { CallSummary, TranscriptTurn } from "../types";
 
 // Optional per-assistant CRM/ERP push. After a call wraps up, POST the call
-// record (summary + transcript) to a URL the user configures — Salesforce/
+// record (summary + transcript) to a URL the user configures - Salesforce/
 // HubSpot via a middleware, an ERP intake endpoint, Zapier, Make, n8n, or a
 // custom webhook. Generic on purpose: one JSON contract drives any system.
 

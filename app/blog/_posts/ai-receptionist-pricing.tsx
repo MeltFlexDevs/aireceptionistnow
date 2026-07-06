@@ -258,13 +258,13 @@ export default function Body() {
           ],
           [
             "Live virtual answering service",
-            "~$1–$3.50/min, or a few hundred to $1,000+/mo",
+            "~$1-$3.50/min, or a few hundred to $1,000+/mo",
             "Often extended hours; humans on the line",
             "High-touch calls, lower volume",
           ],
           [
             "AI receptionist",
-            "~$30–$300/mo flat",
+            "~$30-$300/mo flat",
             "24/7, unlimited parallel calls",
             "Routine intake, booking, overflow, after-hours",
           ],
@@ -350,7 +350,7 @@ export default function Body() {
         <LI>
           <Strong>Apply a conservative conversion rate.</Strong> Of those missed
           callers, how many would have become customers if someone had picked up?
-          Even 10–20% is often realistic, especially for{" "}
+          Even 10-20% is often realistic, especially for{" "}
           <Ext href="https://hbr.org/2011/03/the-short-life-of-online-sales-leads">
             time-sensitive leads
           </Ext>
@@ -365,7 +365,7 @@ export default function Body() {
           <Strong>Compare to the all-in monthly fee.</Strong> For most service
           businesses, recovering a single missed job a month covers the entire
           cost several times over. The math is starkest in the trades, where one
-          replacement job runs into the thousands — we walk through it in our{" "}
+          replacement job runs into the thousands - we walk through it in our{" "}
           <Internal href="/blog/ai-receptionist-for-home-services">
             home services guide
           </Internal>

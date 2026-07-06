@@ -60,7 +60,7 @@ export const createOutlookCalendar: CalendarFactory = (config): CalendarProvider
 
   return {
     async createEvent(req): Promise<BookingResult> {
-      // Fail out loud on an unparseable time — booking a wrong instant is worse
+      // Fail out loud on an unparseable time - booking a wrong instant is worse
       // than telling the caller we couldn't.
       if (!Number.isFinite(Date.parse(req.startTime)) || !Number.isFinite(Date.parse(req.endTime))) {
         return { ok: false, error: "invalid start/end time" };

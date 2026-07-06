@@ -134,15 +134,15 @@ const reviews = [
 const faqs = [
   {
     q: "What is an AI receptionist?",
-    a: "An AI receptionist is a virtual phone assistant that answers your business calls automatically, 24/7. It greets callers in a natural voice, answers questions, qualifies leads, books appointments, and sends you a summary of every call — so you never miss a customer, even after hours or during busy periods.",
+    a: "An AI receptionist is a virtual phone assistant that answers your business calls automatically, 24/7. It greets callers in a natural voice, answers questions, qualifies leads, books appointments, and sends you a summary of every call - so you never miss a customer, even after hours or during busy periods.",
   },
   {
     q: "How does an AI phone answering service work?",
-    a: "AI Receptionist connects to a dedicated phone number or your existing business line. When someone calls, the AI picks up instantly, holds a natural conversation, and follows the instructions you set up — answering FAQs, capturing caller details, routing the call, or scheduling appointments directly into your calendar. You get a transcript and summary by email or text after each call.",
+    a: "AI Receptionist connects to a dedicated phone number or your existing business line. When someone calls, the AI picks up instantly, holds a natural conversation, and follows the instructions you set up - answering FAQs, capturing caller details, routing the call, or scheduling appointments directly into your calendar. You get a transcript and summary by email or text after each call.",
   },
   {
     q: "Can the AI receptionist answer calls 24/7?",
-    a: "Yes. AI Receptionist answers every call around the clock — nights, weekends, holidays, and during call overflow — with no hold times and no voicemail. Businesses that switch typically stop losing leads to missed and after-hours calls within the first week.",
+    a: "Yes. AI Receptionist answers every call around the clock - nights, weekends, holidays, and during call overflow - with no hold times and no voicemail. Businesses that switch typically stop losing leads to missed and after-hours calls within the first week.",
   },
   {
     q: "How quickly can I set up AI Receptionist?",
@@ -150,7 +150,7 @@ const faqs = [
   },
   {
     q: "Will callers know they're talking to an AI?",
-    a: "The AI sounds natural and conversational, and many callers can't tell the difference. You stay in control: you can have the AI introduce itself as a virtual assistant or keep the experience seamless — whatever fits your brand.",
+    a: "The AI sounds natural and conversational, and many callers can't tell the difference. You stay in control: you can have the AI introduce itself as a virtual assistant or keep the experience seamless - whatever fits your brand.",
   },
   {
     q: "Can it book appointments and integrate with my calendar and CRM?",
@@ -158,7 +158,7 @@ const faqs = [
   },
   {
     q: "What languages does the AI receptionist support?",
-    a: "The AI handles calls in 30+ languages and can switch languages mid-conversation based on the caller — ideal for businesses that serve multilingual customers and want every caller to feel understood.",
+    a: "The AI handles calls in 30+ languages and can switch languages mid-conversation based on the caller - ideal for businesses that serve multilingual customers and want every caller to feel understood.",
   },
   {
     q: "What happens if the AI can't handle a call?",
@@ -166,7 +166,7 @@ const faqs = [
   },
   {
     q: "How much does an AI receptionist cost?",
-    a: "You can start for free and only upgrade when you need more calls or features. An AI receptionist costs a fraction of hiring front-desk staff or an answering service, while answering every call 24/7 — most businesses recover the cost from the extra booked jobs and recovered missed calls.",
+    a: "You can start for free and only upgrade when you need more calls or features. An AI receptionist costs a fraction of hiring front-desk staff or an answering service, while answering every call 24/7 - most businesses recover the cost from the extra booked jobs and recovered missed calls.",
   },
   {
     q: "Is my data secure?",
@@ -184,7 +184,7 @@ export default function Home() {
 
   async function placeTestCall() {
     // Europeans habitually type the national trunk "0" (0912…, 07911…) which
-    // would dial a nonexistent number in E.164 — strip it. Italy is the
+    // would dial a nonexistent number in E.164 - strip it. Italy is the
     // exception: its leading 0 is a real part of the international number.
     const digits = phone.replace(/[^\d]/g, "");
     const national = dialCode === "+39" ? digits : digits.replace(/^0+/, "");
@@ -278,7 +278,7 @@ export default function Home() {
           font-family: var(--font-inter), Inter, sans-serif;
           margin: 0;
         }
-        /* How it works — Fonio 1:1 (exact CSS, our font) */
+        /* How it works - Fonio 1:1 (exact CSS, our font) */
         .hiw-vars {
           --hiw-secondary-text: #555b6e;
           --hiw-primary-text: #0f0f16;
@@ -494,7 +494,7 @@ export default function Home() {
         display: "flex", flexDirection: "column", alignItems: "center",
         paddingTop: "110px", overflow: "hidden",
       }}>
-        {/* H1 — direct flex child so section's alignItems:center truly centers it */}
+        {/* H1 - direct flex child so section's alignItems:center truly centers it */}
         <h1 className="hero-h1" style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "min(4.6vw, 62px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#111", lineHeight: 1.06, marginTop: "56px", marginBottom: "44px", whiteSpace: "normal", textWrap: "balance", textTransform: "uppercase", position: "relative", zIndex: 2, textAlign: "center", maxWidth: "min(92vw, 900px)" }}>
           AI Receptionist That Answers Every Call 24/7
         </h1>
@@ -654,7 +654,7 @@ export default function Home() {
         <div className="container">
           <div className="section-header align-center width-40rem">
             <h2 className="h2">Ready to go in under 10 minutes.</h2>
-            <p>Anyone can get AI Receptionist up and running—no coding skills required.</p>
+            <p>Anyone can get AI Receptionist up and running-no coding skills required.</p>
           </div>
           <div className="_4rem-margin-top">
             <div className="grid_3col">
@@ -739,7 +739,7 @@ export default function Home() {
               { icon: "transcript", title: "Call Transcription", desc: "Collects inquiries, transcribes them, and sends you a summary by email.", link: true },
               { icon: "headset", title: "Customer Service", desc: "Handles customer inquiries around the clock with precisely defined behavior.", link: true },
               { icon: "calendar", title: "Appointment Booking", desc: "Schedules appointments during the conversation with instant confirmation.", link: true },
-              { icon: "package", title: "Order Processing", desc: "Fast 24/7 automated request handling — no waiting, no missed orders.", link: true },
+              { icon: "package", title: "Order Processing", desc: "Fast 24/7 automated request handling - no waiting, no missed orders.", link: true },
               { icon: "grid", title: "50+ More Options", desc: "Every business is different. Configure the AI to match your exact workflow.", link: false },
             ].map((uc, i) => (
               <div key={i} style={{ background: "transparent", padding: "8px 4px", transition: "opacity 0.2s", cursor: uc.link ? "pointer" : "default" }}

@@ -189,7 +189,7 @@ export default function Body() {
         caption="The honest baseline for most small businesses isn't a perfectly staffed desk. It's this: hands full, phone ringing, lead gone. That's the call you're shopping to recover."
       />
       <P>
-        If that photo is your business — plumbing, electrical, HVAC, cleaning —
+        If that photo is your business - plumbing, electrical, HVAC, cleaning -
         we&apos;ve written a dedicated guide to the{" "}
         <Internal href="/blog/ai-receptionist-for-home-services">
           AI receptionist for home services
@@ -472,7 +472,7 @@ export default function Body() {
         <Internal href="/blog/ai-receptionist-prompts">
           AI receptionist prompts and templates
         </Internal>{" "}
-        first — they&apos;re the standard we&apos;d hold any vendor to,
+        first - they&apos;re the standard we&apos;d hold any vendor to,
         including ourselves.
       </P>
 

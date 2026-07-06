@@ -29,7 +29,7 @@ export function NotificationsBell() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  // Fetch the feed, restoring the persisted "last seen" in the same callback —
+  // Fetch the feed, restoring the persisted "last seen" in the same callback -
   // one render for both, and no synchronous setState in the effect body.
   useEffect(() => {
     const controller = new AbortController();

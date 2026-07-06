@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 
 /** Base URL to send the customer back to, preferring the real request origin
  *  (so previews and localhost work) and falling back to the configured site
- *  (APP_BASE_URL — the canonical base URL the rest of the app uses). */
+ *  (APP_BASE_URL - the canonical base URL the rest of the app uses). */
 function baseUrl(req: Request): string {
   return (
     req.headers.get("origin") ||
@@ -102,7 +102,7 @@ export async function POST(req: Request) {
     try {
       session = await createSession(customerId);
     } catch (err) {
-      // The stored customer can be stale — e.g. it belongs to the other Stripe
+      // The stored customer can be stale - e.g. it belongs to the other Stripe
       // mode (test vs live) or was deleted. Create a fresh one and retry once.
       const code = (err as { code?: string })?.code;
       if (code === "resource_missing") {

@@ -26,7 +26,7 @@ export async function POST(req: Request): Promise<Response> {
 
   try {
     const result = await configureWorkspaceWebhooks();
-    // Best-effort: a demo agent misconfig shouldn't fail the workspace wiring —
+    // Best-effort: a demo agent misconfig shouldn't fail the workspace wiring -
     // placeAgentCall degrades gracefully anyway (retries without the override).
     const demoAgent = await provisionDemoAgent().catch((err) => {
       console.warn("[agent/setup] demo agent provisioning failed", err);

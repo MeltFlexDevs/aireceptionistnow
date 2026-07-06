@@ -22,12 +22,12 @@ export async function parsePdfMarkdown(bytes: Uint8Array): Promise<PdfResult> {
     const result = await extractText(pdf, { mergePages: true });
     text = Array.isArray(result.text) ? result.text.join("\n\n") : result.text;
   } catch {
-    throw new Error("Couldn't read that PDF — it may be scanned images or corrupted.");
+    throw new Error("Couldn't read that PDF - it may be scanned images or corrupted.");
   }
 
   // Normalize PDF text into clean Markdown prose. PDF extraction emits a hard
   // line break at every visual line, hyphenates words split across lines, and
-  // scatters runs of spaces — all of which read badly in the system prompt.
+  // scatters runs of spaces - all of which read badly in the system prompt.
   const cleaned = text
     .replace(/\r\n?/g, "\n") // normalize line endings
     .replace(/[ \t]+/g, " ") // collapse runs of spaces
@@ -38,7 +38,7 @@ export async function parsePdfMarkdown(bytes: Uint8Array): Promise<PdfResult> {
     .trim();
 
   if (!cleaned) {
-    throw new Error("No selectable text found — this looks like a scanned PDF.");
+    throw new Error("No selectable text found - this looks like a scanned PDF.");
   }
 
   const markdown = truncate(cleaned, MAX_SOURCE_CHARS);

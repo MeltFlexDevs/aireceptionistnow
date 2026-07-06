@@ -5,6 +5,8 @@ import { Topbar } from "./components/Topbar";
 import { createClient } from "@/lib/supabase/server";
 import { authConfigured } from "@/lib/supabase/config";
 import { toAppUser, type AppUser } from "@/lib/auth-user";
+import { I18nProvider } from "@/lib/i18n/client";
+import { getDictionary, getLocale } from "@/lib/i18n/server";
 
 export const metadata: Metadata = {
   title: "Dashboard - AI Receptionist",
@@ -29,15 +31,19 @@ export default async function DashboardLayout({ children }: { children: React.Re
     user = toAppUser(claims);
   }
 
+  const [dict, locale] = await Promise.all([getDictionary(), getLocale()]);
+
   return (
-    <div className="dash-bg flex min-h-screen text-neutral-900">
-      <Sidebar />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <Topbar user={user} />
-        <main className="flex-1 px-4 py-6 lg:px-8 lg:py-8">
-          <div className="mx-auto w-full max-w-7xl">{children}</div>
-        </main>
+    <I18nProvider value={{ t: dict, locale }}>
+      <div className="dash-bg flex min-h-screen text-neutral-900">
+        <Sidebar />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <Topbar user={user} />
+          <main className="flex-1 px-4 py-6 lg:px-8 lg:py-8">
+            <div className="mx-auto w-full max-w-7xl">{children}</div>
+          </main>
+        </div>
       </div>
-    </div>
+    </I18nProvider>
   );
 }

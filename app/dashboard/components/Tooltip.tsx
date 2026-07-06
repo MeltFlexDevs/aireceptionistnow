@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-// CSS-only hover/focus tooltip — no JS, no deps, safe in server components. Wrap
+// CSS-only hover/focus tooltip - no JS, no deps, safe in server components. Wrap
 // any trigger (an icon, an input adornment, a label) and pass the explanatory
 // copy as `label`. It shows on pointer hover and keyboard focus; the native
 // `title` is a fallback for touch and assistive tech.

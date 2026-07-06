@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { listAssistants, listNumbers, type Assistant } from "@/lib/dashboard/db";
 import { formatPhone } from "@/lib/call-engine/voice/phone-language";
@@ -5,6 +6,7 @@ import { currentUserId } from "@/lib/auth";
 import { Bot, ChevronDown, Phone } from "../icons";
 import { Tooltip } from "../components/Tooltip";
 import { EnabledToggle } from "./EnabledToggle";
+import { getDictionary } from "@/lib/i18n/server";
 
 const LANGUAGE_LABELS: Record<string, string> = {
   en: "English",
@@ -19,17 +21,17 @@ function languageLabel(code: string): string {
   return LANGUAGE_LABELS[code] ?? code.toUpperCase();
 }
 
-const STEPS = [
-  { n: 1, title: "Name it", body: "Call it something like Front desk." },
-  { n: 2, title: "Give it a number", body: "Get a number so it can take calls." },
-  { n: 3, title: "Go live", body: "It greets callers in their language." },
-];
-
 // Async server component: streams below the (instantly drawn) page header and
 // create form. The parent <Suspense> waits on this fetch, so the create UI is
 // interactive while these rows load in the background.
 export async function AssistantsList() {
   const ownerId = await currentUserId();
+  const L = (await getDictionary()).assistants;
+  const steps = [
+    { n: 1, title: L.step1Title, body: L.step1Body },
+    { n: 2, title: L.step2Title, body: L.step2Body },
+    { n: 3, title: L.step3Title, body: L.step3Body },
+  ];
 
   let assistants: Assistant[] = [];
   let loadError = "";
@@ -57,17 +59,14 @@ export async function AssistantsList() {
           </span>
           <div>
             <h2 className="text-lg font-semibold tracking-tight text-neutral-900">
-              Create your first assistant
+              {L.createTitle}
             </h2>
-            <p className="mt-1 max-w-lg text-sm text-neutral-500">
-              An assistant is the AI voice that answers a phone number. Name it in the form above,
-              give it a number, and it starts taking calls.
-            </p>
+            <p className="mt-1 max-w-lg text-sm text-neutral-500">{L.createBody}</p>
           </div>
         </div>
 
         <ol className="mt-6 grid gap-3 sm:grid-cols-3">
-          {STEPS.map((s) => (
+          {steps.map((s) => (
             <li key={s.n} className="rounded-xl border border-neutral-200/70 bg-white/60 p-4">
               <span className="flex h-6 w-6 items-center justify-center rounded-full bg-neutral-900 text-xs font-semibold text-white">
                 {s.n}
@@ -95,20 +94,21 @@ export async function AssistantsList() {
     <section className="space-y-3">
       <div className="flex items-center gap-2 px-1">
         <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-400">
-          Your assistants
+          {L.yourAssistants}
         </h2>
         <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600">
           {assistants.length}
         </span>
       </div>
 
-      <div className="shape-card glass divide-y divide-neutral-200/60 overflow-hidden">
-        {assistants.map((a) => {
+      <div className="rise-stagger shape-card glass divide-y divide-neutral-200/60 overflow-hidden">
+        {assistants.map((a, i) => {
           const number = numberByAssistant.get(a.id);
           return (
             <div
               key={a.id}
-              className="group relative flex items-center gap-4 px-4 py-4 transition-colors hover:bg-white/70 sm:px-5"
+              style={{ "--i": i } as CSSProperties}
+              className="group lift press relative flex items-center gap-4 px-4 py-4 hover:bg-white/70 sm:px-5"
             >
               {/* Stretched link makes the whole row open the assistant; the
                   toggle sits above it (z-10) so it stays clickable. */}
@@ -138,7 +138,7 @@ export async function AssistantsList() {
                   label={
                     number
                       ? "The phone number callers dial to reach this assistant."
-                      : "No number yet — open the assistant to get one so it can take calls."
+                      : "No number yet - open the assistant to get one so it can take calls."
                   }
                   className={`hidden text-xs sm:inline-flex ${
                     number ? "font-medium text-neutral-700" : "text-neutral-400"
@@ -146,7 +146,7 @@ export async function AssistantsList() {
                 >
                   <span className="inline-flex min-w-0 items-center gap-1.5">
                     <Phone className="h-3.5 w-3.5 shrink-0 text-neutral-400" />
-                    <span className="truncate font-mono tracking-tight">{number ? formatPhone(number) : "No number"}</span>
+                    <span className="truncate font-mono tracking-tight">{number ? formatPhone(number) : L.noNumber}</span>
                   </span>
                 </Tooltip>
 

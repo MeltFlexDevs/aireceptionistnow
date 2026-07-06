@@ -23,13 +23,13 @@ export async function getCallDetail(
   const c = data as unknown as Record<string, unknown>;
 
   // Owner scoping: hide a call that belongs to another user's assistant.
-  // Prefer the insert-time owner_id the trigger stamped on the call — that is the
+  // Prefer the insert-time owner_id the trigger stamped on the call - that is the
   // historical truth and survives the number being reassigned to another tenant.
   // Only fall back to the live number → assistant chain for pre-trigger rows that
   // carry no stamp. Resolving the chain FIRST would leak a previous tenant's
   // transcripts to whoever now holds a recycled pooled number (and lock the
   // original owner out). When auth is on (viewerId set), an unresolvable owner
-  // fails CLOSED — otherwise any signed-in user could read pooled/test-call
+  // fails CLOSED - otherwise any signed-in user could read pooled/test-call
   // transcripts, summaries and recording URLs by call id. Unowned calls stay
   // visible only when auth is off (viewerId null).
   const ownerId = (str(c.owner_id) || null) ?? assistantOwnerId(c);

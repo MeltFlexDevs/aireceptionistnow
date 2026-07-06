@@ -6,7 +6,7 @@ import { serviceClient } from "./supabase";
 // Notification feed for the top-bar bell: the account's most recent calls, newest
 // first. Scoped to the signed-in user's numbers (auth on) or the whole business
 // (auth off). "Unread" is tracked client-side against the newest item's time, so
-// no read-state column is needed — see components/NotificationsBell.tsx.
+// no read-state column is needed - see components/NotificationsBell.tsx.
 
 export interface NotificationItem {
   /** Call id (also the dedupe key and link target). */
@@ -15,7 +15,7 @@ export interface NotificationItem {
   title: string;
   /** Short outcome/status line, e.g. "Booked · 2m 14s". */
   subtitle: string;
-  /** ISO timestamp the call started — drives ordering and unread comparison. */
+  /** ISO timestamp the call started - drives ordering and unread comparison. */
   at: string;
   /** Link to the call's detail page. */
   href: string;

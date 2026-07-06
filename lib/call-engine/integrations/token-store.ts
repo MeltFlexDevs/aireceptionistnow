@@ -3,7 +3,7 @@ import { createAdminClient } from "../../supabase/admin";
 // Write-back for OAuth access tokens refreshed mid-call. Without it every tool
 // call after expiry pays a stale-request → 401 → refresh → retry round trip.
 // Calendar factories only receive the integration's config (never its row id),
-// so the row is located by its refresh_token — unique per grant, and exactly
+// so the row is located by its refresh_token - unique per grant, and exactly
 // how the config was loaded (integrations.config jsonb). A warm-instance cache
 // serves the token immediately; the DB write covers the next cold start.
 
@@ -23,7 +23,7 @@ export function persistAccessToken(
   if (typeof refreshToken !== "string" || !refreshToken) return;
   fresh.set(refreshToken, accessToken);
   try {
-    // Best effort, off the call path — a lost write just means one extra
+    // Best effort, off the call path - a lost write just means one extra
     // refresh after the next cold start.
     void createAdminClient()
       .from("integrations")

@@ -32,8 +32,8 @@ export default function PrivacyPolicyPage() {
             </p>
             <p>This policy applies to two distinct groups:</p>
             <ul>
-              <li><strong>Business customers</strong> — companies and individuals who sign up to use our Service to manage their incoming calls.</li>
-              <li><strong>Callers</strong> — third parties who call a business that uses our AI receptionist. If you are a caller, please read Section 6 which specifically covers your data.</li>
+              <li><strong>Business customers</strong> - companies and individuals who sign up to use our Service to manage their incoming calls.</li>
+              <li><strong>Callers</strong> - third parties who call a business that uses our AI receptionist. If you are a caller, please read Section 6 which specifically covers your data.</li>
             </ul>
             <p>
               By using our Service, you agree to the collection and use of information in accordance with
@@ -56,7 +56,7 @@ export default function PrivacyPolicyPage() {
               Agreement (DPA) is available upon request at <a href="mailto:info@meltflexai.com">info@meltflexai.com</a>.
             </p>
 
-            <h4>3. Information We Collect — Business Customers</h4>
+            <h4>3. Information We Collect - Business Customers</h4>
             <p><strong>3.1 Information You Provide Directly:</strong></p>
             <ul>
               <li>Email address (when creating an account)</li>
@@ -81,25 +81,25 @@ export default function PrivacyPolicyPage() {
             <h4>4. How We Use Business Customer Data</h4>
             <p>We use your personal data for the following purposes:</p>
             <ul>
-              <li><strong>Providing the Service</strong> — account management, call routing, AI receptionist operation, appointment booking. <em>Legal basis: Contract performance.</em></li>
-              <li><strong>Subscription &amp; Billing</strong> — processing payments, managing billing cycles, invoicing. <em>Legal basis: Contract performance, legal obligation.</em></li>
-              <li><strong>Service Improvement</strong> — understanding how users interact with our platform, identifying bugs, improving call quality and AI accuracy. <em>Legal basis: Legitimate interest.</em></li>
-              <li><strong>Support &amp; Communication</strong> — responding to support requests, sending essential service notifications (subscription confirmations, outages, policy updates). <em>Legal basis: Contract performance, legitimate interest.</em></li>
-              <li><strong>Marketing</strong> — sending product updates or promotional communications. <em>Legal basis: Consent (you may unsubscribe at any time via the link in any email or by contacting us).</em></li>
-              <li><strong>Fraud Prevention &amp; Security</strong> — detecting and preventing abuse, unauthorized access, and fraudulent activity. <em>Legal basis: Legitimate interest.</em></li>
-              <li><strong>Legal Compliance</strong> — complying with applicable laws and regulations. <em>Legal basis: Legal obligation.</em></li>
+              <li><strong>Providing the Service</strong> - account management, call routing, AI receptionist operation, appointment booking. <em>Legal basis: Contract performance.</em></li>
+              <li><strong>Subscription &amp; Billing</strong> - processing payments, managing billing cycles, invoicing. <em>Legal basis: Contract performance, legal obligation.</em></li>
+              <li><strong>Service Improvement</strong> - understanding how users interact with our platform, identifying bugs, improving call quality and AI accuracy. <em>Legal basis: Legitimate interest.</em></li>
+              <li><strong>Support &amp; Communication</strong> - responding to support requests, sending essential service notifications (subscription confirmations, outages, policy updates). <em>Legal basis: Contract performance, legitimate interest.</em></li>
+              <li><strong>Marketing</strong> - sending product updates or promotional communications. <em>Legal basis: Consent (you may unsubscribe at any time via the link in any email or by contacting us).</em></li>
+              <li><strong>Fraud Prevention &amp; Security</strong> - detecting and preventing abuse, unauthorized access, and fraudulent activity. <em>Legal basis: Legitimate interest.</em></li>
+              <li><strong>Legal Compliance</strong> - complying with applicable laws and regulations. <em>Legal basis: Legal obligation.</em></li>
             </ul>
             <p>We do not use your personal data for automated decision-making or profiling that produces legal effects.</p>
 
             <h4>5. Legal Basis for Processing (GDPR Summary)</h4>
             <ul>
-              <li><strong>Contract Performance (Art. 6(1)(b))</strong> — processing necessary to provide the Service</li>
-              <li><strong>Legitimate Interest (Art. 6(1)(f))</strong> — analytics, security, fraud prevention, service improvement</li>
-              <li><strong>Consent (Art. 6(1)(a))</strong> — marketing emails, call recording features, non-essential cookies</li>
-              <li><strong>Legal Obligation (Art. 6(1)(c))</strong> — retaining financial records as required by Slovak and EU law</li>
+              <li><strong>Contract Performance (Art. 6(1)(b))</strong> - processing necessary to provide the Service</li>
+              <li><strong>Legitimate Interest (Art. 6(1)(f))</strong> - analytics, security, fraud prevention, service improvement</li>
+              <li><strong>Consent (Art. 6(1)(a))</strong> - marketing emails, call recording features, non-essential cookies</li>
+              <li><strong>Legal Obligation (Art. 6(1)(c))</strong> - retaining financial records as required by Slovak and EU law</li>
             </ul>
 
-            <h4>6. Caller Data — Third-Party Data Subjects</h4>
+            <h4>6. Caller Data - Third-Party Data Subjects</h4>
             <p>
               When a caller contacts a business that uses our AI receptionist, their call is handled by our
               AI system. In this context, the business (our customer) is the data controller for the caller&apos;s
@@ -133,12 +133,12 @@ export default function PrivacyPolicyPage() {
               third-party service providers who process data strictly on our behalf:
             </p>
             <ul>
-              <li><strong>Twilio Inc.</strong> (USA) — telephony infrastructure, call routing, and voice AI processing. <a href="https://www.twilio.com/en-us/legal/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
-              <li><strong>Stripe Inc.</strong> (USA) — subscription payment processing. <a href="https://stripe.com/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
-              <li><strong>Vercel Inc.</strong> (USA) — website and application hosting. <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
-              <li><strong>Supabase Inc.</strong> (USA) — database hosting and authentication. <a href="https://supabase.com/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
-              <li><strong>Google LLC</strong> (USA) — analytics (Google Analytics), font delivery (Google Fonts). <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
-              <li><strong>PostHog Inc.</strong> (USA) — product analytics and session recording. <a href="https://posthog.com/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+              <li><strong>Twilio Inc.</strong> (USA) - telephony infrastructure, call routing, and voice AI processing. <a href="https://www.twilio.com/en-us/legal/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+              <li><strong>Stripe Inc.</strong> (USA) - subscription payment processing. <a href="https://stripe.com/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+              <li><strong>Vercel Inc.</strong> (USA) - website and application hosting. <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+              <li><strong>Supabase Inc.</strong> (USA) - database hosting and authentication. <a href="https://supabase.com/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+              <li><strong>Google LLC</strong> (USA) - analytics (Google Analytics), font delivery (Google Fonts). <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+              <li><strong>PostHog Inc.</strong> (USA) - product analytics and session recording. <a href="https://posthog.com/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
             </ul>
             <p>
               Each processor is bound by a data processing agreement (DPA) and processes data only as
@@ -156,8 +156,8 @@ export default function PrivacyPolicyPage() {
               using one or more of the following safeguards:
             </p>
             <ul>
-              <li><strong>EU-US Data Privacy Framework (DPF)</strong> — for processors certified under the DPF as recognised by the European Commission&apos;s adequacy decision of July 2023</li>
-              <li><strong>Standard Contractual Clauses (SCCs)</strong> — approved by the European Commission under Decision 2021/914, applied where DPF certification does not cover the specific transfer</li>
+              <li><strong>EU-US Data Privacy Framework (DPF)</strong> - for processors certified under the DPF as recognised by the European Commission&apos;s adequacy decision of July 2023</li>
+              <li><strong>Standard Contractual Clauses (SCCs)</strong> - approved by the European Commission under Decision 2021/914, applied where DPF certification does not cover the specific transfer</li>
             </ul>
             <p>
               You may request a copy of the applicable transfer safeguards by contacting us at
@@ -208,9 +208,9 @@ export default function PrivacyPolicyPage() {
             <h4>12. Cookies and Local Storage</h4>
             <p>We use the following categories of cookies and similar technologies:</p>
             <ul>
-              <li><strong>Essential cookies</strong> — required for the Service to function (session management, authentication). Cannot be disabled. <em>Legal basis: Legitimate interest / contract performance.</em></li>
-              <li><strong>Analytics cookies</strong> — Google Analytics and PostHog to understand website usage, measure performance, and improve the Service. <em>Legal basis: Consent.</em></li>
-              <li><strong>Preference cookies</strong> — storing your settings and preferences (e.g., selected country code). <em>Legal basis: Legitimate interest.</em></li>
+              <li><strong>Essential cookies</strong> - required for the Service to function (session management, authentication). Cannot be disabled. <em>Legal basis: Legitimate interest / contract performance.</em></li>
+              <li><strong>Analytics cookies</strong> - Google Analytics and PostHog to understand website usage, measure performance, and improve the Service. <em>Legal basis: Consent.</em></li>
+              <li><strong>Preference cookies</strong> - storing your settings and preferences (e.g., selected country code). <em>Legal basis: Legitimate interest.</em></li>
             </ul>
             <p>
               Non-essential cookies are only placed with your consent, which you can give or withdraw at any
@@ -221,14 +221,14 @@ export default function PrivacyPolicyPage() {
             <h4>13. Your Rights Under GDPR</h4>
             <p>As a data subject under the GDPR, you have the following rights:</p>
             <ul>
-              <li><strong>Right of Access (Art. 15)</strong> — request a copy of the personal data We hold about you</li>
-              <li><strong>Right to Rectification (Art. 16)</strong> — request correction of inaccurate or incomplete data</li>
-              <li><strong>Right to Erasure (Art. 17)</strong> — request deletion of your personal data (&ldquo;right to be forgotten&rdquo;), subject to legal retention obligations</li>
-              <li><strong>Right to Restrict Processing (Art. 18)</strong> — request that We limit how We use your data</li>
-              <li><strong>Right to Data Portability (Art. 20)</strong> — receive your data in a structured, machine-readable format (JSON or CSV)</li>
-              <li><strong>Right to Object (Art. 21)</strong> — object to processing based on legitimate interest, including direct marketing</li>
-              <li><strong>Right to Withdraw Consent (Art. 7(3))</strong> — withdraw consent at any time where processing is based on consent, without affecting prior processing</li>
-              <li><strong>Rights related to automated decision-making (Art. 22)</strong> — We do not carry out solely automated decision-making with legal or similarly significant effects</li>
+              <li><strong>Right of Access (Art. 15)</strong> - request a copy of the personal data We hold about you</li>
+              <li><strong>Right to Rectification (Art. 16)</strong> - request correction of inaccurate or incomplete data</li>
+              <li><strong>Right to Erasure (Art. 17)</strong> - request deletion of your personal data (&ldquo;right to be forgotten&rdquo;), subject to legal retention obligations</li>
+              <li><strong>Right to Restrict Processing (Art. 18)</strong> - request that We limit how We use your data</li>
+              <li><strong>Right to Data Portability (Art. 20)</strong> - receive your data in a structured, machine-readable format (JSON or CSV)</li>
+              <li><strong>Right to Object (Art. 21)</strong> - object to processing based on legitimate interest, including direct marketing</li>
+              <li><strong>Right to Withdraw Consent (Art. 7(3))</strong> - withdraw consent at any time where processing is based on consent, without affecting prior processing</li>
+              <li><strong>Rights related to automated decision-making (Art. 22)</strong> - We do not carry out solely automated decision-making with legal or similarly significant effects</li>
             </ul>
             <p>
               To exercise any of these rights, contact us at <a href="mailto:info@meltflexai.com">info@meltflexai.com</a>.

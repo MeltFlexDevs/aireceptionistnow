@@ -3,10 +3,10 @@ import type { ElevenLabs } from "@elevenlabs/elevenlabs-js";
 import { elevenClient } from "./eleven-client";
 import type { AgentTool, Assistant } from "../../dashboard/db";
 
-// The receptionist's *actions* — what the ElevenLabs agent can actually DO on a
+// The receptionist's *actions* - what the ElevenLabs agent can actually DO on a
 // call, built from the assistant's settings. Two kinds:
 //
-//   • Webhook (server) tools — check_availability / book_appointment /
+//   • Webhook (server) tools - check_availability / book_appointment /
 //     take_message. Each is a standalone ElevenLabs "tool" object that POSTs to
 //     our /api/agent/* routes; the routes run the same shared actions (actions.ts)
 //     and hand a spoken string back to the agent. ElevenLabs deprecated inline
@@ -14,8 +14,8 @@ import type { AgentTool, Assistant } from "../../dashboard/db";
 //     them here and attach their ids (see sync.ts). We track [{id, name}] so a
 //     re-sync deletes the previous set and a delete tears them down.
 //
-//   • Built-in system tools — end_call, transfer_to_number, voicemail_detection,
-//     language_detection. These live inline on the prompt (builtInTools) — no
+//   • Built-in system tools - end_call, transfer_to_number, voicemail_detection,
+//     language_detection. These live inline on the prompt (builtInTools) - no
 //     separate object to manage.
 //
 // Everything is gated by the assistant's settings so the agent is only offered
@@ -142,7 +142,7 @@ function workspaceSecretLocator(secret: string): Promise<ElevenLabs.ConvAiSecret
       // Best-effort hardening: fall back to the plaintext header value so tool
       // creation (and therefore agent sync) never breaks on the secrets API.
       // Clear the memo so a transient failure doesn't pin every future sync to
-      // the plaintext header for the whole process lifetime — the next sync
+      // the plaintext header for the whole process lifetime - the next sync
       // retries the secrets API.
       console.error("[agent-tools] workspace secret setup failed, using plaintext header", err);
       secretLocatorPromise = null;
@@ -234,7 +234,7 @@ export function buildBuiltInTools(
 /**
  * Create the standalone webhook tool objects for an assistant and return both the
  * ids to attach (prompt.toolIds) and the records to track. Skips webhook tools
- * (returning empty) when APP_BASE_URL or AGENT_WEBHOOK_SECRET is unset — the agent
+ * (returning empty) when APP_BASE_URL or AGENT_WEBHOOK_SECRET is unset - the agent
  * still works for Q&A + system tools, it just can't reach our action routes.
  *
  * Best-effort per tool: one failed create is logged and skipped, never aborting
@@ -248,7 +248,7 @@ export async function createAgentTools(
   const secret = process.env.AGENT_WEBHOOK_SECRET ?? "";
   if (!baseUrl || !secret) {
     console.warn(
-      "[agent-tools] APP_BASE_URL or AGENT_WEBHOOK_SECRET unset — agent gets no server tools (Q&A + system tools only).",
+      "[agent-tools] APP_BASE_URL or AGENT_WEBHOOK_SECRET unset - agent gets no server tools (Q&A + system tools only).",
     );
     return { toolIds: [], tools: [] };
   }

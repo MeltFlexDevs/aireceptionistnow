@@ -4,7 +4,7 @@ import type { BusyInterval } from "./types";
 // Availability logic for the check_availability tool. It reads busy intervals
 // from every readable calendar and returns ONLY what's safe to say out loud:
 // whether the requested slot is free, and a few free alternatives. It never
-// returns event titles, attendees, or reasons — read access is for availability
+// returns event titles, attendees, or reasons - read access is for availability
 // only, so the assistant can say "that time isn't available, I'm free at 3pm"
 // without ever revealing what is on the calendar or why.
 
@@ -40,7 +40,7 @@ function overlaps(start: number, end: number, busy: BusyInterval[]): boolean {
 // UTC offset (minutes east) the request was written in: an explicit offset in
 // the ISO string wins, otherwise the server zone Date.parse assumed for it.
 // ponytail: the request's offset stands in for the business timezone until one
-// is stored in the schema — an IANA zone would also track DST across the search.
+// is stored in the schema - an IANA zone would also track DST across the search.
 function requestOffsetMin(iso: string, ms: number): number {
   if (/[zZ]$/.test(iso)) return 0;
   const m = iso.match(/([+-])(\d{2}):?(\d{2})$/);
@@ -62,7 +62,7 @@ function withinHours(startMs: number, endMs: number, offsetMin: number): boolean
   );
 }
 
-// "Friday, July 3, 9:00 AM (2026-07-03T09:00:00-04:00)" — the spoken part is
+// "Friday, July 3, 9:00 AM (2026-07-03T09:00:00-04:00)" - the spoken part is
 // what the caller hears, the explicit-offset ISO is what books unambiguously.
 function formatSlot(ms: number, offsetMin: number): string {
   const shifted = new Date(ms + offsetMin * 60 * 1000);
@@ -121,7 +121,7 @@ export async function checkAvailability(
   }
   const busy = results.flatMap((r) => r.busy);
 
-  // A time the caller explicitly asked for is free purely on calendar conflict —
+  // A time the caller explicitly asked for is free purely on calendar conflict -
   // the business-hours window only bounds the alternatives we proactively offer,
   // so we never reject a valid slot just because of the heuristic window/zone.
   const requestedFree = !overlaps(startMs, endMs, busy);

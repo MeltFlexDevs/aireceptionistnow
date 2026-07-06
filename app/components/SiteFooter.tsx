@@ -34,7 +34,7 @@ const VoicePartnerBadge = () => (
     href="https://elevenlabs.io"
     target="_blank"
     rel="noopener noreferrer"
-    aria-label="ElevenLabs — Voice Partner"
+    aria-label="ElevenLabs - Voice Partner"
     style={{ display: "inline-flex", flexDirection: "column", alignItems: "flex-end", gap: "8px", textDecoration: "none" }}
   >
     <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "10px", fontWeight: 400, letterSpacing: "0.12em", textTransform: "uppercase" }}>
@@ -154,7 +154,7 @@ export default function SiteFooter() {
                 {[{ label: "Blog", href: "/blog" }, { label: "Answers", href: "/answers" }].map((l) => (
                   <li key={l.label}><Link href={l.href} style={resourceLinkStyle}>{l.label}</Link></li>
                 ))}
-                {/* Static file in public/ — plain <a>, client navigation can't serve it. */}
+                {/* Static file in public/ - plain <a>, client navigation can't serve it. */}
                 <li><a href="/llms.txt" style={resourceLinkStyle}>AI Information</a></li>
               </ul>
             </div>

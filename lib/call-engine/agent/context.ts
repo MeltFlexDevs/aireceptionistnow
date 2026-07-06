@@ -6,7 +6,7 @@ import type { NumberConfig } from "../types";
 // Shared plumbing for the tier-A tool webhooks: authenticate, parse the fields
 // every tool carries, resolve the dialed number to its assistant config, and
 // ensure a call row exists (keyed by the ElevenLabs conversation id). Each tool
-// route then just runs its action — the same actions tier B runs.
+// route then just runs its action - the same actions tier B runs.
 
 /** Fields every ElevenLabs server tool must send, sourced from ElevenLabs system
  *  dynamic variables: {{system__called_number}}, {{system__caller_id}},
@@ -34,7 +34,7 @@ function cachedConfig(to: string): Promise<NumberConfig | null> {
   if (hit && Date.now() - hit.at < CONFIG_TTL_MS) return hit.p;
   const repo = getRepository();
   const p = repo.resolveInboundNumber(to);
-  // A failed lookup must not poison the cache — drop it so the next call retries.
+  // A failed lookup must not poison the cache - drop it so the next call retries.
   p.catch(() => configCache.delete(to));
   configCache.set(to, { at: Date.now(), p });
   if (configCache.size > 500) {
@@ -57,7 +57,7 @@ export async function resolveAgentContext(
   // Key by tenant too: getOrCreateAgentCall rejects a conversation id that
   // resurfaces under a different business (a reused/forged id). A conversation-
   // only cache key would let a warm-instance hit skip that guard and splice one
-  // tenant's callId onto another's config — so a cross-tenant reuse must miss
+  // tenant's callId onto another's config - so a cross-tenant reuse must miss
   // the cache and fall through to the guarded lookup.
   const cacheKey = `${fields.conversation_id}:${config.businessId}`;
   let callId = callIdCache.get(cacheKey);

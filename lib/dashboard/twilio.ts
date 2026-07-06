@@ -79,7 +79,7 @@ async function regulatoryAttachments(
     const addr = addresses.find((a) => a.isoCountry === country) ?? addresses[0];
     if (addr) reg.addressSid = addr.sid;
   } catch {
-    // no addresses available — ignore
+    // no addresses available - ignore
   }
   try {
     const bundles = await client.numbers.v2.regulatoryCompliance.bundles.list({ limit: 50 });
@@ -90,7 +90,7 @@ async function regulatoryAttachments(
     );
     if (bundle) reg.bundleSid = bundle.sid;
   } catch {
-    // no bundles available — ignore
+    // no bundles available - ignore
   }
   return reg;
 }
@@ -126,7 +126,7 @@ export async function buyTwilioNumbers(
   }
   if (count < 1) return [];
   // ElevenLabs-only: ElevenLabs owns a number's voice webhook once it's imported,
-  // and this app has no /api/twilio/voice route — so default to NOT pointing
+  // and this app has no /api/twilio/voice route - so default to NOT pointing
   // Twilio at us (a bought number would otherwise route to a dead endpoint until
   // it's imported). Callers opt in explicitly for the legacy self-hosted path.
   const configureWebhook = buyOpts.configureWebhook === true;
@@ -168,7 +168,7 @@ export async function buyTwilioNumbers(
           `${country} numbers need a verified Address and Regulatory Bundle in your Twilio account (Console → Phone Numbers → Regulatory Compliance). Set those up, or pick US/CA.`,
         );
       }
-      // Number taken between list and buy, or a transient error — skip it.
+      // Number taken between list and buy, or a transient error - skip it.
     }
   }
   if (bought.length === 0) {
@@ -189,7 +189,7 @@ export async function ensureTwilioNumber(
   if (!twilioConfigured()) return { sid: null, provisioned: false };
   // ElevenLabs-only: routing is owned by ElevenLabs once the number is imported
   // and assigned to an agent (on connect). Default to NOT pointing Twilio at our
-  // app — there is no /api/twilio/voice route, so setting it would dead-end a
+  // app - there is no /api/twilio/voice route, so setting it would dead-end a
   // call made before the number is connected.
   const base = opts.configureWebhook ? process.env.APP_BASE_URL : undefined;
   const client = twilioClient();

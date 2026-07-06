@@ -141,7 +141,7 @@ export async function getCallLog(
   filters: CallFilters = {},
   ownerId?: string | null,
   // ponytail: flat 1000-row cap (one PostgREST page); the Twilio merge makes
-  // offset pagination awkward — add a real "load more" if a tenant outgrows it.
+  // offset pagination awkward - add a real "load more" if a tenant outgrows it.
   limit = 1000,
 ): Promise<CallLog> {
   const businessId = await ensureBusinessId();
@@ -149,7 +149,7 @@ export async function getCallLog(
   // Owned numbers (the signed-in user's, or all business numbers when auth is
   // off) drive the Twilio-history e164 filter that drops a previous owner's calls
   // on a recycled number. DB rows are scoped separately, by their owner_id stamp
-  // in fetchDbCalls — so the original owner keeps their history even after the
+  // in fetchDbCalls - so the original owner keeps their history even after the
   // number is reassigned.
   const ownerNumbers = ownerId ? await getOwnedNumbers(ownerId) : null;
   let owned: Map<string, number>;
@@ -198,11 +198,11 @@ export async function getCallLog(
 
   // Only surface calls handled by one of the user's assistants. An assistant name
   // is set solely on a DB-backed row (via phone_number → assistant), so this also
-  // guarantees a dbId — the row opens to its transcript + details on click. It
+  // guarantees a dbId - the row opens to its transcript + details on click. It
   // drops raw Twilio-log noise (no assistant, nothing to open) and, by no longer
-  // requiring a Twilio SID, lets tier-A (ElevenLabs) calls — which have none —
+  // requiring a Twilio SID, lets tier-A (ElevenLabs) calls - which have none -
   // show too. Duration/live gates out ghost/no-answer rows; live calls stay
-  // (unless stuck "live" for hours — a lost webhook, not a call), and completed
+  // (unless stuck "live" for hours - a lost webhook, not a call), and completed
   // calls stay even when the webhook carried no duration.
   const cleaned = rows.filter(
     (r) =>

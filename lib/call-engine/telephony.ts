@@ -4,7 +4,7 @@ import { getEnv } from "./env";
 // SMS message alerts. When the ElevenLabs agent takes a message (via our
 // take_message webhook), we text the owner's personal number. Voice + transfer
 // are handled natively by the ElevenLabs agent, so no live-call telephony lives
-// here anymore — just outbound SMS through the Twilio REST API.
+// here anymore - just outbound SMS through the Twilio REST API.
 
 function client() {
   const env = getEnv();

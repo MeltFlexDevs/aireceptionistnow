@@ -11,7 +11,7 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except:
-     * - api routes (Twilio webhooks, integration callbacks — never gated)
+     * - api routes (Twilio webhooks, integration callbacks - never gated)
      * - _next/static, _next/image (build assets)
      * - favicon / icon / image assets
      */

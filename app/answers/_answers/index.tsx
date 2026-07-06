@@ -6,9 +6,9 @@ export type FaqItem = { q: string; a: string };
 
 export type Answer = {
   slug: string;
-  /** The long-tail question — used as the H1, page title, and schema Question. */
+  /** The long-tail question - used as the H1, page title, and schema Question. */
   question: string;
-  /** Direct 40–60 word answer shown in the Quick Answer box and used as the schema acceptedAnswer. */
+  /** Direct 40-60 word answer shown in the Quick Answer box and used as the schema acceptedAnswer. */
   shortAnswer: string;
   /** Meta description (~150 chars). */
   description: string;
@@ -18,7 +18,7 @@ export type Answer = {
   updated: string;
   /** Which site author is credited (see lib/site authors). */
   author: AuthorKey;
-  /** Sub-questions answered in the body — mirrored into FAQPage schema. */
+  /** Sub-questions answered in the body - mirrored into FAQPage schema. */
   faqs: FaqItem[];
   related: string[];
   Body: ComponentType;

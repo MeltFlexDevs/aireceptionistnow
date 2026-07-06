@@ -18,7 +18,7 @@ const inter = Inter({
   weight: ["300", "400", "500"],
 });
 
-const defaultTitle = "AI Receptionist — Answer Every Call 24/7";
+const defaultTitle = "AI Receptionist - Answer Every Call 24/7";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -100,8 +100,8 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             // @graph form (not a bare array) so the top-level object always has
-            // an "@context". Consumers that read `data["@context"]` directly —
-            // e.g. some browser SEO/schema extensions — throw on an array
+            // an "@context". Consumers that read `data["@context"]` directly -
+            // e.g. some browser SEO/schema extensions - throw on an array
             // (data["@context"] is undefined), and that thrown inline script can
             // abort the page's client bootstrap. @graph keeps them happy.
             __html: JSON.stringify({

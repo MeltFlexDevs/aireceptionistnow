@@ -66,7 +66,7 @@ export function Ext({
 }: {
   href: string;
   children: ReactNode;
-  /** Add rel="nofollow" — use for links we don't want to vouch for. */
+  /** Add rel="nofollow" - use for links we don't want to vouch for. */
   nofollow?: boolean;
 }) {
   return (
@@ -267,7 +267,7 @@ export function FAQList({ items }: { items: FaqItem[] }) {
 export type Source = {
   title: string;
   url: string;
-  /** Add rel="nofollow" — use for links we don't want to vouch for. */
+  /** Add rel="nofollow" - use for links we don't want to vouch for. */
   nofollow?: boolean;
 };
 

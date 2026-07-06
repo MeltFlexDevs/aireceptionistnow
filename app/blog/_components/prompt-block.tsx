@@ -21,7 +21,7 @@ export function PromptBlock({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Clipboard unavailable (old browser, permissions) — leave the text selectable.
+      // Clipboard unavailable (old browser, permissions) - leave the text selectable.
     }
   };
 

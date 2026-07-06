@@ -9,6 +9,7 @@ import { AssistantStats } from "../components/AssistantStats";
 import { PageHeader } from "../components/PageHeader";
 import { AssistantPicker } from "./AssistantPicker";
 import { OrganizationPicker } from "./OrganizationPicker";
+import { getDictionary } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +18,11 @@ export default async function AnalyticsPage({
 }: {
   searchParams: Promise<{ assistant?: string; org?: string }>;
 }) {
-  const { assistant: assistantParam, org: orgParam } = await searchParams;
+  const [{ assistant: assistantParam, org: orgParam }, t] = await Promise.all([
+    searchParams,
+    getDictionary(),
+  ]);
+  const a = t.analytics;
 
   let data: Awaited<ReturnType<typeof getAnalytics>> | null = null;
   let assistants: Awaited<ReturnType<typeof getAssistantStats>> = [];
@@ -58,11 +63,11 @@ export default async function AnalyticsPage({
     ? `${selectedName}. Last 30 days.`
     : selectedOrgName
       ? `${selectedOrgName}. All assistants, last 30 days.`
-      : "All assistants. Last 30 days.";
+      : a.allAssistants;
 
   const header = (
     <PageHeader
-      title="Analytics"
+      title={a.title}
       description={scopeLabel}
       action={
         <>
@@ -82,17 +87,18 @@ export default async function AnalyticsPage({
       <div className="space-y-6 rise">
         {header}
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-          Couldn&apos;t load analytics{loadError ? `: ${loadError}` : ""}.
+          {a.loadError}
+          {loadError ? `: ${loadError}` : ""}.
         </div>
       </div>
     );
   }
 
   const tiles = [
-    { label: "Total calls", value: String(data.totals.calls) },
-    { label: "Avg call time", value: data.totals.avgDuration },
-    { label: "Answer rate", value: data.totals.answerRate },
-    { label: "Bookings", value: String(data.totals.bookings) },
+    { label: a.totalCalls, value: String(data.totals.calls) },
+    { label: a.avgCallTime, value: data.totals.avgDuration },
+    { label: a.answerRate, value: data.totals.answerRate },
+    { label: a.bookings, value: String(data.totals.bookings) },
   ];
   const positive = data.sentiment.find((s) => s.label === "Positive")?.value ?? 0;
 
@@ -109,30 +115,30 @@ export default async function AnalyticsPage({
         ))}
       </div>
 
-      <SectionCard title="Call volume" subtitle="Calls answered over the last 30 days">
+      <SectionCard title={a.callVolume} subtitle={a.callVolumeSub}>
         <BarChart data={data.volume} />
       </SectionCard>
 
       {!selectedId && (
-        <SectionCard title="By assistant" subtitle="Per-assistant performance over the last 30 days">
+        <SectionCard title={a.byAssistant} subtitle={a.byAssistantSub}>
           <AssistantStats stats={assistants} />
         </SectionCard>
       )}
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <SectionCard title="Callers by country" subtitle="Where callers are calling from">
+        <SectionCard title={a.callersByCountry} subtitle={a.callersByCountrySub}>
           {data.countries.length > 0 ? (
             <DonutChart segments={data.countries} centerLabel={String(data.totals.calls)} centerSub="calls" />
           ) : (
-            <p className="text-sm text-neutral-500">No calls yet.</p>
+            <p className="text-sm text-neutral-500">{a.noCalls}</p>
           )}
         </SectionCard>
 
-        <SectionCard title="Sentiment" subtitle="Caller sentiment mix">
+        <SectionCard title={a.sentiment} subtitle={a.sentimentSub}>
           {data.sentiment.length > 0 ? (
             <DonutChart segments={data.sentiment} centerLabel={`${positive}%`} centerSub="positive" />
           ) : (
-            <p className="text-sm text-neutral-500">No calls yet.</p>
+            <p className="text-sm text-neutral-500">{a.noCalls}</p>
           )}
         </SectionCard>
       </div>

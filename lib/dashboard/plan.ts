@@ -12,7 +12,7 @@ import { countFreeNumbers, getOwnedNumbers, listAssistants, listNumbers } from "
 export interface PlanUsage {
   numbers: number;
   assistants: number;
-  // ponytail: talk minutes are not metered — limits.minutesIncluded is
+  // ponytail: talk minutes are not metered - limits.minutesIncluded is
   // display-only. To meter: sum calls.duration_seconds over the owner's numbers
   // for the current billing period (anchor on user_billing's period) and
   // surface it here + in PlanUsage.tsx.
@@ -44,7 +44,7 @@ function isActive(status: string | null | undefined): boolean {
  *
  * Display callers tolerate a flaky DB (usage queries fall back to empty, the
  * page still renders). The enforcement path (canAssignNumber) passes `strict`
- * so a DB error propagates instead of zeroing usage — otherwise a transient
+ * so a DB error propagates instead of zeroing usage - otherwise a transient
  * Supabase failure would silently waive the number limit.
  */
 export async function getPlanContext(
@@ -101,7 +101,7 @@ export async function getPlanContext(
  * line that starts UNASSIGNED, so it never shows up in usage.numbers (which
  * counts only assistant-linked numbers). Without counting pending numbers a
  * subscribed user could pass the quota on every buy and provision unlimited
- * Twilio lines. Assign paths leave it off — re-pointing an existing number
+ * Twilio lines. Assign paths leave it off - re-pointing an existing number
  * doesn't add a line.
  */
 export async function canAssignNumber(
@@ -115,7 +115,7 @@ export async function canAssignNumber(
     ctx = await getPlanContext(ownerId, { strict: true });
     // ponytail: countFreeNumbers is business-wide (no owner column on unassigned
     // rows), so in a shared-business multi-tenant deploy this over-counts one
-    // buyer's ceiling against the whole pool — add a purchased_by column on
+    // buyer's ceiling against the whole pool - add a purchased_by column on
     // phone_numbers to scope pending numbers precisely.
     if (opts?.countPending) pending = await countFreeNumbers();
   } catch {

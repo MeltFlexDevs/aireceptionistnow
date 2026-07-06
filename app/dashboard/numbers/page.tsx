@@ -5,6 +5,7 @@ import { countryForE164 } from "@/lib/number-pricing";
 import { formatPhone } from "@/lib/call-engine/voice/phone-language";
 import { PageHeader } from "../components/PageHeader";
 import { ChevronDown, Hash } from "../icons";
+import { getDictionary } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +14,7 @@ export default async function NumbersPage({
 }: {
   searchParams: Promise<{ error?: string }>;
 }) {
-  const { error } = await searchParams;
+  const [{ error }, t] = await Promise.all([searchParams, getDictionary()]);
 
   let numbers: PhoneNumber[] = [];
   let loadError = "";
@@ -28,10 +29,7 @@ export default async function NumbersPage({
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Phone numbers"
-        description="Available numbers you can assign to an assistant."
-      />
+      <PageHeader title={t.numbers.title} description={t.numbers.description} />
 
       {(error || loadError) && (
         <div className="rise rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
@@ -44,8 +42,8 @@ export default async function NumbersPage({
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-neutral-100 text-neutral-900">
             <Hash className="h-6 w-6" />
           </div>
-          <h2 className="mt-4 text-base font-medium text-neutral-900">No numbers available</h2>
-          <p className="mt-1 text-sm text-neutral-500">Every number is already assigned to an assistant.</p>
+          <h2 className="mt-4 text-base font-medium text-neutral-900">{t.numbers.emptyTitle}</h2>
+          <p className="mt-1 text-sm text-neutral-500">{t.numbers.emptyBody}</p>
         </div>
       ) : (
         <div className="rise-stagger grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -65,7 +63,7 @@ export default async function NumbersPage({
                   </span>
                   <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-600">
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                    Available
+                    {t.common.available}
                   </span>
                 </div>
                 <div className="mt-3 flex items-center justify-between">

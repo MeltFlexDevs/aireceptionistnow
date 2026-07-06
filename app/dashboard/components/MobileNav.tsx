@@ -9,7 +9,7 @@ export function MobileNav() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
-  // Close when navigation lands so the drawer never covers the new page —
+  // Close when navigation lands so the drawer never covers the new page -
   // state adjusted during render (not in an effect) per the React docs pattern.
   const [lastPath, setLastPath] = useState(pathname);
   if (pathname !== lastPath) {

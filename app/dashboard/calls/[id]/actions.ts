@@ -15,7 +15,7 @@ const MAX_MESSAGE_CHARS = 2000;
 /**
  * File an issue report for a call. The report row snapshots the full context
  * support needs (transcript, latency, duration, date) server-side from the
- * call id — the client only ever supplies the free-text message, so a forged
+ * call id - the client only ever supplies the free-text message, so a forged
  * request can't attach another tenant's transcript.
  */
 export async function reportCallIssue(

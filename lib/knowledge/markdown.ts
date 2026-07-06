@@ -1,6 +1,6 @@
 // Minimal, dependency-free HTML → Markdown extraction. Good enough to turn a
 // business web page or a PDF's raw text into clean, readable Markdown the
-// receptionist can be primed with. Not a full converter — it strips chrome,
+// receptionist can be primed with. Not a full converter - it strips chrome,
 // keeps headings/lists/links/paragraphs, and collapses noise.
 
 const NAMED_ENTITIES: Record<string, string> = {
@@ -10,8 +10,8 @@ const NAMED_ENTITIES: Record<string, string> = {
   quot: '"',
   apos: "'",
   nbsp: " ",
-  mdash: "—",
-  ndash: "–",
+  mdash: "-",
+  ndash: "-",
   hellip: "…",
   copy: "©",
   reg: "®",

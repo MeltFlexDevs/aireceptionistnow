@@ -23,7 +23,7 @@ export const meta = {
   slug: "ai-receptionist-prompts",
   title: "AI Receptionist Prompts: 10 Copy-Paste Templates (2026)",
   description:
-    "The exact prompts we run in production — greeting, booking, escalation, after-hours — free to copy, plus the mistakes that quietly ruin most AI receptionists.",
+    "The exact prompts we run in production - greeting, booking, escalation, after-hours - free to copy, plus the mistakes that quietly ruin most AI receptionists.",
   date: "2026-07-04",
   updated: "2026-07-04",
   readingTime: "14 min read",
@@ -69,19 +69,19 @@ export const meta = {
     },
     {
       q: "How long should an AI receptionist prompt be?",
-      a: "Long enough to contain your facts and rules, short enough that every line earns its place — for most small businesses that's roughly 300 to 700 words. Prompts fail at both extremes: a two-line prompt forces the AI to improvise facts you never gave it, and a 3,000-word prompt buries the rules that matter under trivia. If you can't say why a line exists, cut it and test the difference on a real call.",
+      a: "Long enough to contain your facts and rules, short enough that every line earns its place - for most small businesses that's roughly 300 to 700 words. Prompts fail at both extremes: a two-line prompt forces the AI to improvise facts you never gave it, and a 3,000-word prompt buries the rules that matter under trivia. If you can't say why a line exists, cut it and test the difference on a real call.",
     },
     {
       q: "Should my AI receptionist pretend to be human?",
-      a: "No. Instructing an AI to deny being an AI is the single most damaging line you can put in a prompt. Callers who catch it — and many do — feel deceived, which is worse for your brand than any robotic voice. Regulators are also moving in one direction on this: the FCC has already ruled AI-generated voices in robocalls illegal, and disclosure expectations keep tightening. A confident one-line disclosure costs you almost nothing and defuses the question immediately.",
+      a: "No. Instructing an AI to deny being an AI is the single most damaging line you can put in a prompt. Callers who catch it - and many do - feel deceived, which is worse for your brand than any robotic voice. Regulators are also moving in one direction on this: the FCC has already ruled AI-generated voices in robocalls illegal, and disclosure expectations keep tightening. A confident one-line disclosure costs you almost nothing and defuses the question immediately.",
     },
     {
       q: "How often should I update the prompt?",
-      a: "Treat the first two weeks as tuning: read call transcripts every few days, find where the AI stumbled or guessed, and fix that specific line. After that, revisit the prompt whenever facts change — hours, prices, services, staff — and once a month as a habit. A prompt with last year's prices is worse than no answer at all, because the AI will state it confidently.",
+      a: "Treat the first two weeks as tuning: read call transcripts every few days, find where the AI stumbled or guessed, and fix that specific line. After that, revisit the prompt whenever facts change - hours, prices, services, staff - and once a month as a habit. A prompt with last year's prices is worse than no answer at all, because the AI will state it confidently.",
     },
     {
       q: "Will these prompt templates work with any AI receptionist platform?",
-      a: "The structure and rules transfer to any modern platform — they're plain-language instructions, not vendor syntax. What varies is how each platform handles variables, calendar access, and transfers: replace the {{PLACEHOLDERS}} with your platform's variable format, and confirm that instructions like 'warm transfer' map to a feature the platform actually has. A prompt can only promise what the underlying system can do.",
+      a: "The structure and rules transfer to any modern platform - they're plain-language instructions, not vendor syntax. What varies is how each platform handles variables, calendar access, and transfers: replace the {{PLACEHOLDERS}} with your platform's variable format, and confirm that instructions like 'warm transfer' map to a feature the platform actually has. A prompt can only promise what the underlying system can do.",
     },
   ] satisfies FaqItem[],
 };
@@ -116,7 +116,7 @@ export default function Body() {
         templates is, strictly speaking, against our interest. We&apos;re doing
         it anyway, because most of the &quot;AI receptionist prompt&quot; advice
         online is written by people who have never listened to a hundred real
-        calls fail in a row — and because a prompt is only one layer of the
+        calls fail in a row - and because a prompt is only one layer of the
         product. Below: the exact structure we deploy, ten copy-paste templates,
         the five mistakes that quietly ruin most setups (we made several of them
         ourselves), and how to test what you built.
@@ -160,7 +160,7 @@ export default function Body() {
       <P>
         Let&apos;s also be honest about the limits, because prompt guides love
         to oversell. A prompt cannot fix a platform with three seconds of
-        latency, a voice that grates, or no real calendar access — if the
+        latency, a voice that grates, or no real calendar access - if the
         system can&apos;t see your availability, no instruction will make
         bookings real. Those are buying decisions, and we cover them in{" "}
         <Internal href="/blog/how-to-choose-an-ai-receptionist">
@@ -174,7 +174,7 @@ export default function Body() {
       <Callout>
         We learned the &quot;novel&quot; lesson on our own product. An early
         prompt of ours included the full service list, and the agent dutifully
-        read it to callers — all of it. People hung up mid-list. The fix
+        read it to callers - all of it. People hung up mid-list. The fix
         wasn&apos;t a smarter model; it was deleting 40 lines and adding one:
         &quot;two sentences maximum, then let the caller talk.&quot;
       </Callout>
@@ -191,7 +191,7 @@ export default function Body() {
         alt="Diagram of an AI receptionist system prompt with five sections: identity and role, facts it may state, call flow, voice rules and boundaries, and escalation rules"
         width={1200}
         height={630}
-        caption="The five sections of a working AI receptionist prompt. Escalation is highlighted because it's the section most prompts skip — and the one that decides your worst call, not your best one."
+        caption="The five sections of a working AI receptionist prompt. Escalation is highlighted because it's the section most prompts skip - and the one that decides your worst call, not your best one."
       />
 
       <UL>
@@ -202,7 +202,7 @@ export default function Body() {
         </LI>
         <LI>
           <Strong>Facts it may state.</Strong> Hours, services, prices, service
-          area — an explicit whitelist. Everything outside the list gets a
+          area - an explicit whitelist. Everything outside the list gets a
           callback, not a guess.
         </LI>
         <LI>
@@ -218,7 +218,7 @@ export default function Body() {
         </LI>
         <LI>
           <Strong>Escalation rules.</Strong> Exactly when to stop being helpful
-          and hand off — and what the caller hears while it happens. The
+          and hand off - and what the caller hears while it happens. The
           general principles are the same ones in{" "}
           <Ext href="https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview">
             Anthropic&apos;s
@@ -227,7 +227,7 @@ export default function Body() {
           <Ext href="https://platform.openai.com/docs/guides/prompt-engineering">
             OpenAI&apos;s
           </Ext>{" "}
-          prompt-engineering guides — be specific, give the model an out — but
+          prompt-engineering guides - be specific, give the model an out - but
           on a phone call the &quot;out&quot; is a human being, and it needs a
           phone number.
         </LI>
@@ -237,7 +237,7 @@ export default function Body() {
       <P>
         This is the full skeleton with every section in place. Replace the{" "}
         <Mono>{"{{PLACEHOLDERS}}"}</Mono> with your real details, delete what
-        doesn&apos;t apply, and resist the urge to add — every line you append
+        doesn&apos;t apply, and resist the urge to add - every line you append
         competes for the AI&apos;s attention with the lines that matter.
       </P>
 
@@ -247,16 +247,16 @@ export default function Body() {
 
 IDENTITY
 - You answer the phone for {{BUSINESS_NAME}}. You are warm, competent, and brief.
-- You are an AI. If a caller asks, confirm it plainly and move on: "Yes — I'm {{BUSINESS_NAME}}'s AI assistant. I can still book you in or take a message."
+- You are an AI. If a caller asks, confirm it plainly and move on: "Yes - I'm {{BUSINESS_NAME}}'s AI assistant. I can still book you in or take a message."
 - Never claim to be a person. Never invent names, staff, or details you weren't given.
 
 WHAT YOU KNOW (the only facts you may state)
 - Hours: {{HOURS}}
 - Location: {{ADDRESS}}
 - Services: {{TOP_SERVICES}}
-- Pricing: {{PRICES_YOU_MAY_QUOTE — or "Do not quote prices; offer to have the team confirm."}}
+- Pricing: {{PRICES_YOU_MAY_QUOTE - or "Do not quote prices; offer to have the team confirm."}}
 - Service area: {{SERVICE_AREA}}
-If the answer is not listed above, do NOT guess. Say: "Good question — I don't want to give you a wrong answer. I'll have {{OWNER_FIRST_NAME}} get back to you today with the exact details."
+If the answer is not listed above, do NOT guess. Say: "Good question - I don't want to give you a wrong answer. I'll have {{OWNER_FIRST_NAME}} get back to you today with the exact details."
 
 YOUR JOB, IN ORDER
 1. Answer with: "Thanks for calling {{BUSINESS_NAME}}, this is {{AI_NAME}}. How can I help?"
@@ -273,12 +273,12 @@ HOW TO SPEAK
 
 WHAT YOU MUST NEVER DO
 - Never diagnose a problem, quote an unlisted price, or promise an arrival time you can't see in the calendar.
-- Never argue. If a caller is upset, acknowledge once ("I hear you — let's get this sorted") and move to ESCALATION.
+- Never argue. If a caller is upset, acknowledge once ("I hear you - let's get this sorted") and move to ESCALATION.
 - Never keep a caller going in circles. If the call passes three minutes without progress: book, take a message, or transfer.
 
 ESCALATION
 - Transfer immediately if: the caller asks for a human in any form, describes an emergency ({{EMERGENCY_EXAMPLES}}), or you have misunderstood twice in a row.
-- Transfer to {{TRANSFER_NUMBER}}. Say: "Let me get someone on the line for you — one moment."
+- Transfer to {{TRANSFER_NUMBER}}. Say: "Let me get someone on the line for you - one moment."
 - If no one answers: take a message (name, number, one-sentence summary), tell the caller exactly when to expect a callback, and send the summary to {{NOTIFY_DESTINATION}}.`}
       />
 
@@ -292,7 +292,7 @@ ESCALATION
       <P>
         The greeting has one job: tell the caller they reached the right place
         and that something competent picked up. Keep it under four seconds of
-        speech — callers decide whether to hang up in roughly that window, and a
+        speech - callers decide whether to hang up in roughly that window, and a
         slow, over-written greeting is the fastest way to lose them.
       </P>
 
@@ -302,16 +302,16 @@ ESCALATION
 "Thanks for calling {{BUSINESS_NAME}}, this is {{AI_NAME}}. How can I help you today?"
 
 AFTER-HOURS:
-"Thanks for calling {{BUSINESS_NAME}}. We're closed right now, but I can book you an appointment or take a message — which would you like?"
+"Thanks for calling {{BUSINESS_NAME}}. We're closed right now, but I can book you an appointment or take a message - which would you like?"
 
 OVERFLOW (everyone's busy):
-"Thanks for calling {{BUSINESS_NAME}} — the whole team is helping other customers, so you've got me, {{AI_NAME}}. I can book you in, answer questions, or take a message."`}
+"Thanks for calling {{BUSINESS_NAME}} - the whole team is helping other customers, so you've got me, {{AI_NAME}}. I can book you in, answer questions, or take a message."`}
       />
 
       <P>
         Then there&apos;s the question every AI receptionist gets:{" "}
         <em>&quot;am I talking to a robot?&quot;</em> Decide the answer in the
-        prompt, not on the call. The honest answer is also the practical one —
+        prompt, not on the call. The honest answer is also the practical one -
         callers who feel deceived are the ones who leave reviews about it, and
         the regulatory direction is unambiguous after the{" "}
         <Ext href="https://www.fcc.gov/document/fcc-makes-ai-generated-voices-robocalls-illegal">
@@ -327,7 +327,7 @@ OVERFLOW (everyone's busy):
       <PromptBlock
         label="Template 3 · The disclosure answer"
         text={`If the caller asks "am I talking to a robot?", "is this AI?", "are you real?", or anything similar:
-"You are — I'm {{BUSINESS_NAME}}'s AI assistant. I can book appointments and answer most questions, and if you'd rather talk to a person I'll connect you or have someone call you back. What works best?"
+"You are - I'm {{BUSINESS_NAME}}'s AI assistant. I can book appointments and answer most questions, and if you'd rather talk to a person I'll connect you or have someone call you back. What works best?"
 
 Rules:
 - Answer the question directly in the first three words. Never dodge, never say "I'm a virtual assistant" as a way to avoid saying "AI."
@@ -345,15 +345,15 @@ Rules:
 
       <PromptBlock
         label="Template 4 · Booking flow"
-        text={`BOOKING — collect in this order, one question at a time:
+        text={`BOOKING - collect in this order, one question at a time:
 1. The service needed: "What can we help you with?"
-2. Name — confirm the spelling if it's unusual.
-3. Phone number — always read it back digit by digit.
-4. Preferred day or time — then offer the two nearest open slots from the calendar. Two options, not a list.
-5. {{INDUSTRY_FIELD — e.g., the property address for home visits; new or returning patient; insurance carrier}}
+2. Name - confirm the spelling if it's unusual.
+3. Phone number - always read it back digit by digit.
+4. Preferred day or time - then offer the two nearest open slots from the calendar. Two options, not a list.
+5. {{INDUSTRY_FIELD - e.g., the property address for home visits; new or returning patient; insurance carrier}}
 
 Then confirm everything in one sentence:
-"So that's {{SERVICE}} on {{DAY}} at {{TIME}} for {{NAME}} — you'll get a text confirmation in a minute."
+"So that's {{SERVICE}} on {{DAY}} at {{TIME}} for {{NAME}} - you'll get a text confirmation in a minute."
 
 Rules:
 - Never offer a time you cannot see as available in the calendar.
@@ -363,15 +363,15 @@ Rules:
 
       <Callout>
         Notice what this template assumes: real calendar access. If your
-        platform only <em>pretends</em> to book — taking a request and emailing
-        it to you — no prompt fixes that, and you should say &quot;request an
+        platform only <em>pretends</em> to book - taking a request and emailing
+        it to you - no prompt fixes that, and you should say &quot;request an
         appointment&quot; in the greeting instead. Honesty in the prompt beats
         an apology after the double-booking.
       </Callout>
 
       <H2 id="faqs-pricing">FAQs &amp; pricing questions</H2>
       <P>
-        The failure mode here isn&apos;t ignorance — it&apos;s confidence.
+        The failure mode here isn&apos;t ignorance - it&apos;s confidence.
         Large language models answer fluently whether or not they know, so the
         prompt&apos;s job is to draw a hard line between the facts you supplied
         and everything else. Pricing deserves its own rules because it&apos;s
@@ -386,16 +386,16 @@ Rules:
 - If asked about price and a price is listed: state it plainly, no hedging.
 - If asked about price and no price is listed:
   "It genuinely depends on the job, and I don't want to guess and be wrong. Can I take your number and have {{OWNER_FIRST_NAME}} text you an exact quote today?"
-- If asked anything about {{REGULATED_TOPICS — e.g., medical advice, legal outcomes, insurance coverage, warranties}}:
+- If asked anything about {{REGULATED_TOPICS - e.g., medical advice, legal outcomes, insurance coverage, warranties}}:
   do not answer even partially. Say the team will call back, and mark the message {{PRIORITY_TAG}}.
-- Never say "I don't have access to that information" — it sounds like a system error. Say what you WILL do instead: "I'll have the team confirm that for you today."`}
+- Never say "I don't have access to that information" - it sounds like a system error. Say what you WILL do instead: "I'll have the team confirm that for you today."`}
       />
 
       <H2 id="messages">Message-taking</H2>
       <P>
         A message is a contract with the caller: you promised someone will call
         back. The template makes the AI collect exactly what a callback needs
-        and — the part everyone forgets — commit to a time window, because
+        and - the part everyone forgets - commit to a time window, because
         &quot;someone will get back to you&quot; is what voicemail says, and
         callers treat it accordingly.
       </P>
@@ -403,13 +403,13 @@ Rules:
       <PromptBlock
         label="Template 6 · Message-taking"
         text={`When taking a message, collect exactly four things:
-1. Name — confirm the spelling.
-2. Callback number — read it back digit by digit.
+1. Name - confirm the spelling.
+2. Callback number - read it back digit by digit.
 3. What it's about, in one sentence. Don't interrogate; one sentence is enough.
 4. Urgency: "Does this need a call back today, or is tomorrow okay?"
 
 Close with a commitment, not a brush-off:
-"Got it — {{OWNER_FIRST_NAME}} will call you back {{CALLBACK_WINDOW — e.g., 'within two hours' / 'by 9 tomorrow morning'}}. Anything else I can note down?"
+"Got it - {{OWNER_FIRST_NAME}} will call you back {{CALLBACK_WINDOW - e.g., 'within two hours' / 'by 9 tomorrow morning'}}. Anything else I can note down?"
 
 Send the summary to {{NOTIFY_DESTINATION}} immediately. Prefix it [URGENT] whenever the caller said it can't wait.`}
       />
@@ -420,7 +420,7 @@ Send the summary to {{NOTIFY_DESTINATION}} immediately. Prefix it [URGENT] whene
         receptionist demos beautifully on the happy path; the product reveals
         itself on the call it can&apos;t handle. An AI that recognizes that
         moment and hands off cleanly protects your brand. One that keeps
-        trying — politely, fluently, endlessly — is how you end up in a
+        trying - politely, fluently, endlessly - is how you end up in a
         one-star review titled &quot;trapped by a robot.&quot; We&apos;d rather
         our AI transfer one call too many than one too few, and we&apos;ve
         tuned our defaults that direction even though it makes our usage
@@ -429,23 +429,23 @@ Send the summary to {{NOTIFY_DESTINATION}} immediately. Prefix it [URGENT] whene
 
       <PromptBlock
         label="Template 7 · Escalation rules"
-        text={`ESCALATION TRIGGERS — hand off, don't keep handling:
+        text={`ESCALATION TRIGGERS - hand off, don't keep handling:
 - The caller asks for a human in ANY form: "real person," "someone there," "let me talk to the owner," or plain frustration with you.
-- The caller mentions {{EMERGENCY_WORDS — e.g., "flooding," "no heat," "severe pain," "court date tomorrow"}}.
+- The caller mentions {{EMERGENCY_WORDS - e.g., "flooding," "no heat," "severe pain," "court date tomorrow"}}.
 - The caller is still upset after one acknowledgment from you.
 - You have misunderstood, or been corrected, twice in a row.
 
 HOW TO HAND OFF
-- During business hours: "Of course — let me get someone on the line. One moment." Then warm-transfer to {{TRANSFER_NUMBER}} and stay on the line until a human picks up.
-- If nobody answers within 25 seconds: "No one's free right this second — I'm sorry. I'll take your details and have someone call you within {{CALLBACK_SLA}}. Is that okay?"
+- During business hours: "Of course - let me get someone on the line. One moment." Then warm-transfer to {{TRANSFER_NUMBER}} and stay on the line until a human picks up.
+- If nobody answers within 25 seconds: "No one's free right this second - I'm sorry. I'll take your details and have someone call you within {{CALLBACK_SLA}}. Is that okay?"
 - Never transfer a caller into voicemail without telling them that's where they're going.
 - Never resist the handoff. Not even once. "Are you sure? I can help with most things" is forbidden.`}
       />
 
       <H2 id="after-hours">After-hours &amp; emergencies</H2>
       <P>
-        After-hours is where an AI receptionist earns its keep — it&apos;s the
-        shift no human wants — but it needs different instructions, because the
+        After-hours is where an AI receptionist earns its keep - it&apos;s the
+        shift no human wants - but it needs different instructions, because the
         safety net of &quot;transfer to the front desk&quot; is gone. The
         prompt has to define what counts as a true emergency for{" "}
         <em>your</em> business and what the AI does about it at 2 a.m.
@@ -458,8 +458,8 @@ HOW TO HAND OFF
 - You can still: book appointments for the next open day, answer questions from WHAT YOU KNOW, and take messages.
 
 EMERGENCY TRIAGE
-- If the caller describes {{TRUE_EMERGENCY — e.g., burst pipe, no heat in winter, lockout, severe tooth pain}}:
-  "That sounds urgent — I'm going to notify our on-call {{ROLE}} right now. Stay near your phone."
+- If the caller describes {{TRUE_EMERGENCY - e.g., burst pipe, no heat in winter, lockout, severe tooth pain}}:
+  "That sounds urgent - I'm going to notify our on-call {{ROLE}} right now. Stay near your phone."
   Then page {{ONCALL_NUMBER}} and send an [URGENT] summary to {{NOTIFY_DESTINATION}}.
 - If the situation could be life-threatening, say this before anything else:
   "If this is a medical emergency or anyone is in danger, please hang up and call 911 first."
@@ -471,17 +471,17 @@ EMERGENCY TRIAGE
         Nobody puts this in prompt guides, but a real business line gets a
         steady diet of robocalls, &quot;quick questions about your Google
         listing,&quot; and pitches. Without instructions, your AI will politely
-        chat with a robot for four minutes on your dime — ours did, in the
+        chat with a robot for four minutes on your dime - ours did, in the
         early days, and the transcripts were as funny as they were expensive.
       </P>
 
       <PromptBlock
         label="Template 9 · Spam and solicitation filter"
         text={`If the caller is a robocall, telemarketer, or opens with a pitch ("your Google listing," "business loans," "we buy houses"):
-- Verify once: "Just to check — are you calling about {{BUSINESS_TYPE}} services for yourself?"
-- If it's a pitch: "Thanks, but we're not interested — please remove this number from your list." Then end the call politely. Do not stay on to be persuaded.
+- Verify once: "Just to check - are you calling about {{BUSINESS_TYPE}} services for yourself?"
+- If it's a pitch: "Thanks, but we're not interested - please remove this number from your list." Then end the call politely. Do not stay on to be persuaded.
 - Never book meetings for salespeople. Never confirm the owner's name, direct number, or email to an unsolicited caller.
-- Log the call as spam. Do NOT send a notification — the owner should not be woken up by a robocall summary.`}
+- Log the call as spam. Do NOT send a notification - the owner should not be woken up by a robocall summary.`}
       />
 
       <H2 id="industries">Industry adjustments</H2>
@@ -498,7 +498,7 @@ EMERGENCY TRIAGE
         rows={[
           [
             "Dental / medical",
-            "New vs. returning patient, insurance carrier, pain triage (severe pain = same-day). No clinical advice, ever — and mind HIPAA before patient data touches any system.",
+            "New vs. returning patient, insurance carrier, pain triage (severe pain = same-day). No clinical advice, ever - and mind HIPAA before patient data touches any system.",
             <Internal
               key="dental"
               href="/blog/dental-answering-service"
@@ -546,7 +546,7 @@ EMERGENCY TRIAGE
         text={`5. Ask: "Have you been to {{PRACTICE_NAME}} before?"
    - NEW patient → collect: date of birth, insurance carrier (name only, no policy numbers over the phone), and how they heard about the practice. Book only into slots marked {{NEW_PATIENT_SLOT_TYPE}}.
    - RETURNING patient → confirm name + phone against the file. Do not read any personal or treatment details back to the caller beyond confirming the appointment time.
-   - PAIN: if the caller mentions severe pain, swelling, or a knocked-out tooth, treat it as urgent — offer today's emergency slot or page {{ONCALL_NUMBER}} after hours.
+   - PAIN: if the caller mentions severe pain, swelling, or a knocked-out tooth, treat it as urgent - offer today's emergency slot or page {{ONCALL_NUMBER}} after hours.
    - Never discuss diagnoses, treatment plans, or costs of treatment; the clinical team confirms those.`}
       />
 
@@ -560,7 +560,7 @@ EMERGENCY TRIAGE
         <LI>
           <Strong>The novel.</Strong> Two thousand words covering company
           history, brand values, and every service tier. The AI can&apos;t tell
-          which lines matter, so it performs all of them — and callers hang up
+          which lines matter, so it performs all of them - and callers hang up
           mid-recital. Our own first prompt had this bug. If a line
           doesn&apos;t change what the AI <em>does</em>, cut it.
         </LI>
@@ -583,7 +583,7 @@ EMERGENCY TRIAGE
         </LI>
         <LI>
           <Strong>The personality kit.</Strong> &quot;Be witty, charming, and
-          fun!&quot; Charm is a fine seasoning and a terrible instruction — you
+          fun!&quot; Charm is a fine seasoning and a terrible instruction - you
           get jokes delivered to someone calling about a flooded kitchen.
           Specify tone with boundaries (&quot;warm, brief, plain-spoken&quot;)
           and let competence be the personality.
@@ -600,7 +600,7 @@ EMERGENCY TRIAGE
 
       <H2 id="testing">Test it like a caller, not like an owner</H2>
       <P>
-        A prompt isn&apos;t done when it reads well — it&apos;s done when it
+        A prompt isn&apos;t done when it reads well - it&apos;s done when it
         survives calls from people who didn&apos;t read it. You are the worst
         possible tester of your own prompt, because you know what it&apos;s
         supposed to do and you unconsciously stay on the path. Test it the way
@@ -619,14 +619,14 @@ EMERGENCY TRIAGE
 
       <UL>
         <LI>
-          <Strong>Book something end to end</Strong> — then check the calendar
+          <Strong>Book something end to end</Strong> - then check the calendar
           and your phone. Did the confirmation actually arrive, with the right
           details?
         </LI>
         <LI>
           <Strong>Ask a question you didn&apos;t put in the prompt.</Strong>{" "}
           The right answer is a graceful &quot;I&apos;ll have the team
-          confirm&quot; — anything invented means your facts whitelist has a
+          confirm&quot; - anything invented means your facts whitelist has a
           hole.
         </LI>
         <LI>
@@ -645,15 +645,15 @@ EMERGENCY TRIAGE
       </UL>
       <P>
         And a final honest note: if you run these tests against a platform and
-        the prompt isn&apos;t the thing failing — the latency is, or the voice,
-        or the fake &quot;booking&quot; — no template on this page will save
+        the prompt isn&apos;t the thing failing - the latency is, or the voice,
+        or the fake &quot;booking&quot; - no template on this page will save
         it. That&apos;s a vendor problem, and our{" "}
         <Internal href="/blog/how-to-choose-an-ai-receptionist">
           buyer&apos;s guide
         </Internal>{" "}
         covers how to spot it before you pay. If you want to hear these
         templates running in production, call our{" "}
-        <Internal href="/">AI receptionist</Internal> and try to break it — the
+        <Internal href="/">AI receptionist</Internal> and try to break it - the
         escalation rules above are the ones it&apos;s running. Setup and{" "}
         <Internal href="/pricing">pricing</Internal> take about ten minutes,
         prompts included.

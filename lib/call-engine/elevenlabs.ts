@@ -1,14 +1,14 @@
-// ElevenLabs Conversational AI — outbound calls.
+// ElevenLabs Conversational AI - outbound calls.
 //
 // The landing page's "Talk to our AI now" button places an outbound call where
 // an ElevenLabs agent (its own voice + LLM) phones the visitor through a Twilio
 // number connected to ElevenLabs. ElevenLabs hosts the whole real-time media
-// pipeline, so this works from a plain serverless function — no media server.
+// pipeline, so this works from a plain serverless function - no media server.
 //
 // Setup (all server-side env):
-//   ELEVENLABS_API_KEY              — account API key
-//   ELEVENLABS_AGENT_ID            — the agent that answers (the AI persona)
-//   ELEVENLABS_AGENT_PHONE_NUMBER_ID — the connected Twilio number to call from
+//   ELEVENLABS_API_KEY              - account API key
+//   ELEVENLABS_AGENT_ID            - the agent that answers (the AI persona)
+//   ELEVENLABS_AGENT_PHONE_NUMBER_ID - the connected Twilio number to call from
 
 import { localizeGreeting } from "./llm/greeting";
 import { DEFAULT_VOICE_ID, voiceForLanguage } from "./voice/catalog";
@@ -26,7 +26,7 @@ interface AgentPhoneNumber {
 /**
  * Find the ElevenLabs phone-number id for an E.164 number, or null if it isn't
  * imported into the account. The list endpoint returns either a bare array or
- * `{ phone_numbers: [...] }` depending on API version — handle both.
+ * `{ phone_numbers: [...] }` depending on API version - handle both.
  */
 export async function findAgentPhoneNumberId(e164: string): Promise<string | null> {
   const apiKey = process.env.ELEVENLABS_API_KEY;
@@ -85,7 +85,7 @@ export async function unassignInboundAgent(phoneNumberId: string): Promise<void>
 }
 
 /**
- * Stop an E.164 number from routing inbound calls to any agent — used when a
+ * Stop an E.164 number from routing inbound calls to any agent - used when a
  * number is unlinked from its assistant or deleted. Prefers the stored ElevenLabs
  * phone-number id (no re-scan); falls back to a lookup by number. No-op if the
  * number was never imported into ElevenLabs.
@@ -142,7 +142,7 @@ export async function importTwilioNumber(
 }
 
 /** Delete an imported phone number from ElevenLabs entirely (used when the number
- *  is deleted, not merely unlinked — unlink just unassigns and keeps it for reuse).
+ *  is deleted, not merely unlinked - unlink just unassigns and keeps it for reuse).
  *  Prefers the stored id; falls back to a lookup. No-op if it was never imported
  *  or is already gone. */
 export async function deleteImportedNumber(
@@ -181,7 +181,7 @@ export async function routeNumberToAgent(
   const agent = (agentId ?? "").trim();
   if (!agent) {
     throw new Error(
-      "No ElevenLabs agent for this assistant yet — save the assistant first, then connect a number.",
+      "No ElevenLabs agent for this assistant yet - save the assistant first, then connect a number.",
     );
   }
 
@@ -190,7 +190,7 @@ export async function routeNumberToAgent(
     await assignInboundAgent(phoneNumberId, agent);
     return phoneNumberId;
   }
-  // Not in ElevenLabs yet — import it from Twilio and assign the agent in one go.
+  // Not in ElevenLabs yet - import it from Twilio and assign the agent in one go.
   return importTwilioNumber(e164, { agentId: agent, label });
 }
 
@@ -204,7 +204,7 @@ export interface PlaceAgentCallResult {
  * first. Used to cap usage so nobody can drain ElevenLabs credits by spamming
  * the public button. Fails open (returns []) if the metrics call itself errors,
  * so a transient ElevenLabs hiccup doesn't take the button down.
- * ponytail: single page of 100 — caps above 100 can't trigger; count demo
+ * ponytail: single page of 100 - caps above 100 can't trigger; count demo
  * calls in our own DB if bigger caps (or a watertight cap) are ever needed.
  */
 async function recentCallStarts(): Promise<number[]> {
@@ -225,7 +225,7 @@ async function recentCallStarts(): Promise<number[]> {
   }
 }
 
-/** A cap from env, or the default when unset/malformed — `Number("15 calls")`
+/** A cap from env, or the default when unset/malformed - `Number("15 calls")`
  *  is NaN and every `>= NaN` check is false, which would silently uncap the
  *  public demo line. */
 function capFromEnv(raw: string | undefined, fallback: number): number {
@@ -246,15 +246,15 @@ export async function assertUnderCallCaps(): Promise<void> {
   const starts = await recentCallStarts();
   const now = Math.floor(Date.now() / 1000);
   if (starts.filter((t) => t >= now - 24 * 3600).length >= dailyCap) {
-    throw new Error("Our AI demo line is busy today — please try again tomorrow.");
+    throw new Error("Our AI demo line is busy today - please try again tomorrow.");
   }
   if (starts.filter((t) => t >= now - 3600).length >= hourlyCap) {
-    throw new Error("Our AI demo line is busy right now — please try again in a bit.");
+    throw new Error("Our AI demo line is busy right now - please try again in a bit.");
   }
 }
 
-// The demo call isn't a live conversation yet — we're about to PLACE it, the
-// visitor's phone rings only after this returns — so we can afford to wait for a
+// The demo call isn't a live conversation yet - we're about to PLACE it, the
+// visitor's phone rings only after this returns - so we can afford to wait for a
 // native per-language voice to resolve/import instead of the ~2s a live webhook
 // allows. Capped so a wedged import can't hang the "call me" button forever.
 // ponytail: 4s is a heuristic for one library import (search + add); the first
@@ -267,7 +267,7 @@ const DEMO_VOICE_BUDGET_MS = 4000;
  * Ordered per-call override candidates for a demo/test call: richest first, an
  * empty (English-default) override always last. The caller's language + localized
  * greeting are the POINT of the call; the per-language voice is a bonus layered on
- * top — so they're separable. If ElevenLabs rejects a voice it won't accept, the
+ * top - so they're separable. If ElevenLabs rejects a voice it won't accept, the
  * next candidate keeps the language (base voice) instead of collapsing all the way
  * to English, which is what made the demo answer in the wrong language. Each entry
  * is the body spread onto the base outbound-call payload; `{}` = agent defaults.
@@ -280,7 +280,7 @@ export function demoOverrideCandidates(opts: {
 }): Record<string, unknown>[] {
   const { language, firstMessage, voiceId, defaultVoiceId } = opts;
   const candidates: Record<string, unknown>[] = [];
-  // English is the agent's own default — never overridden (a misconfigured
+  // English is the agent's own default - never overridden (a misconfigured
   // overrides toggle then can't break US/UK demo calls).
   if (language && language !== "en") {
     const agent: Record<string, unknown> = { language };
@@ -289,13 +289,13 @@ export function demoOverrideCandidates(opts: {
       conversation_initiation_client_data: { conversation_config_override: override },
     });
     // Voice + language first, then language alone. Only add the voiced tier when
-    // the voice actually differs from the base — otherwise it's the same request.
+    // the voice actually differs from the base - otherwise it's the same request.
     if (voiceId && voiceId !== defaultVoiceId) {
       candidates.push(wrap({ agent, tts: { voice_id: voiceId } }));
     }
     candidates.push(wrap({ agent }));
   }
-  candidates.push({}); // English default — the phone rings no matter what.
+  candidates.push({}); // English default - the phone rings no matter what.
   return candidates;
 }
 
@@ -305,7 +305,7 @@ export function demoOverrideCandidates(opts: {
  * Defaults to the public demo agent + its number (the landing page's "Talk to
  * our AI" button). A per-assistant test call passes THAT assistant's agent id and
  * its connected number's phone-number id, so the caller actually hears the
- * assistant being tested — its greeting, voice, prompt, and knowledge — instead
+ * assistant being tested - its greeting, voice, prompt, and knowledge - instead
  * of the generic demo persona.
  */
 export async function placeAgentCall(
@@ -331,7 +331,7 @@ export async function placeAgentCall(
   if (opts.language && opts.language !== "en") {
     const greeting = await agentFirstMessage(agentId, apiKey);
     if (greeting) {
-      // Cached per (greeting, language) — repeat demo calls skip the Gemini trip.
+      // Cached per (greeting, language) - repeat demo calls skip the Gemini trip.
       const localized = await localizeGreeting(greeting, opts.language);
       if (localized !== greeting) firstMessage = localized;
     }
@@ -367,7 +367,7 @@ export async function placeAgentCall(
   // voice ElevenLabs won't accept drops to the base voice but KEEPS the language,
   // instead of the old single-retry that collapsed straight back to English and
   // made the demo answer in the wrong language. A 429/5xx is a real outage and
-  // breaks out immediately — a second placement there would double-dial.
+  // breaks out immediately - a second placement there would double-dial.
   const candidates = demoOverrideCandidates({
     language: opts.language,
     firstMessage,
@@ -397,7 +397,7 @@ export async function placeAgentCall(
 
 // The demo agent's configured greeting, fetched once per instance. Used as the
 // source text for the localized first_message override on demo calls. null on
-// any failure — the call then just uses the agent's own greeting.
+// any failure - the call then just uses the agent's own greeting.
 const firstMessageCache = new Map<string, Promise<string | null>>();
 
 function agentFirstMessage(agentId: string, apiKey: string): Promise<string | null> {
@@ -416,7 +416,7 @@ function agentFirstMessage(agentId: string, apiKey: string): Promise<string | nu
         return null;
       }
     })();
-    // Don't cache a miss forever — a transient failure would permanently disable
+    // Don't cache a miss forever - a transient failure would permanently disable
     // the localized greeting on this warm instance. Evict on null so it retries.
     p.then((v) => {
       if (v === null) firstMessageCache.delete(agentId);

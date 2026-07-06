@@ -8,6 +8,7 @@ import { StatusDot, StatusRow } from "../components/StatusBadge";
 import { SubmitButton } from "../components/SubmitButton";
 import { CALENDAR_PROVIDERS, type CalendarProviderDef } from "./providers";
 import { connectCalendarAction, disconnectCalendarAction } from "./actions";
+import { getDictionary } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
 
@@ -91,7 +92,7 @@ export default async function IntegrationsPage({
 }: {
   searchParams: Promise<{ connected?: string; error?: string }>;
 }) {
-  const { connected, error } = await searchParams;
+  const [{ connected, error }, t] = await Promise.all([searchParams, getDictionary()]);
 
   let integrations: Integration[] = [];
   let loadError = "";
@@ -109,14 +110,11 @@ export default async function IntegrationsPage({
 
   return (
     <div className="space-y-6 rise">
-      <PageHeader
-        title="Integrations"
-        description="Connect a calendar. Your assistant books into it during calls."
-      />
+      <PageHeader title={t.integrations.title} description={t.integrations.description} />
 
       <SectionCard
-        title="Service status"
-        subtitle="Developer diagnostics. Not shown to end users."
+        title={t.integrations.serviceStatus}
+        subtitle={t.integrations.serviceStatusSub}
         action={
           <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-500">
             Dev
@@ -129,7 +127,7 @@ export default async function IntegrationsPage({
               key={s.name}
               tone={s.ok ? "ok" : s.configured ? "error" : "warn"}
               label={s.name}
-              detail={s.configured ? s.detail : "Not configured"}
+              detail={s.configured ? s.detail : t.integrations.notConfigured}
             />
           ))}
         </div>
@@ -137,7 +135,7 @@ export default async function IntegrationsPage({
 
       {connected && (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-          Calendar connected.
+          {t.integrations.calendarConnected}
         </div>
       )}
       {(error || loadError) && (
@@ -168,22 +166,22 @@ export default async function IntegrationsPage({
                     {conn ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-600">
                         <StatusDot tone="ok" />
-                        Connected
+                        {t.common.connected}
                       </span>
                     ) : needsSetup || (!def.live && !def.oauth) ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-0.5 text-[11px] font-medium text-rose-600">
                         <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
-                        Coming soon
+                        {t.common.comingSoon}
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-600">
                         <StatusDot tone="warn" />
-                        Not connected
+                        {t.common.notConnected}
                       </span>
                     )}
                     {isPrimary && (
                       <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-900">
-                        Primary
+                        {t.common.primary}
                       </span>
                     )}
                   </div>
@@ -202,8 +200,8 @@ export default async function IntegrationsPage({
                   )}
                   <form action={disconnectCalendarAction}>
                     <input type="hidden" name="id" value={conn.id} />
-                    <SubmitButton variant="danger" pendingText="Disconnecting…" className="press w-full sm:w-auto">
-                      Disconnect
+                    <SubmitButton variant="danger" pendingText={`${t.common.disconnect}…`} className="press w-full sm:w-auto">
+                      {t.common.disconnect}
                     </SubmitButton>
                   </form>
                 </div>
@@ -215,14 +213,14 @@ export default async function IntegrationsPage({
                       className="press inline-flex h-10 w-full items-center justify-center gap-2.5 rounded-lg border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 shadow-sm transition-colors hover:bg-neutral-50 sm:w-auto sm:justify-start"
                     >
                       <ProviderIcon id={def.id} />
-                      Continue with {LOGIN_NAMES[def.id] ?? def.name}
+                      {t.integrations.continueWith} {LOGIN_NAMES[def.id] ?? def.name}
                     </a>
                   )}
 
                   {def.fields.length > 0 && !def.oauth && <CredentialForm def={def} />}
 
                   {!def.oauth && def.fields.length === 0 && (
-                    <p className="text-xs text-neutral-400">Not available to connect yet.</p>
+                    <p className="text-xs text-neutral-400">{t.integrations.notAvailableYet}</p>
                   )}
                 </div>
               )}

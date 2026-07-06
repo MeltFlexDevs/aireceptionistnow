@@ -1,0 +1,94 @@
+"use client";
+
+import { useEffect, useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { LOCALES } from "@/lib/i18n/config";
+import { setLocaleAction } from "@/lib/i18n/actions";
+import { useI18n } from "@/lib/i18n/client";
+
+export function LanguageSwitcher() {
+  const { t, locale } = useI18n();
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [pending, startTransition] = useTransition();
+  const ref = useRef<HTMLDivElement>(null);
+  const current = LOCALES.find((l) => l.code === locale) ?? LOCALES[0];
+
+  useEffect(() => {
+    if (!open) return;
+    function onDown(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [open]);
+
+  function choose(code: string) {
+    setOpen(false);
+    if (code === locale) return;
+    // Set the cookie, then refresh so the layout re-reads it and re-renders the
+    // whole dashboard (server + client) in the new language.
+    startTransition(async () => {
+      await setLocaleAction(code);
+      router.refresh();
+    });
+  }
+
+  return (
+    <div className="relative" ref={ref} data-el-dropdown={open ? "open" : "closed"}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-busy={pending}
+        aria-label={t.topbar.language}
+        title={t.topbar.language}
+        className="press flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-sm text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
+      >
+        <span className="text-base leading-none" aria-hidden>
+          {current.flag}
+        </span>
+        <span className="hidden font-medium uppercase sm:inline">{current.code}</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-400" aria-hidden>
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </button>
+
+      {open && (
+        <div
+          role="menu"
+          className="absolute right-0 z-50 mt-1 w-44 overflow-hidden rounded-xl border border-neutral-200 bg-white py-1 shadow-lg"
+        >
+          <p className="px-3 pb-1 pt-1.5 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
+            {t.topbar.language}
+          </p>
+          {LOCALES.map((l) => (
+            <button
+              key={l.code}
+              type="button"
+              role="menuitemradio"
+              aria-checked={l.code === locale}
+              onClick={() => choose(l.code)}
+              className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors ${
+                l.code === locale
+                  ? "font-medium text-neutral-900"
+                  : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
+              }`}
+            >
+              <span className="text-base leading-none" aria-hidden>
+                {l.flag}
+              </span>
+              <span className="flex-1">{l.label}</span>
+              {l.code === locale && (
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

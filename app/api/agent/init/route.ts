@@ -1,17 +1,17 @@
 import { getRepository } from "@/lib/call-engine/persistence/supabase";
 import { verifyElevenLabsSignature, verifyToolSecret } from "@/lib/call-engine/agent/auth";
 import { localizeGreeting } from "@/lib/call-engine/llm/greeting";
-import { voiceForLanguage } from "@/lib/call-engine/voice/catalog";
+import { voiceForLanguage, baseLanguage } from "@/lib/call-engine/voice/catalog";
 import { languageFromPhone } from "@/lib/call-engine/voice/phone-language";
 
 // Tier-A conversation-initiation webhook. ElevenLabs calls this when a call
 // starts and applies the overrides we return before the agent speaks. We use it
 // to greet the caller in the language guessed from their number and match the
-// voice — the tier-A equivalent of the tier-B pre-seed in CallSession. Requires
+// voice - the tier-A equivalent of the tier-B pre-seed in CallSession. Requires
 // "overrides" to be enabled for the agent's first_message / language / voice in
 // the ElevenLabs security settings.
 //
-// Auth: unlike the post-call webhook, ElevenLabs does NOT HMAC-sign this one —
+// Auth: unlike the post-call webhook, ElevenLabs does NOT HMAC-sign this one -
 // it authenticates via the custom x-agent-secret header configured on the
 // workspace webhook (workspace.ts). We accept that header (primary) or a valid
 // HMAC signature (in case ElevenLabs ever starts signing it).
@@ -51,7 +51,7 @@ function pick(obj: Record<string, unknown>, keys: string[]): string {
   return "";
 }
 
-/** ElevenLabs' payload shape varies by telephony path — the caller/called numbers
+/** ElevenLabs' payload shape varies by telephony path - the caller/called numbers
  *  may sit at the top level or one object deep (e.g. under `call` or
  *  `conversation_initiation_client_data`). Check the top level first, then scan
  *  nested objects, so a number tucked one level down still resolves the language. */
@@ -96,7 +96,7 @@ export async function POST(req: Request): Promise<Response> {
       ? await getRepository().resolveInboundNumber(calledNumber)
       : null;
   } catch (err) {
-    // A DB hiccup must not 500 the call-start webhook — fall through to defaults.
+    // A DB hiccup must not 500 the call-start webhook - fall through to defaults.
     console.error("[agent/init] resolve failed", err);
   }
   // No overrides ⇒ ElevenLabs keeps the agent's configured defaults. Safe fallback.
@@ -105,26 +105,33 @@ export async function POST(req: Request): Promise<Response> {
   // Only detect + override the caller's language when the agent is actually
   // multilingual. An English-only fallback agent (config.multilingual === false)
   // has no language presets, so a non-English override would be ignored or reject
-  // the call — greet in the agent's own configured language instead.
+  // the call - greet in the agent's own configured language instead.
   const language = config.multilingual ? languageFromPhone(callerId) : null;
   // One line per call so you can confirm from logs that init fired, saw the
   // caller's number, and picked the language (e.g. +421 → sk). If this never
-  // logs, the workspace conversation-init webhook isn't wired — run /api/agent/setup.
+  // logs, the workspace conversation-init webhook isn't wired - run /api/agent/setup.
   console.log("[agent/init]", {
     called: calledNumber,
     caller: callerId,
     language: language ?? "(agent default)",
     multilingual: config.multilingual,
   });
-  // The greeting translation and the voice lookup are independent — run them
+  // The greeting translation and the voice lookup are independent - run them
   // concurrently, each racing the shared budget so a slow Gemini call or a
   // call-time voice-library import degrades to the configured default instead
   // of stalling pickup. Timed-out work still completes and lands in its module
   // cache, so the next caller in that language gets the personalized result.
+  // If the operator pinned a voice for this language in the dashboard's Advanced
+  // tab, use it verbatim (no lookup/import needed); otherwise auto-resolve one.
+  const pinnedVoices =
+    (config.routing as { voiceByLanguage?: Record<string, string> })?.voiceByLanguage ?? {};
+  const pinnedVoice = language ? (pinnedVoices[baseLanguage(language)] ?? "").trim() : "";
   const [firstMessage, voiceId] = language
     ? await Promise.all([
         withDeadline(localizeGreeting(config.greeting, language), OVERRIDE_BUDGET_MS, config.greeting),
-        withDeadline(voiceForLanguage(language, config.voiceId, true), OVERRIDE_BUDGET_MS, config.voiceId),
+        pinnedVoice
+          ? Promise.resolve(pinnedVoice)
+          : withDeadline(voiceForLanguage(language, config.voiceId, true), OVERRIDE_BUDGET_MS, config.voiceId),
       ])
     : [config.greeting, null];
 

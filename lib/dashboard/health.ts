@@ -1,7 +1,7 @@
 import { getTwilioStatus } from "./twilio";
 
 // Live health of the platform's core integrations for the dashboard status
-// balls. Each check does one cheap, read-only request and never throws — a
+// balls. Each check does one cheap, read-only request and never throws - a
 // missing key reads as "not configured", a bad key as "error". All run in
 // parallel with a short timeout so the page isn't held up by a slow provider.
 

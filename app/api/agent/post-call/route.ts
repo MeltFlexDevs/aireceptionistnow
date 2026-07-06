@@ -35,7 +35,7 @@ interface RawTurn {
 }
 
 /**
- * Median agent reply latency (ms) across the call — the "voice latency" the
+ * Median agent reply latency (ms) across the call - the "voice latency" the
  * analytics page charts. ElevenLabs reports per-turn stage timings (LLM TTFB,
  * TTS, …) under conversation_turn_metrics.metrics; we take each agent turn's
  * slowest stage as its end-to-end reply time and return the median. undefined
@@ -106,7 +106,7 @@ export async function POST(req: Request): Promise<Response> {
   const fromNumber = pick(phone, ["external_number", "caller_id", "from_number"]);
   // Telephony payloads carry the real direction; agent_number is the assistant's
   // own connected number either way (external_number is the other party), so an
-  // outbound test/demo call still resolves — record it as outbound, not as a
+  // outbound test/demo call still resolves - record it as outbound, not as a
   // customer call. Anything unexpected/absent defaults to inbound.
   const direction = pick(phone, ["direction"]) === "outbound" ? "outbound" : "inbound";
   const durationSeconds = Number(metadata.call_duration_secs ?? 0) || undefined;
@@ -134,13 +134,13 @@ export async function POST(req: Request): Promise<Response> {
     return json({ error: "temporarily unavailable" }, 500);
   }
 
-  // A retry (or duplicate delivery) — already processed. No-op so we don't
+  // A retry (or duplicate delivery) - already processed. No-op so we don't
   // duplicate transcript turns or re-send summary emails / CRM pushes.
   if (!claimed) return json({ ok: true, deduped: true });
 
   // First delivery: persist the transcript and duration. If either fails we
   // release the claim and return 500 so ElevenLabs' retry reprocesses instead
-  // of being answered as a duplicate — appendTurns replaces the call's turns,
+  // of being answered as a duplicate - appendTurns replaces the call's turns,
   // so the retry can't duplicate them.
   try {
     await repo.appendTurns(callId, mapTurns(data.transcript));

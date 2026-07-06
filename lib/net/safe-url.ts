@@ -1,8 +1,8 @@
 // Shared SSRF guard for user-supplied outbound URLs (CRM push, webhook calendar,
 // knowledge website import). String-level check only: it blocks obvious private /
 // loopback / link-local / cloud-metadata hosts and non-https schemes. It CANNOT
-// stop DNS rebinding on its own — a hostname that resolves public at save time can
-// resolve private at fetch time — so callers that fetch on a schedule must also set
+// stop DNS rebinding on its own - a hostname that resolves public at save time can
+// resolve private at fetch time - so callers that fetch on a schedule must also set
 // `redirect: "manual"` (an open redirect otherwise walks straight past this) and
 // re-run the check immediately before the request.
 
@@ -17,9 +17,9 @@ function isBlockedV4(octets: [number, number, number, number]): boolean {
 }
 
 /**
- * Parse an IPv4 host the way inet_aton does: 1–4 dot-separated parts, each
+ * Parse an IPv4 host the way inet_aton does: 1-4 dot-separated parts, each
  * decimal, octal (leading 0) or hex (0x…), the last part filling the remaining
- * bytes — so "2130706433", "0x7f000001", "0177.0.0.1" and "127.1" are all
+ * bytes - so "2130706433", "0x7f000001", "0177.0.0.1" and "127.1" are all
  * 127.0.0.1. Returns the four octets, or null when the host isn't numeric IPv4
  * at all (then it's a DNS name and range checks don't apply).
  */
@@ -79,7 +79,7 @@ function parseIPv6(host: string): number[] | null {
 }
 
 /** Loopback / unspecified / unique-local / link-local IPv6, plus any form that
- *  embeds an IPv4 address — the fetch would reach that IPv4, so judge it with
+ *  embeds an IPv4 address - the fetch would reach that IPv4, so judge it with
  *  the IPv4 rules. */
 function isBlockedV6(g: number[]): boolean {
   const zeroThrough = (n: number) => g.slice(0, n).every((x) => x === 0);
@@ -87,7 +87,7 @@ function isBlockedV6(g: number[]): boolean {
   if ((g[0] & 0xfe00) === 0xfc00) return true; // fc00::/7 unique-local
   if ((g[0] & 0xffc0) === 0xfe80) return true; // fe80::/10 link-local
   // IPv4-mapped ::ffff:a.b.c.d, IPv4-compatible ::a.b.c.d, translated
-  // ::ffff:0:a.b.c.d — all carry the IPv4 in the last two groups.
+  // ::ffff:0:a.b.c.d - all carry the IPv4 in the last two groups.
   const embedsV4 =
     (zeroThrough(5) && (g[5] === 0 || g[5] === 0xffff)) ||
     (zeroThrough(4) && g[4] === 0xffff && g[5] === 0);
@@ -108,7 +108,7 @@ export function isBlockedHost(hostname: string): boolean {
   }
   if (host.includes(":")) {
     // IPv6. Expand to the full 8 groups so compressed ("::1"), IPv4-mapped
-    // ("::ffff:127.0.0.1" — and its hex spelling "::ffff:7f00:1", which is how
+    // ("::ffff:127.0.0.1" - and its hex spelling "::ffff:7f00:1", which is how
     // the URL parser re-serializes it) and IPv4-compatible forms can't sneak an
     // internal IPv4 past a string-prefix check. A colon-host that isn't valid
     // IPv6 is never a valid DNS name either, so fail closed.
@@ -117,7 +117,7 @@ export function isBlockedHost(hostname: string): boolean {
   }
   // IPv4, including inet_aton's non-dotted spellings ("2130706433",
   // "0x7f000001", "0177.0.0.1"). The URL parser normalizes those to dotted-quad
-  // for http(s) URLs, but normalize here too — isBlockedHost is the last line
+  // for http(s) URLs, but normalize here too - isBlockedHost is the last line
   // of defense and is also called on hostnames outside a full-URL context.
   const v4 = parseIPv4(host);
   if (v4) return isBlockedV4(v4);

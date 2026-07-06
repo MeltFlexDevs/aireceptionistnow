@@ -46,8 +46,8 @@ async function ownedOrgOrRedirect(id: string): Promise<Organization> {
   const org = await getOrganization(id).catch(() => null);
   if (!org) redirect("/dashboard/organizations");
   // Fail closed: when auth is on, an owned org may only be touched by its owner.
-  // Guarding on `ownerId &&` (as before) let an unauthenticated request — no
-  // session, so currentUserId() is null — skip the check and mutate any org by id.
+  // Guarding on `ownerId &&` (as before) let an unauthenticated request - no
+  // session, so currentUserId() is null - skip the check and mutate any org by id.
   // Unowned orgs (single-tenant, auth off) still pass. Mirrors requireAssistantOwner.
   if (authConfigured() && org.owner_id) {
     const ownerId = await currentUserId();
@@ -63,7 +63,7 @@ function orgError(id: string, message: string): never {
 /**
  * Re-push this org's shared knowledge into every assigned assistant's ElevenLabs
  * agent. The agent bakes in the org+assistant merged knowledge at sync time, so
- * an org knowledge edit is invisible on calls until each assistant re-syncs —
+ * an org knowledge edit is invisible on calls until each assistant re-syncs -
  * this closes that gap so knowledge changes take effect on the next call.
  * Best-effort per assistant: a sync failure is logged, never blocks the save
  * (the knowledge is already persisted; a later assistant save re-syncs too).
@@ -102,7 +102,7 @@ export async function deleteOrganizationAction(formData: FormData): Promise<void
   const id = String(formData.get("id") ?? "");
   if (id) {
     await ownedOrgOrRedirect(id);
-    // Capture members BEFORE deleting — deleteOrganization unassigns them
+    // Capture members BEFORE deleting - deleteOrganization unassigns them
     // (organization_id → null), which changes the knowledge their agents bake in.
     // Re-sync each afterward so the deleted org's shared knowledge stops appearing
     // on their calls (same reason every other org-knowledge edit re-syncs).
@@ -257,7 +257,7 @@ export async function toggleAssistantOrganizationAction(formData: FormData): Pro
 
   // Assigning/unassigning changes the knowledge the assistant reads on calls
   // (org shared knowledge is merged in at sync time), so rebuild its ElevenLabs
-  // agent now — this is the step that makes "assign to org → agent is ready with
+  // agent now - this is the step that makes "assign to org → agent is ready with
   // the org's knowledge" true. Best-effort: the membership change already saved.
   await syncAssistantAgent(assistantId).catch((err) =>
     console.error("[organizations] agent sync after assignment failed", assistantId, err),

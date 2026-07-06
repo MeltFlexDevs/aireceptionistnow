@@ -2,8 +2,8 @@ import crypto from "node:crypto";
 import { getEnv } from "../env";
 
 // Auth for the tier-A (ElevenLabs managed agent) webhooks. Two schemes:
-//   • Tool calls  — a shared bearer secret the agent presents on every request.
-//   • Post-call / conversation-init — an HMAC ElevenLabs signs the body with.
+//   • Tool calls  - a shared bearer secret the agent presents on every request.
+//   • Post-call / conversation-init - an HMAC ElevenLabs signs the body with.
 // Both fail closed: if the corresponding secret is unset, the request is
 // rejected, so a tier-B-only deploy never exposes an unauthenticated endpoint.
 
@@ -15,7 +15,7 @@ function safeEqual(a: string, b: string): boolean {
 
 /**
  * Verify a server-tool request's shared secret. Accepts either
- * `Authorization: Bearer <secret>` or an `x-agent-secret: <secret>` header —
+ * `Authorization: Bearer <secret>` or an `x-agent-secret: <secret>` header -
  * ElevenLabs can attach either as a secret header on the tool config.
  */
 export function verifyToolSecret(headers: Headers): boolean {

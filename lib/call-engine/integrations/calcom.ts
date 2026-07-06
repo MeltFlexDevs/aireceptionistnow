@@ -57,7 +57,7 @@ export const createCalcom: CalendarFactory = (config): CalendarProvider => {
       // v1 exposes bookable slots (GET /v1/slots), not busy times, so invert:
       // everything in the window outside a free slot is reported busy. Slot
       // length is inferred from the smallest gap between consecutive slots.
-      // ponytail: 30-min fallback when only one slot comes back — read the
+      // ponytail: 30-min fallback when only one slot comes back - read the
       // event type's length via /v1/event-types/{id} if that ever misleads.
       const params = new URLSearchParams({
         apiKey: cfg.api_key,

@@ -36,7 +36,7 @@ export interface CalendarAccessEntry {
 }
 
 /**
- * Build adapters for every calendar this assistant may read for availability —
+ * Build adapters for every calendar this assistant may read for availability -
  * any granted level (read, write, or legacy busy) contributes to free/busy.
  * Used by check_availability so a "read all calendars" assistant sees conflicts
  * across every connected calendar without being able to book on read-only ones.

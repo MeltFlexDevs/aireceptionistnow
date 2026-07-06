@@ -3,20 +3,21 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { Search, Spinner } from "../icons";
+import { useT } from "@/lib/i18n/client";
 
 interface Props {
   q: string;
   status: string;
 }
 
-const STATUSES = [
-  { value: "all", label: "All statuses" },
-  { value: "completed", label: "Completed" },
-  { value: "unanswered", label: "Unanswered" },
-  { value: "active", label: "In progress" },
-];
-
 export function CallFilters({ q, status }: Props) {
+  const t = useT();
+  const STATUSES = [
+    { value: "all", label: t.calls.statusAll },
+    { value: "completed", label: t.calls.statusCompleted },
+    { value: "unanswered", label: t.calls.statusUnanswered },
+    { value: "active", label: t.calls.statusActive },
+  ];
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -73,7 +74,7 @@ export function CallFilters({ q, status }: Props) {
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Search by number, assistant, outcome, or Call SID"
+          placeholder={t.calls.searchPlaceholder}
           className="h-10 w-full rounded-lg border border-neutral-200 bg-white pl-9 pr-3 text-sm text-neutral-700 outline-none placeholder:text-neutral-400 focus:border-neutral-900"
         />
       </div>
@@ -90,7 +91,7 @@ export function CallFilters({ q, status }: Props) {
           onClick={clearFilters}
           className="press h-10 self-start px-2 text-sm font-medium text-neutral-500 transition-colors hover:text-neutral-900"
         >
-          Clear
+          {t.common.clear}
         </button>
       )}
     </div>

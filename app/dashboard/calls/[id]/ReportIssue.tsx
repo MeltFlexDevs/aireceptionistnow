@@ -16,7 +16,7 @@ export function ReportIssue({ callId }: { callId: string }) {
   if (state.ok) {
     return (
       <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
-        Report sent — thanks
+        Report sent - thanks
       </span>
     );
   }

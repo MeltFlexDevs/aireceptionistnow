@@ -18,7 +18,7 @@ export async function startCheckout(
   });
   const data = await res.json().catch(() => null);
   if (res.status === 401) {
-    // Not signed in — send them through auth, then back to pricing.
+    // Not signed in - send them through auth, then back to pricing.
     window.location.assign("/?auth=login&next=/pricing");
     return;
   }

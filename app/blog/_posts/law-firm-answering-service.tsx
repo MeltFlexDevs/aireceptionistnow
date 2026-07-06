@@ -146,7 +146,7 @@ export default function Body() {
         A <Strong>law firm answering service</Strong> answers your calls when no
         one at the firm can, captures and qualifies the potential client, and
         either books a consultation or hands you a clean intake. It can be run by
-        live operators, by an AI receptionist, or a hybrid — the{" "}
+        live operators, by an AI receptionist, or a hybrid - the{" "}
         <Internal href="/blog/ai-receptionist-vs-virtual-receptionist-vs-answering-service">
           differences between the three models
         </Internal>{" "}

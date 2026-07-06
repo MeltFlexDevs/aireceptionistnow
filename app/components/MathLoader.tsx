@@ -2,8 +2,8 @@
 
 // Math-curve loaders: dependency-free, self-contained (keyframes inline), and
 // theme-aware via `currentColor`. Two parametric-motion variants:
-//   • "spiro" — nested epicycles; the dot traces an epicycloid/spirograph.
-//   • "orbit" — three dots on nested rings at different radii + speeds (harmonic).
+//   • "spiro" - nested epicycles; the dot traces an epicycloid/spirograph.
+//   • "orbit" - three dots on nested rings at different radii + speeds (harmonic).
 // Sized by `size` (px); color inherits from the surrounding text color.
 
 type Variant = "spiro" | "orbit";

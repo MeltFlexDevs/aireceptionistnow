@@ -8,7 +8,7 @@ import type {
 } from "./types";
 
 // Generic "bring your own" adapter: POST the booking to a URL the user supplies.
-// This is the broad-compatibility path — point it at Zapier, Make, n8n, or a
+// This is the broad-compatibility path - point it at Zapier, Make, n8n, or a
 // custom endpoint and any calendar can be driven from there. Used as the
 // fallback for providers without a dedicated adapter.
 

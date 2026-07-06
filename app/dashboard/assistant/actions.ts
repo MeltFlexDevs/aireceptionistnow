@@ -28,17 +28,33 @@ import {
 } from "@/lib/call-engine/elevenlabs";
 import { syncAssistantAgent, deleteAssistantAgent } from "@/lib/call-engine/agent/sync";
 import { isSafeHttpsUrl } from "@/lib/net/safe-url";
+import { SUPPORTED_LANGUAGES } from "@/lib/call-engine/voice/phone-language";
+import { addSharedVoice } from "@/lib/call-engine/voice/catalog";
 
 const E164 = /^\+[1-9]\d{6,15}$/;
+const clamp = (n: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, n));
+
+/** Decode the display name packed into a "lib:owner:id:name" voice token. */
+function libVoiceName(encoded: string | undefined, lang: string): string {
+  if (encoded) {
+    try {
+      const name = decodeURIComponent(encoded).slice(0, 60);
+      if (name) return name;
+    } catch {
+      // fall through to the generic name
+    }
+  }
+  return `Voice (${lang})`;
+}
 
 /**
  * Reject the request unless the caller owns this assistant. Server Actions are
  * public POST endpoints (Next only enforces same-origin, not auth), and the DB
- * helpers filter by id, not owner — without this any visitor could mutate
+ * helpers filter by id, not owner - without this any visitor could mutate
  * another tenant's assistant by guessing its id. In single-tenant deploys with
  * auth disabled (authConfigured() === false) ownership isn't enforced.
  *
- * Redirects (which throw NEXT_REDIRECT) on failure — call it BEFORE any
+ * Redirects (which throw NEXT_REDIRECT) on failure - call it BEFORE any
  * try/catch so the redirect isn't swallowed.
  */
 async function requireAssistantOwner(assistantId: string): Promise<void> {
@@ -48,7 +64,7 @@ async function requireAssistantOwner(assistantId: string): Promise<void> {
     ? await getAssistant(assistantId).catch(() => null)
     : null;
   // Block only a genuine cross-tenant access: an OWNED assistant whose owner
-  // isn't the current user. An unowned assistant (owner_id null — created when no
+  // isn't the current user. An unowned assistant (owner_id null - created when no
   // session resolved) is treated as single-tenant and allowed, matching the
   // "ownership isn't enforced when auth is effectively off" intent above. This
   // avoids locking the sole operator out of their own unowned assistants.
@@ -81,7 +97,7 @@ export async function createAssistantAction(formData: FormData): Promise<void> {
   }
 
   // Numbers are attached from the assistant's settings (Connect number → assigns
-  // the ElevenLabs inbound agent). No auto-provisioning — the number lives in
+  // the ElevenLabs inbound agent). No auto-provisioning - the number lives in
   // ElevenLabs, not on a Twilio pool we manage.
   revalidatePath("/dashboard/assistant");
   redirect(`/dashboard/assistant/${id}`);
@@ -119,6 +135,50 @@ export async function updateAssistantAction(formData: FormData): Promise<void> {
   if (formData.get("email_enabled") === "on" && emailTo) {
     routing.emailTranscripts = { enabled: true, to: emailTo };
   }
+
+  // Advanced voice options (Advanced tab). Global speed/stability and a per-
+  // language voice map, both fed to the ElevenLabs agent by syncAssistantAgent.
+  const speed = Number(formData.get("voice_speed"));
+  const stability = Number(formData.get("voice_stability"));
+  const voice: Record<string, number> = {};
+  if (Number.isFinite(speed)) voice.speed = clamp(speed, 0.7, 1.2);
+  if (Number.isFinite(stability)) voice.stability = clamp(stability, 0, 1);
+  if (Object.keys(voice).length) routing.voice = voice;
+
+  // Per-language voices. A "lib:<owner>:<id>:<name>" value is a shared Voice-
+  // Library pick that must be added to the account before ElevenLabs can speak
+  // with it; a plain value is an existing account voice id, used as-is. Imports
+  // run in parallel and are deduped so one voice reused across languages is added
+  // once. Any that fail to add are reported and simply left unpinned (auto voice).
+  const voiceByLanguage: Record<string, string> = {};
+  const voiceImportFailures: string[] = [];
+  const importCache = new Map<string, Promise<string | null>>();
+  const importOnce = (owner: string, voiceId: string, name: string): Promise<string | null> => {
+    const cacheKey = `${owner}:${voiceId}`;
+    let pending = importCache.get(cacheKey);
+    if (!pending) {
+      pending = addSharedVoice(owner, voiceId, name);
+      importCache.set(cacheKey, pending);
+    }
+    return pending;
+  };
+
+  await Promise.all(
+    SUPPORTED_LANGUAGES.map(async (lang) => {
+      const raw = String(formData.get(`voice_lang_${lang}`) ?? "").trim();
+      if (!raw) return;
+      if (!raw.startsWith("lib:")) {
+        voiceByLanguage[lang] = raw;
+        return;
+      }
+      const [, owner, voiceId, encName] = raw.split(":");
+      if (!owner || !voiceId) return;
+      const accountId = await importOnce(owner, voiceId, libVoiceName(encName, lang));
+      if (accountId) voiceByLanguage[lang] = accountId;
+      else voiceImportFailures.push(lang);
+    }),
+  );
+  if (Object.keys(voiceByLanguage).length) routing.voiceByLanguage = voiceByLanguage;
 
   // CRM / ERP push (optional).
   const crmUrl = String(formData.get("crm_url") ?? "").trim();
@@ -164,6 +224,13 @@ export async function updateAssistantAction(formData: FormData): Promise<void> {
 
   revalidatePath(`/dashboard/assistant/${id}`);
   revalidatePath("/dashboard/assistant");
+  if (voiceImportFailures.length) {
+    redirect(
+      `/dashboard/assistant/${id}?notice=${encodeURIComponent(
+        `Saved. Couldn't add ${voiceImportFailures.length} library voice(s) to your ElevenLabs account (${voiceImportFailures.join(", ")}); those languages use the default voice.`,
+      )}`,
+    );
+  }
   redirect(`/dashboard/assistant/${id}?saved=1`);
 }
 
@@ -178,7 +245,7 @@ export async function deleteAssistantAction(formData: FormData): Promise<void> {
 
   try {
     // Soft-delete the assistant FIRST, then return its numbers to the shared pool.
-    // If the delete fails, the numbers stay linked — never expose a still-live
+    // If the delete fails, the numbers stay linked - never expose a still-live
     // assistant's numbers to the pool, where another assistant could claim and
     // re-route them away. Surface any failure instead of reporting a partial
     // delete as success.
@@ -192,7 +259,7 @@ export async function deleteAssistantAction(formData: FormData): Promise<void> {
   }
 
   // Best-effort teardown of the ElevenLabs agent + uploaded knowledge. Never
-  // block the delete on it — the DB row is already gone.
+  // block the delete on it - the DB row is already gone.
   if (existing) {
     await deleteAssistantAgent(existing).catch((err) =>
       console.error("[assistant] agent teardown failed", err),
@@ -208,7 +275,7 @@ export async function deleteAssistantAction(formData: FormData): Promise<void> {
 /**
  * "Get number": give this assistant a working phone line end to end. Reuses a
  * spare number from the shared pool when one is free, and only buys a brand-new
- * Twilio number when the pool has none — so freed numbers get recycled instead of
+ * Twilio number when the pool has none - so freed numbers get recycled instead of
  * racking up Twilio charges. Either way the number is imported into ElevenLabs and
  * this assistant's managed agent is assigned as its inbound agent, so callers
  * reach this assistant's config. One click, fully serverless (ElevenLabs runs the
@@ -221,7 +288,7 @@ export async function getAgentNumberAction(formData: FormData): Promise<void> {
   await requireAssistantOwner(assistantId);
 
   // Idempotency: if this assistant already has a number, don't attach a second
-  // one — a double-click, a retry, or a concurrent submit would otherwise
+  // one - a double-click, a retry, or a concurrent submit would otherwise
   // double-consume the pool or double-buy from Twilio. Checked BEFORE the try so
   // its redirect (NEXT_REDIRECT) isn't swallowed by the catch.
   const existingNumber = await getAssistantNumber(assistantId).catch(() => null);
@@ -243,7 +310,7 @@ export async function getAgentNumberAction(formData: FormData): Promise<void> {
 
     // 1) Reuse first: atomically claim a free pooled number if one exists. Only
     //    when the pool is empty do we buy a new one from Twilio (without our
-    //    webhook — the ElevenLabs import owns routing once assigned).
+    //    webhook - the ElevenLabs import owns routing once assigned).
     let numberId: string;
     let e164: string;
     const claimed = await claimFreeNumber(assistantId);
@@ -265,7 +332,7 @@ export async function getAgentNumberAction(formData: FormData): Promise<void> {
     try {
       elevenLabsPhoneNumberId = await routeNumberToAgent(e164, agentId ?? undefined, numberId);
     } catch (routeErr) {
-      // Routing itself failed — the number isn't answering as this assistant in
+      // Routing itself failed - the number isn't answering as this assistant in
       // ElevenLabs, so return it to the pool. Only here: a failure AFTER routing
       // succeeded must not unlink a number that's already live (that would leave
       // ElevenLabs ringing this assistant while the pool re-offers the number).
@@ -274,7 +341,7 @@ export async function getAgentNumberAction(formData: FormData): Promise<void> {
       );
       throw routeErr;
     }
-    // Routing committed in ElevenLabs. Persist the phone-number id best-effort — a
+    // Routing committed in ElevenLabs. Persist the phone-number id best-effort - a
     // DB hiccup here must NOT unlink the number (it's already answering as this
     // assistant); the id is only a cache for faster release/re-route and can be
     // re-derived by lookup.
@@ -306,7 +373,7 @@ export async function toggleAssistantEnabledAction(formData: FormData): Promise<
 export async function testCallAction(formData: FormData): Promise<void> {
   // Works both from the dedicated Test-call form (assistant_id/to) and from the
   // settings form's "Test call this number" button (id/transfer_to). The
-  // ElevenLabs agent places an outbound call to `to` — the whole runtime (voice
+  // ElevenLabs agent places an outbound call to `to` - the whole runtime (voice
   // + brain) is ElevenLabs; no media server involved.
   const assistantId = String(formData.get("assistant_id") ?? formData.get("id") ?? "");
   const to = String(formData.get("to") ?? formData.get("transfer_to") ?? "").trim();
@@ -345,7 +412,7 @@ export async function unlinkNumberAction(formData: FormData): Promise<void> {
   if (!assistantId) redirect("/dashboard/assistant");
   await requireAssistantOwner(assistantId);
 
-  // The number must actually belong to this assistant — otherwise a caller could
+  // The number must actually belong to this assistant - otherwise a caller could
   // unlink an arbitrary number by id.
   const number = await getAssistantNumber(assistantId).catch(() => null);
   if (!number || !numberId || number.id !== numberId) {

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { ChevronDown } from "../icons";
 import { createClient } from "@/lib/supabase/client";
+import { useT } from "@/lib/i18n/client";
 import type { AppUser } from "@/lib/auth-user";
 
 function LogoutIcon({ className }: { className?: string }) {
@@ -19,6 +20,7 @@ function LogoutIcon({ className }: { className?: string }) {
 
 export function UserMenu({ user }: { user: AppUser }) {
   const router = useRouter();
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -91,7 +93,7 @@ export function UserMenu({ user }: { user: AppUser }) {
             className="flex w-full items-center gap-2.5 px-4 py-3 text-left text-sm text-neutral-700 transition-colors hover:bg-neutral-50 disabled:opacity-60"
           >
             <LogoutIcon className="h-[18px] w-[18px] text-neutral-500" />
-            {signingOut ? "Signing out…" : "Sign out"}
+            {signingOut ? `${t.user.signOut}…` : t.user.signOut}
           </button>
         </div>
       ) : null}

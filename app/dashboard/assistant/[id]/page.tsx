@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getAssistant, getAssistantNumber, listIntegrations } from "@/lib/dashboard/db";
+import { getAssistant, getAssistantNumber, listIntegrations, listNumbers } from "@/lib/dashboard/db";
 import { getTwilioStatus } from "@/lib/dashboard/twilio";
 import { getOrganization } from "@/lib/dashboard/organizations";
 import { getPlanContext } from "@/lib/dashboard/plan";
@@ -10,8 +10,12 @@ import { SectionCard } from "../../components/SectionCard";
 import { PageHeader } from "../../components/PageHeader";
 import { StatusRow } from "../../components/StatusBadge";
 import { SubmitButton } from "../../components/SubmitButton";
+import { Tabs } from "../../components/Tabs";
 import { CALENDAR_PROVIDERS } from "../../integrations/providers";
 import { VoiceSelect } from "../../numbers/VoiceSelect";
+import { LANGUAGES } from "../../numbers/languages";
+import { ELEVENLABS_LANGUAGES } from "@/lib/call-engine/voice/phone-language";
+import { AdvancedVoiceSettings, type LangOption } from "../AdvancedVoiceSettings";
 import {
   testCallAction,
   unlinkNumberAction,
@@ -65,6 +69,23 @@ export default async function AssistantSettingsPage({
     calAccess.map((a) => [a.integrationId, a.level === "busy" ? "read" : a.level]),
   );
 
+  // Advanced voice options. Speed 1.0× / stability 50% are the ElevenLabs
+  // conversational defaults, so an untouched assistant keeps its current sound.
+  const voiceCfg = (assistant.routing as { voice?: { speed?: number; stability?: number } })?.voice ?? {};
+  const voiceByLanguage =
+    (assistant.routing as { voiceByLanguage?: Record<string, string> })?.voiceByLanguage ?? {};
+  // One row per base language we can speak (deduped across regional variants),
+  // English excluded - it uses the default voice picked in Basics.
+  const seenBase = new Set<string>();
+  const voiceLanguages: LangOption[] = LANGUAGES.flatMap((l) => {
+    const base = l.code.split("-")[0];
+    if (base === "en" || l.code === "multi" || !ELEVENLABS_LANGUAGES.has(base) || seenBase.has(base)) {
+      return [];
+    }
+    seenBase.add(base);
+    return [{ code: base, name: l.name, flag: l.flag }];
+  });
+
   let calendars: Awaited<ReturnType<typeof listIntegrations>> = [];
   try {
     calendars = (await listIntegrations(ownerId ?? undefined)).filter((i) => i.type === "calendar");
@@ -73,6 +94,14 @@ export default async function AssistantSettingsPage({
   }
 
   const number = await getAssistantNumber(assistant.id).catch(() => null);
+  // Free numbers waiting in the shared pool - same rule claimFreeNumber() uses.
+  // When any exist, "Get number" just claims one instead of buying a new line.
+  let availableNumbers = 0;
+  if (!number) {
+    availableNumbers = await listNumbers()
+      .then((all) => all.filter((n) => !n.assistant_id && n.enabled && n.twilio_sid).length)
+      .catch(() => 0);
+  }
   const twilio = await getTwilioStatus();
   const planCtx = await getPlanContext(ownerId).catch(() => null);
   const credits = planCtx?.limits.minutesIncluded ?? 1000;
@@ -126,7 +155,7 @@ export default async function AssistantSettingsPage({
             </form>
           </div>
         ) : (
-          <GetNumberForm assistantId={assistant.id} credits={credits} />
+          <GetNumberForm assistantId={assistant.id} credits={credits} availableCount={availableNumbers} />
         )}
       </SectionCard>
 
@@ -162,6 +191,9 @@ export default async function AssistantSettingsPage({
       <form action={updateAssistantAction} className="space-y-6">
         <input type="hidden" name="id" value={assistant.id} />
 
+        <Tabs labels={["Settings", "Advanced"]}>
+        {/* ── Settings tab ─────────────────────────────────────────────── */}
+        <div className="space-y-6">
         <SectionCard title="Basics" subtitle="Name, greeting, voice, and language.">
           <div className="space-y-4">
             <div>
@@ -258,6 +290,19 @@ export default async function AssistantSettingsPage({
           )}
         </SectionCard>
 
+        </div>
+
+        {/* ── Advanced tab ─────────────────────────────────────────────── */}
+        <div className="space-y-6">
+        <SectionCard title="Voice options" subtitle="Speaking speed, stability, and a specific voice per language.">
+          <AdvancedVoiceSettings
+            defaultSpeed={typeof voiceCfg.speed === "number" ? voiceCfg.speed : 1}
+            defaultStability={typeof voiceCfg.stability === "number" ? voiceCfg.stability : 0.5}
+            voiceByLanguage={voiceByLanguage}
+            languages={voiceLanguages}
+          />
+        </SectionCard>
+
         <SectionCard title="Email transcripts" subtitle="Email a recap and full transcript after each call.">
           <div className="space-y-3">
             <label className={toggleRow}>
@@ -295,6 +340,8 @@ export default async function AssistantSettingsPage({
             </div>
           </div>
         </SectionCard>
+        </div>
+        </Tabs>
 
         <SubmitButton pendingText="Saving…" className="press h-10 w-full px-5 sm:w-auto">
           Save settings

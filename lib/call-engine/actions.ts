@@ -12,7 +12,7 @@ import type { BookingRequest, NumberConfig } from "./types";
 // Transport-agnostic receptionist actions. This is the shared business core:
 // the tier-B media server (CallSession) executes tools by calling these, and the
 // tier-A managed-agent webhooks (ElevenLabs server tools) call the exact same
-// functions. One source of truth for "what the receptionist can do" — the two
+// functions. One source of truth for "what the receptionist can do" - the two
 // tiers differ only in who runs the voice + LLM, never in the actions.
 //
 // Every function returns the natural-language string the assistant should speak
@@ -23,9 +23,9 @@ import type { BookingRequest, NumberConfig } from "./types";
 export interface ActionContext {
   callId: string;
   config: NumberConfig;
-  /** Caller's number — fallback attendee phone + who a message is from. */
+  /** Caller's number - fallback attendee phone + who a message is from. */
   from: string;
-  /** Dialed business number — the "from" when we text the owner. */
+  /** Dialed business number - the "from" when we text the owner. */
   to: string;
 }
 
@@ -57,7 +57,7 @@ export function canCheckAvailability(config: NumberConfig): boolean {
 /**
  * Read-only availability check across every calendar this assistant may read.
  * Returns guidance the model speaks; it deliberately surfaces only free/busy and
- * free alternatives — never what is scheduled, who, or why.
+ * free alternatives - never what is scheduled, who, or why.
  */
 export async function checkAvailabilityAction(
   ctx: ActionContext,
@@ -114,12 +114,12 @@ export async function bookAppointmentAction(
     notes: input.notes ? clip(input.notes, 1000) : undefined,
   };
 
-  // Reject garbage before it reaches a provider — a malformed range would fail
+  // Reject garbage before it reaches a provider - a malformed range would fail
   // opaquely there and be spoken as an outage instead of a re-ask.
   const startMs = Date.parse(req.startTime);
   const endMs = Date.parse(req.endTime);
   if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs <= startMs) {
-    return "I need a valid start and end time to book — please confirm the exact date and time with the caller.";
+    return "I need a valid start and end time to book - please confirm the exact date and time with the caller.";
   }
 
   let resolved = writeEntry
@@ -138,13 +138,13 @@ export async function bookAppointmentAction(
   // Last-moment conflict re-check: nothing guarantees check_availability was
   // called, or that its answer is still current. Providers create overlapping
   // events without complaint, so re-verify on every readable calendar right
-  // before writing. ponytail: narrows the race, can't eliminate it — no
+  // before writing. ponytail: narrows the race, can't eliminate it - no
   // conflict-rejecting atomic create exists on Google/Graph.
   const readable = resolveCalendarsForAccess(ctx.config.integrations, access);
   if (readable.length > 0) {
     const check = await checkAvailability(readable, req.startTime, req.endTime).catch(() => null);
     if (check?.ok && !check.requestedFree) {
-      return "That time was just taken. Apologize briefly and offer the caller a different time — never say what else is scheduled.";
+      return "That time was just taken. Apologize briefly and offer the caller a different time - never say what else is scheduled.";
     }
   }
 
@@ -171,7 +171,7 @@ export async function takeMessageAction(
   repo: CallRepository,
   input: Record<string, unknown>,
 ): Promise<string> {
-  // Clip/sanitize before storing or texting — these fields are untrusted tool args.
+  // Clip/sanitize before storing or texting - these fields are untrusted tool args.
   const payload = {
     caller_name: clip(input.caller_name, 120),
     callback_number: clip(input.callback_number, 40),
@@ -184,7 +184,7 @@ export async function takeMessageAction(
     payload,
   });
   await alertOwner(ctx, payload);
-  return "Got it — I've saved your message.";
+  return "Got it - I've saved your message.";
 }
 
 /** Text the owner's personal number when a message is taken (if enabled). Input
@@ -197,7 +197,7 @@ async function alertOwner(
   if (!r.transferTo || r.smsAlerts === false) return;
   const who = input.caller_name || ctx.from;
   const cb = input.callback_number ? ` (${input.callback_number})` : "";
-  const body = `New message for ${ctx.config.businessName}: ${input.message} — from ${who}${cb}`;
+  const body = `New message for ${ctx.config.businessName}: ${input.message} - from ${who}${cb}`;
   try {
     await sendSms(r.transferTo, ctx.to, body);
   } catch (err) {

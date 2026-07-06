@@ -8,7 +8,7 @@ import type {
   CalendarProvider,
 } from "./types";
 
-// Google Calendar adapter. Config holds the user's OAuth credentials — an
+// Google Calendar adapter. Config holds the user's OAuth credentials - an
 // access token (refreshed on 401 if a refresh token + client creds are present)
 // and the target calendar id.
 
@@ -23,7 +23,7 @@ interface GoogleConfig {
 
 // The UTC offset (e.g. "-04:00") of an IANA zone at a given calendar date, so an
 // all-day event's YYYY-MM-DD can be pinned to the right instant. Uses Intl only
-// — no tz database dependency. Falls back to "Z" if the zone is unknown.
+// - no tz database dependency. Falls back to "Z" if the zone is unknown.
 function zoneOffset(date: string, timeZone: string): string {
   try {
     const at = new Date(`${date}T12:00:00Z`); // midday avoids DST-edge rounding
@@ -132,7 +132,7 @@ export const createGoogleCalendar: CalendarFactory = (config): CalendarProvider 
         }[];
       };
       // An all-day event carries a bare `date` (YYYY-MM-DD) that spans midnight to
-      // midnight in the CALENDAR's zone, not UTC — resolve it in json.timeZone so
+      // midnight in the CALENDAR's zone, not UTC - resolve it in json.timeZone so
       // a same-day busy block isn't shifted by the offset. dateTime is already a
       // full instant. "transparent" events are marked free.
       const zone = json.timeZone || "UTC";

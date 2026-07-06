@@ -20,7 +20,7 @@ export async function runPostCall(
     const summary = await summarizeCall(loaded.turns, loaded.config, loaded.actions, loaded.from);
     await repo.saveSummary(callId, summary);
 
-    // Best-effort external deliveries — never let one break the others or the
+    // Best-effort external deliveries - never let one break the others or the
     // summary that's already saved.
     await Promise.allSettled([
       deliverEmail(callId, loaded.config, summary, loaded.turns),

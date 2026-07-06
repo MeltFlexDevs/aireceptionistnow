@@ -15,7 +15,7 @@ import type {
   FinalizeCallInput,
 } from "./types";
 
-// Service-role client — bypasses RLS. Server-side only; never expose this key.
+// Service-role client - bypasses RLS. Server-side only; never expose this key.
 let client: SupabaseClient | null = null;
 
 function db(): SupabaseClient {
@@ -61,7 +61,7 @@ export class SupabaseCallRepository implements CallRepository {
     let businessName = cfgBiz?.name ?? "our business";
     if (!businessId) {
       // The assistant has no resolvable business. Only fall back to "the" business
-      // when the deployment is unambiguously single-tenant (exactly one exists) —
+      // when the deployment is unambiguously single-tenant (exactly one exists) -
       // never silently borrow the first of several tenants, which would serve one
       // tenant's config/integrations to another's caller. Otherwise fail closed.
       const { data: bizList } = await db()
@@ -158,7 +158,7 @@ export class SupabaseCallRepository implements CallRepository {
     if (existing.error) throw existing.error;
     if (existing.data) {
       // A conversation id is bound to one business. Reject a reused/forged id that
-      // arrives claiming a different tenant — otherwise a side effect (booking,
+      // arrives claiming a different tenant - otherwise a side effect (booking,
       // SMS) would run against one tenant's config while being recorded against
       // another's call row.
       if (String(existing.data.business_id) !== input.businessId) {
@@ -208,7 +208,7 @@ export class SupabaseCallRepository implements CallRepository {
   async claimAgentCallCompletion(callId: string): Promise<boolean> {
     // Transition to completed only if not already completed; the returned rows
     // tell us whether THIS call won the race (or the retry). Backed by a plain
-    // conditional UPDATE — no extra table needed.
+    // conditional UPDATE - no extra table needed.
     const { data, error } = await db()
       .from("calls")
       .update({ status: "completed", ended_at: new Date().toISOString() })

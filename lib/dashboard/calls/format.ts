@@ -5,9 +5,9 @@ export function fmtDuration(sec: number): string {
 }
 
 export function fmtDateTime(iso: string): string {
-  if (!iso) return "—";
+  if (!iso) return "-";
   const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "—";
+  if (Number.isNaN(d.getTime())) return "-";
   return d.toLocaleString("en-US", {
     month: "short",
     day: "numeric",
@@ -17,7 +17,7 @@ export function fmtDateTime(iso: string): string {
 }
 
 export function statusLabel(raw: string): string {
-  if (!raw) return "—";
+  if (!raw) return "-";
   return raw.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 

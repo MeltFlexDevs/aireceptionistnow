@@ -5,10 +5,13 @@ import { Search } from "../icons";
 import { MobileNav } from "./MobileNav";
 import { UserMenu } from "./UserMenu";
 import { NotificationsBell } from "./NotificationsBell";
+import { LanguageSwitcher } from "./LanguageSwitcher";
+import { useT } from "@/lib/i18n/client";
 import type { AppUser } from "@/lib/auth-user";
 
 export function Topbar({ user }: { user: AppUser }) {
   const router = useRouter();
+  const t = useT();
 
   function onSearchSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -25,12 +28,14 @@ export function Topbar({ user }: { user: AppUser }) {
         <input
           type="search"
           name="q"
-          placeholder="Search calls, callers, numbers..."
+          placeholder={t.topbar.search}
           className="shape-pill h-10 w-full max-w-md border border-neutral-200 bg-neutral-50 pl-9 pr-3 text-sm text-neutral-900 outline-none transition-colors placeholder:text-neutral-400 focus:border-neutral-900 focus:bg-white"
         />
       </form>
 
       <div className="ml-auto flex items-center gap-2">
+        <LanguageSwitcher />
+
         <NotificationsBell />
 
         <UserMenu user={user} />

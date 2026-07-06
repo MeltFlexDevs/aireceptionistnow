@@ -9,7 +9,7 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
  * is revoked from anon/authenticated so they can only be invoked with this key.
  */
 export function createAdminClient() {
-  // Canonical names only — the same ones env.ts, dashboard/db.ts and health.ts
+  // Canonical names only - the same ones env.ts, dashboard/db.ts and health.ts
   // validate/read. Undeclared aliases invite split configuration where one
   // module works and the rest fail.
   const url = process.env.SUPABASE_URL;

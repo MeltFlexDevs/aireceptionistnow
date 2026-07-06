@@ -35,7 +35,7 @@ export async function GET(
   const result = await exchangeCode(provider, code);
   if (!result) return fail(req, `Could not finish login with ${provider}.`);
 
-  // This route lives under /api and is NOT behind the auth proxy — a valid state
+  // This route lives under /api and is NOT behind the auth proxy - a valid state
   // cookie is the attacker's own. Fail CLOSED when auth is on but no session
   // resolves, otherwise upsertCalendarIntegration would run unscoped and could
   // overwrite another tenant's stored calendar tokens with the caller's.

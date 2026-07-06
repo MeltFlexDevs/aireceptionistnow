@@ -62,7 +62,7 @@ export async function summarizeCall(
 
   const actionsBlock = formatActions(actions);
 
-  // Write the recap in the caller's own language — the one they spoke (best read
+  // Write the recap in the caller's own language - the one they spoke (best read
   // from the transcript), falling back to the language of their phone number's
   // country. The enum fields (outcome, sentiment) stay English for the dashboard.
   const phoneLang = languageFromPhone(from);
@@ -76,7 +76,7 @@ export async function summarizeCall(
     "Pick the outcome that best fits: 'booked' if an appointment was made, " +
     "'message' if a message/callback was taken, 'transferred' if handed to a human, " +
     "'resolved' if the caller's question was answered. Use 'abandoned' ONLY when the " +
-    "caller hung up before anything was accomplished — never for a call where the " +
+    "caller hung up before anything was accomplished - never for a call where the " +
     "assistant actually helped. Also judge the caller's sentiment. " +
     `Write the "summary" and every "action_items" entry in the language the caller ` +
     `spoke${langHint}. Keep the "outcome" and "sentiment" values as the allowed ` +
@@ -87,7 +87,7 @@ export async function summarizeCall(
     `Actions the assistant took:\n${actionsBlock}\n\n` +
     `Produce the JSON summary.`;
 
-  // Not latency-sensitive — structured JSON output guarantees a clean,
+  // Not latency-sensitive - structured JSON output guarantees a clean,
   // dashboard-ready shape. Gemini is our only backend LLM.
   const raw = await summarizeWithGemini(system, prompt);
 
@@ -116,7 +116,7 @@ function formatActions(actions: CallAction[]): string {
             : a.type === "transfer"
               ? String(p.reason ?? "")
               : "";
-      const error = a.error ? ` — error: ${a.error}` : "";
+      const error = a.error ? ` - error: ${a.error}` : "";
       return `- ${a.type} [${a.status}]${detail ? `: ${detail}` : ""}${error}`;
     })
     .join("\n");

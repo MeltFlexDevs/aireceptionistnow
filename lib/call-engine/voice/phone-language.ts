@@ -1,7 +1,7 @@
 // Guess the caller's language from their phone number's country calling code, so
 // the assistant can greet them in their own language before they've said a word.
 // This is only a first guess: once the caller actually speaks, live STT language
-// detection (see session onLanguageDetected) overrides it — speech is truth, the
+// detection (see session onLanguageDetected) overrides it - speech is truth, the
 // dialing code is a hint. Applies only in auto-language mode.
 
 import { baseLanguage } from "./catalog";
@@ -81,7 +81,7 @@ const CODE_TO_LANGUAGE: Record<string, string> = {
 
 // Languages ElevenLabs accepts as an agent language / preset "additional
 // language". Sourced from the API's own 422 validation error; anything outside
-// this set (e.g. he, sl, th) is rejected — so we never greet a caller in, or
+// this set (e.g. he, sl, th) is rejected - so we never greet a caller in, or
 // enable, a language the agent can't actually speak. Shared with agent/sync.ts.
 export const ELEVENLABS_LANGUAGES = new Set<string>([
   "en", "zh", "es", "hi", "pt", "fr", "de", "ja", "ar", "ko", "id", "it", "nl",
@@ -143,7 +143,7 @@ export function languageFromPhone(e164: string): string | null {
   for (let len = 4; len >= 1; len--) {
     const prefix = digits.slice(0, len);
     const lang = CODE_TO_LANGUAGE[prefix];
-    // Only guess a language the agent can actually speak — an unsupported code
+    // Only guess a language the agent can actually speak - an unsupported code
     // (he/sl/th) would make ElevenLabs reject the per-caller language override.
     if (lang) return ELEVENLABS_LANGUAGES.has(lang) ? lang : null;
   }
@@ -199,11 +199,11 @@ export function countryFromPhone(e164: string): { iso: string; flag: string } | 
  * Human-readable display form of an E.164 number: NANP (+1) as `+1 (956) 738-3556`,
  * every other mapped calling code as `+<code> <national digits grouped in threes>`.
  * The calling code is detected with the same longest-prefix rule as country/flag,
- * so any caller's country — not just the purchasable set — is split correctly.
+ * so any caller's country - not just the purchasable set - is split correctly.
  * Input with no recognisable calling code (or no digits) is returned unchanged, so
  * it's safe to wrap fallback strings like "Unknown caller".
  * ponytail: generic 3-digit grouping, not each country's official national format
- * — swap in libphonenumber-js if carrier-exact grouping ever matters.
+ * - swap in libphonenumber-js if carrier-exact grouping ever matters.
  */
 export function formatPhone(e164: string): string {
   const digits = (e164 || "").replace(/[^\d]/g, "");

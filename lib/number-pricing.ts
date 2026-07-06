@@ -3,13 +3,13 @@
  *
  * A plan's included talk minutes are spent as credits: a number's country sets
  * how many credits each minute of talk costs. The US is the cheapest carrier
- * rate, so it anchors the scale at 1 credit/minute — meaning a 1,000-credit plan
+ * rate, so it anchors the scale at 1 credit/minute - meaning a 1,000-credit plan
  * buys exactly 1,000 US minutes. Pricier countries cost proportionally more
  * credits per minute, so the same pool buys fewer minutes there.
  *
  * `perMinuteUsd` is the underlying Twilio inbound local-voice rate (the real
- * cost we pay). `creditsPerMinute` is derived from it — rounded relative to the
- * US anchor — so the credit cost a customer sees and the carrier cost we pay can
+ * cost we pay). `creditsPerMinute` is derived from it - rounded relative to the
+ * US anchor - so the credit cost a customer sees and the carrier cost we pay can
  * never drift apart. Adjust a rate in one place and the credit cost follows.
  */
 
@@ -86,7 +86,7 @@ export function minutesForCredits(credits: number, perMinute: number): number {
 }
 
 /** E.164 dialing prefixes for the supported countries. No prefix here is a
- *  prefix of another, so first-match is unambiguous. +1 (NANP) resolves to US —
+ *  prefix of another, so first-match is unambiguous. +1 (NANP) resolves to US -
  *  Canadian numbers share it and can't be told apart from the number alone. */
 const DIAL_PREFIXES: { dial: string; code: string }[] = [
   { dial: "+1", code: "US" },

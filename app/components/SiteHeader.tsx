@@ -25,7 +25,7 @@ const ctaStyle: CSSProperties = {
 export default function SiteHeader() {
   const { open } = useAuthDialog();
   const [isScrolled, setIsScrolled] = useState(false);
-  // null until checked, then true/false — avoids flashing the wrong buttons.
+  // null until checked, then true/false - avoids flashing the wrong buttons.
   // With no Supabase env there's nothing to check, so start at false directly.
   const [signedIn, setSignedIn] = useState<boolean | null>(() =>
     publicSupabaseEnv() ? null : false,

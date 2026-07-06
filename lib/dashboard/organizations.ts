@@ -2,7 +2,7 @@ import { serviceClient } from "./supabase";
 import type { Assistant } from "./db";
 
 // Organizations data access. An organization groups a user's assistants and
-// owns shared knowledge they all read on calls. Server-side only — uses the
+// owns shared knowledge they all read on calls. Server-side only - uses the
 // service-role client (RLS bypassed until auth policies land), like the rest of
 // the dashboard data layer.
 

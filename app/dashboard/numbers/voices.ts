@@ -7,6 +7,13 @@ export interface VoiceOption {
   name: string;
   previewUrl?: string;
   description?: string;
+  /** Base language codes this voice is labeled/verified for, e.g. ["en", "sk"].
+   *  Used to filter the picker to a chosen language. Undefined = untagged. */
+  languages?: string[];
+  /** The voice's NATIVE base language (labels.language), e.g. "sk". Distinct from
+   *  `languages`, which also includes merely-verified langs - an American voice is
+   *  verified for many languages but native only to "en". */
+  nativeLanguage?: string;
 }
 
 export const FALLBACK_VOICES: VoiceOption[] = [
