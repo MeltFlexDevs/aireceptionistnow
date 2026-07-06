@@ -19,11 +19,28 @@ export interface CalendarProviderDef {
   fields: ProviderField[];
 }
 
-// Cal.com only — it mirrors the ElevenLabs Conversational AI agents' native
-// Cal.com booking integration, so the calendar the agent books into on a call is
-// the same one connected here. (Google, Microsoft/Outlook and custom-webhook
-// providers were removed from the catalog.)
+// Calendars the assistant can book into during a call. Each `id` maps to a
+// booking adapter in the call engine (lib/call-engine/integrations/registry.ts)
+// and, for `oauth` providers, to an OAuth definition in lib/dashboard/oauth.ts.
+// Google/Outlook connect via OAuth ("Continue with…") when the app's OAuth env
+// creds are set; Cal.com connects with an API key + event type.
 export const CALENDAR_PROVIDERS: CalendarProviderDef[] = [
+  {
+    id: "google",
+    name: "Google Calendar",
+    blurb: "Books straight into your Google Calendar. Connect with your Google account.",
+    live: true,
+    oauth: true,
+    fields: [],
+  },
+  {
+    id: "outlook",
+    name: "Microsoft Outlook",
+    blurb: "Books into Outlook / Microsoft 365. Connect with your Microsoft account.",
+    live: true,
+    oauth: true,
+    fields: [],
+  },
   {
     id: "calcom",
     name: "Cal.com",

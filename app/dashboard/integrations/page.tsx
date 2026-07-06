@@ -1,6 +1,7 @@
 import { currentUserId } from "@/lib/auth";
 import { listIntegrations, type Integration } from "@/lib/dashboard/db";
 import { getServiceStatuses } from "@/lib/dashboard/health";
+import { isOAuthConfigured } from "@/lib/dashboard/oauth";
 import { PageHeader } from "../components/PageHeader";
 import { SectionCard } from "../components/SectionCard";
 import { StatusDot, StatusRow } from "../components/StatusBadge";
@@ -48,7 +49,13 @@ function ProviderIcon({ id }: { id: string }) {
       </svg>
     );
   }
-  return null;
+  // Generic calendar glyph for providers without a brand mark (e.g. Cal.com).
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <rect x="3" y="4" width="18" height="17" rx="2" />
+      <path d="M3 9h18M8 2v4M16 2v4" />
+    </svg>
+  );
 }
 
 function CredentialForm({ def }: { def: CalendarProviderDef }) {
@@ -139,13 +146,11 @@ export default async function IntegrationsPage({
         </div>
       )}
 
-      <p className="text-xs text-neutral-400">
-        Bookings use your first connected calendar (marked Primary). Per-number booking targets are set on each number&apos;s settings.
-      </p>
-
       <div className="grid gap-4 lg:grid-cols-2">
         {CALENDAR_PROVIDERS.map((def) => {
           const conn = byProvider.get(def.id);
+          const oauthReady = def.oauth ? isOAuthConfigured(def.id) : false;
+          const needsSetup = Boolean(def.oauth && !oauthReady && !conn);
           const isPrimary = Boolean(conn && primaryId && conn.id === primaryId);
           const summary = def.fields
             .filter((f) => !f.secret && conn?.config?.[f.name])
@@ -153,8 +158,11 @@ export default async function IntegrationsPage({
 
           return (
             <SectionCard key={def.id}>
-              <div className="flex items-start justify-between gap-3">
-                <div>
+              <div className="flex items-start gap-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-500">
+                  <ProviderIcon id={def.id} />
+                </span>
+                <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <h2 className="text-sm font-medium text-neutral-900">{def.name}</h2>
                     {conn ? (
@@ -162,8 +170,9 @@ export default async function IntegrationsPage({
                         <StatusDot tone="ok" />
                         Connected
                       </span>
-                    ) : !def.live && !def.oauth ? (
-                      <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-500">
+                    ) : needsSetup || (!def.live && !def.oauth) ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-0.5 text-[11px] font-medium text-rose-600">
+                        <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
                         Coming soon
                       </span>
                     ) : (
@@ -200,7 +209,7 @@ export default async function IntegrationsPage({
                 </div>
               ) : (
                 <div className="mt-4 space-y-3">
-                  {def.oauth && (
+                  {def.oauth && oauthReady && (
                     <a
                       href={`/api/integrations/${def.id}/connect`}
                       className="press inline-flex h-10 w-full items-center justify-center gap-2.5 rounded-lg border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 shadow-sm transition-colors hover:bg-neutral-50 sm:w-auto sm:justify-start"
