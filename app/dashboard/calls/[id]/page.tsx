@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCallDetail } from "@/lib/dashboard/calls";
+import { formatPhone } from "@/lib/call-engine/voice/phone-language";
 import { currentUserId } from "@/lib/auth";
 import { SectionCard } from "../../components/SectionCard";
 import { ArrowDown, ArrowUp } from "../../icons";
@@ -64,7 +65,7 @@ export default async function CallDetailPage({ params }: { params: Promise<{ id:
                 {outbound ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />}
               </span>
               <h1 className="text-xl font-medium tracking-tight text-neutral-900">
-                {call.from || "Unknown"} <span className="text-neutral-400">→</span> {call.to || "-"}
+                {call.from ? formatPhone(call.from) : "Unknown"} <span className="text-neutral-400">→</span> {call.to ? formatPhone(call.to) : "-"}
               </h1>
             </div>
           </div>

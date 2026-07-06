@@ -84,3 +84,36 @@ export function minutesForCredits(credits: number, perMinute: number): number {
   if (perMinute <= 0) return 0;
   return Math.floor(credits / perMinute);
 }
+
+/** E.164 dialing prefixes for the supported countries. No prefix here is a
+ *  prefix of another, so first-match is unambiguous. +1 (NANP) resolves to US —
+ *  Canadian numbers share it and can't be told apart from the number alone. */
+const DIAL_PREFIXES: { dial: string; code: string }[] = [
+  { dial: "+1", code: "US" },
+  { dial: "+44", code: "GB" },
+  { dial: "+353", code: "IE" },
+  { dial: "+31", code: "NL" },
+  { dial: "+33", code: "FR" },
+  { dial: "+49", code: "DE" },
+  { dial: "+34", code: "ES" },
+  { dial: "+39", code: "IT" },
+  { dial: "+46", code: "SE" },
+  { dial: "+351", code: "PT" },
+  { dial: "+32", code: "BE" },
+  { dial: "+48", code: "PL" },
+  { dial: "+61", code: "AU" },
+  { dial: "+64", code: "NZ" },
+  { dial: "+43", code: "AT" },
+  { dial: "+41", code: "CH" },
+  { dial: "+420", code: "CZ" },
+  { dial: "+421", code: "SK" },
+];
+
+/** Country (flag + name) inferred from an E.164 number's dialing prefix, or a
+ *  globe fallback when no supported prefix matches. */
+export function countryForE164(e164: string): { flag: string; name: string } {
+  const match = DIAL_PREFIXES.find((p) => e164.startsWith(p.dial));
+  if (!match) return { flag: "🌐", name: "Unknown" };
+  const c = getCountryPricing(match.code);
+  return { flag: c.flag, name: c.name };
+}

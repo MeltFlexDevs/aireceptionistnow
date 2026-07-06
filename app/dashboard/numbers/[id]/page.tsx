@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getNumber, listAssistants, type Assistant } from "@/lib/dashboard/db";
+import { formatPhone } from "@/lib/call-engine/voice/phone-language";
 import { SectionCard } from "../../components/SectionCard";
 import { updateNumberAction, deleteNumberAction, setAssistantAction } from "../actions";
 
@@ -45,7 +46,7 @@ export default async function NumberSettingsPage({
         <Link href="/dashboard/numbers" className="text-sm text-neutral-900 hover:text-neutral-900">
           ← Phone numbers
         </Link>
-        <h1 className="mt-1 text-2xl font-medium tracking-tight text-neutral-900">{number.e164}</h1>
+        <h1 className="mt-1 text-2xl font-medium tracking-tight text-neutral-900">{formatPhone(number.e164)}</h1>
         <p className="mt-1 text-sm text-neutral-500">Number, assignment, and Twilio settings.</p>
       </header>
 
@@ -95,7 +96,7 @@ export default async function NumberSettingsPage({
 
       <SectionCard title="Twilio settings" subtitle="Carrier details for this number.">
         <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <Info label="Number" value={number.e164} mono />
+          <Info label="Number" value={formatPhone(number.e164)} mono />
           <Info label="Twilio SID" value={number.twilio_sid || "Not provisioned"} mono />
           <Info label="Assistant" value={assigned?.name ?? "Unassigned"} />
           <Info label="Status" value={number.enabled ? "Live" : "Off"} />

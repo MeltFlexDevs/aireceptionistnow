@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { AssistantStat } from "@/lib/dashboard/analytics";
+import { formatPhone } from "@/lib/call-engine/voice/phone-language";
 import { Bot, Hash } from "../icons";
 
 interface Props {
@@ -23,7 +24,7 @@ function NameCell({ stat }: { stat: AssistantStat }) {
         {stat.number && (
           <div className="flex items-center gap-1 text-xs text-neutral-400">
             <Hash className="h-3 w-3" />
-            <span className="truncate">{stat.number}</span>
+            <span className="truncate">{formatPhone(stat.number)}</span>
           </div>
         )}
       </div>

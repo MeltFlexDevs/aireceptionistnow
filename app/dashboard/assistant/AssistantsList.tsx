@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { listAssistants, listNumbers, type Assistant } from "@/lib/dashboard/db";
+import { formatPhone } from "@/lib/call-engine/voice/phone-language";
 import { currentUserId } from "@/lib/auth";
 import { Bot, ChevronDown, Phone } from "../icons";
 import { Tooltip } from "../components/Tooltip";
@@ -145,7 +146,7 @@ export async function AssistantsList() {
                 >
                   <span className="inline-flex min-w-0 items-center gap-1.5">
                     <Phone className="h-3.5 w-3.5 shrink-0 text-neutral-400" />
-                    <span className="truncate font-mono tracking-tight">{number ?? "No number"}</span>
+                    <span className="truncate font-mono tracking-tight">{number ? formatPhone(number) : "No number"}</span>
                   </span>
                 </Tooltip>
 

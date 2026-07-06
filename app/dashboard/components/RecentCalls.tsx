@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Call, Sentiment } from "@/lib/dashboard/analytics";
+import { formatPhone } from "@/lib/call-engine/voice/phone-language";
 
 const sentimentStyle: Record<Sentiment, string> = {
   positive: "bg-emerald-500",
@@ -33,7 +34,7 @@ export function RecentCalls({ calls }: { calls: Call[] }) {
                   className="flex items-center gap-2 font-medium text-neutral-900 hover:underline"
                 >
                   {c.flag && <span aria-hidden>{c.flag}</span>}
-                  {c.number || c.name}
+                  {formatPhone(c.number) || c.name}
                 </Link>
               </td>
               <td className="py-3 pr-4 tabular-nums text-neutral-600">{c.duration}</td>

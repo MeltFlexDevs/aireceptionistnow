@@ -4,6 +4,7 @@ import { getAssistant, getAssistantNumber, listIntegrations } from "@/lib/dashbo
 import { getTwilioStatus } from "@/lib/dashboard/twilio";
 import { getOrganization } from "@/lib/dashboard/organizations";
 import { getPlanContext } from "@/lib/dashboard/plan";
+import { formatPhone } from "@/lib/call-engine/voice/phone-language";
 import { currentUserId } from "@/lib/auth";
 import { SectionCard } from "../../components/SectionCard";
 import { PageHeader } from "../../components/PageHeader";
@@ -113,7 +114,7 @@ export default async function AssistantSettingsPage({
         {number ? (
           <div className="flex items-center justify-between gap-3">
             <div>
-              <div className="text-lg font-medium tracking-tight text-neutral-900">{number.e164}</div>
+              <div className="text-lg font-medium tracking-tight text-neutral-900">{formatPhone(number.e164)}</div>
               <div className="text-xs text-neutral-400">Linked · routed via ElevenLabs</div>
             </div>
             <form action={unlinkNumberAction}>

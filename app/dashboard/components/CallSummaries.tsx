@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Summary } from "@/lib/dashboard/analytics";
+import { formatPhone } from "@/lib/call-engine/voice/phone-language";
 
 export function CallSummaries({ items }: { items: Summary[] }) {
   return (
@@ -11,7 +12,7 @@ export function CallSummaries({ items }: { items: Summary[] }) {
               href={`/dashboard/calls/${s.id}`}
               className="text-sm font-medium text-neutral-900 hover:underline"
             >
-              {s.name}
+              {formatPhone(s.name)}
             </Link>
             <span className="text-xs text-neutral-400" title={s.at}>
               {s.time}

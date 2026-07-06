@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import type { CallLogRow } from "@/lib/dashboard/calls";
+import { formatPhone } from "@/lib/call-engine/voice/phone-language";
 import { ArrowDown, ArrowUp } from "../icons";
 import { statusTone } from "./status";
 
@@ -22,8 +23,8 @@ function Direction({ direction }: { direction: string }) {
 function FromTo({ row }: { row: CallLogRow }) {
   return (
     <div className="transition-transform duration-150 group-hover:translate-x-0.5">
-      <div className="font-medium text-neutral-900">{row.from || "Unknown"}</div>
-      <div className="text-xs text-neutral-400">→ {row.to || "-"}</div>
+      <div className="font-medium text-neutral-900">{row.from ? formatPhone(row.from) : "Unknown"}</div>
+      <div className="text-xs text-neutral-400">→ {row.to ? formatPhone(row.to) : "-"}</div>
     </div>
   );
 }

@@ -194,3 +194,32 @@ export function countryFromPhone(e164: string): { iso: string; flag: string } | 
   }
   return null;
 }
+
+/**
+ * Human-readable display form of an E.164 number: NANP (+1) as `+1 (956) 738-3556`,
+ * every other mapped calling code as `+<code> <national digits grouped in threes>`.
+ * The calling code is detected with the same longest-prefix rule as country/flag,
+ * so any caller's country — not just the purchasable set — is split correctly.
+ * Input with no recognisable calling code (or no digits) is returned unchanged, so
+ * it's safe to wrap fallback strings like "Unknown caller".
+ * ponytail: generic 3-digit grouping, not each country's official national format
+ * — swap in libphonenumber-js if carrier-exact grouping ever matters.
+ */
+export function formatPhone(e164: string): string {
+  const digits = (e164 || "").replace(/[^\d]/g, "");
+  if (!digits) return e164;
+  let code = "";
+  for (let len = 4; len >= 1; len--) {
+    if (CODE_TO_COUNTRY[digits.slice(0, len)]) {
+      code = digits.slice(0, len);
+      break;
+    }
+  }
+  if (!code) return e164;
+  const national = digits.slice(code.length);
+  if (code === "1" && national.length === 10) {
+    return `+1 (${national.slice(0, 3)}) ${national.slice(3, 6)}-${national.slice(6)}`;
+  }
+  const grouped = national.replace(/(\d{3})(?=\d)/g, "$1 ");
+  return `+${code} ${grouped}`.trim();
+}
