@@ -79,7 +79,7 @@ export default async function AnalyticsPage({
 
   if (!data) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 rise">
         {header}
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
           Couldn&apos;t load analytics{loadError ? `: ${loadError}` : ""}.
@@ -97,7 +97,7 @@ export default async function AnalyticsPage({
   const positive = data.sentiment.find((s) => s.label === "Positive")?.value ?? 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 rise">
       {header}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

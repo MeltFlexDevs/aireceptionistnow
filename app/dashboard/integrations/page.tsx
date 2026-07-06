@@ -74,7 +74,7 @@ function CredentialForm({ def }: { def: CalendarProviderDef }) {
           </div>
         ))}
       </div>
-      <SubmitButton pendingText="Connecting…">Connect {def.name}</SubmitButton>
+      <SubmitButton pendingText="Connecting…" className="press w-full sm:w-auto">Connect {def.name}</SubmitButton>
     </form>
   );
 }
@@ -101,7 +101,7 @@ export default async function IntegrationsPage({
   const services = await getServiceStatuses();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 rise">
       <PageHeader
         title="Integrations"
         description="Connect a calendar. Your assistant books into it during calls."
@@ -155,7 +155,7 @@ export default async function IntegrationsPage({
             <SectionCard key={def.id}>
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <h2 className="text-sm font-medium text-neutral-900">{def.name}</h2>
                     {conn ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-600">
@@ -193,7 +193,7 @@ export default async function IntegrationsPage({
                   )}
                   <form action={disconnectCalendarAction}>
                     <input type="hidden" name="id" value={conn.id} />
-                    <SubmitButton variant="danger" pendingText="Disconnecting…">
+                    <SubmitButton variant="danger" pendingText="Disconnecting…" className="press w-full sm:w-auto">
                       Disconnect
                     </SubmitButton>
                   </form>
@@ -203,7 +203,7 @@ export default async function IntegrationsPage({
                   {def.oauth && (
                     <a
                       href={`/api/integrations/${def.id}/connect`}
-                      className="inline-flex h-10 items-center gap-2.5 rounded-lg border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 shadow-sm transition-colors hover:bg-neutral-50"
+                      className="press inline-flex h-10 w-full items-center justify-center gap-2.5 rounded-lg border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 shadow-sm transition-colors hover:bg-neutral-50 sm:w-auto sm:justify-start"
                     >
                       <ProviderIcon id={def.id} />
                       Continue with {LOGIN_NAMES[def.id] ?? def.name}

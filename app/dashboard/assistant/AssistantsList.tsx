@@ -115,7 +115,7 @@ export async function AssistantsList() {
               <Link
                 href={`/dashboard/assistant/${a.id}`}
                 aria-label={`Open ${a.name}`}
-                className="absolute inset-0"
+                className="absolute inset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-neutral-900/60"
               />
 
               <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-neutral-900 text-white">

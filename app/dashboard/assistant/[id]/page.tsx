@@ -78,7 +78,7 @@ export default async function AssistantSettingsPage({
   const credits = planCtx?.limits.minutesIncluded ?? 1000;
 
   return (
-    <div className="space-y-6">
+    <div className="rise space-y-6">
       <PageHeader
         title={assistant.name}
         description="Its number, organization, role, and how it sounds on calls."
@@ -120,7 +120,7 @@ export default async function AssistantSettingsPage({
             <form action={unlinkNumberAction}>
               <input type="hidden" name="number_id" value={number.id} />
               <input type="hidden" name="assistant_id" value={assistant.id} />
-              <SubmitButton variant="danger" pendingText="Unlinking…">
+              <SubmitButton variant="danger" pendingText="Unlinking…" className="press">
                 Unlink
               </SubmitButton>
             </form>
@@ -143,7 +143,7 @@ export default async function AssistantSettingsPage({
             </div>
             <Link
               href={`/dashboard/organizations/${org.id}`}
-              className="inline-flex h-9 shrink-0 items-center rounded-lg border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50"
+              className="press inline-flex h-9 shrink-0 items-center rounded-lg border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50"
             >
               Manage
             </Link>
@@ -296,7 +296,7 @@ export default async function AssistantSettingsPage({
           </div>
         </SectionCard>
 
-        <SubmitButton pendingText="Saving…" className="h-10 px-5">
+        <SubmitButton pendingText="Saving…" className="press h-10 w-full px-5 sm:w-auto">
           Save settings
         </SubmitButton>
       </form>

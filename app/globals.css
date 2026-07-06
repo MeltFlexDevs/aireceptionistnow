@@ -262,3 +262,57 @@ html {
   .policy-content h4 { font-size: 15px; margin-top: 32px; }
   .policy-content p, .policy-content li { font-size: 14px; }
 }
+
+/* ── MOTION & INTERACTION ────────────────────────────────────────────────────
+   Subtle, compositor-only polish (transform/opacity only). Everything here is
+   turned off under prefers-reduced-motion at the bottom of the block. */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Fade + rise a single element in on mount. */
+.rise {
+  animation: rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Stagger direct children: give each item `style={{ "--i": n }}`. */
+.rise-stagger > * {
+  animation: rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--i, 0) * 55ms);
+}
+
+/* Interactive elements: smooth state changes + a gentle push on press. */
+.press {
+  transition: transform 150ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 150ms ease, background-color 150ms ease, border-color 150ms ease,
+    color 150ms ease;
+}
+.press:active {
+  transform: scale(0.97);
+}
+
+/* Cards/rows that lift toward the pointer on hover. */
+.lift {
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 220ms ease, border-color 220ms ease, background-color 220ms ease;
+}
+.lift:hover {
+  transform: translateY(-3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .rise,
+  .rise-stagger > * {
+    animation: none;
+  }
+  .press,
+  .lift {
+    transition: none;
+  }
+  .press:active,
+  .lift:hover {
+    transform: none;
+  }
+}

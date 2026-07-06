@@ -15,7 +15,7 @@ export default async function AssistantsPage({
   const { error, notice } = await searchParams;
 
   return (
-    <div className="space-y-6">
+    <div className="rise space-y-6">
       <PageHeader title="Assistants" description="The voice that answers your phone numbers." />
 
       {error && (

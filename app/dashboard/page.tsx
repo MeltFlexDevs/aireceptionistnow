@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { getOverview, getAssistantStats } from "@/lib/dashboard/analytics";
 import { currentUserId } from "@/lib/auth";
@@ -71,7 +72,7 @@ export default async function OverviewPage() {
     // Analytics down: still show what did load (plan, assistants) so the page
     // stays useful instead of a single error banner.
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 rise">
         {header}
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
           Couldn&apos;t load analytics{loadError ? `: ${loadError}` : ""}.
@@ -91,7 +92,7 @@ export default async function OverviewPage() {
   // so show a single get-started card instead.
   if (data.recentCalls.length === 0) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 rise">
         {header}
         {planCtx && <PlanUsage ctx={planCtx} />}
         <SectionCard>
@@ -127,12 +128,14 @@ export default async function OverviewPage() {
   const underTarget = data.latency.medianMs > 0 && data.latency.medianMs <= data.latency.targetMs;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 rise">
       {header}
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {data.kpis.map((kpi) => (
-          <StatCard key={kpi.key} kpi={kpi} />
+      <div className="rise-stagger grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {data.kpis.map((kpi, i) => (
+          <div key={kpi.key} style={{ "--i": i } as CSSProperties}>
+            <StatCard kpi={kpi} />
+          </div>
         ))}
       </div>
 

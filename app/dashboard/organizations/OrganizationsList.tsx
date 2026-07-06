@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { currentUserId } from "@/lib/auth";
 import { listAssistants, type Assistant } from "@/lib/dashboard/db";
@@ -31,7 +32,7 @@ export async function OrganizationsList() {
 
   if (loadError) {
     return (
-      <div className="shape-pill border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm text-rose-700">
+      <div className="rise shape-pill border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm text-rose-700">
         {loadError}
       </div>
     );
@@ -40,7 +41,7 @@ export async function OrganizationsList() {
   // Empty: guide the user to the create form already shown above.
   if (organizations.length === 0) {
     return (
-      <section className="shape-card glass p-6 sm:p-8">
+      <section className="rise shape-card glass p-6 sm:p-8">
         <div className="flex items-start gap-4">
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-neutral-900 text-white">
             <Building className="h-6 w-6" />
@@ -89,8 +90,8 @@ export async function OrganizationsList() {
         </span>
       </div>
 
-      <div className="shape-card glass divide-y divide-neutral-200/60 overflow-hidden">
-        {organizations.map((o) => {
+      <div className="rise-stagger shape-card glass divide-y divide-neutral-200/60 overflow-hidden">
+        {organizations.map((o, i) => {
           const sources = readKnowledge(o.knowledge).sources?.length ?? 0;
           const count = assistantCount.get(o.id) ?? 0;
           const initial = (o.name?.trim()?.[0] ?? "O").toUpperCase();
@@ -98,7 +99,8 @@ export async function OrganizationsList() {
             <Link
               key={o.id}
               href={`/dashboard/organizations/${o.id}`}
-              className="group flex items-center gap-4 px-4 py-4 transition-colors hover:bg-white/70 sm:px-5"
+              style={{ "--i": i } as CSSProperties}
+              className="group lift press flex items-center gap-4 px-4 py-4 hover:bg-white/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900/60 sm:px-5"
             >
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-neutral-900 text-base font-semibold text-white">
                 {initial}

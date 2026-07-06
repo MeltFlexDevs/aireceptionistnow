@@ -47,7 +47,7 @@ export default async function SettingsPage({
   const planCtx = await getPlanContext(userId).catch(() => null);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 rise">
       <PageHeader
         title="Settings"
         description="Your account details, what your assistants know about you, notifications, and billing."
@@ -128,7 +128,7 @@ export default async function SettingsPage({
               <span className={toggle} />
             </label>
 
-            <SubmitButton pendingText="Saving…" disabled={!userId}>
+            <SubmitButton pendingText="Saving…" disabled={!userId} className="press w-full sm:w-auto">
               Save account
             </SubmitButton>
           </div>
@@ -160,7 +160,7 @@ export default async function SettingsPage({
               <span className={toggle} />
             </label>
 
-            <SubmitButton pendingText="Saving…" disabled={!userId}>
+            <SubmitButton pendingText="Saving…" disabled={!userId} className="press w-full sm:w-auto">
               Save notifications
             </SubmitButton>
           </div>

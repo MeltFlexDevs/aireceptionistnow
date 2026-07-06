@@ -1,9 +1,10 @@
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { listNumbers, type PhoneNumber } from "@/lib/dashboard/db";
 import { countryForE164 } from "@/lib/number-pricing";
 import { formatPhone } from "@/lib/call-engine/voice/phone-language";
 import { PageHeader } from "../components/PageHeader";
-import { Hash } from "../icons";
+import { ChevronDown, Hash } from "../icons";
 
 export const dynamic = "force-dynamic";
 
@@ -33,13 +34,13 @@ export default async function NumbersPage({
       />
 
       {(error || loadError) && (
-        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+        <div className="rise rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
           {error ?? loadError}
         </div>
       )}
 
       {available.length === 0 && !loadError ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-neutral-300 bg-white px-6 py-14 text-center">
+        <div className="rise flex flex-col items-center justify-center rounded-2xl border border-dashed border-neutral-300 bg-white px-6 py-16 text-center">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-neutral-100 text-neutral-900">
             <Hash className="h-6 w-6" />
           </div>
@@ -47,14 +48,15 @@ export default async function NumbersPage({
           <p className="mt-1 text-sm text-neutral-500">Every number is already assigned to an assistant.</p>
         </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {available.map((n) => {
+        <div className="rise-stagger grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {available.map((n, i) => {
             const { flag, name } = countryForE164(n.e164);
             return (
               <Link
                 key={n.id}
                 href={`/dashboard/numbers/${n.id}`}
-                className="group rounded-2xl border border-neutral-200 bg-white p-5 transition-colors hover:border-neutral-300 hover:bg-neutral-50"
+                style={{ "--i": i } as CSSProperties}
+                className="group lift press shape-card glass flex flex-col p-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900/60"
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="flex items-center gap-2 text-base font-medium tracking-tight text-neutral-900">
@@ -66,7 +68,13 @@ export default async function NumbersPage({
                     Available
                   </span>
                 </div>
-                <div className="mt-3 text-xs text-neutral-400">{name}</div>
+                <div className="mt-3 flex items-center justify-between">
+                  <span className="text-xs text-neutral-400">{name}</span>
+                  <ChevronDown
+                    className="h-4 w-4 -rotate-90 text-neutral-300 transition-[transform,color] duration-200 group-hover:translate-x-0.5 group-hover:text-neutral-600"
+                    aria-hidden
+                  />
+                </div>
               </Link>
             );
           })}

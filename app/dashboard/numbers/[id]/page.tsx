@@ -2,22 +2,16 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getNumber, listAssistants, type Assistant } from "@/lib/dashboard/db";
 import { formatPhone } from "@/lib/call-engine/voice/phone-language";
+import { countryForE164 } from "@/lib/number-pricing";
 import { SectionCard } from "../../components/SectionCard";
-import { updateNumberAction, deleteNumberAction, setAssistantAction } from "../actions";
+import { BackLink } from "../../components/BackLink";
+import { SubmitButton } from "../../components/SubmitButton";
+import { setAssistantAction } from "../actions";
 
 export const dynamic = "force-dynamic";
 
 const field =
   "w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition-colors focus:border-neutral-900";
-
-function Info({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
-  return (
-    <div>
-      <dt className="text-[11px] uppercase tracking-wide text-neutral-400">{label}</dt>
-      <dd className={`mt-0.5 text-sm text-neutral-800 ${mono ? "font-mono" : ""}`}>{value}</dd>
-    </div>
-  );
-}
 
 export default async function NumberSettingsPage({
   params,
@@ -39,15 +33,17 @@ export default async function NumberSettingsPage({
     assistants = [];
   }
   const assigned = assistants.find((a) => a.id === number.assistant_id) ?? null;
+  const { flag, name: country } = countryForE164(number.e164);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 rise">
       <header>
-        <Link href="/dashboard/numbers" className="text-sm text-neutral-900 hover:text-neutral-900">
-          ← Phone numbers
-        </Link>
-        <h1 className="mt-1 text-2xl font-medium tracking-tight text-neutral-900">{formatPhone(number.e164)}</h1>
-        <p className="mt-1 text-sm text-neutral-500">Number, assignment, and Twilio settings.</p>
+        <BackLink href="/dashboard/numbers" label="Phone numbers" className="mb-2" />
+        <h1 className="mt-1 flex items-center gap-2 text-2xl font-medium tracking-tight text-neutral-900">
+          <span className="text-2xl leading-none" aria-hidden>{flag}</span>
+          {formatPhone(number.e164)}
+        </h1>
+        <p className="mt-1 text-sm text-neutral-500">{country} · assign this number to an assistant.</p>
       </header>
 
       {saved && (
@@ -65,18 +61,15 @@ export default async function NumberSettingsPage({
           <div className="flex-1">
             <label htmlFor="assistant_id" className="mb-1.5 block text-sm font-medium text-neutral-700">Assistant</label>
             <select id="assistant_id" name="assistant_id" defaultValue={number.assistant_id ?? ""} className={field}>
-              <option value="">Unassigned</option>
+              <option value="">Free</option>
               {assistants.map((a) => (
                 <option key={a.id} value={a.id}>{a.name}</option>
               ))}
             </select>
           </div>
-          <button
-            type="submit"
-            className="inline-flex h-[38px] items-center justify-center rounded-lg bg-neutral-900 px-4 text-sm font-medium text-white transition-colors hover:bg-neutral-800"
-          >
+          <SubmitButton pendingText="Saving…" className="press w-full sm:w-auto">
             Save
-          </button>
+          </SubmitButton>
         </form>
         {assigned && (
           <p className="mt-2 text-xs text-neutral-400">
@@ -92,42 +85,6 @@ export default async function NumberSettingsPage({
             <Link href="/dashboard/assistant" className="text-neutral-900 hover:text-neutral-900">Create one →</Link>
           </p>
         )}
-      </SectionCard>
-
-      <SectionCard title="Twilio settings" subtitle="Carrier details for this number.">
-        <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <Info label="Number" value={formatPhone(number.e164)} mono />
-          <Info label="Twilio SID" value={number.twilio_sid || "Not provisioned"} mono />
-          <Info label="Assistant" value={assigned?.name ?? "Unassigned"} />
-          <Info label="Status" value={number.enabled ? "Live" : "Off"} />
-        </dl>
-
-        <form action={updateNumberAction} className="mt-5 flex items-center justify-between gap-3 border-t border-neutral-100 pt-4">
-          <input type="hidden" name="id" value={number.id} />
-          <label className="flex items-center gap-2 text-sm font-medium text-neutral-700">
-            <input type="checkbox" name="enabled" defaultChecked={number.enabled} className="h-4 w-4 rounded border-neutral-300 accent-neutral-900" />
-            Answer calls on this number
-          </label>
-          <button
-            type="submit"
-            className="inline-flex h-9 items-center rounded-lg border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50"
-          >
-            Save
-          </button>
-        </form>
-      </SectionCard>
-
-      <SectionCard title="Danger zone">
-        <form action={deleteNumberAction} className="flex items-center justify-between gap-4">
-          <input type="hidden" name="id" value={number.id} />
-          <p className="text-sm text-neutral-500">Remove this number. Call history is kept.</p>
-          <button
-            type="submit"
-            className="inline-flex h-9 items-center rounded-lg border border-rose-200 bg-white px-4 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50"
-          >
-            Delete number
-          </button>
-        </form>
       </SectionCard>
     </div>
   );

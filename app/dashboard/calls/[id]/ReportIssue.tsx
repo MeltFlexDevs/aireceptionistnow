@@ -23,7 +23,7 @@ export function ReportIssue({ callId }: { callId: string }) {
 
   return (
     <details className="relative">
-      <summary className="inline-flex h-8 cursor-pointer list-none items-center rounded-lg border border-orange-200 bg-orange-50 px-3 text-xs font-medium text-orange-700 transition-colors hover:bg-orange-100 hover:text-orange-800 [&::-webkit-details-marker]:hidden">
+      <summary className="press inline-flex h-8 cursor-pointer list-none items-center rounded-lg border border-orange-200 bg-orange-50 px-3 text-xs font-medium text-orange-700 transition-colors hover:bg-orange-100 hover:text-orange-800 [&::-webkit-details-marker]:hidden">
         Report an issue
       </summary>
       <form

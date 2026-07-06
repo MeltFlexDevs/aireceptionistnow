@@ -21,13 +21,13 @@ export default async function OrganizationsPage({
       />
 
       {error && (
-        <div className="shape-pill border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm text-rose-700">
+        <div className="rise shape-pill border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm text-rose-700">
           {error}
         </div>
       )}
 
       {/* Create row paints immediately — no waiting on the list query. */}
-      <section className="shape-card glass p-5">
+      <section className="rise shape-card glass p-5">
         <CreateOrganizationForm />
       </section>
 

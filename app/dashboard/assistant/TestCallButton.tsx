@@ -16,7 +16,7 @@ export function TestCallButton({
 }) {
   const { pending } = useFormStatus();
   return (
-    <button type="submit" formAction={action} disabled={pending} className={className}>
+    <button type="submit" formAction={action} disabled={pending} className={`press ${className ?? ""}`}>
       {pending ? (
         <MathLoader variant="spiro" size={16} label="Calling" />
       ) : (

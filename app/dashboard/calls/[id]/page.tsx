@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCallDetail } from "@/lib/dashboard/calls";
 import { formatPhone } from "@/lib/call-engine/voice/phone-language";
 import { currentUserId } from "@/lib/auth";
+import { BackLink } from "../../components/BackLink";
 import { SectionCard } from "../../components/SectionCard";
 import { ArrowDown, ArrowUp } from "../../icons";
 import { statusTone } from "../status";
@@ -48,12 +48,10 @@ export default async function CallDetailPage({ params }: { params: Promise<{ id:
       : "No summary for this call.";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 rise">
       {call.isLive && <LiveRefresh />}
 
-      <Link href="/dashboard/calls" className="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-800">
-        ← Calls
-      </Link>
+      <BackLink href="/dashboard/calls" label="Calls" />
 
       <SectionCard>
         <div className="flex flex-wrap items-start justify-between gap-4">

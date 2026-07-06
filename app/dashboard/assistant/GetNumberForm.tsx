@@ -62,7 +62,7 @@ export function GetNumberForm({ assistantId, credits }: Props) {
             </svg>
           </div>
         </div>
-        <SubmitButton pendingText="Getting number…" className="h-[38px]">
+        <SubmitButton pendingText="Getting number…" className="press h-[38px] w-full sm:w-auto">
           Get number
         </SubmitButton>
       </form>

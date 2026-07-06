@@ -55,7 +55,7 @@ export default async function OrganizationDetailPage({
   const assigned = assistants.filter((a) => a.organization_id === id);
 
   return (
-    <div className="space-y-6">
+    <div className="rise space-y-6">
       <PageHeader
         title={org.name}
         description="Shared knowledge and the assistants that use it."

@@ -88,7 +88,7 @@ export function CallFilters({ q, status }: Props) {
         <button
           type="button"
           onClick={clearFilters}
-          className="h-10 self-start px-2 text-sm font-medium text-neutral-500 transition-colors hover:text-neutral-900"
+          className="press h-10 self-start px-2 text-sm font-medium text-neutral-500 transition-colors hover:text-neutral-900"
         >
           Clear
         </button>

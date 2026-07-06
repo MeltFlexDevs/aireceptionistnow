@@ -35,7 +35,7 @@ export function EnabledToggle({ id, enabled }: { id: string; enabled: boolean })
         disabled={pending}
         aria-busy={pending}
         aria-pressed={optimistic}
-        className={`inline-flex h-7 items-center justify-center rounded-lg px-2.5 text-xs font-medium transition-colors disabled:cursor-wait disabled:opacity-70 ${
+        className={`press inline-flex h-7 items-center justify-center rounded-lg px-2.5 text-xs font-medium transition-colors disabled:cursor-wait disabled:opacity-70 ${
           optimistic
             ? "border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50"
             : "bg-neutral-900 text-white hover:bg-neutral-800"

@@ -13,7 +13,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="inline-flex h-[38px] items-center justify-center gap-2 rounded-lg bg-neutral-900 px-4 text-sm font-medium text-white transition-colors hover:bg-neutral-800 disabled:opacity-60"
+      className="press inline-flex h-[38px] items-center justify-center gap-2 rounded-lg bg-neutral-900 px-4 text-sm font-medium text-white transition-colors hover:bg-neutral-800 disabled:opacity-60"
     >
       <Plus className="h-4 w-4" />
       {pending ? "Creating…" : "Create organization"}

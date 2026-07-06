@@ -39,7 +39,7 @@ export default async function CallsPage({ searchParams }: { searchParams: Search
 
   if (!log) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 rise">
         {header}
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
           Couldn&apos;t load calls{loadError ? `: ${loadError}` : ""}.
@@ -51,7 +51,7 @@ export default async function CallsPage({ searchParams }: { searchParams: Search
   const filtered = Boolean(filters.q) || filters.status !== "all";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 rise">
       {header}
       <CallFilters q={filters.q} status={filters.status} />
 

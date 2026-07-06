@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { SubmitButton } from "../components/SubmitButton";
 import { deleteAssistantAction } from "./actions";
 
 // Delete with a confirmation modal - requires typing the assistant name (or
@@ -16,7 +17,7 @@ export function DeleteAssistant({ id, name }: { id: string; name: string }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex h-9 items-center rounded-lg border border-rose-200 bg-white px-4 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50"
+        className="press inline-flex h-9 items-center rounded-lg border border-rose-200 bg-white px-4 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50"
       >
         Delete assistant
       </button>
@@ -48,19 +49,15 @@ export function DeleteAssistant({ id, name }: { id: string; name: string }) {
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="inline-flex h-9 items-center rounded-lg border border-neutral-200 bg-white px-4 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50"
+                className="press inline-flex h-9 items-center rounded-lg border border-neutral-200 bg-white px-4 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50"
               >
                 Cancel
               </button>
               <form action={deleteAssistantAction}>
                 <input type="hidden" name="id" value={id} />
-                <button
-                  type="submit"
-                  disabled={!confirmed}
-                  className="inline-flex h-9 items-center rounded-lg bg-rose-600 px-4 text-sm font-medium text-white transition-colors hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-40"
-                >
+                <SubmitButton variant="danger" pendingText="Deleting…" disabled={!confirmed} className="press">
                   Delete
-                </button>
+                </SubmitButton>
               </form>
             </div>
           </div>
