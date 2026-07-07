@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
+import { useT } from "@/lib/i18n/client";
 import { Plus } from "../icons";
 import { createAssistantAction } from "./actions";
 
@@ -19,6 +20,7 @@ function Progress() {
 }
 
 function ProgressOverlay() {
+  const t = useT();
   const [step, setStep] = useState(0);
 
   useEffect(() => {
@@ -34,7 +36,7 @@ function ProgressOverlay() {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-        <h3 className="text-base font-medium text-neutral-900">Creating your assistant</h3>
+        <h3 className="text-base font-medium text-neutral-900">{t.assistants.creating}</h3>
         <p className="mt-1 text-sm text-neutral-500">{STEPS[step]}…</p>
 
         <div className="mt-4 h-2 overflow-hidden rounded-full bg-neutral-100">

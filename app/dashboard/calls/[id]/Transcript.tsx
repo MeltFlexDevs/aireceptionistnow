@@ -1,13 +1,15 @@
 import type { CallTurn } from "@/lib/dashboard/calls";
+import { getDictionary } from "@/lib/i18n/server";
 
 function clock(ms: number): string {
   const s = Math.max(0, Math.round(ms / 1000));
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 }
 
-export function Transcript({ turns }: { turns: CallTurn[] }) {
+export async function Transcript({ turns }: { turns: CallTurn[] }) {
+  const t = await getDictionary();
   if (turns.length === 0) {
-    return <p className="text-sm text-neutral-500">No transcript yet.</p>;
+    return <p className="text-sm text-neutral-500">{t.data.noTranscript}</p>;
   }
   return (
     <ol className="space-y-4">

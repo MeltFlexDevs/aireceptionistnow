@@ -101,6 +101,7 @@ export class SupabaseCallRepository implements CallRepository {
       ? mergeKnowledge(cfg.knowledge as Record<string, unknown>, cfgOrg.knowledge)
       : ((cfg.knowledge as Record<string, unknown>) ?? {});
 
+    let ownerLocale = "";
     if (ownerId) {
       const { data: acct } = await db()
         .from("account_settings")
@@ -109,6 +110,9 @@ export class SupabaseCallRepository implements CallRepository {
         .maybeSingle();
       const ownerNotes = accountKnowledgeNotes(acct as AccountSettings | null);
       if (ownerNotes) knowledge = mergeKnowledge(knowledge, { notes: ownerNotes });
+      // Owner's dashboard language for post-call summaries. Column added in
+      // migration 0002; absent on un-migrated DBs -> "" -> caller-language recap.
+      ownerLocale = String((acct as Record<string, unknown> | null)?.dashboard_locale ?? "");
     }
 
     return {
@@ -125,6 +129,7 @@ export class SupabaseCallRepository implements CallRepository {
       // multilingual; only an explicit false (English-only fallback) suppresses the
       // per-caller language override in /api/agent/init.
       multilingual: cfg.elevenlabs_multilingual !== false,
+      ownerLocale,
       knowledge,
       routing: (cfg.routing as Record<string, unknown>) ?? {},
       integrations: (integrations ?? []).map(mapIntegration),

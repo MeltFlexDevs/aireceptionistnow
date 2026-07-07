@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getNumber, listAssistants, type Assistant } from "@/lib/dashboard/db";
 import { formatPhone } from "@/lib/call-engine/voice/phone-language";
+import { getDictionary } from "@/lib/i18n/server";
 import { countryForE164 } from "@/lib/number-pricing";
 import { SectionCard } from "../../components/SectionCard";
 import { BackLink } from "../../components/BackLink";
@@ -22,6 +23,7 @@ export default async function NumberSettingsPage({
 }) {
   const { id } = await params;
   const { saved, error } = await searchParams;
+  const t = await getDictionary();
 
   const number = await getNumber(id).catch(() => null);
   if (!number) notFound();
@@ -55,11 +57,11 @@ export default async function NumberSettingsPage({
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>
       )}
 
-      <SectionCard title="Assistant" subtitle="The AI assistant that answers this number. All voice and behavior settings live on the assistant.">
+      <SectionCard title={t.assistants.assistantLabel} subtitle="The AI assistant that answers this number. All voice and behavior settings live on the assistant.">
         <form action={setAssistantAction} className="flex flex-col gap-3 sm:flex-row sm:items-end">
           <input type="hidden" name="id" value={number.id} />
           <div className="flex-1">
-            <label htmlFor="assistant_id" className="mb-1.5 block text-sm font-medium text-neutral-700">Assistant</label>
+            <label htmlFor="assistant_id" className="mb-1.5 block text-sm font-medium text-neutral-700">{t.assistants.assistantLabel}</label>
             <select id="assistant_id" name="assistant_id" defaultValue={number.assistant_id ?? ""} className={field}>
               <option value="">Free</option>
               {assistants.map((a) => (

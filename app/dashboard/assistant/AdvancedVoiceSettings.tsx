@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useT } from "@/lib/i18n/client";
 import { VoiceSelect } from "../numbers/VoiceSelect";
 
 export interface LangOption {
@@ -70,6 +71,7 @@ function Slider({
 // automatically. Kept opt-in so we never render 30 dropdowns - and so the voice
 // preview popovers aren't trapped inside a scroll container.
 export function AdvancedVoiceSettings({ defaultSpeed, defaultStability, voiceByLanguage, languages }: Props) {
+  const t = useT();
   const byCode = new Map(languages.map((l) => [l.code, l]));
   const [rows, setRows] = useState<string[]>(() =>
     languages.filter((l) => voiceByLanguage[l.code]).map((l) => l.code),
@@ -98,7 +100,7 @@ export function AdvancedVoiceSettings({ defaultSpeed, defaultStability, voiceByL
       </div>
 
       <div className="border-t border-neutral-100 pt-5">
-        <h3 className="text-sm font-medium text-neutral-900">Voice per language</h3>
+        <h3 className="text-sm font-medium text-neutral-900">{t.assistants.voicePerLanguage}</h3>
         <p className="mt-0.5 text-xs text-neutral-500">
           Give a language its own voice. Any language you don&apos;t set here uses your default voice,
           matched to the caller automatically.

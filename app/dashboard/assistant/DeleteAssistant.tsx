@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useT } from "@/lib/i18n/client";
 import { SubmitButton } from "../components/SubmitButton";
 import { deleteAssistantAction } from "./actions";
 
 // Delete with a confirmation modal - requires typing the assistant name (or
 // "delete") so it can't be triggered accidentally.
 export function DeleteAssistant({ id, name }: { id: string; name: string }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const confirmed =
@@ -19,7 +21,7 @@ export function DeleteAssistant({ id, name }: { id: string; name: string }) {
         onClick={() => setOpen(true)}
         className="press inline-flex h-9 items-center rounded-lg border border-rose-200 bg-white px-4 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50"
       >
-        Delete assistant
+        {t.assistants.deleteAssistant}
       </button>
 
       {open && (
@@ -31,7 +33,7 @@ export function DeleteAssistant({ id, name }: { id: string; name: string }) {
             className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-base font-medium text-neutral-900">Delete assistant</h3>
+            <h3 className="text-base font-medium text-neutral-900">{t.assistants.deleteAssistant}</h3>
             <p className="mt-1 text-sm text-neutral-500">
               This permanently deletes{" "}
               <span className="font-medium text-neutral-800">{name}</span> and unlinks its

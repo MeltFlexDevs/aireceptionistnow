@@ -489,7 +489,7 @@ export async function getOverview(ownerId?: string | null): Promise<Overview> {
 
   const recentCalls: Call[] = calls.slice(0, 6).map((c) => ({
     id: c.id,
-    name: c.from_number || "Unknown caller",
+    name: c.from_number || "",
     number: c.from_number || "",
     flag: countryFromPhone(c.from_number ?? "")?.flag ?? "",
     duration: fmtDuration(c.duration_seconds),
@@ -506,7 +506,7 @@ export async function getOverview(ownerId?: string | null): Promise<Overview> {
       const country = countryFromPhone(c.from_number ?? "");
       return {
         id: c.id,
-        name: c.from_number || "Unknown caller",
+        name: c.from_number || "",
         time: relTime(c.started_at),
         at: atFmt(c.started_at),
         text: c.summary ?? "",

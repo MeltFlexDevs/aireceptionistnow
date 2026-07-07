@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { AssistantStat } from "@/lib/dashboard/analytics";
 import { formatPhone } from "@/lib/call-engine/voice/phone-language";
+import { getDictionary } from "@/lib/i18n/server";
 import { Bot, Hash } from "../icons";
 
 interface Props {
@@ -13,14 +14,14 @@ function answerTone(pct: number): string {
   return "text-rose-600";
 }
 
-function NameCell({ stat }: { stat: AssistantStat }) {
+function NameCell({ stat, name }: { stat: AssistantStat; name: string }) {
   return (
     <div className="flex items-center gap-2.5">
       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-neutral-900 text-white">
         <Bot className="h-4 w-4" />
       </span>
       <div className="min-w-0">
-        <div className="truncate font-medium text-neutral-900">{stat.name}</div>
+        <div className="truncate font-medium text-neutral-900">{name}</div>
         {stat.number && (
           <div className="flex items-center gap-1 text-xs text-neutral-400">
             <Hash className="h-3 w-3" />
@@ -32,9 +33,10 @@ function NameCell({ stat }: { stat: AssistantStat }) {
   );
 }
 
-export function AssistantStats({ stats }: Props) {
+export async function AssistantStats({ stats }: Props) {
+  const t = await getDictionary();
   if (stats.length === 0) {
-    return <p className="text-sm text-neutral-500">No assistants yet.</p>;
+    return <p className="text-sm text-neutral-500">{t.data.noAssistants}</p>;
   }
 
   return (
@@ -42,17 +44,18 @@ export function AssistantStats({ stats }: Props) {
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-neutral-100 text-left text-xs font-medium uppercase tracking-wide text-neutral-400">
-            <th className="px-5 py-2.5 font-medium">Assistant</th>
-            <th className="px-3 py-2.5 text-right font-medium">Calls</th>
-            <th className="px-3 py-2.5 text-right font-medium">Avg time</th>
-            <th className="px-3 py-2.5 text-right font-medium">Answered</th>
-            <th className="px-3 py-2.5 text-right font-medium">Bookings</th>
-            <th className="px-5 py-2.5 text-right font-medium">Positive</th>
+            <th className="px-5 py-2.5 font-medium">{t.data.statsAssistant}</th>
+            <th className="px-3 py-2.5 text-right font-medium">{t.nav.calls}</th>
+            <th className="px-3 py-2.5 text-right font-medium">{t.data.statsAvgTime}</th>
+            <th className="px-3 py-2.5 text-right font-medium">{t.data.statsAnswered}</th>
+            <th className="px-3 py-2.5 text-right font-medium">{t.data.statsBookings}</th>
+            <th className="px-5 py-2.5 text-right font-medium">{t.data.statsPositive}</th>
           </tr>
         </thead>
         <tbody>
           {stats.map((s) => {
             const isLinked = s.id !== "unassigned";
+            const name = isLinked ? s.name : t.data.unassigned;
             return (
               <tr
                 key={s.id}
@@ -61,10 +64,10 @@ export function AssistantStats({ stats }: Props) {
                 <td className="px-5 py-3">
                   {isLinked ? (
                     <Link href={`/dashboard/assistant/${s.id}`} className="block">
-                      <NameCell stat={s} />
+                      <NameCell stat={s} name={name} />
                     </Link>
                   ) : (
-                    <NameCell stat={s} />
+                    <NameCell stat={s} name={name} />
                   )}
                 </td>
                 <td className="px-3 py-3 text-right font-medium text-neutral-900">{s.calls}</td>

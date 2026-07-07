@@ -1,8 +1,10 @@
 import Link from "next/link";
 import type { Summary } from "@/lib/dashboard/analytics";
 import { formatPhone } from "@/lib/call-engine/voice/phone-language";
+import { getDictionary } from "@/lib/i18n/server";
 
-export function CallSummaries({ items }: { items: Summary[] }) {
+export async function CallSummaries({ items }: { items: Summary[] }) {
+  const t = await getDictionary();
   return (
     <ul className="space-y-4">
       {items.map((s, i) => (
@@ -12,7 +14,7 @@ export function CallSummaries({ items }: { items: Summary[] }) {
               href={`/dashboard/calls/${s.id}`}
               className="text-sm font-medium text-neutral-900 hover:underline"
             >
-              {formatPhone(s.name)}
+              {formatPhone(s.name) || t.data.unknownCaller}
             </Link>
             <span className="text-xs text-neutral-400" title={s.at}>
               {s.time}
@@ -20,9 +22,9 @@ export function CallSummaries({ items }: { items: Summary[] }) {
           </div>
           <p className="mt-1 text-sm leading-relaxed text-neutral-600">{s.text}</p>
           <div className="mt-2 flex flex-wrap gap-1.5">
-            {s.tags.map((t) => (
-              <span key={t} className="rounded-md bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-500">
-                {t}
+            {s.tags.map((tag) => (
+              <span key={tag} className="rounded-md bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-500">
+                {tag}
               </span>
             ))}
           </div>

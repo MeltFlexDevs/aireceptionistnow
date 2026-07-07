@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useT } from "@/lib/i18n/client";
 import { Bell, Phone } from "../icons";
 
 interface NotificationItem {
@@ -28,6 +29,7 @@ export function NotificationsBell() {
   const [lastSeen, setLastSeen] = useState<string>("");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const t = useT();
 
   // Fetch the feed, restoring the persisted "last seen" in the same callback -
   // one render for both, and no synchronous setState in the effect body.
@@ -93,7 +95,7 @@ export function NotificationsBell() {
       {open && (
         <div className="absolute right-0 mt-2 w-80 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-lg shadow-neutral-200/60">
           <div className="flex items-center justify-between border-b border-neutral-100 px-4 py-3">
-            <span className="text-sm font-medium text-neutral-900">Notifications</span>
+            <span className="text-sm font-medium text-neutral-900">{t.common.notifications}</span>
             {unread > 0 && (
               <button
                 type="button"

@@ -48,6 +48,10 @@ export interface NumberConfig {
   systemPrompt: string;
   voiceId: string;
   language: string;
+  /** The dashboard owner's chosen UI locale (e.g. "sk"), so post-call summaries
+   *  are written in their language. "" when unknown/unset -> falls back to the
+   *  caller's spoken language. */
+  ownerLocale: string;
   /** Whether the assistant's ElevenLabs agent is multilingual. When false (English-
    *  only fallback agent), the init webhook must not send a per-caller language
    *  override the agent can't honor. */

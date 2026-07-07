@@ -186,7 +186,10 @@ export async function setAssistantAction(formData: FormData): Promise<void> {
       // caller already holds doesn't change usage, so it's exempt.
       const current = await getNumber(id).catch(() => null);
       if (!current?.assistant_id) {
-        const allowance = await canAssignNumber(await currentUserId());
+        // Reassigning an existing number (incl. one you just unassigned) - not a
+        // new Twilio line, so exempt from the "subscribe first" gate; quota still
+        // applies inside canAssignNumber.
+        const allowance = await canAssignNumber(await currentUserId(), { reassign: true });
         if (!allowance.ok) {
           redirect(`/dashboard/numbers/${id}?error=${encodeURIComponent(allowance.reason ?? "")}`);
         }

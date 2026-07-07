@@ -62,11 +62,16 @@ export async function summarizeCall(
 
   const actionsBlock = formatActions(actions);
 
-  // Write the recap in the caller's own language - the one they spoke (best read
-  // from the transcript), falling back to the language of their phone number's
-  // country. The enum fields (outcome, sentiment) stay English for the dashboard.
+  // Write the recap in the dashboard owner's language so their whole dashboard
+  // reads consistently, whatever the caller spoke. Fall back to the caller's own
+  // language (read from the transcript / their number's country) when the owner
+  // hasn't set one. The enum fields (outcome, sentiment) stay English.
+  const ownerLangName = localeName(config.ownerLocale);
   const phoneLang = languageFromPhone(from);
-  const langHint = phoneLang ? ` (most likely ${languageName(phoneLang)})` : "";
+  const callerHint = phoneLang ? ` (most likely ${languageName(phoneLang)})` : "";
+  const langDirective = ownerLangName
+    ? `Write the "summary" and every "action_items" entry in ${ownerLangName}.`
+    : `Write the "summary" and every "action_items" entry in the language the caller spoke${callerHint}.`;
 
   const system =
     "You summarize a phone call for a business dashboard. Recap what the caller " +
@@ -78,9 +83,8 @@ export async function summarizeCall(
     "'resolved' if the caller's question was answered. Use 'abandoned' ONLY when the " +
     "caller hung up before anything was accomplished - never for a call where the " +
     "assistant actually helped. Also judge the caller's sentiment. " +
-    `Write the "summary" and every "action_items" entry in the language the caller ` +
-    `spoke${langHint}. Keep the "outcome" and "sentiment" values as the allowed ` +
-    "English enum values regardless of the caller's language.";
+    langDirective +
+    ` Keep the "outcome" and "sentiment" values as the allowed English enum values.`;
   const prompt =
     `Call for ${config.businessName} on the "${config.label}" line.\n\n` +
     `Transcript:\n${transcript}\n\n` +
@@ -98,6 +102,18 @@ export async function summarizeCall(
     actionItems: raw.action_items ?? [],
     tags: raw.tags ?? [],
   };
+}
+
+// Owner locale code ("sk") -> English language name ("Slovak") for the prompt.
+// "" (unset) or an unresolvable code falls the summary back to caller language.
+function localeName(locale: string): string {
+  const code = (locale ?? "").trim();
+  if (!code) return "";
+  try {
+    return new Intl.DisplayNames(["en"], { type: "language" }).of(code) ?? "";
+  } catch {
+    return "";
+  }
 }
 
 /** Render the structured actions into compact lines for the prompt, e.g.

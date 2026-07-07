@@ -115,7 +115,7 @@ export const getPlanContextCached = (ownerId?: string | null): Promise<PlanConte
  */
 export async function canAssignNumber(
   ownerId?: string | null,
-  opts?: { countPending?: boolean },
+  opts?: { countPending?: boolean; reassign?: boolean },
 ): Promise<{ ok: boolean; reason?: string }> {
   if (!ownerId) return { ok: true };
   let ctx: PlanContext;
@@ -136,7 +136,12 @@ export async function canAssignNumber(
   // No active subscription → no paid number. The Solo-sized fallback limits
   // exist so the dashboard renders, not to hand Twilio numbers (real monthly
   // charges) to accounts that never checked out.
-  if (ctx.enforced && !ctx.active) {
+  // No active subscription → can't acquire a NEW paid number. But re-pointing a
+  // number that already exists (reassign - e.g. after unassigning it) creates no
+  // new Twilio line, so it must NOT demand a subscription; it only counts against
+  // quota below. Without this, unassign → re-assign your own number wrongly errors
+  // "Subscribe to a plan".
+  if (ctx.enforced && !ctx.active && !opts?.reassign) {
     return { ok: false, reason: "Subscribe to a plan to add a phone number." };
   }
   if (ctx.usage.numbers + pending < ctx.limits.phoneNumbers) return { ok: true };

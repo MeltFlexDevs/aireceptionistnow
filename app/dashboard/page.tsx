@@ -16,7 +16,7 @@ import { PlanUsage } from "./components/PlanUsage";
 import { getPlanContextCached } from "@/lib/dashboard/plan";
 import { PageHeader } from "./components/PageHeader";
 import { Skeleton } from "./components/Skeleton";
-import { Bolt, Phone, Plus } from "./icons";
+import { Bolt, Hash, Phone, Plus } from "./icons";
 
 export const dynamic = "force-dynamic";
 
@@ -112,6 +112,23 @@ async function OverviewBody({ t }: { t: Dictionary }) {
   const assistants = assistantsR.status === "fulfilled" ? assistantsR.value : null;
   const planCtx = planR.status === "fulfilled" ? planR.value : null;
   const loadError = dataR.status === "rejected" ? (dataR.reason as Error).message : "";
+  // Prominent "numbers assigned / max" glance for the top of the overview (the
+  // Plan card lower down still shows the full meter). Hidden if usage can't load.
+  const numbersBadge = planCtx ? (
+    <div className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white px-4 py-3 shadow-card">
+      <span className="flex items-center gap-2 text-sm text-neutral-600">
+        <Hash className="h-4 w-4 text-neutral-400" />
+        {t.nav.numbers}
+      </span>
+      <span className="text-sm font-medium tabular-nums text-neutral-900">
+        {planCtx.usage.numbers}
+        <span className="text-neutral-400">
+          {" / "}
+          {Number.isFinite(planCtx.limits.phoneNumbers) ? planCtx.limits.phoneNumbers : "∞"}
+        </span>
+      </span>
+    </div>
+  ) : null;
 
   if (!data) {
     return (
@@ -162,13 +179,24 @@ async function OverviewBody({ t }: { t: Dictionary }) {
 
   const caller = data.talkRatio.find((s) => s.label === "Caller")?.value ?? 0;
   const underTarget = data.latency.medianMs > 0 && data.latency.medianMs <= data.latency.targetMs;
+  // KPI + segment labels come back from the (locale-free) analytics layer keyed
+  // in English; translate them here at render.
+  const kpiLabels: Record<string, string> = {
+    calls: t.data.kpiCalls,
+    avg: t.data.kpiAvg,
+    answer: t.data.kpiAnswer,
+    booked: t.data.kpiBooked,
+  };
+  const talkLabel = (label: string) =>
+    label === "Caller" ? t.data.talkCaller : label === "AI" ? t.data.talkAi : label;
 
   return (
     <div className="space-y-6 rise">
+      {numbersBadge}
       <div className="rise-stagger grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {data.kpis.map((kpi, i) => (
           <div key={kpi.key} style={{ "--i": i } as CSSProperties}>
-            <StatCard kpi={kpi} />
+            <StatCard kpi={{ ...kpi, label: kpiLabels[kpi.key] ?? kpi.label }} />
           </div>
         ))}
       </div>
@@ -185,7 +213,11 @@ async function OverviewBody({ t }: { t: Dictionary }) {
         </SectionCard>
         <SectionCard title={o.talkRatio} subtitle={o.talkRatioSub}>
           {data.talkRatio.length > 0 ? (
-            <DonutChart segments={data.talkRatio} centerLabel={`${caller}%`} centerSub="Caller" />
+            <DonutChart
+              segments={data.talkRatio.map((s) => ({ ...s, label: talkLabel(s.label) }))}
+              centerLabel={`${caller}%`}
+              centerSub={t.data.talkCaller}
+            />
           ) : (
             <p className="text-sm text-neutral-500">{o.noConversation}</p>
           )}
@@ -224,7 +256,7 @@ async function OverviewBody({ t }: { t: Dictionary }) {
               {data.countries.map((c) => (
                 <li key={c.label}>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-neutral-600">{c.label}</span>
+                    <span className="text-neutral-600">{c.label === "Other" ? t.data.countryOther : c.label}</span>
                     <span className="font-medium text-neutral-900">{c.value}%</span>
                   </div>
                   <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-neutral-100">

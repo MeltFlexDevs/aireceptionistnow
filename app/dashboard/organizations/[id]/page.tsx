@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { currentUserId } from "@/lib/auth";
 import { listAssistants, type Assistant } from "@/lib/dashboard/db";
 import { getOrganization } from "@/lib/dashboard/organizations";
+import { getDictionary } from "@/lib/i18n/server";
 import { readKnowledge } from "@/lib/knowledge/sources";
 import { SectionCard } from "../../components/SectionCard";
 import { PageHeader } from "../../components/PageHeader";
@@ -35,6 +36,7 @@ export default async function OrganizationDetailPage({
 }) {
   const { id } = await params;
   const { saved, error } = await searchParams;
+  const t = await getDictionary();
 
   const org = await getOrganization(id).catch(() => null);
   if (!org) notFound();
@@ -83,7 +85,7 @@ export default async function OrganizationDetailPage({
               <input id="name" name="name" defaultValue={org.name} placeholder="e.g. Acme Corp" className={field} />
             </div>
             <div>
-              <label htmlFor="description" className={labelCls}>Description</label>
+              <label htmlFor="description" className={labelCls}>{t.organizations.descriptionField}</label>
               <textarea
                 id="description"
                 name="description"
@@ -93,7 +95,7 @@ export default async function OrganizationDetailPage({
                 className={`${field} resize-y`}
               />
             </div>
-            <SubmitButton pendingText="Saving…">Save details</SubmitButton>
+            <SubmitButton pendingText="Saving…">{t.organizations.saveDetails}</SubmitButton>
           </div>
         </SectionCard>
       </form>
@@ -128,7 +130,7 @@ export default async function OrganizationDetailPage({
                     <div className="min-w-0">
                       <div className="truncate text-sm font-medium text-neutral-800">{a.name}</div>
                       {otherOrg && (
-                        <div className="truncate text-xs text-amber-600">In another organization</div>
+                        <div className="truncate text-xs text-amber-600">{t.organizations.inAnotherOrg}</div>
                       )}
                     </div>
                   </div>
@@ -184,16 +186,16 @@ export default async function OrganizationDetailPage({
           <form action={addOrgWebsiteKnowledgeAction} className="flex flex-col gap-2 sm:flex-row sm:items-end">
             <input type="hidden" name="id" value={org.id} />
             <div className="flex-1">
-              <label htmlFor="kn_url" className={labelCls}>Import from website</label>
+              <label htmlFor="kn_url" className={labelCls}>{t.organizations.importFromWebsite}</label>
               <input id="kn_url" name="url" type="url" required placeholder="https://yourcompany.com/about" className={field} />
             </div>
-            <SubmitButton pendingText="Importing…" className="h-[38px]">Import</SubmitButton>
+            <SubmitButton pendingText="Importing…" className="h-[38px]">{t.common.import}</SubmitButton>
           </form>
 
           <form action={addOrgPdfKnowledgeAction} className="flex flex-col gap-2 sm:flex-row sm:items-end">
             <input type="hidden" name="id" value={org.id} />
             <div className="flex-1">
-              <label htmlFor="kn_pdf" className={labelCls}>Upload a PDF</label>
+              <label htmlFor="kn_pdf" className={labelCls}>{t.organizations.uploadPdf}</label>
               <input
                 id="kn_pdf"
                 name="pdf"
@@ -210,7 +212,7 @@ export default async function OrganizationDetailPage({
 
           <form action={updateOrganizationNotesAction}>
             <input type="hidden" name="id" value={org.id} />
-            <label htmlFor="knowledge_notes" className={labelCls}>Notes and FAQs</label>
+            <label htmlFor="knowledge_notes" className={labelCls}>{t.organizations.notesFaqs}</label>
             <textarea
               id="knowledge_notes"
               name="knowledge_notes"
@@ -220,7 +222,7 @@ export default async function OrganizationDetailPage({
               className={`${field} resize-y`}
             />
             <div className="mt-3">
-              <SubmitButton pendingText="Saving…">Save notes</SubmitButton>
+              <SubmitButton pendingText="Saving…">{t.organizations.saveNotes}</SubmitButton>
             </div>
           </form>
         </div>

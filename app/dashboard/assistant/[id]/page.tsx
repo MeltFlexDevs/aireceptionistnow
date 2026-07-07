@@ -6,6 +6,7 @@ import { getOrganization } from "@/lib/dashboard/organizations";
 import { getPlanContext } from "@/lib/dashboard/plan";
 import { formatPhone } from "@/lib/call-engine/voice/phone-language";
 import { currentUserId } from "@/lib/auth";
+import { getDictionary } from "@/lib/i18n/server";
 import { SectionCard } from "../../components/SectionCard";
 import { PageHeader } from "../../components/PageHeader";
 import { StatusRow } from "../../components/StatusBadge";
@@ -44,6 +45,7 @@ export default async function AssistantSettingsPage({
 }) {
   const { id } = await params;
   const { saved, error, notice } = await searchParams;
+  const t = await getDictionary();
 
   const assistant = await getAssistant(id).catch(() => null);
   if (!assistant) notFound();
@@ -201,7 +203,7 @@ export default async function AssistantSettingsPage({
               <input id="name" name="name" defaultValue={assistant.name} placeholder="e.g. Front desk" className={field} />
             </div>
             <div>
-              <label htmlFor="greeting" className={labelCls}>Welcome message</label>
+              <label htmlFor="greeting" className={labelCls}>{t.assistants.welcomeMessage}</label>
               <textarea id="greeting" name="greeting" defaultValue={assistant.greeting} rows={2} className={`${field} resize-y`} />
             </div>
             <div>
@@ -237,7 +239,7 @@ export default async function AssistantSettingsPage({
         <SectionCard title="Calls and alerts" subtitle="Forward important calls and get message texts.">
           <div className="space-y-4">
             <div>
-              <label htmlFor="transfer_to" className={labelCls}>Personal number</label>
+              <label htmlFor="transfer_to" className={labelCls}>{t.assistants.personalNumber}</label>
               <div className="flex flex-col gap-2 sm:flex-row">
                 <input id="transfer_to" name="transfer_to" defaultValue={transferTo} placeholder="Your real number, e.g. +14155550199" className={`${field} sm:flex-1`} />
                 <TestCallButton
@@ -245,13 +247,13 @@ export default async function AssistantSettingsPage({
                   className="inline-flex h-[38px] shrink-0 items-center justify-center gap-1.5 rounded-lg border border-neutral-300 bg-white px-3 text-sm font-medium text-neutral-900 transition-colors hover:bg-neutral-100 disabled:cursor-wait disabled:opacity-60"
                 />
               </div>
-              <p className="mt-1.5 text-xs text-neutral-400">Important calls are forwarded to this number.</p>
+              <p className="mt-1.5 text-xs text-neutral-400">{t.assistants.forwardedNote}</p>
             </div>
 
             <label className={toggleRow}>
               <span>
-                <span className="block text-sm font-medium text-neutral-800">Text me message alerts</span>
-                <span className="block text-xs text-neutral-400">When the AI takes a message, text it to your personal number.</span>
+                <span className="block text-sm font-medium text-neutral-800">{t.assistants.textAlerts}</span>
+                <span className="block text-xs text-neutral-400">{t.assistants.textAlertsSub}</span>
               </span>
               <input type="checkbox" name="sms_alerts" defaultChecked={smsAlerts} className="peer sr-only" />
               <span className={toggle} />
@@ -279,9 +281,9 @@ export default async function AssistantSettingsPage({
                       defaultValue={accessMap.get(c.id) ?? "none"}
                       className="shrink-0 rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-sm text-neutral-900 outline-none focus:border-neutral-900"
                     >
-                      <option value="none">No access</option>
-                      <option value="read">Read availability</option>
-                      <option value="write">Write and book here</option>
+                      <option value="none">{t.assistants.noAccess}</option>
+                      <option value="read">{t.assistants.readAvailability}</option>
+                      <option value="write">{t.assistants.writeBook}</option>
                     </select>
                   </div>
                 );
@@ -307,14 +309,14 @@ export default async function AssistantSettingsPage({
           <div className="space-y-3">
             <label className={toggleRow}>
               <span>
-                <span className="block text-sm font-medium text-neutral-800">Send email transcripts</span>
-                <span className="block text-xs text-neutral-400">After every call, email a summary and the full transcript.</span>
+                <span className="block text-sm font-medium text-neutral-800">{t.assistants.sendEmailTranscripts}</span>
+                <span className="block text-xs text-neutral-400">{t.assistants.sendEmailTranscriptsSub}</span>
               </span>
               <input type="checkbox" name="email_enabled" defaultChecked={emailCfg.enabled ?? false} className="peer sr-only" />
               <span className={toggle} />
             </label>
             <div>
-              <label htmlFor="email_to" className={labelCls}>Send to</label>
+              <label htmlFor="email_to" className={labelCls}>{t.assistants.sendTo}</label>
               <input id="email_to" name="email_to" type="email" defaultValue={emailCfg.to ?? ""} placeholder="you@business.com" className={field} />
             </div>
           </div>
@@ -324,14 +326,14 @@ export default async function AssistantSettingsPage({
           <div className="space-y-3">
             <label className={toggleRow}>
               <span>
-                <span className="block text-sm font-medium text-neutral-800">Push calls to a CRM or ERP</span>
-                <span className="block text-xs text-neutral-400">Sends summary and transcript as JSON to your endpoint.</span>
+                <span className="block text-sm font-medium text-neutral-800">{t.assistants.pushCrm}</span>
+                <span className="block text-xs text-neutral-400">{t.assistants.pushCrmSub}</span>
               </span>
               <input type="checkbox" name="crm_enabled" defaultChecked={crmCfg.enabled ?? false} className="peer sr-only" />
               <span className={toggle} />
             </label>
             <div>
-              <label htmlFor="crm_url" className={labelCls}>Endpoint URL</label>
+              <label htmlFor="crm_url" className={labelCls}>{t.assistants.endpointUrl}</label>
               <input id="crm_url" name="crm_url" type="url" defaultValue={crmCfg.url ?? ""} placeholder="https://hooks.zapier.com/..." className={field} />
             </div>
             <div>
@@ -351,7 +353,7 @@ export default async function AssistantSettingsPage({
       {/* ── Danger zone ─────────────────────────────────────────────────── */}
       <SectionCard title="Danger zone">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-sm text-neutral-500">Delete this assistant. Its number is unlinked.</p>
+          <p className="text-sm text-neutral-500">{t.assistants.deleteHint}</p>
           <DeleteAssistant id={assistant.id} name={assistant.name} />
         </div>
       </SectionCard>

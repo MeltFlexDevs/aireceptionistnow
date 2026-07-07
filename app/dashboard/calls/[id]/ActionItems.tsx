@@ -1,4 +1,5 @@
 import type { CallActionItem } from "@/lib/dashboard/calls";
+import { getDictionary } from "@/lib/i18n/server";
 
 const TYPE_LABEL: Record<string, string> = {
   booking: "Appointment booked",
@@ -22,9 +23,10 @@ function summarize(payload: Record<string, unknown>): string {
   return parts.join(" · ");
 }
 
-export function ActionItems({ actions }: { actions: CallActionItem[] }) {
+export async function ActionItems({ actions }: { actions: CallActionItem[] }) {
+  const t = await getDictionary();
   if (actions.length === 0) {
-    return <p className="text-sm text-neutral-500">No actions taken on this call.</p>;
+    return <p className="text-sm text-neutral-500">{t.data.noActions}</p>;
   }
   return (
     <ul className="space-y-3">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useT } from "@/lib/i18n/client";
 import { LANGUAGES, findLanguage } from "./languages";
 
 // Searchable language picker with country flags. Submits through a hidden input
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export function LanguageSelect({ name = "language", defaultValue = "en" }: Props) {
+  const t = useT();
   const [selected, setSelected] = useState(defaultValue || "en");
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -80,7 +82,7 @@ export function LanguageSelect({ name = "language", defaultValue = "en" }: Props
           </div>
           <ul className="max-h-60 overflow-y-auto py-1" role="listbox">
             {filtered.length === 0 ? (
-              <li className="px-3 py-2 text-sm text-neutral-400">No matches</li>
+              <li className="px-3 py-2 text-sm text-neutral-400">{t.common.noMatches}</li>
             ) : (
               filtered.map((l) => (
                 <li key={l.code} role="option" aria-selected={l.code === selected}>
