@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, type ReactNode } from "react";
+import { useState, useEffect, useRef, type ReactNode } from "react";
 import SiteHeader from "./components/SiteHeader";
 import SiteFooter from "./components/SiteFooter";
 import VoiceOrb from "./components/VoiceOrb";
@@ -181,6 +181,26 @@ export default function Home() {
   const [flagOpen, setFlagOpen] = useState(false);
   const [calling, setCalling] = useState(false);
   const [callMsg, setCallMsg] = useState<string | null>(null);
+  // Once the visitor picks a flag themselves, geo-detection must never override it.
+  const flagPickedByUser = useRef(false);
+
+  // Default the dial code to the visitor's country (from their IP), falling back
+  // to the US flag. Runs once on mount; skipped if they've already chosen.
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/geo")
+      .then((res) => res.json() as Promise<{ dialCode?: string }>)
+      .then((data) => {
+        if (cancelled || flagPickedByUser.current || !data.dialCode) return;
+        if (countries.some((c) => c.code === data.dialCode)) {
+          setDialCode(data.dialCode);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   async function placeTestCall() {
     // Europeans habitually type the national trunk "0" (0912…, 07911…) which
@@ -521,7 +541,7 @@ export default function Home() {
                       {countries.map(c => (
                         <button
                           key={c.code}
-                          onClick={() => { setDialCode(c.code); setFlagOpen(false); }}
+                          onClick={() => { flagPickedByUser.current = true; setDialCode(c.code); setFlagOpen(false); }}
                           style={{ display: "flex", alignItems: "center", gap: "10px", width: "100%", padding: "9px 14px", background: "transparent", border: "none", cursor: "pointer", textAlign: "left" }}
                         >
                           <span style={{ fontSize: "20px" }}>{c.flag}</span>

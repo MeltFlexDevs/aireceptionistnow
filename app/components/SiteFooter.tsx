@@ -158,6 +158,17 @@ export default function SiteFooter() {
                 <li><a href="/llms.txt" style={resourceLinkStyle}>AI Information</a></li>
               </ul>
             </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", fontWeight: 400, letterSpacing: "0.08em", textTransform: "uppercase" }}>Compare</span>
+              <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
+                {[
+                  { label: "vs Smith.ai", href: "/compare/smith-ai-alternative" },
+                  { label: "All comparisons", href: "/compare" },
+                ].map((l) => (
+                  <li key={l.label}><Link href={l.href} style={resourceLinkStyle}>{l.label}</Link></li>
+                ))}
+              </ul>
+            </div>
           </nav>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "32px" }}>
             <VoicePartnerBadge />

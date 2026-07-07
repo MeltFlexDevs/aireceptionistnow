@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { siteUrl } from "@/lib/site";
 import { posts } from "./blog/_posts";
 import { answers } from "./answers/_answers";
+import { COMPETITORS } from "./compare/_compare/competitors";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
@@ -9,10 +10,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const staticPages: MetadataRoute.Sitemap = [
     { url: siteUrl, lastModified: now, changeFrequency: "weekly", priority: 1 },
     { url: `${siteUrl}/pricing`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${siteUrl}/compare`, lastModified: now, changeFrequency: "weekly", priority: 0.8 },
     { url: `${siteUrl}/blog`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
     { url: `${siteUrl}/answers`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
     { url: `${siteUrl}/privacy-policy`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
   ];
+
+  const comparePages: MetadataRoute.Sitemap = COMPETITORS.map((c) => ({
+    url: `${siteUrl}/compare/${c.slug}`,
+    lastModified: now,
+    changeFrequency: "monthly",
+    priority: 0.8,
+  }));
 
   const blogPosts: MetadataRoute.Sitemap = posts.map((post) => ({
     url: `${siteUrl}/blog/${post.slug}`,
@@ -28,5 +37,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.6,
   }));
 
-  return [...staticPages, ...blogPosts, ...answerPages];
+  return [...staticPages, ...comparePages, ...blogPosts, ...answerPages];
 }
