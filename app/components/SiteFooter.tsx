@@ -3,6 +3,8 @@
 import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
 
+import { COMPETITORS } from "@/app/compare/_compare/competitors";
+
 const resourceLinkStyle: CSSProperties = {
   color: "rgba(255,255,255,0.6)", fontSize: "13px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.01em",
 };
@@ -160,15 +162,23 @@ export default function SiteFooter() {
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
               <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", fontWeight: 400, letterSpacing: "0.08em", textTransform: "uppercase" }}>Compare</span>
-              <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
-                {[
-                  { label: "vs Smith.ai", href: "/compare/smith-ai-alternative" },
-                  { label: "vs Ruby", href: "/compare/ruby-alternative" },
-                  { label: "All comparisons", href: "/compare" },
-                ].map((l) => (
-                  <li key={l.label}><Link href={l.href} style={resourceLinkStyle}>{l.label}</Link></li>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", maxWidth: "220px" }}>
+                {COMPETITORS.map((c) => (
+                  <Link
+                    key={c.slug}
+                    href={`/compare/${c.slug}`}
+                    aria-label={c.title}
+                    title={c.title}
+                    style={{
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      width: "60px", height: "40px", borderRadius: "8px",
+                      background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)",
+                    }}
+                  >
+                    <img src={c.logo} loading="lazy" alt="" style={{ maxWidth: "40px", maxHeight: "20px", width: "auto", height: "auto", objectFit: "contain" }} />
+                  </Link>
                 ))}
-              </ul>
+              </div>
             </div>
           </nav>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "32px" }}>

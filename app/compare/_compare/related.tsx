@@ -20,10 +20,6 @@ export function RelatedComparisons({ currentSlug }: { currentSlug: string }) {
       </p>
       <div className="compare-diagnostic">
         <div className="compare-diagnostic-grid">
-          <Link className="compare-diagnostic-card" href="/compare">
-            <span className="compare-diagnostic-title">All comparisons &rarr;</span>
-            <p>Every AI Receptionist Now head-to-head in one place.</p>
-          </Link>
           {others.map((c) => (
             <Link key={c.slug} className="compare-diagnostic-card" href={`/compare/${c.slug}`}>
               <span className="compare-diagnostic-title">{c.title}</span>
