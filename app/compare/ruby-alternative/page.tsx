@@ -128,10 +128,10 @@ const SCENARIOS = [
 ];
 
 const STORY = [
-  { src: "/compare/photos/call-incoming.png", cap: "A customer calls at 9pm" },
-  { src: "/compare/photos/multilingual-calls.png", cap: "Answered instantly, any language" },
-  { src: "/compare/photos/calendar-booked.png", cap: "The appointment is booked" },
-  { src: "/compare/photos/owner-booked.png", cap: "You get the summary" },
+  { src: "/compare/photos/ruby-call-incoming.png", cap: "A customer calls at 9pm" },
+  { src: "/compare/photos/ruby-ai-afterhours.png", cap: "Answered instantly, any language" },
+  { src: "/compare/photos/ruby-calendar.png", cap: "The appointment is booked" },
+  { src: "/compare/photos/ruby-owner-booked.png", cap: "You get the summary" },
 ];
 
 const SCREENS = [
@@ -384,7 +384,7 @@ export default function RubyComparePage() {
               </p>
               <Image
                 className="fusion-shot"
-                src="/compare/photos/human-receptionist.png"
+                src="/compare/photos/ruby-human.png"
                 alt="A friendly human receptionist wearing a headset at a front desk"
                 width={1408}
                 height={768}
@@ -403,7 +403,7 @@ export default function RubyComparePage() {
               </p>
               <Image
                 className="fusion-shot"
-                src="/compare/photos/multilingual-calls.png"
+                src="/compare/photos/ruby-ai-afterhours.png"
                 alt="One AI voice answering callers in many languages"
                 width={1408}
                 height={768}
@@ -431,7 +431,7 @@ export default function RubyComparePage() {
               <div className="compare-showcase-media">
                 <Image
                   className="compare-showcase-video"
-                  src="/compare/photos/reception-desk.png"
+                  src="/compare/photos/ruby-reception.png"
                   alt="A modern reception area"
                   width={1408}
                   height={768}
@@ -633,7 +633,7 @@ export default function RubyComparePage() {
 
               <div className="compare-cards">
                 <div className="compare-card compare-card-winner">
-                  <Image className="compare-card-img" src="/compare/photos/multilingual-calls.png" alt="One AI voice answering callers 24/7 in many languages" width={1408} height={768} sizes="(max-width: 768px) 100vw, 540px" />
+                  <Image className="compare-card-img" src="/compare/photos/ruby-ai-afterhours.png" alt="One AI voice answering callers 24/7 in many languages" width={1408} height={768} sizes="(max-width: 768px) 100vw, 540px" />
                   <div className="compare-card-label compare-card-label-meltflex">AI Receptionist Now</div>
                   <ul>
                     <li>Answers every call instantly, 24/7, no queue</li>
@@ -643,7 +643,7 @@ export default function RubyComparePage() {
                   </ul>
                 </div>
                 <div className="compare-card">
-                  <Image className="compare-card-img" src="/compare/photos/human-receptionist.png" alt="A human receptionist answering a call" width={1408} height={768} sizes="(max-width: 768px) 100vw, 540px" />
+                  <Image className="compare-card-img" src="/compare/photos/ruby-human.png" alt="A human receptionist answering a call" width={1408} height={768} sizes="(max-width: 768px) 100vw, 540px" />
                   <div className="compare-card-label compare-card-label-competitor">Ruby</div>
                   <ul>
                     <li>Real humans, warmth and judgment on hard calls</li>

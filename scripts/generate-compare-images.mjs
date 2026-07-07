@@ -69,6 +69,83 @@ const SPECS = [
     name: "human-receptionist",
     prompt: `A warm, friendly professional receptionist wearing a slim modern headset at a bright, tidy front desk, smiling naturally while helping a caller, three-quarter angle so the face is soft and not a tight close-up, light wood and matte surfaces, a green plant and soft daylight from a large window blurred behind. Approachable, human, reassuring mood. ${STYLE}`,
   },
+
+  // ── Page-specific sets. Each competitor page gets its own distinct look so no
+  // two comparison pages share a photo. Rosie = warm European small business,
+  // Goodcall = cool bright US trades, Ruby = human-warm vs cool after-hours AI.
+
+  // Rosie: multilingual reach, EU/GDPR calm, booking on the phone, small owner.
+  // Warm oatmeal + terracotta palette, soft European morning light.
+  {
+    name: "rosie-call-incoming",
+    prompt: `A candid dusk moment inside a warm European city apartment: a woman's hand raising a smartphone toward her ear near a tall window with soft amber streetlight glow outside, seen three-quarter from behind so the face is not prominent, a cozy blurred interior with books and a leafy plant, warm oatmeal and terracotta tones, evoking a customer phoning a small business in the early evening. ${STYLE}`,
+  },
+  {
+    name: "rosie-owner-booked",
+    prompt: `A calm independent European shopkeeper — a florist or boutique owner in clean casual clothes — standing relaxed among plants and shelves in soft morning light through a large storefront window, quietly satisfied and in control, glancing down at a phone held loosely in one hand, three-quarter angle so the face is soft, warm oatmeal and terracotta palette, background gently out of focus. Reassured, relieved mood. ${STYLE}`,
+  },
+  {
+    name: "rosie-multilingual",
+    prompt: `An elegant minimalist conceptual still: a single smartphone lying flat on a warm pale linen surface, delicate glowing concentric sound-wave rings radiating softly outward across generous negative space, a few faint translucent speech-bubble silhouettes suggesting many different voices and languages, warm soft top light, muted terracotta and cream palette, premium and quiet, evoking one AI voice speaking many languages. No people, no text. ${STYLE}`,
+  },
+  {
+    name: "rosie-reception",
+    prompt: `An elegant empty reception nook of a small European clinic or design studio in warm morning light: a compact minimal front desk in pale oak, a single ceramic vase with one stem, a soft linen chair, sunlight falling across a plaster wall, calm and welcoming, no people, warm neutral oatmeal palette. ${STYLE}`,
+  },
+  {
+    name: "rosie-calendar",
+    prompt: `An elegant minimalist conceptual still seen from just above: a smartphone lying flat on a warm cream desk beside a linen-bound open notebook and a slim brass pen, one soft warm highlight suggesting a newly confirmed appointment, generous soft negative space, muted warm palette, premium and quiet. No people, no readable text. ${STYLE}`,
+  },
+
+  // Goodcall: high-volume US small business & trades, always-on, "answered"
+  // moments. Cool crisp daylight, muted slate/steel palette with warm accents.
+  {
+    name: "goodcall-call-incoming",
+    prompt: `A candid daytime moment: a tradesperson's hand holding a smartphone to their ear in a bright, busy workshop or service garage, seen three-quarter from behind so the face is not prominent, tools and a workbench softly blurred in cool daylight, conveying a customer calling a busy small business, muted blue-grey palette with warm wood accents. ${STYLE}`,
+  },
+  {
+    name: "goodcall-owner-booked",
+    prompt: `A relaxed owner of a busy American small business — an auto shop or contractor in clean workwear — standing in the open bay doorway in bright midday light, calm and in control with a tidy busy shop behind, quietly satisfied, phone lowered in one hand, three-quarter angle so the face is soft, crisp cool daylight, industrial-but-tidy background gently out of focus. ${STYLE}`,
+  },
+  {
+    name: "goodcall-answered",
+    prompt: `An elegant minimalist conceptual still: a single smartphone lying flat on a cool pale concrete-grey surface, many delicate glowing arcs and small points of light radiating outward like a steady stream of calls all being answered at once, generous negative space, crisp cool daylight, muted slate and steel palette with one warm highlight, premium and quiet, evoking always-on unlimited answering. No people, no text. ${STYLE}`,
+  },
+  {
+    name: "goodcall-reception",
+    prompt: `An elegant empty front service counter of a busy American small-business storefront at opening time: a clean minimal counter in light wood and matte steel, a simple stool, bright daylight through a large shopfront window, calm before the rush, no people, cool neutral palette with warm accents. ${STYLE}`,
+  },
+  {
+    name: "goodcall-calendar",
+    prompt: `An elegant minimalist conceptual still seen from just above: a smartphone lying flat on a cool pale grey desk beside a simple open planner and a pen, several soft even highlights suggesting many confirmed appointments in a row, generous negative space, crisp cool light, muted slate palette, premium and quiet. No people, no readable text. ${STYLE}`,
+  },
+
+  // Ruby: the human-vs-AI contrast. Warm, premium human scenes AND cool,
+  // minimal after-hours AI concepts so the page shows both sides fairly.
+  {
+    name: "ruby-human",
+    prompt: `A warm, genuine human receptionist at an elegant professional office front desk, a real person mid-conversation wearing a slim discreet headset, smiling softly and naturally, three-quarter angle so the face is soft and not a tight close-up, premium warm walnut desk with brass details and soft lamplight, a subtle plant blurred behind, refined law-office ambiance, authentic and human, warm golden palette. ${STYLE}`,
+  },
+  {
+    name: "ruby-ai-afterhours",
+    prompt: `An elegant minimalist conceptual still at night: a single smartphone lying flat on a cool dark slate surface, a soft screen glow casting delicate concentric sound-wave rings across the negative space, calm blue-hour tone, evoking an AI quietly answering calls after hours when the office has closed, muted deep-blue and charcoal palette with one warm highlight, premium and quiet. No people, no text. ${STYLE}`,
+  },
+  {
+    name: "ruby-reception",
+    prompt: `An elegant empty premium office reception at dusk: a refined front desk in dark walnut and brass, a soft desk lamp glowing, a leather chair, tall windows with cool blue evening light outside, calm and upscale, no people, a warm-meets-cool palette bridging human warmth and after-hours quiet. ${STYLE}`,
+  },
+  {
+    name: "ruby-call-incoming",
+    prompt: `A candid late-evening moment: a person's hand raising a smartphone toward their ear on a quiet city street at night, seen three-quarter from behind so the face is not prominent, warm shop lights and cool blue night softly blurred behind, conveying a customer calling a firm after hours, cinematic muted palette. ${STYLE}`,
+  },
+  {
+    name: "ruby-calendar",
+    prompt: `An elegant minimalist conceptual still seen from just above: a smartphone lying flat on a dark refined desk beside a leather-bound notebook and a fountain pen, one soft warm highlight suggesting a newly confirmed appointment, generous negative space, moody premium palette, quiet and upscale. No people, no readable text. ${STYLE}`,
+  },
+  {
+    name: "ruby-owner-booked",
+    prompt: `A relaxed professional — a small law-firm or clinic owner in smart-casual clothes — standing in a calm upscale office in soft late-afternoon light, quietly reassured, glancing at a phone lowered in one hand, three-quarter angle so the face is soft, warm refined palette, bookshelves and warm wood softly out of focus. ${STYLE}`,
+  },
 ]
 
 mkdirSync("public/compare/photos", { recursive: true })
