@@ -11,9 +11,9 @@ import "./_compare/compare.css";
 const PATH = "/compare";
 const url = `${siteUrl}${PATH}`;
 
-const title = "Best AI Receptionist Alternatives: Smith.ai, Ruby, Rosie & Goodcall";
+const title = "Best AI Receptionist Alternatives: Smith.ai, Ruby, Rosie, Goodcall & More";
 const description =
-  "Honest, side-by-side comparisons of AI Receptionist Now against Smith.ai, Ruby, Rosie and Goodcall. See how flat, per-minute, multilingual pricing stacks up.";
+  "Honest, side-by-side comparisons of AI Receptionist Now against Smith.ai, Ruby, Rosie, Goodcall and My AI Front Desk. See how flat, per-minute, multilingual pricing stacks up.";
 
 export const metadata: Metadata = {
   title,
@@ -84,8 +84,9 @@ export default function CompareHubPage() {
               <p className="compare-hero-sub">
                 Shopping for an AI receptionist is confusing: per-call vs
                 per-minute, AI vs human, setup in minutes vs days. These are the
-                honest, side-by-side breakdowns against Smith.ai, Ruby, Rosie and
-                Goodcall, including where each competitor genuinely wins.
+                honest, side-by-side breakdowns against Smith.ai, Ruby, Rosie,
+                Goodcall and My AI Front Desk, including where each competitor
+                genuinely wins.
               </p>
               <div className="compare-hero-cta" style={{ justifyContent: "center" }}>
                 <CompareCta label="Start free" />

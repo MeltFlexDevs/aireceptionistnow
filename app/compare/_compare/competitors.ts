@@ -44,4 +44,11 @@ export const COMPETITORS: CompetitorEntry[] = [
     blurb:
       "Flat pricing with no per-agent or per-caller caps vs Goodcall's per-agent plans, plus 25+ languages, EU hosting and a free start.",
   },
+  {
+    slug: "my-ai-front-desk-alternative",
+    competitor: "My AI Front Desk",
+    title: "AI Receptionist Now vs My AI Front Desk",
+    blurb:
+      "A phone-first, GDPR-first alternative to My AI Front Desk (Frontdesk): 5× the voice minutes at a third the overage, 25+ languages, EU-hosted and free to start.",
+  },
 ];

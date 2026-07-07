@@ -1,0 +1,6 @@
+<svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="My AI Front Desk">
+  <rect width="44" height="44" rx="10" fill="#2b2f7a"/>
+  <path d="M22 11c-6.075 0-11 4.701-11 10.5V29a3 3 0 0 0 3 3h3v-9h-4.9v-1.5C15.1 16.253 18.19 13.4 22 13.4s6.9 2.853 6.9 8.1V23H24v9h3a3 3 0 0 0 3-3v-7.5C30 15.701 25.075 11 19.999 11H22Z" fill="#fff"/>
+  <rect x="12.6" y="23" width="4.4" height="9" rx="2.2" fill="#c7c9f2"/>
+  <rect x="27" y="23" width="4.4" height="9" rx="2.2" fill="#c7c9f2"/>
+</svg>
