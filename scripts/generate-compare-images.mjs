@@ -1,7 +1,7 @@
 // One-off: generate premium editorial photos for the Smith.ai comparison page,
 // same Gemini image models + house style as scripts/generate-blog-images.mjs.
 // Run: node scripts/generate-compare-images.mjs
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs"
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs"
 import { GoogleGenAI, Modality } from "@google/genai"
 
 function readKey() {
@@ -64,12 +64,22 @@ const SPECS = [
     name: "multilingual-calls",
     prompt: `An elegant minimalist conceptual still: a single smartphone lying flat on a pale seamless surface with delicate glowing concentric sound-wave rings radiating outward from its earpiece across the negative space, a few faint speech-bubble silhouettes suggesting different voices, soft top light, premium and quiet, evoking one AI voice speaking many languages. No people, no text. ${STYLE}`,
   },
+  {
+    // Used on the Ruby page to represent the human answering service fairly.
+    name: "human-receptionist",
+    prompt: `A warm, friendly professional receptionist wearing a slim modern headset at a bright, tidy front desk, smiling naturally while helping a caller, three-quarter angle so the face is soft and not a tight close-up, light wood and matte surfaces, a green plant and soft daylight from a large window blurred behind. Approachable, human, reassuring mood. ${STYLE}`,
+  },
 ]
 
 mkdirSync("public/compare/photos", { recursive: true })
 const ai = new GoogleGenAI({ apiKey: API_KEY })
 
 async function genOne(spec) {
+  // Idempotent: skip specs whose image already exists so re-runs only fill gaps.
+  if (existsSync(`public/compare/photos/${spec.name}.png`)) {
+    console.log(`SKIP ${spec.name} (already exists)`)
+    return true
+  }
   for (const model of MODELS) {
     try {
       const res = await ai.models.generateContent({

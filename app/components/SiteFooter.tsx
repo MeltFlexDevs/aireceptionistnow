@@ -163,6 +163,7 @@ export default function SiteFooter() {
               <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
                 {[
                   { label: "vs Smith.ai", href: "/compare/smith-ai-alternative" },
+                  { label: "vs Ruby", href: "/compare/ruby-alternative" },
                   { label: "All comparisons", href: "/compare" },
                 ].map((l) => (
                   <li key={l.label}><Link href={l.href} style={resourceLinkStyle}>{l.label}</Link></li>

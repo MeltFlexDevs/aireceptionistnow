@@ -3162,4 +3162,189 @@
   .compare-page .airn-vs { gap: 10px; margin-bottom: 18px; }
   .compare-page .airn-vs-us { font-size: 12px; }
   .compare-page .airn-vs-smith { height: 14px; }
+  .compare-page .airn-vs-logo { height: 15px; }
+}
+
+/* Rounded competitor app-icon paired with a name in the "vs" lockup. */
+.compare-page .airn-vs-mark-img {
+  height: 22px;
+  width: 22px;
+  border-radius: 6px;
+  object-fit: cover;
+  display: inline-block;
+}
+
+/* Generic competitor wordmark in the hero "vs" lockup (brand-agnostic). */
+.compare-page .airn-vs-logo {
+  height: 20px;
+  width: auto;
+  max-width: 150px;
+  object-fit: contain;
+  display: block;
+}
+
+/* ── Author byline (E-E-A-T) ── */
+.compare-byline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 22px 0 4px;
+}
+.compare-byline-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.compare-byline-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.compare-byline-name {
+  font-size: 13px;
+  color: #1a1a1a;
+  line-height: 1.4;
+}
+.compare-byline-name a {
+  color: #1a1a1a;
+  text-decoration: underline;
+  font-weight: 400 !important;
+  transition: opacity 0.15s;
+}
+.compare-byline-name a:hover { opacity: 0.7; }
+.compare-byline-role { color: #999; }
+.compare-byline-dates {
+  font-size: 12px;
+  color: #999;
+}
+
+/* ── Interactive pricing calculator ── */
+.compare-calc {
+  background: #f5f5f5;
+  border-radius: 16px;
+  padding: 32px;
+  margin: 32px 0;
+}
+.compare-calc-label {
+  font-size: 11px;
+  font-weight: 400 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #999;
+  margin-bottom: 22px;
+}
+.compare-calc-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  margin-bottom: 28px;
+}
+.compare-calc-control-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 13px;
+  color: #4a4a4a;
+  margin-bottom: 10px;
+}
+.compare-calc-val {
+  font-size: 15px;
+  font-weight: 500 !important;
+  color: #1a1a1a;
+}
+.compare-calc-control input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 3px;
+  background: #d8d8d8;
+  outline: none;
+}
+.compare-calc-control input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #1a1a1a;
+  cursor: pointer;
+  border: 3px solid #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+}
+.compare-calc-control input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #1a1a1a;
+  cursor: pointer;
+  border: 3px solid #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+}
+.compare-calc-results {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.compare-calc-card {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 22px 24px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.compare-calc-card--win {
+  border: 2px solid #1a1a1a;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+}
+.compare-calc-card-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  font-weight: 500 !important;
+  color: #1a1a1a;
+  margin-bottom: 10px;
+}
+.compare-calc-plan {
+  font-size: 10px;
+  font-weight: 400 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #666;
+  background: #f0f0f0;
+  border-radius: 10px;
+  padding: 2px 9px;
+}
+.compare-calc-price {
+  font-size: 2.1rem;
+  font-weight: 300 !important;
+  letter-spacing: -0.02em;
+  color: #1a1a1a;
+  line-height: 1.1;
+}
+.compare-calc-sub {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #999;
+}
+.compare-calc-note {
+  margin: 18px 0 0;
+  font-size: 12px !important;
+  color: #999 !important;
+  line-height: 1.6;
+}
+.compare-calc-note a {
+  color: #666;
+  text-decoration: underline;
+}
+@media (max-width: 768px) {
+  .compare-calc { padding: 24px; }
+  .compare-calc-controls { grid-template-columns: 1fr; gap: 22px; }
+  .compare-calc-results { grid-template-columns: 1fr; }
+  .compare-calc-price { font-size: 1.8rem; }
 }
