@@ -162,23 +162,13 @@ export default function SiteFooter() {
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
               <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", fontWeight: 400, letterSpacing: "0.08em", textTransform: "uppercase" }}>Compare</span>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", maxWidth: "220px" }}>
+              <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
                 {COMPETITORS.map((c) => (
-                  <Link
-                    key={c.slug}
-                    href={`/compare/${c.slug}`}
-                    aria-label={c.title}
-                    title={c.title}
-                    style={{
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      width: "60px", height: "40px", borderRadius: "8px",
-                      background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)",
-                    }}
-                  >
-                    <img src={c.logo} loading="lazy" alt="" style={{ maxWidth: "40px", maxHeight: "20px", width: "auto", height: "auto", objectFit: "contain" }} />
-                  </Link>
+                  <li key={c.slug}>
+                    <Link href={`/compare/${c.slug}`} style={resourceLinkStyle}>vs {c.competitor}</Link>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </div>
           </nav>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "32px" }}>
