@@ -682,7 +682,7 @@ export default function RubyComparePage() {
                 <div className="compare-speed-row">
                   <span className="compare-speed-name">AI Receptionist Now</span>
                   <div className="compare-speed-track">
-                    <div className="compare-speed-fill compare-speed-fill--competitor" style={{ width: "100%", background: "#1a1a1a", color: "#fff" }}>25+ languages, 24/7</div>
+                    <div className="compare-speed-fill compare-speed-fill--competitor" style={{ width: "100%", background: "#1D1D1D", color: "#fff" }}>25+ languages, 24/7</div>
                   </div>
                 </div>
                 <div className="compare-speed-row">

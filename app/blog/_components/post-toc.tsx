@@ -56,7 +56,7 @@ export function PostToc({ sections }: { sections: Section[] }) {
               className={cn(
                 "-ml-px block border-l py-[5px] pl-3.5 text-[12px] leading-snug transition-colors",
                 activeId === s.id
-                  ? "border-[#1a1a1a] font-normal text-[#1a1a1a]"
+                  ? "border-[#1D1D1D] font-normal text-[#1D1D1D]"
                   : "border-transparent font-light text-[#888] hover:text-[#333]"
               )}
             >

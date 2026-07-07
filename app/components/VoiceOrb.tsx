@@ -15,11 +15,11 @@ export default function VoiceOrb() {
   const noise =
     "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")";
   const fillMask =
-    "radial-gradient(circle at center, #000 38%, rgba(0,0,0,0.5) 58%, transparent 74%)";
+    "radial-gradient(circle at center, #1D1D1D 38%, rgba(0,0,0,0.5) 58%, transparent 74%)";
   const softMask =
-    "radial-gradient(circle at center, #000 40%, transparent 68%)";
+    "radial-gradient(circle at center, #1D1D1D 40%, transparent 68%)";
   const waveMask =
-    "radial-gradient(circle at center, #000 30%, transparent 66%)";
+    "radial-gradient(circle at center, #1D1D1D 30%, transparent 66%)";
 
   useEffect(() => {
     const canvas = canvasRef.current;

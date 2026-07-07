@@ -37,7 +37,7 @@ export default function AuthErrorPage() {
           alignItems: "center",
           height: "40px",
           padding: "0 20px",
-          background: "#000",
+          background: "#1D1D1D",
           color: "#fff",
           borderRadius: "20px",
           fontSize: "13px",

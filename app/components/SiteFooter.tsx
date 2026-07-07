@@ -146,7 +146,7 @@ const AskAI = () => (
 
 export default function SiteFooter() {
   return (
-    <footer style={{ background: "#000", color: "#fff", fontFamily: "var(--font-inter), Inter, -apple-system, sans-serif", fontWeight: 300 }}>
+    <footer style={{ background: "#1D1D1D", color: "#fff", fontFamily: "var(--font-inter), Inter, -apple-system, sans-serif", fontWeight: 300 }}>
       <div style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", padding: "60px 0 50px" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 40px", display: "flex", justifyContent: "space-between", gap: "40px", flexWrap: "wrap" }}>
           <nav style={{ display: "flex", gap: "64px", flexWrap: "wrap" }}>

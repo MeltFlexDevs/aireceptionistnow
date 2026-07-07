@@ -16,7 +16,7 @@ const PauseLogo = ({ color = "currentColor" }: { color?: string }) => (
 
 const ctaStyle: CSSProperties = {
   display: "inline-flex", alignItems: "center", height: "36px", padding: "0 20px",
-  background: "#000", color: "#fff", border: "1.5px solid #000",
+  background: "#1D1D1D", color: "#fff", border: "1.5px solid #1D1D1D",
   borderRadius: "20px", fontSize: "12px", fontWeight: 400, textDecoration: "none",
   letterSpacing: "0.06em", transition: "all 0.25s", cursor: "pointer",
   fontFamily: "var(--font-inter), Inter, sans-serif", whiteSpace: "nowrap",
@@ -80,8 +80,8 @@ export default function SiteHeader() {
         }
       `}</style>
       <div className="site-header-left" style={{ display: "flex", alignItems: "center" }}>
-        <Link href="/" style={{ display: "flex", alignItems: "center", gap: "6px", textDecoration: "none", color: "#000" }}>
-          <PauseLogo color="#000" />
+        <Link href="/" style={{ display: "flex", alignItems: "center", gap: "6px", textDecoration: "none", color: "#1D1D1D" }}>
+          <PauseLogo color="#1D1D1D" />
           <span className="site-header-logo" style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontWeight: 500, fontSize: "18px", letterSpacing: "-0.02em", whiteSpace: "nowrap" }}>
             AI RECEPTIONIST
           </span>
@@ -92,7 +92,7 @@ export default function SiteHeader() {
           href="/pricing"
           className="site-header-pricing"
           style={{
-            color: "#000", fontSize: "12px", fontWeight: 400,
+            color: "#1D1D1D", fontSize: "12px", fontWeight: 400,
             letterSpacing: "0.06em", textDecoration: "none",
             fontFamily: "var(--font-inter), Inter, sans-serif",
           }}
@@ -111,7 +111,7 @@ export default function SiteHeader() {
               className="site-header-signin"
               style={{
                 height: "36px", padding: "0 14px", background: "transparent",
-                border: "none", color: "#000", fontSize: "12px", fontWeight: 400,
+                border: "none", color: "#1D1D1D", fontSize: "12px", fontWeight: 400,
                 letterSpacing: "0.06em", cursor: "pointer", whiteSpace: "nowrap",
                 fontFamily: "var(--font-inter), Inter, sans-serif",
               }}

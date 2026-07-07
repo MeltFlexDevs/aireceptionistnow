@@ -116,7 +116,7 @@ export default async function BlogPostPage({
   ];
 
   return (
-    <div className="min-h-screen bg-white font-light text-[#1a1a1a]">
+    <div className="min-h-screen bg-white font-light text-[#1D1D1D]">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -128,15 +128,15 @@ export default async function BlogPostPage({
           <div className="min-w-0 lg:max-w-[720px]">
             <Link
               href="/blog"
-              className="mb-12 inline-flex items-center gap-1.5 text-[14px] text-[#666] transition-colors hover:text-[#1a1a1a]"
+              className="mb-12 inline-flex items-center gap-1.5 text-[14px] text-[#666] transition-colors hover:text-[#1D1D1D]"
             >
               <span aria-hidden="true">←</span> All articles
             </Link>
 
-            <span className="mb-4 block text-[11px] font-medium tracking-[0.06em] text-[#1a1a1a] uppercase">
+            <span className="mb-4 block text-[11px] font-medium tracking-[0.06em] text-[#1D1D1D] uppercase">
               {post.tag}
             </span>
-            <h1 className="text-[32px] leading-[1.2] font-light tracking-[-0.02em] text-[#1a1a1a] sm:text-[42px]">
+            <h1 className="text-[32px] leading-[1.2] font-light tracking-[-0.02em] text-[#1D1D1D] sm:text-[42px]">
               {post.title}
             </h1>
 
@@ -155,7 +155,7 @@ export default async function BlogPostPage({
                   className="size-9 rounded-full object-cover"
                 />
                 <span>
-                  By <span className="text-[#1a1a1a]">{a.name}</span>
+                  By <span className="text-[#1D1D1D]">{a.name}</span>
                   <span className="block text-[12px] text-[#999]">{a.role}</span>
                 </span>
               </a>
@@ -184,7 +184,7 @@ export default async function BlogPostPage({
                       href={post.heroCreditUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="underline decoration-[#ddd] underline-offset-2 hover:text-[#1a1a1a]"
+                      className="underline decoration-[#ddd] underline-offset-2 hover:text-[#1D1D1D]"
                     >
                       {post.heroCredit}
                     </a>
@@ -209,7 +209,7 @@ export default async function BlogPostPage({
                     <li key={s.id}>
                       <a
                         href={`#${s.id}`}
-                        className="text-[#666] transition-colors hover:text-[#1a1a1a]"
+                        className="text-[#666] transition-colors hover:text-[#1D1D1D]"
                       >
                         {s.title}
                       </a>
@@ -225,7 +225,7 @@ export default async function BlogPostPage({
 
             {others.length > 0 && (
               <aside className="mt-16 border-t border-[#e5e5e5] pt-10">
-                <p className="mb-5 text-[11px] font-medium tracking-[0.06em] text-[#1a1a1a] uppercase">
+                <p className="mb-5 text-[11px] font-medium tracking-[0.06em] text-[#1D1D1D] uppercase">
                   Keep reading
                 </p>
                 <div className="flex flex-col gap-3">
@@ -233,9 +233,9 @@ export default async function BlogPostPage({
                     <Link
                       key={other.slug}
                       href={`/blog/${other.slug}`}
-                      className="flex items-center justify-between gap-3 border border-[#e5e5e5] px-[18px] py-3.5 transition-colors hover:border-[#1a1a1a] hover:bg-[#fafafa]"
+                      className="flex items-center justify-between gap-3 border border-[#e5e5e5] px-[18px] py-3.5 transition-colors hover:border-[#1D1D1D] hover:bg-[#fafafa]"
                     >
-                      <span className="text-[15px] text-[#1a1a1a]">
+                      <span className="text-[15px] text-[#1D1D1D]">
                         {other.title}
                       </span>
                       <span className="shrink-0 text-[11px] font-medium tracking-[0.06em] text-[#999] uppercase">

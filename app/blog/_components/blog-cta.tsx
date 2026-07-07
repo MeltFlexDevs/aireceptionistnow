@@ -37,7 +37,7 @@ export function BlogCtaCard() {
   };
 
   return (
-    <div className="mt-8 overflow-hidden rounded-2xl bg-[#111]" style={{ fontFamily: FONT }}>
+    <div className="mt-8 overflow-hidden rounded-2xl bg-[#1D1D1D]" style={{ fontFamily: FONT }}>
       {/* Image banner on the landing "voice" palette - same call image as the sign-in screen */}
       <div
         className="relative aspect-[16/10] w-full overflow-hidden"
@@ -64,7 +64,7 @@ export function BlogCtaCard() {
           type="button"
           onClick={handleStart}
           disabled={busy}
-          className="mt-6 inline-flex items-center gap-1.5 rounded-full bg-white px-6 py-2.5 text-[12px] font-medium tracking-[0.08em] text-[#1a1a1a] uppercase transition-colors hover:bg-white/90 disabled:opacity-70"
+          className="mt-6 inline-flex items-center gap-1.5 rounded-full bg-white px-6 py-2.5 text-[12px] font-medium tracking-[0.08em] text-[#1D1D1D] uppercase transition-colors hover:bg-white/90 disabled:opacity-70"
           style={{ fontFamily: FONT }}
         >
           {busy ? "Starting…" : <>Start now <span aria-hidden="true">→</span></>}

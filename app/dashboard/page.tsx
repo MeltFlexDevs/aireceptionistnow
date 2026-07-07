@@ -241,7 +241,7 @@ async function OverviewBody({ t }: { t: Dictionary }) {
             </div>
             {data.latency.spark.length > 1 && (
               <svg viewBox="0 0 100 24" preserveAspectRatio="none" className="h-10 w-28">
-                <polyline points={latencyPoints(data.latency.spark)} fill="none" stroke="#171717" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+                <polyline points={latencyPoints(data.latency.spark)} fill="none" stroke="#1D1D1D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
               </svg>
             )}
           </div>

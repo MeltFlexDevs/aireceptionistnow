@@ -34,7 +34,7 @@ export function PromptBlock({
         <button
           type="button"
           onClick={copy}
-          className="cursor-pointer text-[11px] font-medium tracking-[0.06em] text-[#666] uppercase transition-colors hover:text-[#1a1a1a]"
+          className="cursor-pointer text-[11px] font-medium tracking-[0.06em] text-[#666] uppercase transition-colors hover:text-[#1D1D1D]"
         >
           {copied ? "Copied ✓" : "Copy"}
         </button>

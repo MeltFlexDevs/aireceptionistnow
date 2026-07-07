@@ -85,7 +85,7 @@ export function CallTable({ rows }: { rows: CallLogRow[] }) {
                   role={href ? "link" : undefined}
                   className={`group transition-colors duration-150 outline-none focus-visible:bg-neutral-50 ${
                     href
-                      ? "cursor-pointer hover:bg-neutral-50 hover:shadow-[inset_2px_0_0_0_#171717]"
+                      ? "cursor-pointer hover:bg-neutral-50 hover:shadow-[inset_2px_0_0_0_#1D1D1D]"
                       : "cursor-default"
                   }`}
                 >

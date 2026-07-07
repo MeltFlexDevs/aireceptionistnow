@@ -20,7 +20,7 @@ export function H2({ id, children }: { id?: string; children: ReactNode }) {
   return (
     <h2
       id={id}
-      className="mt-12 mb-4 scroll-mt-24 text-[26px] font-medium tracking-[-0.01em] text-[#1a1a1a] sm:text-[28px]"
+      className="mt-12 mb-4 scroll-mt-24 text-[26px] font-medium tracking-[-0.01em] text-[#1D1D1D] sm:text-[28px]"
     >
       {children}
     </h2>
@@ -29,7 +29,7 @@ export function H2({ id, children }: { id?: string; children: ReactNode }) {
 
 export function H3({ children }: { children: ReactNode }) {
   return (
-    <h3 className="mt-8 mb-3 text-[20px] font-medium tracking-[-0.01em] text-[#1a1a1a]">
+    <h3 className="mt-8 mb-3 text-[20px] font-medium tracking-[-0.01em] text-[#1D1D1D]">
       {children}
     </h3>
   );
@@ -56,7 +56,7 @@ export function LI({ children }: { children: ReactNode }) {
 }
 
 export function Strong({ children }: { children: ReactNode }) {
-  return <strong className="font-medium text-[#1a1a1a]">{children}</strong>;
+  return <strong className="font-medium text-[#1D1D1D]">{children}</strong>;
 }
 
 export function Ext({
@@ -74,7 +74,7 @@ export function Ext({
       href={href}
       target="_blank"
       rel={nofollow ? "noopener noreferrer nofollow" : "noopener noreferrer"}
-      className="text-[#1a1a1a] underline decoration-black/25 underline-offset-2 transition-colors hover:decoration-[#1a1a1a]"
+      className="text-[#1D1D1D] underline decoration-black/25 underline-offset-2 transition-colors hover:decoration-[#1D1D1D]"
     >
       {children}
     </a>
@@ -91,7 +91,7 @@ export function Internal({
   return (
     <a
       href={href}
-      className="text-[#1a1a1a] underline decoration-black/25 underline-offset-2 transition-colors hover:decoration-[#1a1a1a]"
+      className="text-[#1D1D1D] underline decoration-black/25 underline-offset-2 transition-colors hover:decoration-[#1D1D1D]"
     >
       {children}
     </a>
@@ -100,7 +100,7 @@ export function Internal({
 
 export function Callout({ children }: { children: ReactNode }) {
   return (
-    <div className="my-7 border-l-2 border-[#1a1a1a] bg-[#fafafa] px-6 py-[18px] text-[17px] leading-[1.6] font-light text-[#1a1a1a]">
+    <div className="my-7 border-l-2 border-[#1D1D1D] bg-[#fafafa] px-6 py-[18px] text-[17px] leading-[1.6] font-light text-[#1D1D1D]">
       {children}
     </div>
   );
@@ -108,7 +108,7 @@ export function Callout({ children }: { children: ReactNode }) {
 
 export function Mono({ children }: { children: ReactNode }) {
   return (
-    <code className="rounded bg-[#f0f0f0] px-1.5 py-0.5 font-mono text-[0.875em] text-[#1a1a1a]">
+    <code className="rounded bg-[#f0f0f0] px-1.5 py-0.5 font-mono text-[0.875em] text-[#1D1D1D]">
       {children}
     </code>
   );
@@ -152,7 +152,7 @@ export function Figure({
                   href={creditUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="underline decoration-[#ddd] underline-offset-2 hover:text-[#1a1a1a]"
+                  className="underline decoration-[#ddd] underline-offset-2 hover:text-[#1D1D1D]"
                 >
                   ({credit})
                 </a>
@@ -169,14 +169,14 @@ export function Figure({
 
 export function KeyTakeaways({ items }: { items: ReactNode[] }) {
   return (
-    <aside className="mb-10 border-l-2 border-[#1a1a1a] bg-[#fafafa] px-6 py-5">
+    <aside className="mb-10 border-l-2 border-[#1D1D1D] bg-[#fafafa] px-6 py-5">
       <p className="mb-3 text-[10px] font-semibold tracking-[0.08em] text-[#999] uppercase">
         Key takeaways
       </p>
       <ul className="space-y-2 text-[15px] leading-[1.7] font-light text-[#444]">
         {items.map((item, i) => (
           <li key={i} className="flex gap-3">
-            <span aria-hidden="true" className="mt-px text-[#1a1a1a]">
+            <span aria-hidden="true" className="mt-px text-[#1D1D1D]">
               →
             </span>
             <span>{item}</span>
@@ -245,7 +245,7 @@ export function FAQList({ items }: { items: FaqItem[] }) {
       <div className="border-t border-[#e5e5e5]">
         {items.map((item) => (
           <details key={item.q} className="group border-b border-[#e5e5e5] py-4">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[16px] font-medium text-[#1a1a1a] [&::-webkit-details-marker]:hidden">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[16px] font-medium text-[#1D1D1D] [&::-webkit-details-marker]:hidden">
               {item.q}
               <span
                 aria-hidden="true"
@@ -286,7 +286,7 @@ export function Sources({ sources }: { sources: Source[] }) {
               rel={
                 s.nofollow ? "noopener noreferrer nofollow" : "noopener noreferrer"
               }
-              className="underline decoration-[#ddd] underline-offset-2 transition-colors hover:text-[#1a1a1a]"
+              className="underline decoration-[#ddd] underline-offset-2 transition-colors hover:text-[#1D1D1D]"
             >
               {s.title}
             </a>

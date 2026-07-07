@@ -9,7 +9,7 @@ import { PLANS } from "@/lib/plans";
 
 
 const StarSvg = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="#111" xmlns="http://www.w3.org/2000/svg">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="#1D1D1D" xmlns="http://www.w3.org/2000/svg">
     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
   </svg>
 );
@@ -273,7 +273,7 @@ export default function Home() {
           animation: marquee 28s linear infinite;
         }
         .hero-trust-star.half {
-          background: linear-gradient(90deg, #111 50%, #ddd 50%);
+          background: linear-gradient(90deg, #1D1D1D 50%, #ddd 50%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
@@ -292,7 +292,7 @@ export default function Home() {
           object-fit: contain;
         }
         .badge-text {
-          color: #111;
+          color: #1D1D1D;
           font-size: 13px;
           font-weight: 300;
           font-family: var(--font-inter), Inter, sans-serif;
@@ -336,7 +336,7 @@ export default function Home() {
           letter-spacing: -0.025em;
           line-height: 1.1;
           text-transform: uppercase;
-          color: #111;
+          color: #1D1D1D;
         }
         .hiw-vars .section-header > p {
           font-family: var(--font-inter), Inter, sans-serif;
@@ -515,7 +515,7 @@ export default function Home() {
         paddingTop: "110px", overflow: "hidden",
       }}>
         {/* H1 - direct flex child so section's alignItems:center truly centers it */}
-        <h1 className="hero-h1" style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "min(4.6vw, 62px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#111", lineHeight: 1.06, marginTop: "56px", marginBottom: "44px", whiteSpace: "normal", textWrap: "balance", textTransform: "uppercase", position: "relative", zIndex: 2, textAlign: "center", maxWidth: "min(92vw, 900px)" }}>
+        <h1 className="hero-h1" style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "min(4.6vw, 62px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#1D1D1D", lineHeight: 1.06, marginTop: "56px", marginBottom: "44px", whiteSpace: "normal", textWrap: "balance", textTransform: "uppercase", position: "relative", zIndex: 2, textAlign: "center", maxWidth: "min(92vw, 900px)" }}>
           AI Receptionist That Answers Every Call 24/7
         </h1>
 
@@ -559,14 +559,14 @@ export default function Home() {
                   onChange={(e) => setPhone(e.target.value)}
                   inputMode="tel"
                   autoComplete="tel"
-                  style={{ flex: 1, background: "transparent", border: "none", padding: "13px 16px", color: "#111", fontSize: "14px", fontWeight: 300, fontFamily: "var(--font-inter), Inter, sans-serif", outline: "none" }}
+                  style={{ flex: 1, background: "transparent", border: "none", padding: "13px 16px", color: "#1D1D1D", fontSize: "14px", fontWeight: 300, fontFamily: "var(--font-inter), Inter, sans-serif", outline: "none" }}
                 />
               </div>
               {/* Button full width */}
               <button
                 onClick={placeTestCall}
                 disabled={calling}
-                style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", background: "#000", color: "#fff", border: "none", borderRadius: "10px", padding: "14px 20px", fontSize: "14px", fontWeight: 400, cursor: calling ? "default" : "pointer", opacity: calling ? 0.7 : 1, fontFamily: "var(--font-inter), Inter, sans-serif", letterSpacing: "0.01em", transition: "opacity 0.2s" }}
+                style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", background: "#1D1D1D", color: "#fff", border: "none", borderRadius: "10px", padding: "14px 20px", fontSize: "14px", fontWeight: 400, cursor: calling ? "default" : "pointer", opacity: calling ? 0.7 : 1, fontFamily: "var(--font-inter), Inter, sans-serif", letterSpacing: "0.01em", transition: "opacity 0.2s" }}
                 onMouseOver={(e) => { if (!calling) (e.currentTarget as HTMLElement).style.opacity = "0.85"; }}
                 onMouseOut={(e) => { if (!calling) (e.currentTarget as HTMLElement).style.opacity = "1"; }}
               >
@@ -601,7 +601,7 @@ export default function Home() {
               ))}
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
-              <span style={{ fontSize: "14px", fontWeight: 400, color: "#111", letterSpacing: "-0.01em" }}>9,500+ users worldwide</span>
+              <span style={{ fontSize: "14px", fontWeight: 400, color: "#1D1D1D", letterSpacing: "-0.01em" }}>9,500+ users worldwide</span>
               <span style={{ fontSize: "12px", fontWeight: 400, color: "#666" }}>Got every call answered 24/7.</span>
             </div>
             <div className="trust-divider" style={{ width: "1px", height: "28px", background: "#e0e0e0" }} />
@@ -615,7 +615,7 @@ export default function Home() {
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
                 <div style={{ display: "flex", gap: "2px" }}>
                   {["★", "★", "★", "★", "★"].map((s, i) => (
-                    <span key={i} style={{ fontSize: "20px", color: "#111" }}>{s}</span>
+                    <span key={i} style={{ fontSize: "20px", color: "#1D1D1D" }}>{s}</span>
                   ))}
                 </div>
                 <span style={{ fontSize: "12px", fontWeight: 400, color: "#666" }}>4.8 out of 5</span>
@@ -642,7 +642,7 @@ export default function Home() {
       <section className="lp-section" style={{ padding: "100px 0" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
           <div style={{ textAlign: "center", marginBottom: "40px" }}>
-            <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 300, letterSpacing: "-0.025em", textTransform: "uppercase", color: "#111", margin: "0 0 8px" }}>
+            <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 300, letterSpacing: "-0.025em", textTransform: "uppercase", color: "#1D1D1D", margin: "0 0 8px" }}>
               Loved by busy businesses
             </h2>
             <p style={{ fontSize: "15px", color: "#888", fontWeight: 300, margin: 0 }}>
@@ -655,7 +655,7 @@ export default function Home() {
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                   <img src={r.photo} alt={r.name} width={36} height={36} loading="lazy" style={{ width: "36px", height: "36px", borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
                   <div style={{ display: "flex", flexDirection: "column" }}>
-                    <div style={{ fontWeight: 400, color: "#111", fontSize: "13px" }}>{r.name}</div>
+                    <div style={{ fontWeight: 400, color: "#1D1D1D", fontSize: "13px" }}>{r.name}</div>
                     <div style={{ color: "#bbb", fontSize: "10px", fontWeight: 300, letterSpacing: "0.5px" }}>{r.role}</div>
                   </div>
                 </div>
@@ -735,7 +735,7 @@ export default function Home() {
       </section>
 
       {/* ── USE CASES ── */}
-      <section id="features" className="lp-section" style={{ background: "#000", padding: "100px 0" }}>
+      <section id="features" className="lp-section" style={{ background: "#1D1D1D", padding: "100px 0" }}>
         <div className="lp-pad" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 40px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "40px", marginBottom: "56px", flexWrap: "wrap" }}>
             <div style={{ maxWidth: "520px" }}>
@@ -746,7 +746,7 @@ export default function Home() {
                 Our AI phone assistant adapts flexibly to your needs and integrates with your calendar and CRM. Automated calls that make sense.
               </p>
             </div>
-            <a href="/dashboard" style={{ display: "inline-flex", alignItems: "center", height: "42px", padding: "0 22px", background: "#fff", color: "#000", borderRadius: "20px", fontSize: "13px", fontWeight: 400, textDecoration: "none", letterSpacing: "0.02em", transition: "opacity 0.2s", flexShrink: 0 }}
+            <a href="/dashboard" style={{ display: "inline-flex", alignItems: "center", height: "42px", padding: "0 22px", background: "#fff", color: "#1D1D1D", borderRadius: "20px", fontSize: "13px", fontWeight: 400, textDecoration: "none", letterSpacing: "0.02em", transition: "opacity 0.2s", flexShrink: 0 }}
               onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.opacity = "0.85")}
               onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.opacity = "1")}
             >
@@ -808,7 +808,7 @@ export default function Home() {
         />
         <div className="lp-pad" style={{ maxWidth: "760px", margin: "0 auto", padding: "0 40px" }}>
           <div style={{ textAlign: "center", marginBottom: "56px" }}>
-            <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 300, letterSpacing: "-0.025em", textTransform: "uppercase", color: "#111" }}>
+            <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 300, letterSpacing: "-0.025em", textTransform: "uppercase", color: "#1D1D1D" }}>
               Frequently Asked Questions
             </h2>
           </div>
@@ -818,7 +818,7 @@ export default function Home() {
                 onClick={() => setOpenFaq(openFaq === i ? null : i)}
                 style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 0", background: "none", border: "none", cursor: "pointer", textAlign: "left", gap: "16px", fontFamily: "var(--font-inter), Inter, sans-serif" }}
               >
-                <span style={{ fontSize: "15px", fontWeight: 300, color: "#111" }}>{faq.q}</span>
+                <span style={{ fontSize: "15px", fontWeight: 300, color: "#1D1D1D" }}>{faq.q}</span>
                 <span style={{ flexShrink: 0, transition: "transform 0.2s", transform: openFaq === i ? "rotate(90deg)" : "rotate(0deg)", display: "flex" }}>
                   <ChevronRight />
                 </span>
@@ -837,13 +837,13 @@ export default function Home() {
       <section className="cta-outer" style={{ padding: "0 40px 100px" }}>
         <div className="cta-card" style={{ maxWidth: "1200px", margin: "0 auto", background: "#fff", borderRadius: "24px", padding: "80px 60px", textAlign: "center" }}>
           <div>
-            <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(24px, 3.5vw, 40px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#111", marginBottom: "16px", textTransform: "uppercase" }}>
+            <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(24px, 3.5vw, 40px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#1D1D1D", marginBottom: "16px", textTransform: "uppercase" }}>
               Scalable call management with AI Receptionist.
             </h2>
             <p style={{ color: "#888", fontSize: "16px", fontWeight: 300, lineHeight: 1.65, maxWidth: "560px", margin: "0 auto 36px" }}>
               Try AI Receptionist and see how our AI phone assistant automates your calls to reduce strain on your team. It&apos;s simple, efficient, and around the clock.
             </p>
-            <a href="/dashboard" style={{ display: "inline-flex", alignItems: "center", height: "46px", padding: "0 28px", background: "#000", color: "#fff", borderRadius: "23px", fontSize: "14px", fontWeight: 400, textDecoration: "none", transition: "opacity 0.2s" }}
+            <a href="/dashboard" style={{ display: "inline-flex", alignItems: "center", height: "46px", padding: "0 28px", background: "#1D1D1D", color: "#fff", borderRadius: "23px", fontSize: "14px", fontWeight: 400, textDecoration: "none", transition: "opacity 0.2s" }}
               onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.opacity = "0.88")}
               onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.opacity = "1")}
             >

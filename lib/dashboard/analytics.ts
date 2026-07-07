@@ -105,7 +105,7 @@ export interface AssistantStat {
 }
 
 // Monochrome charts: grays cycled across the top caller countries.
-const COUNTRY_COLORS = ["#171717", "#404040", "#525252", "#737373", "#a3a3a3", "#d4d4d4"];
+const COUNTRY_COLORS = ["#1D1D1D", "#404040", "#525252", "#737373", "#a3a3a3", "#d4d4d4"];
 const SENTIMENT_COLORS: Record<string, string> = {
   positive: "#16a34a",
   neutral: "#a3a3a3",
@@ -365,7 +365,7 @@ async function talkRatio(callIds: string[]): Promise<Segment[]> {
   const total = caller + ai;
   if (total === 0) return [];
   return [
-    { label: "Caller", value: Math.round((caller / total) * 100), color: "#171717" },
+    { label: "Caller", value: Math.round((caller / total) * 100), color: "#1D1D1D" },
     { label: "AI", value: Math.round((ai / total) * 100), color: "#a3a3a3" },
   ];
 }

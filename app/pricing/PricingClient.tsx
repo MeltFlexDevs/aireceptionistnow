@@ -72,7 +72,7 @@ function FeatureItem({ children }: { children: React.ReactNode }) {
         lineHeight: 1.5,
       }}
     >
-      <span style={{ marginTop: "2px", color: "#111", flexShrink: 0 }}>
+      <span style={{ marginTop: "2px", color: "#1D1D1D", flexShrink: 0 }}>
         <CheckIcon />
       </span>
       {children}
@@ -106,7 +106,7 @@ function PlanCard({
         width: "100%",
         maxWidth: "420px",
         background: "#fff",
-        border: `1px solid ${plan.highlight ? "#111" : "#e8e8e8"}`,
+        border: `1px solid ${plan.highlight ? "#1D1D1D" : "#e8e8e8"}`,
         borderRadius: "16px",
         padding: "32px",
         textAlign: "left",
@@ -114,13 +114,13 @@ function PlanCard({
       }}
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
-        <h3 style={{ fontSize: "16px", fontWeight: 500, letterSpacing: "-0.01em", color: "#111", margin: 0 }}>
+        <h3 style={{ fontSize: "16px", fontWeight: 500, letterSpacing: "-0.01em", color: "#1D1D1D", margin: 0 }}>
           {plan.name}
         </h3>
         {plan.highlight ? (
           <span
             style={{
-              background: "#000",
+              background: "#1D1D1D",
               color: "#fff",
               borderRadius: "20px",
               padding: "4px 11px",
@@ -137,7 +137,7 @@ function PlanCard({
       <p style={{ marginTop: "6px", fontSize: "13px", fontWeight: 300, color: "#888" }}>{plan.tagline}</p>
 
       <div style={{ marginTop: "24px", display: "flex", alignItems: "flex-end", gap: "6px" }}>
-        <span style={{ fontSize: "46px", fontWeight: 300, letterSpacing: "-0.03em", color: "#111", lineHeight: 1 }}>
+        <span style={{ fontSize: "46px", fontWeight: 300, letterSpacing: "-0.03em", color: "#1D1D1D", lineHeight: 1 }}>
           {eur(perMonth)}
         </span>
         <span style={{ marginBottom: "5px", fontSize: "14px", fontWeight: 300, color: "#888" }}>/ month</span>
@@ -165,8 +165,8 @@ function PlanCard({
           opacity: busy ? 0.6 : 1,
           transition: "opacity 0.2s",
           ...(plan.highlight
-            ? { background: "#000", color: "#fff", border: "1px solid #000" }
-            : { background: "#fff", color: "#111", border: "1px solid #111" }),
+            ? { background: "#1D1D1D", color: "#fff", border: "1px solid #1D1D1D" }
+            : { background: "#fff", color: "#1D1D1D", border: "1px solid #1D1D1D" }),
         }}
         onMouseOver={(e) => { if (!busy) (e.currentTarget as HTMLElement).style.opacity = "0.85"; }}
         onMouseOut={(e) => { if (!busy) (e.currentTarget as HTMLElement).style.opacity = "1"; }}
@@ -268,7 +268,7 @@ export default function PricingClient() {
               color: "#888",
             }}
           >
-            <span style={{ color: "#111", display: "flex" }}><CheckIcon /></span>
+            <span style={{ color: "#1D1D1D", display: "flex" }}><CheckIcon /></span>
             30-day money-back guarantee
           </p>
           <h1
@@ -279,7 +279,7 @@ export default function PricingClient() {
               letterSpacing: "-0.025em",
               textTransform: "uppercase",
               lineHeight: 1.08,
-              color: "#111",
+              color: "#1D1D1D",
               margin: 0,
             }}
           >
@@ -315,7 +315,7 @@ export default function PricingClient() {
                 cursor: "pointer",
                 transition: "background 0.2s, color 0.2s",
                 ...(cycle === "monthly"
-                  ? { background: "#000", color: "#fff" }
+                  ? { background: "#1D1D1D", color: "#fff" }
                   : { background: "transparent", color: "#555" }),
               }}
             >
@@ -337,7 +337,7 @@ export default function PricingClient() {
                 cursor: "pointer",
                 transition: "background 0.2s, color 0.2s",
                 ...(cycle === "annual"
-                  ? { background: "#000", color: "#fff" }
+                  ? { background: "#1D1D1D", color: "#fff" }
                   : { background: "transparent", color: "#555" }),
               }}
             >
@@ -350,7 +350,7 @@ export default function PricingClient() {
                   fontWeight: 500,
                   ...(cycle === "annual"
                     ? { background: "rgba(255,255,255,0.2)", color: "#fff" }
-                    : { background: "#000", color: "#fff" }),
+                    : { background: "#1D1D1D", color: "#fff" }),
                 }}
               >
                 −{annualPct}%

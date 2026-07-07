@@ -40,14 +40,14 @@ export default function BlogPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white font-light text-[#1a1a1a]">
+    <div className="min-h-screen bg-white font-light text-[#1D1D1D]">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
       <div className="mx-auto max-w-[1200px] px-6 pt-20 sm:px-10">
-        <h1 className="text-[26px] font-light tracking-[0.05em] text-[#1a1a1a] uppercase sm:text-[32px]">
+        <h1 className="text-[26px] font-light tracking-[0.05em] text-[#1D1D1D] uppercase sm:text-[32px]">
           From the front desk
         </h1>
         <p className="mt-3 max-w-[640px] text-[15px] leading-[1.6] text-[#666]">
@@ -75,10 +75,10 @@ export default function BlogPage() {
               />
             </div>
             <div className="flex flex-1 flex-col pt-5 pb-6">
-              <span className="mb-2.5 text-[11px] font-medium tracking-[0.06em] text-[#1a1a1a] uppercase">
+              <span className="mb-2.5 text-[11px] font-medium tracking-[0.06em] text-[#1D1D1D] uppercase">
                 {post.tag}
               </span>
-              <h2 className="mb-2.5 text-[19px] leading-[1.35] font-medium tracking-[-0.01em] text-[#1a1a1a]">
+              <h2 className="mb-2.5 text-[19px] leading-[1.35] font-medium tracking-[-0.01em] text-[#1D1D1D]">
                 {post.title}
               </h2>
               <p className="mb-4 line-clamp-3 flex-1 text-[14px] leading-[1.6] text-[#666]">

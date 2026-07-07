@@ -3,9 +3,15 @@
 :root {
   --font-geist: "Geist", sans-serif;
 
+  /* Site "black" = Jet black. Tailwind v4 utilities resolve to var(--color-*),
+     so overriding these here makes every `black` and `neutral-900` utility
+     (text/bg/border) render #1D1D1D project-wide in one place. */
+  --color-black: #1D1D1D;
+  --color-neutral-900: #1D1D1D;
+
   /* Dashboard design tokens. Near-black for text/controls; one restrained indigo
      brand accent for decorative shapes + hover; green = success, red = error. */
-  --accent: #171717;
+  --accent: #1D1D1D;
   --accent-soft: color-mix(in oklab, var(--accent) 8%, white);
   --ring: color-mix(in oklab, var(--accent) 45%, white);
   /* Only semantic colour in the UI: green = ok, yellow = warning, red = error. */
@@ -115,7 +121,7 @@ html {
 }
 /* Monochrome accent gradient (near-black → grey) for small shape accents. */
 .brand-grad {
-  background-image: linear-gradient(135deg, #171717, #525252);
+  background-image: linear-gradient(135deg, #1D1D1D, #525252);
 }
 
 /* Frosted-glass surface: translucent white + blur + a top inner highlight, so
@@ -131,7 +137,7 @@ html {
     0 0 0 1px rgb(15 23 42 / 0.05);
 }
 .glass-dark {
-  background: color-mix(in oklab, #171717 70%, transparent);
+  background: color-mix(in oklab, #1D1D1D 70%, transparent);
   backdrop-filter: blur(10px) saturate(1.15);
   -webkit-backdrop-filter: blur(10px) saturate(1.15);
   border: 1px solid rgb(255 255 255 / 0.08);
@@ -148,16 +154,8 @@ html {
 
 /* Minimal page backdrop: a faint neutral dot grid on off-white. No colour. */
 .dash-bg {
-  /* Dashboard "black" = Obsidian (#0B1215). Tailwind v4 utilities resolve to
-     var(--color-*), so overriding these theme tokens on the dashboard root
-     recolours every `neutral-900` and `black` utility (text, buttons, borders)
-     plus the accent focus ring in one place — scoped here so the marketing site
-     keeps the stock neutrals. Custom properties inherit, so this applies to the
-     root element itself and all dashboard descendants. */
-  --color-neutral-900: #0b1215;
-  --color-black: #0b1215;
-  --accent: #0b1215;
-
+  /* "black"/neutral-900/accent are Jet black (#1D1D1D) from :root — inherited
+     here, no per-surface override needed. */
   background-color: #fafafa;
   background-image: radial-gradient(circle at 1px 1px, rgb(15 23 42 / 0.05) 1px, transparent 0);
   background-size: 22px 22px;
@@ -168,7 +166,7 @@ html {
 .policy-page {
   min-height: 100vh;
   background: #ffffff;
-  color: #1a1a1a;
+  color: #1D1D1D;
   font-family: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   font-weight: 300;
 }
@@ -194,7 +192,7 @@ html {
   font-size: 42px;
   font-weight: 300;
   margin-bottom: 14px;
-  color: #1a1a1a;
+  color: #1D1D1D;
   letter-spacing: -0.02em;
   font-family: var(--font-inter), 'Inter', sans-serif;
 }
@@ -216,7 +214,7 @@ html {
   font-weight: 500;
   margin-top: 40px;
   margin-bottom: 14px;
-  color: #1a1a1a;
+  color: #1D1D1D;
   letter-spacing: -0.01em;
   font-family: var(--font-inter), 'Inter', sans-serif;
 }
@@ -245,7 +243,7 @@ html {
 }
 
 .policy-content a {
-  color: #1a1a1a;
+  color: #1D1D1D;
   text-decoration: underline;
 }
 
