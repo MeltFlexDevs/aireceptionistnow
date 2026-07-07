@@ -1,16 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
-import { LOCALES } from "@/lib/i18n/config";
-import { setLocaleAction } from "@/lib/i18n/actions";
+import { useEffect, useRef, useState } from "react";
+import { LOCALES, type Locale } from "@/lib/i18n/config";
 import { useI18n } from "@/lib/i18n/client";
 
 export function LanguageSwitcher() {
-  const { t, locale } = useI18n();
-  const router = useRouter();
+  const { t, locale, setLocale } = useI18n();
   const [open, setOpen] = useState(false);
-  const [pending, startTransition] = useTransition();
   const ref = useRef<HTMLDivElement>(null);
   const current = LOCALES.find((l) => l.code === locale) ?? LOCALES[0];
 
@@ -23,15 +19,9 @@ export function LanguageSwitcher() {
     return () => document.removeEventListener("mousedown", onDown);
   }, [open]);
 
-  function choose(code: string) {
+  function choose(code: Locale) {
     setOpen(false);
-    if (code === locale) return;
-    // Set the cookie, then refresh so the layout re-reads it and re-renders the
-    // whole dashboard (server + client) in the new language.
-    startTransition(async () => {
-      await setLocaleAction(code);
-      router.refresh();
-    });
+    setLocale(code); // instant client swap; cookie + server refresh happen in the background
   }
 
   return (
@@ -41,7 +31,6 @@ export function LanguageSwitcher() {
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-busy={pending}
         aria-label={t.topbar.language}
         title={t.topbar.language}
         className="press flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-sm text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"

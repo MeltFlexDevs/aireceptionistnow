@@ -1,21 +1,39 @@
 "use client";
 
-import { createContext, useContext, type ReactNode } from "react";
+import { createContext, useContext, useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
 import type { Locale } from "./config";
 import type { Dictionary } from "./dictionaries/en";
+import { dictionaries } from "./dictionaries";
+import { setLocaleAction } from "./actions";
 
-// The dictionary + active locale, seeded once by the server in the dashboard
-// layout. Client components read UI strings with useT(); server components call
-// getDictionary() directly.
+// Active locale + dictionary, seeded once by the server (dashboard layout) and
+// then owned client-side so switching is instant. Client components read UI
+// strings with useT(); server components call getDictionary() directly.
 interface I18n {
   t: Dictionary;
   locale: Locale;
+  setLocale: (code: Locale) => void;
 }
 
 const Ctx = createContext<I18n | null>(null);
 
-export function I18nProvider({ value, children }: { value: I18n; children: ReactNode }) {
-  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+export function I18nProvider({ value, children }: { value: { locale: Locale }; children: ReactNode }) {
+  const router = useRouter();
+  const [locale, setLocale] = useState<Locale>(value.locale);
+
+  function change(code: Locale) {
+    if (code === locale) return;
+    setLocale(code); // instant: every useT() consumer re-renders from the bundled dict
+    // Persist + let server-rendered page bodies catch up, without blocking the switch.
+    setLocaleAction(code).then(() => router.refresh());
+  }
+
+  return (
+    <Ctx.Provider value={{ t: dictionaries[locale], locale, setLocale: change }}>
+      {children}
+    </Ctx.Provider>
+  );
 }
 
 export function useI18n(): I18n {
