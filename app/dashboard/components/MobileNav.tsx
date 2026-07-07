@@ -57,7 +57,7 @@ export function MobileNav() {
         aria-modal="true"
         aria-label="Navigation"
         inert={!open}
-        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-white px-4 py-5 shadow-lg transition-transform md:hidden ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col overflow-y-auto bg-white px-4 py-5 shadow-lg transition-transform md:hidden ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
