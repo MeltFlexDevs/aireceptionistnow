@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { authConfigured } from "@/lib/supabase/config";
 import { mergeKnowledge, type AssistantKnowledge } from "../knowledge/sources";
@@ -62,7 +63,7 @@ export interface UpdateNumberInput {
 }
 
 /** First business, or create a default one. Single-tenant until auth lands. */
-export async function ensureBusinessId(): Promise<string> {
+export const ensureBusinessId = cache(async (): Promise<string> => {
   const existing = await db()
     .from("businesses")
     .select("id")
@@ -78,7 +79,7 @@ export async function ensureBusinessId(): Promise<string> {
     .single();
   if (created.error) throw created.error;
   return String(created.data.id);
-}
+});
 
 export async function listNumbers(): Promise<PhoneNumber[]> {
   const { data, error } = await db()
@@ -289,13 +290,13 @@ export interface UpdateAssistantInput {
   routing: Record<string, unknown>;
 }
 
-export async function listAssistants(ownerId?: string | null): Promise<Assistant[]> {
+export const listAssistants = cache(async (ownerId?: string | null): Promise<Assistant[]> => {
   let query = db().from("assistants").select("*").is("deleted_at", null);
   if (ownerId) query = query.eq("owner_id", ownerId);
   const { data, error } = await query.order("created_at", { ascending: true });
   if (error) throw error;
   return (data ?? []) as Assistant[];
-}
+});
 
 export async function getAssistant(id: string): Promise<Assistant | null> {
   const { data, error } = await db()
@@ -668,7 +669,7 @@ export interface OwnedNumber {
 /** Phone numbers belonging to a user's assistants. Calls link to a user through
  *  calls.phone_number_id -> phone_numbers.assistant_id -> assistants.owner_id, so
  *  these ids scope a user's statistics and call log. */
-export async function getOwnedNumbers(ownerId: string): Promise<OwnedNumber[]> {
+export const getOwnedNumbers = cache(async (ownerId: string): Promise<OwnedNumber[]> => {
   const { data: assistants, error: aErr } = await db()
     .from("assistants")
     .select("id")
@@ -687,7 +688,7 @@ export async function getOwnedNumbers(ownerId: string): Promise<OwnedNumber[]> {
     e164: String(n.e164),
     created_at: String(n.created_at),
   }));
-}
+});
 
 /** First active Twilio-backed number, used as the caller ID for landing test
  *  calls. Prefers a number linked to an assistant (so its config resolves). */

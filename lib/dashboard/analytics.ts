@@ -1,3 +1,5 @@
+import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { getAccountSettings } from "./account";
 import { ensureBusinessId, getOwnedNumbers } from "./db";
 import { serviceClient } from "./supabase";
@@ -237,7 +239,10 @@ interface CallScope {
   numberIds: string[];
 }
 
-async function ownerScope(ownerId?: string | null): Promise<CallScope | undefined> {
+// Cached per request: getOverview, getAssistantStats, and getAnalytics each
+// need the same owner scope - without this it ran the assistants+numbers
+// queries once per caller (3x) every render.
+const ownerScope = cache(async (ownerId?: string | null): Promise<CallScope | undefined> => {
   if (!ownerId) return undefined;
   // Includes soft-deleted assistants on purpose: their call history still
   // belongs to this owner.
@@ -252,7 +257,7 @@ async function ownerScope(ownerId?: string | null): Promise<CallScope | undefine
     assistantIds,
     numberIds: (await getOwnedNumbers(ownerId)).map((n) => n.id),
   };
-}
+});
 
 function scopeFilter(scope: CallScope): string {
   // The assistant/number arms are fallbacks for unstamped rows ONLY - they must
@@ -750,3 +755,27 @@ export async function getAnalytics(
     sentiment,
   };
 }
+
+// Cross-request cache for the dashboard's heavy call-table scans. A language
+// switch (router.refresh) or a quick re-navigation reuses the last result
+// instead of re-scanning calls - the data is unchanged, so it's free for those
+// cases; genuinely new calls still surface within the revalidate window. Keyed
+// by owner so tenants never share a cache entry. Bump/lower DASH_TTL to trade
+// freshness for speed, or revalidateTag("dashboard-data") from a write path.
+const DASH_TTL = 30;
+
+export const getOverviewCached = (ownerId?: string | null): Promise<Overview> =>
+  unstable_cache(() => getOverview(ownerId), ["dash-overview", ownerId ?? "anon"], {
+    revalidate: DASH_TTL,
+    tags: ["dashboard-data"],
+  })();
+
+export const getAssistantStatsCached = (
+  ownerId?: string | null,
+  days = 30,
+): Promise<AssistantStat[]> =>
+  unstable_cache(
+    () => getAssistantStats(ownerId, days),
+    ["dash-assistant-stats", ownerId ?? "anon", String(days)],
+    { revalidate: DASH_TTL, tags: ["dashboard-data"] },
+  )();

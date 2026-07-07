@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { serviceClient } from "./supabase";
 
 // Per-user account settings: profile, the "about" blurb optionally shared with
@@ -39,7 +40,9 @@ const EMPTY: Omit<AccountSettings, "user_id"> = {
   notify_sms_number: "",
 };
 
-export async function getAccountSettings(userId: string): Promise<AccountSettings> {
+// Cached per request: read by the settings page, plan context, and the
+// analytics timezone helper - one query serves them all.
+export const getAccountSettings = cache(async (userId: string): Promise<AccountSettings> => {
   const { data, error } = await serviceClient()
     .from("account_settings")
     .select("*")
@@ -47,7 +50,7 @@ export async function getAccountSettings(userId: string): Promise<AccountSetting
     .maybeSingle();
   if (error) throw error;
   return { user_id: userId, ...EMPTY, ...(data ?? {}) } as AccountSettings;
-}
+});
 
 async function upsert(userId: string, patch: Record<string, unknown>): Promise<void> {
   const { error } = await serviceClient()

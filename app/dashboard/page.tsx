@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 import { Suspense } from "react";
 import Link from "next/link";
-import { getOverview, getAssistantStats } from "@/lib/dashboard/analytics";
+import { getOverviewCached, getAssistantStatsCached } from "@/lib/dashboard/analytics";
 import { currentUserId } from "@/lib/auth";
 import { getDictionary } from "@/lib/i18n/server";
 import type { Dictionary } from "@/lib/i18n/dictionaries/en";
@@ -13,7 +13,7 @@ import { RecentCalls } from "./components/RecentCalls";
 import { CallSummaries } from "./components/CallSummaries";
 import { AssistantStats } from "./components/AssistantStats";
 import { PlanUsage } from "./components/PlanUsage";
-import { getPlanContext } from "@/lib/dashboard/plan";
+import { getPlanContextCached } from "@/lib/dashboard/plan";
 import { PageHeader } from "./components/PageHeader";
 import { Skeleton } from "./components/Skeleton";
 import { Bolt, Phone, Plus } from "./icons";
@@ -104,9 +104,9 @@ async function OverviewBody({ t }: { t: Dictionary }) {
   // section instead of blanking the whole overview.
   const ownerId = await currentUserId();
   const [dataR, assistantsR, planR] = await Promise.allSettled([
-    getOverview(ownerId),
-    getAssistantStats(ownerId, 14),
-    getPlanContext(ownerId),
+    getOverviewCached(ownerId),
+    getAssistantStatsCached(ownerId, 14),
+    getPlanContextCached(ownerId),
   ]);
   const data = dataR.status === "fulfilled" ? dataR.value : null;
   const assistants = assistantsR.status === "fulfilled" ? assistantsR.value : null;

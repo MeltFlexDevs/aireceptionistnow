@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Sidebar } from "./components/Sidebar";
 import { Topbar } from "./components/Topbar";
-import { createClient } from "@/lib/supabase/server";
 import { authConfigured } from "@/lib/supabase/config";
 import { toAppUser, type AppUser } from "@/lib/auth-user";
+import { getAuthClaims } from "@/lib/auth";
 import { I18nProvider } from "@/lib/i18n/client";
 import { getLocale } from "@/lib/i18n/server";
 
@@ -20,13 +20,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
   // JWT signature, so it's safe to trust (the proxy guards too - defense in depth).
   let user: AppUser = GUEST_USER;
   if (authConfigured()) {
-    let claims: Parameters<typeof toAppUser>[0] | null = null;
-    try {
-      const supabase = await createClient();
-      claims = ((await supabase.auth.getClaims()).data?.claims ?? null) as typeof claims;
-    } catch {
-      claims = null;
-    }
+    // Shared, request-memoized claims: currentUserId() elsewhere in this render
+    // reuses the same getClaims() round-trip instead of a second auth call.
+    const claims = (await getAuthClaims()) as Parameters<typeof toAppUser>[0] | null;
     if (!claims) redirect("/?auth=login");
     user = toAppUser(claims);
   }

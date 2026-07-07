@@ -2,6 +2,7 @@ import "server-only";
 
 import { getBilling } from "@/lib/billing";
 import { getPlan, limitsFor, type PlanId, type PlanLimits } from "@/lib/plans";
+import { unstable_cache } from "next/cache";
 import { countFreeNumbers, getOwnedNumbers, listAssistants, listNumbers } from "./db";
 
 // Plan + live usage for the dashboard and the create/assign server actions.
@@ -91,6 +92,14 @@ export async function getPlanContext(
     canAddNumber: usage.numbers < limits.phoneNumbers,
   };
 }
+
+// Cross-request cached plan/usage for the dashboard shell - same 30s SWR window
+// as the analytics caches so a language switch or quick nav is instant.
+export const getPlanContextCached = (ownerId?: string | null): Promise<PlanContext> =>
+  unstable_cache(() => getPlanContext(ownerId), ["dash-plan", ownerId ?? "anon"], {
+    revalidate: 30,
+    tags: ["dashboard-data"],
+  })();
 
 /**
  * Guard for the assign/buy paths: may this owner attach one more phone number?
