@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 
 /**
  * Decorative "voice blob" on the landing hero - an edgeless smudge whose colours
- * come from /orb.png, with a faint noise overlay and an organic, irregular
+ * come from /orb.webp, with a faint noise overlay and an organic, irregular
  * canvas animation (drifting light spots driven by summed sines with random
  * frequencies/phases) so it gently "moves like a voice". Purely visual.
  */
@@ -119,7 +119,7 @@ export default function VoiceOrb() {
           position: absolute;
           inset: -10%;
           border-radius: 50%;
-          background: url(/orb.png) center / cover no-repeat;
+          background: url(/orb.webp) center / cover no-repeat;
           filter: blur(6px);
           -webkit-mask-image: ${fillMask};
           mask-image: ${fillMask};

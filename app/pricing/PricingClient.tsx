@@ -66,7 +66,7 @@ function FeatureItem({ children }: { children: React.ReactNode }) {
         display: "flex",
         alignItems: "flex-start",
         gap: "10px",
-        fontSize: "13px",
+        fontSize: "14px",
         fontWeight: 300,
         color: "#555",
         lineHeight: 1.5,
@@ -114,9 +114,9 @@ function PlanCard({
       }}
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
-        <h3 style={{ fontSize: "16px", fontWeight: 500, letterSpacing: "-0.01em", color: "#1D1D1D", margin: 0 }}>
+        <h2 style={{ fontSize: "16px", fontWeight: 500, letterSpacing: "-0.01em", color: "#1D1D1D", margin: 0 }}>
           {plan.name}
-        </h3>
+        </h2>
         {plan.highlight ? (
           <span
             style={{
@@ -134,7 +134,7 @@ function PlanCard({
           </span>
         ) : null}
       </div>
-      <p style={{ marginTop: "6px", fontSize: "13px", fontWeight: 300, color: "#888" }}>{plan.tagline}</p>
+      <p style={{ marginTop: "6px", fontSize: "14px", fontWeight: 300, color: "#888" }}>{plan.tagline}</p>
 
       <div style={{ marginTop: "24px", display: "flex", alignItems: "flex-end", gap: "6px" }}>
         <span style={{ fontSize: "46px", fontWeight: 300, letterSpacing: "-0.03em", color: "#1D1D1D", lineHeight: 1 }}>
@@ -309,6 +309,7 @@ export default function PricingClient() {
                 borderRadius: "20px",
                 border: "none",
                 padding: "9px 20px",
+                minHeight: 44,
                 fontFamily: FONT,
                 fontSize: "13px",
                 fontWeight: 400,
@@ -331,6 +332,7 @@ export default function PricingClient() {
                 borderRadius: "20px",
                 border: "none",
                 padding: "9px 20px",
+                minHeight: 44,
                 fontFamily: FONT,
                 fontSize: "13px",
                 fontWeight: 400,

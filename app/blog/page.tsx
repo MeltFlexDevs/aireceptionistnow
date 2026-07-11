@@ -58,7 +58,7 @@ export default function BlogPage() {
       </div>
 
       <div className="mx-auto mt-12 grid max-w-[1200px] grid-cols-1 gap-8 px-6 pb-20 sm:grid-cols-2 sm:px-10 lg:grid-cols-3">
-        {posts.map((post) => (
+        {posts.map((post, i) => (
           <Link
             key={post.slug}
             href={`/blog/${post.slug}`}
@@ -70,6 +70,7 @@ export default function BlogPage() {
                 alt={post.heroAlt}
                 width={post.heroWidth}
                 height={post.heroHeight}
+                fetchPriority={i === 0 ? "high" : undefined}
                 className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                 sizes="(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw"
               />

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthDialogProvider } from "./components/AuthDialog";
@@ -59,6 +59,12 @@ export const metadata: Metadata = {
     },
   },
   manifest: "/manifest.webmanifest",
+};
+
+// Theme the mobile browser chrome to match the site's near-black. Viewport
+// width/scale is auto-injected by Next; we deliberately do not lock zoom.
+export const viewport: Viewport = {
+  themeColor: "#1D1D1D",
 };
 
 // Site-wide structured data: who we are + a sitelinks search box hint.

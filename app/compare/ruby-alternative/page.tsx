@@ -128,10 +128,10 @@ const SCENARIOS = [
 ];
 
 const STORY = [
-  { src: "/compare/photos/ruby-call-incoming.png", cap: "A customer calls at 9pm" },
-  { src: "/compare/photos/ruby-ai-afterhours.png", cap: "Answered instantly, any language" },
-  { src: "/compare/photos/ruby-calendar.png", cap: "The appointment is booked" },
-  { src: "/compare/photos/ruby-owner-booked.png", cap: "You get the summary" },
+  { src: "/compare/photos/ruby-call-incoming.webp", cap: "A customer calls at 9pm" },
+  { src: "/compare/photos/ruby-ai-afterhours.webp", cap: "Answered instantly, any language" },
+  { src: "/compare/photos/ruby-calendar.webp", cap: "The appointment is booked" },
+  { src: "/compare/photos/ruby-owner-booked.webp", cap: "You get the summary" },
 ];
 
 const SCREENS = [
@@ -217,8 +217,7 @@ const jsonLd = [
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: siteUrl },
-      { "@type": "ListItem", position: 2, name: "Compare", item: `${siteUrl}/compare` },
-      { "@type": "ListItem", position: 3, name: "vs Ruby", item: url },
+      { "@type": "ListItem", position: 2, name: "vs Ruby", item: url },
     ],
   },
   {
@@ -278,7 +277,7 @@ export default function RubyComparePage() {
                 </span>
                 <span className="airn-vs-sep">vs</span>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img className="airn-vs-logo" src="/compare/logos/ruby.svg" alt="Ruby" loading="lazy" />
+                <img className="airn-vs-logo" src="/compare/logos/ruby.svg" alt="Ruby" />
               </div>
 
               <p className="compare-hero-sub">
@@ -306,7 +305,6 @@ export default function RubyComparePage() {
                       alt={av.alt}
                       width={32}
                       height={32}
-                      loading="lazy"
                       src={av.src}
                     />
                   ))}
@@ -384,7 +382,7 @@ export default function RubyComparePage() {
               </p>
               <Image
                 className="fusion-shot"
-                src="/compare/photos/ruby-human.png"
+                src="/compare/photos/ruby-human.webp"
                 alt="A friendly human receptionist wearing a headset at a front desk"
                 width={1408}
                 height={768}
@@ -403,7 +401,7 @@ export default function RubyComparePage() {
               </p>
               <Image
                 className="fusion-shot"
-                src="/compare/photos/ruby-ai-afterhours.png"
+                src="/compare/photos/ruby-ai-afterhours.webp"
                 alt="One AI voice answering callers in many languages"
                 width={1408}
                 height={768}
@@ -431,7 +429,7 @@ export default function RubyComparePage() {
               <div className="compare-showcase-media">
                 <Image
                   className="compare-showcase-video"
-                  src="/compare/photos/ruby-reception.png"
+                  src="/compare/photos/ruby-reception.webp"
                   alt="A modern reception area"
                   width={1408}
                   height={768}
@@ -633,7 +631,7 @@ export default function RubyComparePage() {
 
               <div className="compare-cards">
                 <div className="compare-card compare-card-winner">
-                  <Image className="compare-card-img" src="/compare/photos/ruby-ai-afterhours.png" alt="One AI voice answering callers 24/7 in many languages" width={1408} height={768} sizes="(max-width: 768px) 100vw, 540px" />
+                  <Image className="compare-card-img" src="/compare/photos/ruby-ai-afterhours.webp" alt="One AI voice answering callers 24/7 in many languages" width={1408} height={768} sizes="(max-width: 768px) 100vw, 540px" />
                   <div className="compare-card-label compare-card-label-meltflex">AI Receptionist Now</div>
                   <ul>
                     <li>Answers every call instantly, 24/7, no queue</li>
@@ -643,7 +641,7 @@ export default function RubyComparePage() {
                   </ul>
                 </div>
                 <div className="compare-card">
-                  <Image className="compare-card-img" src="/compare/photos/ruby-human.png" alt="A human receptionist answering a call" width={1408} height={768} sizes="(max-width: 768px) 100vw, 540px" />
+                  <Image className="compare-card-img" src="/compare/photos/ruby-human.webp" alt="A human receptionist answering a call" width={1408} height={768} sizes="(max-width: 768px) 100vw, 540px" />
                   <div className="compare-card-label compare-card-label-competitor">Ruby</div>
                   <ul>
                     <li>Real humans, warmth and judgment on hard calls</li>

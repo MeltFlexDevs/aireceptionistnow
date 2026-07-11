@@ -23,7 +23,7 @@ export default function PrivacyPolicyPage() {
 
           <div className="policy-content">
 
-            <h4>1. Introduction and Scope</h4>
+            <h2>1. Introduction and Scope</h2>
             <p>
               MeltFlex s.r.o. (&ldquo;MeltFlex&rdquo;, &ldquo;We&rdquo;, &ldquo;Us&rdquo;, &ldquo;Our&rdquo;)
               is committed to protecting your privacy. This Privacy Policy explains how We collect, use, store,
@@ -40,7 +40,7 @@ export default function PrivacyPolicyPage() {
               this Privacy Policy. If you do not agree, please do not use the Service.
             </p>
 
-            <h4>2. Data Controller</h4>
+            <h2>2. Data Controller</h2>
             <p>The data controller responsible for your personal data is:</p>
             <p><strong>MeltFlex s.r.o.</strong></p>
             <p>Bratislava, Slovak Republic</p>
@@ -56,7 +56,7 @@ export default function PrivacyPolicyPage() {
               Agreement (DPA) is available upon request at <a href="mailto:info@meltflexai.com">info@meltflexai.com</a>.
             </p>
 
-            <h4>3. Information We Collect - Business Customers</h4>
+            <h2>3. Information We Collect - Business Customers</h2>
             <p><strong>3.1 Information You Provide Directly:</strong></p>
             <ul>
               <li>Email address (when creating an account)</li>
@@ -78,7 +78,7 @@ export default function PrivacyPolicyPage() {
               <li>Cookies and similar technologies (see Section 12)</li>
             </ul>
 
-            <h4>4. How We Use Business Customer Data</h4>
+            <h2>4. How We Use Business Customer Data</h2>
             <p>We use your personal data for the following purposes:</p>
             <ul>
               <li><strong>Providing the Service</strong> - account management, call routing, AI receptionist operation, appointment booking. <em>Legal basis: Contract performance.</em></li>
@@ -91,7 +91,7 @@ export default function PrivacyPolicyPage() {
             </ul>
             <p>We do not use your personal data for automated decision-making or profiling that produces legal effects.</p>
 
-            <h4>5. Legal Basis for Processing (GDPR Summary)</h4>
+            <h2>5. Legal Basis for Processing (GDPR Summary)</h2>
             <ul>
               <li><strong>Contract Performance (Art. 6(1)(b))</strong> - processing necessary to provide the Service</li>
               <li><strong>Legitimate Interest (Art. 6(1)(f))</strong> - analytics, security, fraud prevention, service improvement</li>
@@ -99,7 +99,7 @@ export default function PrivacyPolicyPage() {
               <li><strong>Legal Obligation (Art. 6(1)(c))</strong> - retaining financial records as required by Slovak and EU law</li>
             </ul>
 
-            <h4>6. Caller Data - Third-Party Data Subjects</h4>
+            <h2>6. Caller Data - Third-Party Data Subjects</h2>
             <p>
               When a caller contacts a business that uses our AI receptionist, their call is handled by our
               AI system. In this context, the business (our customer) is the data controller for the caller&apos;s
@@ -127,7 +127,7 @@ export default function PrivacyPolicyPage() {
               We will assist in directing your request appropriately.
             </p>
 
-            <h4>7. Data Sharing and Third-Party Processors</h4>
+            <h2>7. Data Sharing and Third-Party Processors</h2>
             <p>
               We do not sell your personal data. We share data only with the following
               third-party service providers who process data strictly on our behalf:
@@ -149,7 +149,7 @@ export default function PrivacyPolicyPage() {
               property, or safety of MeltFlex, our customers, or the public.
             </p>
 
-            <h4>8. International Data Transfers</h4>
+            <h2>8. International Data Transfers</h2>
             <p>
               Several of our third-party processors (Twilio, Stripe, Vercel, Supabase, Google, PostHog) are
               based in the United States. Transfers of personal data from the EEA to the US are carried out
@@ -164,7 +164,7 @@ export default function PrivacyPolicyPage() {
               <a href="mailto:info@meltflexai.com"> info@meltflexai.com</a>.
             </p>
 
-            <h4>9. Google Fonts</h4>
+            <h2>9. Google Fonts</h2>
             <p>
               Our website uses Google Fonts, loaded via Next.js&apos;s built-in font optimization. Fonts are
               downloaded and self-hosted at build time by our hosting provider (Vercel), meaning your browser
@@ -172,7 +172,7 @@ export default function PrivacyPolicyPage() {
               personal data is transmitted to Google as a result of font loading.
             </p>
 
-            <h4>10. Data Security</h4>
+            <h2>10. Data Security</h2>
             <p>
               We implement appropriate technical and organizational security measures to protect
               your personal data, including:
@@ -194,7 +194,7 @@ export default function PrivacyPolicyPage() {
               is 100% secure. We cannot guarantee absolute security.
             </p>
 
-            <h4>11. Data Retention</h4>
+            <h2>11. Data Retention</h2>
             <ul>
               <li><strong>Account data:</strong> Retained while your account is active. Deleted within 30 days of an account deletion request.</li>
               <li><strong>Call metadata:</strong> Retained for up to 12 months, then deleted or anonymized.</li>
@@ -205,7 +205,7 @@ export default function PrivacyPolicyPage() {
               <li><strong>Marketing consent records:</strong> Retained for the duration of the relationship plus 3 years to demonstrate compliance.</li>
             </ul>
 
-            <h4>12. Cookies and Local Storage</h4>
+            <h2>12. Cookies and Local Storage</h2>
             <p>We use the following categories of cookies and similar technologies:</p>
             <ul>
               <li><strong>Essential cookies</strong> - required for the Service to function (session management, authentication). Cannot be disabled. <em>Legal basis: Legitimate interest / contract performance.</em></li>
@@ -218,7 +218,7 @@ export default function PrivacyPolicyPage() {
               lawfulness of processing based on consent before its withdrawal.
             </p>
 
-            <h4>13. Your Rights Under GDPR</h4>
+            <h2>13. Your Rights Under GDPR</h2>
             <p>As a data subject under the GDPR, you have the following rights:</p>
             <ul>
               <li><strong>Right of Access (Art. 15)</strong> - request a copy of the personal data We hold about you</li>
@@ -241,7 +241,7 @@ export default function PrivacyPolicyPage() {
               <br />Address: Hraničná 12, 820 07 Bratislava, Slovak Republic
             </p>
 
-            <h4>14. Children&apos;s Privacy</h4>
+            <h2>14. Children&apos;s Privacy</h2>
             <p>
               Our Service is not intended for children under 16 years of age. We do not knowingly
               collect personal data from children. If We become aware that We have collected data
@@ -250,7 +250,7 @@ export default function PrivacyPolicyPage() {
               <a href="mailto:info@meltflexai.com"> info@meltflexai.com</a>.
             </p>
 
-            <h4>15. Changes to This Policy</h4>
+            <h2>15. Changes to This Policy</h2>
             <p>
               We may update this Privacy Policy from time to time to reflect changes in our practices,
               technology, legal requirements, or other factors. Changes will be posted on this page with
@@ -259,7 +259,7 @@ export default function PrivacyPolicyPage() {
               of the Service after the effective date constitutes acceptance of the revised policy.
             </p>
 
-            <h4>16. Contact Us</h4>
+            <h2>16. Contact Us</h2>
             <p>
               If you have any questions about this Privacy Policy, how We handle your data, or wish to
               exercise your rights, please contact us:

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, type ReactNode } from "react";
 import SiteHeader from "./components/SiteHeader";
 import SiteFooter from "./components/SiteFooter";
 import VoiceOrb from "./components/VoiceOrb";
+import Image from "next/image";
 import { siteUrl, siteName, siteDescription } from "@/lib/site";
 import { PLANS } from "@/lib/plans";
 
@@ -595,7 +596,7 @@ export default function Home() {
                 { src: "/testimonials/delphine_sm.webp", alt: "Delphine, AI Receptionist user" },
               ].map((av, i) => (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img key={i} src={av.src} alt={av.alt} width={32} height={32} loading="lazy"
+                <img key={i} src={av.src} alt={av.alt} width={32} height={32} loading="eager"
                   style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover", border: "none", marginRight: i < 3 ? "-8px" : "0" }}
                 />
               ))}
@@ -653,7 +654,7 @@ export default function Home() {
             {reviews.map((r, i) => (
               <div key={i} style={{ breakInside: "avoid-column", marginBottom: "16px", padding: "24px", borderRadius: "12px", border: "1px solid #f0f0f0", background: "#fff", display: "flex", flexDirection: "column", gap: "14px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <img src={r.photo} alt={r.name} width={36} height={36} loading="lazy" style={{ width: "36px", height: "36px", borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+                  <Image src={r.photo} alt={r.name} width={36} height={36} sizes="36px" loading="lazy" style={{ width: "36px", height: "36px", borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
                   <div style={{ display: "flex", flexDirection: "column" }}>
                     <div style={{ fontWeight: 400, color: "#1D1D1D", fontSize: "13px" }}>{r.name}</div>
                     <div style={{ color: "#bbb", fontSize: "10px", fontWeight: 300, letterSpacing: "0.5px" }}>{r.role}</div>
@@ -682,7 +683,7 @@ export default function Home() {
                 <div className="steps-text_container">
                   <div className="steps-heading_wrapper">
                     <div className="card-icon_wrapper"><div>01</div></div>
-                    <p className="text-size-big inline-text">Create AI phone assistants</p>
+                    <h3 className="text-size-big inline-text">Create AI phone assistants</h3>
                   </div>
                   <p className="text-color-secondary">Select voice, language, and a welcome message.</p>
                 </div>
@@ -699,7 +700,7 @@ export default function Home() {
                 <div className="steps-text_container">
                   <div className="steps-heading_wrapper">
                     <div className="card-icon_wrapper"><div>02</div></div>
-                    <p className="text-size-big inline-text">Define in-call behavior and post-processing</p>
+                    <h3 className="text-size-big inline-text">Define in-call behavior and post-processing</h3>
                   </div>
                   <p className="text-color-secondary">Set up different call handling and choose how you want to receive the transcripts.</p>
                 </div>
@@ -716,7 +717,7 @@ export default function Home() {
                 <div className="steps-text_container">
                   <div className="steps-heading_wrapper">
                     <div className="card-icon_wrapper"><div>03</div></div>
-                    <p className="text-size-big inline-text">Let the AI take your phone calls</p>
+                    <h3 className="text-size-big inline-text">Let the AI take your phone calls</h3>
                   </div>
                   <p className="text-color-secondary">The AI will be linked to an AI Receptionist phone number or your own phone system.</p>
                 </div>

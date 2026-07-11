@@ -44,7 +44,7 @@ export function BlogCtaCard() {
         style={{ background: "linear-gradient(160deg, #cdbef5 0%, #e4d6f2 44%, #ffd9c0 100%)" }}
       >
         <Image
-          src="/sign-in-call.png"
+          src="/sign-in-call.webp"
           alt=""
           fill
           sizes="320px"

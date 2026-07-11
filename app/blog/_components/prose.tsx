@@ -139,7 +139,7 @@ export function Figure({
         width={width}
         height={height}
         className="w-full bg-[#f5f5f5]"
-        sizes="(min-width: 768px) 760px, 100vw"
+        sizes="(min-width: 768px) 720px, 100vw"
       />
       {(caption || credit) && (
         <figcaption className="mt-3 text-[13px] leading-6 text-[#999]">

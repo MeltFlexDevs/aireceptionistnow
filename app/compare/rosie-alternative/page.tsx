@@ -128,10 +128,10 @@ const SCENARIOS = [
 ];
 
 const STORY = [
-  { src: "/compare/photos/rosie-call-incoming.png", cap: "A customer calls after hours" },
-  { src: "/compare/photos/rosie-multilingual.png", cap: "Answered in their language" },
-  { src: "/compare/photos/rosie-calendar.png", cap: "The appointment is booked" },
-  { src: "/compare/photos/rosie-owner-booked.png", cap: "You get the summary" },
+  { src: "/compare/photos/rosie-call-incoming.webp", cap: "A customer calls after hours" },
+  { src: "/compare/photos/rosie-multilingual.webp", cap: "Answered in their language" },
+  { src: "/compare/photos/rosie-calendar.webp", cap: "The appointment is booked" },
+  { src: "/compare/photos/rosie-owner-booked.webp", cap: "You get the summary" },
 ];
 
 const SCREENS = [
@@ -216,8 +216,7 @@ const jsonLd = [
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: siteUrl },
-      { "@type": "ListItem", position: 2, name: "Compare", item: `${siteUrl}/compare` },
-      { "@type": "ListItem", position: 3, name: "vs Rosie", item: url },
+      { "@type": "ListItem", position: 2, name: "vs Rosie", item: url },
     ],
   },
   {
@@ -278,7 +277,7 @@ export default function RosieComparePage() {
                 <span className="airn-vs-sep">vs</span>
                 <span className="airn-vs-us">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img className="airn-vs-mark-img" src="/compare/logos/rosie.png" alt="Rosie" loading="lazy" />
+                  <img className="airn-vs-mark-img" src="/compare/logos/rosie.png" alt="Rosie" />
                   Rosie
                 </span>
               </div>
@@ -308,7 +307,6 @@ export default function RosieComparePage() {
                       alt={av.alt}
                       width={32}
                       height={32}
-                      loading="lazy"
                       src={av.src}
                     />
                   ))}
@@ -388,11 +386,11 @@ export default function RosieComparePage() {
               <div className="compare-before-after">
                 <div className="compare-ba-item">
                   <span className="compare-ba-label">The call comes in</span>
-                  <Image src="/compare/photos/rosie-call-incoming.png" alt="A customer calling a business after hours" width={1408} height={768} sizes="(max-width: 768px) 100vw, 280px" />
+                  <Image src="/compare/photos/rosie-call-incoming.webp" alt="A customer calling a business after hours" width={1408} height={768} sizes="(max-width: 768px) 100vw, 280px" />
                 </div>
                 <div className="compare-ba-item">
                   <span className="compare-ba-label compare-ba-label--after">Booked, you&apos;re free</span>
-                  <Image src="/compare/photos/rosie-owner-booked.png" alt="A small business owner smiling after a booking" width={1408} height={768} sizes="(max-width: 768px) 100vw, 280px" />
+                  <Image src="/compare/photos/rosie-owner-booked.webp" alt="A small business owner smiling after a booking" width={1408} height={768} sizes="(max-width: 768px) 100vw, 280px" />
                 </div>
               </div>
             </div>
@@ -407,7 +405,7 @@ export default function RosieComparePage() {
               </p>
               <Image
                 className="fusion-shot"
-                src="/compare/photos/rosie-multilingual.png"
+                src="/compare/photos/rosie-multilingual.webp"
                 alt="One AI voice answering callers in many languages"
                 width={1408}
                 height={768}
@@ -436,7 +434,7 @@ export default function RosieComparePage() {
               <div className="compare-showcase-media">
                 <Image
                   className="compare-showcase-video"
-                  src="/compare/photos/rosie-reception.png"
+                  src="/compare/photos/rosie-reception.webp"
                   alt="A modern reception area"
                   width={1408}
                   height={768}
@@ -637,7 +635,7 @@ export default function RosieComparePage() {
 
               <div className="compare-cards">
                 <div className="compare-card compare-card-winner">
-                  <Image className="compare-card-img" src="/compare/photos/rosie-multilingual.png" alt="One AI voice answering callers in many languages" width={1408} height={768} sizes="(max-width: 768px) 100vw, 540px" />
+                  <Image className="compare-card-img" src="/compare/photos/rosie-multilingual.webp" alt="One AI voice answering callers in many languages" width={1408} height={768} sizes="(max-width: 768px) 100vw, 540px" />
                   <div className="compare-card-label compare-card-label-meltflex">AI Receptionist Now</div>
                   <ul>
                     <li>25+ languages from a single AI agent</li>
@@ -647,7 +645,7 @@ export default function RosieComparePage() {
                   </ul>
                 </div>
                 <div className="compare-card">
-                  <Image className="compare-card-img" src="/compare/photos/rosie-reception.png" alt="A reception desk" width={1408} height={768} sizes="(max-width: 768px) 100vw, 540px" />
+                  <Image className="compare-card-img" src="/compare/photos/rosie-reception.webp" alt="A reception desk" width={1408} height={768} sizes="(max-width: 768px) 100vw, 540px" />
                   <div className="compare-card-label compare-card-label-competitor">Rosie</div>
                   <ul>
                     <li>Bilingual English and Spanish on every plan</li>

@@ -172,7 +172,7 @@ export default async function BlogPostPage({
                   alt={post.heroAlt}
                   width={post.heroWidth}
                   height={post.heroHeight}
-                  priority
+                  preload
                   className="h-full w-full object-cover"
                   sizes="(min-width: 768px) 720px, 100vw"
                 />
@@ -209,7 +209,7 @@ export default async function BlogPostPage({
                     <li key={s.id}>
                       <a
                         href={`#${s.id}`}
-                        className="text-[#666] transition-colors hover:text-[#1D1D1D]"
+                        className="block py-2 text-[#666] transition-colors hover:text-[#1D1D1D]"
                       >
                         {s.title}
                       </a>

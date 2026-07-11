@@ -226,13 +226,13 @@ export function AuthDialogProvider({ children }: { children: React.ReactNode }) 
                 style={{ background: "linear-gradient(160deg, #cdbef5 0%, #e4d6f2 44%, #ffd9c0 100%)" }}
               >
                 <Image
-                  src="/sign-in-call.png"
+                  src="/sign-in-call.webp"
                   alt=""
                   fill
                   sizes="440px"
                   className="object-contain"
                   style={{ objectPosition: "50% 100%", transform: "scale(1.18)", transformOrigin: "50% 100%" }}
-                  priority
+                  preload
                 />
               </div>
 

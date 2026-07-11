@@ -122,10 +122,10 @@ const SCENARIOS = [
 ];
 
 const STORY = [
-  { src: "/compare/photos/call-incoming.png", cap: "A customer calls after hours" },
-  { src: "/compare/photos/multilingual-calls.png", cap: "Answered in their language" },
-  { src: "/compare/photos/calendar-booked.png", cap: "The appointment is booked" },
-  { src: "/compare/photos/owner-booked.png", cap: "You get the summary" },
+  { src: "/compare/photos/call-incoming.webp", cap: "A customer calls after hours" },
+  { src: "/compare/photos/multilingual-calls.webp", cap: "Answered in their language" },
+  { src: "/compare/photos/calendar-booked.webp", cap: "The appointment is booked" },
+  { src: "/compare/photos/owner-booked.webp", cap: "You get the summary" },
 ];
 
 const SCREENS = [
@@ -200,8 +200,7 @@ const jsonLd = [
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: siteUrl },
-      { "@type": "ListItem", position: 2, name: "Compare", item: `${siteUrl}/compare` },
-      { "@type": "ListItem", position: 3, name: "vs My AI Front Desk", item: url },
+      { "@type": "ListItem", position: 2, name: "vs My AI Front Desk", item: url },
     ],
   },
   {
@@ -262,7 +261,7 @@ export default function MyAiFrontDeskComparePage() {
                 <span className="airn-vs-sep">vs</span>
                 <span className="airn-vs-us">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img className="airn-vs-mark-img" src="/compare/logos/myaifrontdesk.svg" alt="My AI Front Desk" loading="lazy" />
+                  <img className="airn-vs-mark-img" src="/compare/logos/myaifrontdesk.svg" alt="My AI Front Desk" />
                   My AI Front Desk
                 </span>
               </div>
@@ -292,7 +291,6 @@ export default function MyAiFrontDeskComparePage() {
                       alt={av.alt}
                       width={32}
                       height={32}
-                      loading="lazy"
                       src={av.src}
                     />
                   ))}
@@ -372,11 +370,11 @@ export default function MyAiFrontDeskComparePage() {
               <div className="compare-before-after">
                 <div className="compare-ba-item">
                   <span className="compare-ba-label">The call comes in</span>
-                  <Image src="/compare/photos/call-incoming.png" alt="A customer calling a business after hours" width={1408} height={768} sizes="(max-width: 768px) 100vw, 280px" />
+                  <Image src="/compare/photos/call-incoming.webp" alt="A customer calling a business after hours" width={1408} height={768} sizes="(max-width: 768px) 100vw, 280px" />
                 </div>
                 <div className="compare-ba-item">
                   <span className="compare-ba-label compare-ba-label--after">Booked, you&apos;re free</span>
-                  <Image src="/compare/photos/owner-booked.png" alt="A small business owner smiling after a booking" width={1408} height={768} sizes="(max-width: 768px) 100vw, 280px" />
+                  <Image src="/compare/photos/owner-booked.webp" alt="A small business owner smiling after a booking" width={1408} height={768} sizes="(max-width: 768px) 100vw, 280px" />
                 </div>
               </div>
             </div>
@@ -391,7 +389,7 @@ export default function MyAiFrontDeskComparePage() {
               </p>
               <Image
                 className="fusion-shot"
-                src="/compare/photos/multilingual-calls.png"
+                src="/compare/photos/multilingual-calls.webp"
                 alt="One AI voice answering callers in many languages"
                 width={1408}
                 height={768}
@@ -421,7 +419,7 @@ export default function MyAiFrontDeskComparePage() {
               <div className="compare-showcase-media">
                 <Image
                   className="compare-showcase-video"
-                  src="/compare/photos/reception-desk.png"
+                  src="/compare/photos/reception-desk.webp"
                   alt="A modern reception area"
                   width={1408}
                   height={768}
@@ -655,7 +653,7 @@ export default function MyAiFrontDeskComparePage() {
 
               <div className="compare-cards">
                 <div className="compare-card compare-card-winner">
-                  <Image className="compare-card-img" src="/compare/photos/multilingual-calls.png" alt="One AI voice answering callers in many languages" width={1408} height={768} sizes="(max-width: 768px) 100vw, 540px" />
+                  <Image className="compare-card-img" src="/compare/photos/multilingual-calls.webp" alt="One AI voice answering callers in many languages" width={1408} height={768} sizes="(max-width: 768px) 100vw, 540px" />
                   <div className="compare-card-label compare-card-label-meltflex">AI Receptionist Now</div>
                   <ul>
                     <li>25+ languages from a single AI agent</li>
@@ -665,7 +663,7 @@ export default function MyAiFrontDeskComparePage() {
                   </ul>
                 </div>
                 <div className="compare-card">
-                  <Image className="compare-card-img" src="/compare/photos/reception-desk.png" alt="A reception desk" width={1408} height={768} sizes="(max-width: 768px) 100vw, 540px" />
+                  <Image className="compare-card-img" src="/compare/photos/reception-desk.webp" alt="A reception desk" width={1408} height={768} sizes="(max-width: 768px) 100vw, 540px" />
                   <div className="compare-card-label compare-card-label-competitor">My AI Front Desk</div>
                   <ul>
                     <li>20+ languages on a mature product</li>

@@ -15,7 +15,7 @@ const PauseLogo = ({ color = "currentColor" }: { color?: string }) => (
 );
 
 const ctaStyle: CSSProperties = {
-  display: "inline-flex", alignItems: "center", height: "36px", padding: "0 20px",
+  display: "inline-flex", alignItems: "center", height: "44px", padding: "0 20px",
   background: "#1D1D1D", color: "#fff", border: "1.5px solid #1D1D1D",
   borderRadius: "20px", fontSize: "12px", fontWeight: 400, textDecoration: "none",
   letterSpacing: "0.06em", transition: "all 0.25s", cursor: "pointer",

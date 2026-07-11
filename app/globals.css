@@ -209,7 +209,7 @@ html {
   line-height: 1.8;
 }
 
-.policy-content h4 {
+.policy-content h2 {
   font-size: 17px;
   font-weight: 500;
   margin-top: 40px;
@@ -219,7 +219,7 @@ html {
   font-family: var(--font-inter), 'Inter', sans-serif;
 }
 
-.policy-content h4:first-child {
+.policy-content h2:first-child {
   margin-top: 0;
 }
 
@@ -257,7 +257,7 @@ html {
   .policy-main { padding: 48px 0 64px; }
   .policy-container { padding: 0 24px; }
   .policy-title { font-size: 30px; }
-  .policy-content h4 { font-size: 15px; margin-top: 32px; }
+  .policy-content h2 { font-size: 15px; margin-top: 32px; }
   .policy-content p, .policy-content li { font-size: 14px; }
 }
 

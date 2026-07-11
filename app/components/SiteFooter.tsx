@@ -6,7 +6,7 @@ import Link from "next/link";
 import { COMPETITORS } from "@/app/compare/_compare/competitors";
 
 const resourceLinkStyle: CSSProperties = {
-  color: "rgba(255,255,255,0.6)", fontSize: "13px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.01em",
+  color: "rgba(255,255,255,0.6)", fontSize: "13px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.01em", display: "inline-block", padding: "8px 0",
 };
 
 const PauseLogo = ({ color = "currentColor" }: { color?: string }) => (
