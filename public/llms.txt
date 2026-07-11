@@ -50,6 +50,12 @@ All call data is encrypted in transit and at rest. AI Receptionist Now complies 
 
 - [Home — AI Receptionist Now](https://aireceptionistnow.com): Product overview, live demo call, testimonials, and FAQ.
 - [Pricing](https://aireceptionistnow.com/pricing): Solo and Team plans, monthly and annual, with a free start.
+- [Industries](https://aireceptionistnow.com/industries): The same 24/7 AI receptionist, tuned per industry, with pain points, a sample call, results, and an ROI estimate for each.
+- [AI Receptionist for Dentists](https://aireceptionistnow.com/industries/dentists): Answers 24/7 while the front desk is chairside, books new patients, and triages after-hours dental emergencies to your on-call rules; HIPAA-ready.
+- [AI Receptionist for Restaurants](https://aireceptionistnow.com/industries/restaurants): Takes reservations and to-go orders during the dinner rush, answers menu and allergen questions, and captures catering leads 24/7.
+- [AI Receptionist for Law Firms](https://aireceptionistnow.com/industries/law-firms): Answers new-client calls 24/7, screens by practice area, takes intake, and books consultations; no legal advice, escalates urgent matters.
+- [AI Receptionist for Home Services](https://aireceptionistnow.com/industries/home-services): Answers while you are on the tools, takes after-hours emergency intake, qualifies the job, and books or dispatches for plumbers, HVAC, electricians, and trades.
+- [AI Receptionist for Property Management](https://aireceptionistnow.com/industries/property-management): Triages tenant maintenance emergencies, logs routine tickets, books showings, and captures leasing leads across your portfolio 24/7.
 - [Blog](https://aireceptionistnow.com/blog): Guides on AI phone answering, appointment booking, and call automation.
 - [Can an AI Receptionist Replace a Human? (Honest 2026 Guide)](https://aireceptionistnow.com/blog/can-an-ai-receptionist-replace-a-human-receptionist): An honest look at where an AI phone agent beats a human front desk and where it still loses.
 - [How to Choose an AI Receptionist: A Buyer's Guide (2026)](https://aireceptionistnow.com/blog/how-to-choose-an-ai-receptionist): A vendor-neutral framework for evaluating AI receptionists — features, escalation, integrations, compliance, pricing, and red flags.

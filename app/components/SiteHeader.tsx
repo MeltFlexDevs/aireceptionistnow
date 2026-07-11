@@ -76,6 +76,7 @@ export default function SiteHeader() {
           .site-header-cta { padding: 0 13px !important; letter-spacing: 0.02em !important; }
           /* Mobile: show only the logo + the CTA so the header always fits. */
           .site-header-pricing { display: none !important; }
+          .site-header-industries { display: none !important; }
           .site-header-signin { display: none !important; }
         }
       `}</style>
@@ -88,6 +89,17 @@ export default function SiteHeader() {
         </Link>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+        <Link
+          href="/industries"
+          className="site-header-industries"
+          style={{
+            color: "#1D1D1D", fontSize: "12px", fontWeight: 400,
+            letterSpacing: "0.06em", textDecoration: "none",
+            fontFamily: "var(--font-inter), Inter, sans-serif",
+          }}
+        >
+          INDUSTRIES
+        </Link>
         <Link
           href="/pricing"
           className="site-header-pricing"

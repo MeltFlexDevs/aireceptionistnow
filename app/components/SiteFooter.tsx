@@ -4,6 +4,7 @@ import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
 
 import { COMPETITORS } from "@/app/compare/_compare/competitors";
+import { INDUSTRIES } from "@/app/industries/_industries/registry";
 
 const resourceLinkStyle: CSSProperties = {
   color: "rgba(255,255,255,0.6)", fontSize: "13px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.01em", display: "inline-block", padding: "8px 0",
@@ -158,6 +159,16 @@ export default function SiteFooter() {
                 ))}
                 {/* Static file in public/ - plain <a>, client navigation can't serve it. */}
                 <li><a href="/llms.txt" style={resourceLinkStyle}>AI Information</a></li>
+              </ul>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", fontWeight: 400, letterSpacing: "0.08em", textTransform: "uppercase" }}>Industries</span>
+              <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
+                {INDUSTRIES.map((i) => (
+                  <li key={i.slug}>
+                    <Link href={`/industries/${i.slug}`} style={resourceLinkStyle}>{i.industry}</Link>
+                  </li>
+                ))}
               </ul>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>

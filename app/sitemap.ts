@@ -3,6 +3,7 @@ import { siteUrl } from "@/lib/site";
 import { posts } from "./blog/_posts";
 import { answers } from "./answers/_answers";
 import { COMPETITORS } from "./compare/_compare/competitors";
+import { INDUSTRIES } from "./industries/_industries/registry";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
@@ -10,6 +11,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const staticPages: MetadataRoute.Sitemap = [
     { url: siteUrl, lastModified: now, changeFrequency: "weekly", priority: 1 },
     { url: `${siteUrl}/pricing`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${siteUrl}/industries`, lastModified: now, changeFrequency: "weekly", priority: 0.8 },
     { url: `${siteUrl}/blog`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
     { url: `${siteUrl}/answers`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
     { url: `${siteUrl}/privacy-policy`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
@@ -20,6 +22,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     lastModified: now,
     changeFrequency: "monthly",
     priority: 0.8,
+  }));
+
+  const industryPages: MetadataRoute.Sitemap = INDUSTRIES.map((i) => ({
+    url: `${siteUrl}/industries/${i.slug}`,
+    lastModified: now,
+    changeFrequency: "monthly",
+    priority: 0.9,
   }));
 
   const blogPosts: MetadataRoute.Sitemap = posts.map((post) => ({
@@ -36,5 +45,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.6,
   }));
 
-  return [...staticPages, ...comparePages, ...blogPosts, ...answerPages];
+  return [...staticPages, ...industryPages, ...comparePages, ...blogPosts, ...answerPages];
 }
