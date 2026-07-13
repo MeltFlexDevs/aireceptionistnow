@@ -1,0 +1,82 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" role="img" aria-label="The path of a missed call: an inbound call rings out, goes to voicemail, the caller hangs up, then dials a competitor who answers">
+  <rect width="1200" height="630" fill="#faf8ff"/>
+  <rect x="0.5" y="0.5" width="1199" height="629" fill="none" stroke="#ece7f6"/>
+
+  <text x="60" y="70" font-size="26" font-weight="600" fill="#1a1a1a">Where a missed call actually goes</text>
+  <text x="60" y="104" font-size="16" font-weight="400" fill="#8a8398">Four seconds of ringing decides whether the revenue is yours or your competitor&apos;s.</text>
+
+  <!-- Stage 1: inbound call -->
+  <g transform="translate(60 170)">
+    <rect x="0" y="0" width="230" height="150" rx="18" fill="#ffffff" stroke="#e4def1" stroke-width="2"/>
+    <circle cx="46" cy="52" r="26" fill="#efeafe"/>
+    <path d="M 38 44 c -2 -2 -5 -1 -6 2 c -3 8 0 17 6 23 c 6 6 15 9 23 6 c 3 -1 4 -4 2 -6 l -5 -5 c -2 -2 -4 -2 -5 -1 l -3 2 c -3 -2 -6 -5 -8 -8 l 2 -3 c 1 -1 1 -3 -1 -5 z" fill="#5b3ef0"/>
+    <text x="86" y="46" font-size="17" font-weight="600" fill="#1a1a1a">Phone rings</text>
+    <text x="24" y="104" font-size="14" fill="#6c6579">A ready-to-buy caller</text>
+    <text x="24" y="126" font-size="14" fill="#6c6579">dials your number.</text>
+  </g>
+
+  <!-- arrow -->
+  <g stroke="#c9c1dd" stroke-width="3" fill="none" stroke-linecap="round">
+    <path d="M 300 245 L 350 245"/>
+    <path d="M 340 238 L 350 245 L 340 252"/>
+  </g>
+
+  <!-- Stage 2: no answer / voicemail -->
+  <g transform="translate(360 170)">
+    <rect x="0" y="0" width="230" height="150" rx="18" fill="#ffffff" stroke="#f3d9d2" stroke-width="2"/>
+    <circle cx="46" cy="52" r="26" fill="#fceae4"/>
+    <text x="46" y="60" text-anchor="middle" font-size="30" font-weight="600" fill="#e0492e">!</text>
+    <text x="86" y="46" font-size="17" font-weight="600" fill="#1a1a1a">No answer</text>
+    <text x="24" y="104" font-size="14" fill="#6c6579">Voicemail, or endless</text>
+    <text x="24" y="126" font-size="14" fill="#6c6579">ringing. Nobody picks up.</text>
+  </g>
+
+  <!-- arrow -->
+  <g stroke="#c9c1dd" stroke-width="3" fill="none" stroke-linecap="round">
+    <path d="M 600 245 L 650 245"/>
+    <path d="M 640 238 L 650 245 L 640 252"/>
+  </g>
+
+  <!-- Stage 3: hang up -->
+  <g transform="translate(660 170)">
+    <rect x="0" y="0" width="230" height="150" rx="18" fill="#ffffff" stroke="#e4def1" stroke-width="2"/>
+    <circle cx="46" cy="52" r="26" fill="#efeafe"/>
+    <path d="M 30 56 c 10 -9 32 -9 42 0 l -4 8 c -1 2 -4 3 -6 2 l -6 -3 c -1 -1 -2 -2 -2 -3 l 0 -4 c -6 -2 -14 -2 -20 0 l 0 4 c 0 1 -1 2 -2 3 l -6 3 c -2 1 -5 0 -6 -2 z" fill="#5b3ef0" transform="rotate(135 46 52)"/>
+    <text x="86" y="46" font-size="17" font-weight="600" fill="#1a1a1a">Hang up</text>
+    <text x="24" y="104" font-size="14" fill="#6c6579">Most callers don&apos;t leave</text>
+    <text x="24" y="126" font-size="14" fill="#6c6579">a message. They just go.</text>
+  </g>
+
+  <!-- arrow down to competitor -->
+  <g stroke="#c9c1dd" stroke-width="3" fill="none" stroke-linecap="round">
+    <path d="M 775 330 L 775 380"/>
+    <path d="M 768 370 L 775 380 L 782 370"/>
+  </g>
+
+  <!-- Stage 4: competitor answers -->
+  <g transform="translate(660 400)">
+    <rect x="0" y="0" width="230" height="150" rx="18" fill="#111111"/>
+    <circle cx="46" cy="52" r="26" fill="#2b2440"/>
+    <path d="M 38 44 c -2 -2 -5 -1 -6 2 c -3 8 0 17 6 23 c 6 6 15 9 23 6 c 3 -1 4 -4 2 -6 l -5 -5 c -2 -2 -4 -2 -5 -1 l -3 2 c -3 -2 -6 -5 -8 -8 l 2 -3 c 1 -1 1 -3 -1 -5 z" fill="#ff8a3d"/>
+    <text x="86" y="56" font-size="17" font-weight="600" fill="#ffffff">Competitor</text>
+    <text x="24" y="104" font-size="14" fill="#c7c1d6">The next business on the</text>
+    <text x="24" y="126" font-size="14" fill="#c7c1d6">list picks up. Sale closed.</text>
+  </g>
+
+  <!-- The fix note -->
+  <g transform="translate(940 170)">
+    <rect x="0" y="0" width="200" height="380" rx="18" fill="#efeafe" stroke="#ddd3fb" stroke-width="2"/>
+    <text x="24" y="44" font-size="13" font-weight="700" fill="#5b3ef0" letter-spacing="0.06em">THE FIX</text>
+    <text x="24" y="82" font-size="15" fill="#3a3350">Something answers</text>
+    <text x="24" y="104" font-size="15" fill="#3a3350">on the first ring,</text>
+    <text x="24" y="126" font-size="15" fill="#3a3350">every hour, and</text>
+    <text x="24" y="148" font-size="15" fill="#3a3350">books the caller</text>
+    <text x="24" y="170" font-size="15" fill="#3a3350">before they can</text>
+    <text x="24" y="192" font-size="15" fill="#3a3350">dial anyone else.</text>
+    <line x1="24" y1="224" x2="176" y2="224" stroke="#ddd3fb" stroke-width="2"/>
+    <text x="24" y="262" font-size="14" fill="#6c6579">Answering the call is</text>
+    <text x="24" y="284" font-size="14" fill="#6c6579">the whole game. Step 2</text>
+    <text x="24" y="306" font-size="14" fill="#6c6579">is the only step that</text>
+    <text x="24" y="328" font-size="14" fill="#6c6579">has to change.</text>
+  </g>
+</svg>

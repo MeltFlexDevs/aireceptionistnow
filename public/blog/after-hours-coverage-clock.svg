@@ -1,0 +1,48 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" role="img" aria-label="A 24-hour clock split into staffed daytime hours and the unstaffed evenings, nights, and weekends where most missed calls happen">
+  <rect width="1200" height="630" fill="#faf8ff"/>
+  <rect x="0.5" y="0.5" width="1199" height="629" fill="none" stroke="#ece7f6"/>
+
+  <text x="60" y="66" font-size="26" font-weight="600" fill="#1a1a1a">The hours your front desk isn&apos;t there</text>
+  <text x="60" y="100" font-size="16" fill="#8a8398">A staffed 9-to-5 covers about a third of the week. The rest is where calls quietly leak out.</text>
+
+  <!-- 24h donut -->
+  <g transform="translate(340 360)">
+    <!-- full ring: after-hours (uncovered) -->
+    <circle cx="0" cy="0" r="150" fill="none" stroke="#e7dffb" stroke-width="70"/>
+    <!-- covered arc 9:00 to 17:00 = 8/24 of circle. Start at top=0:00. 9h -> angle. -->
+    <!-- Using stroke-dasharray on a rotated circle. Circumference = 2*pi*150 = 942.48 -->
+    <!-- covered fraction 8/24 = 0.3333 -> 314.16 covered, gap 628.32 -->
+    <circle cx="0" cy="0" r="150" fill="none" stroke="#5b3ef0" stroke-width="70"
+            stroke-dasharray="314.16 628.32"
+            transform="rotate(45)"/>
+    <text x="0" y="-6" text-anchor="middle" font-size="30" font-weight="700" fill="#1a1a1a">33%</text>
+    <text x="0" y="24" text-anchor="middle" font-size="15" fill="#6c6579">staffed</text>
+
+    <!-- hour ticks 0,6,12,18 -->
+    <text x="0" y="-176" text-anchor="middle" font-size="13" fill="#a49dba">12a</text>
+    <text x="192" y="6" text-anchor="middle" font-size="13" fill="#a49dba">6a</text>
+    <text x="0" y="196" text-anchor="middle" font-size="13" fill="#a49dba">12p</text>
+    <text x="-192" y="6" text-anchor="middle" font-size="13" fill="#a49dba">6p</text>
+  </g>
+
+  <!-- legend -->
+  <g transform="translate(620 220)">
+    <rect x="0" y="0" width="20" height="20" rx="4" fill="#5b3ef0"/>
+    <text x="34" y="16" font-size="17" font-weight="600" fill="#1a1a1a">Staffed hours (Mon-Fri, 9-5)</text>
+    <text x="34" y="42" font-size="14" fill="#6c6579">A human can answer. ~40 of 168 weekly hours.</text>
+
+    <rect x="0" y="78" width="20" height="20" rx="4" fill="#e7dffb"/>
+    <text x="34" y="94" font-size="17" font-weight="600" fill="#1a1a1a">Everything else</text>
+    <text x="34" y="120" font-size="14" fill="#6c6579">Evenings, nights, weekends, holidays, lunch,</text>
+    <text x="34" y="142" font-size="14" fill="#6c6579">and the rush when the one phone is busy.</text>
+  </g>
+
+  <!-- who tends to call after hours -->
+  <g transform="translate(620 400)">
+    <rect x="0" y="0" width="500" height="150" rx="16" fill="#ffffff" stroke="#e4def1" stroke-width="2"/>
+    <text x="24" y="38" font-size="13" font-weight="700" fill="#5b3ef0" letter-spacing="0.06em">WHO RINGS AT NIGHT</text>
+    <text x="24" y="70" font-size="15" fill="#3a3350">• The burst-pipe emergency and the locked-out tenant</text>
+    <text x="24" y="98" font-size="15" fill="#3a3350">• The shift worker booking on their own commute home</text>
+    <text x="24" y="126" font-size="15" fill="#3a3350">• The late-night researcher comparing three businesses</text>
+  </g>
+</svg>
