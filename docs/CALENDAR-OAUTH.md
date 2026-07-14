@@ -1,17 +1,16 @@
-# Calendar OAuth setup (Google & Microsoft)
+# Calendar OAuth setup (Google, Microsoft & Cal.com)
 
 The assistant books appointments into a connected calendar during a call. Google
-Calendar and Microsoft Outlook connect via OAuth — the customer clicks
-**"Continue with Google / Microsoft"** on the Integrations page, authorizes with
-their own account, and we store the returned tokens.
+Calendar, Microsoft Outlook, and Cal.com connect via OAuth — the customer clicks
+**"Continue with Google / Microsoft / Cal.com"** on the Integrations page,
+authorizes with their own account, and we store the returned tokens.
 
 Those buttons only appear once **you** (the app operator) register an OAuth app
 with each provider and set the client credentials in the environment. Until then
-the card reads **"Coming soon"** in production (and shows the exact env var names
-in development).
+the card reads **"Coming soon"**.
 
 The booking adapters (`lib/call-engine/integrations/google.ts`,
-`outlook.ts`), OAuth handler (`lib/dashboard/oauth.ts`), and the
+`outlook.ts`, `calcom.ts`), OAuth handler (`lib/dashboard/oauth.ts`), and the
 `/api/integrations/[provider]/connect` + `/callback` routes are already wired —
 setup is only registering the apps and setting env vars.
 
@@ -93,7 +92,44 @@ MICROSOFT_OAUTH_CLIENT_SECRET=xxxxxxxx
 
 ---
 
-## 4. Verify
+## 4. Cal.com
+
+**Redirect URI to register:**
+
+```
+{APP_BASE_URL}/api/integrations/calcom/callback
+```
+
+**Steps:**
+
+1. Go to [app.cal.com/settings/developer/oauth](https://app.cal.com/settings/developer/oauth)
+   → **Create OAuth client** (self-serve, free).
+2. Add the redirect URI above and select the scopes
+   `PROFILE_READ`, `EVENT_TYPE_READ`, `BOOKING_READ`, `BOOKING_WRITE`.
+3. Submit — new clients sit in **pending** until a Cal.com admin approves them
+   (you get an email). The button won't work until the client is approved.
+4. Copy the **Client ID** and **Client secret** into env:
+
+```
+CALCOM_OAUTH_CLIENT_ID=xxxxxxxx
+CALCOM_OAUTH_CLIENT_SECRET=xxxxxxxx
+```
+
+After the user authorizes, we look up their Cal.com profile and default (first)
+event type automatically, so there is nothing for them to fill in. Availability
+and bookings go through Cal.com API v2 (`api.cal.com/v2`); access tokens expire
+after ~30 minutes and are refreshed automatically (Cal.com rotates the refresh
+token on every refresh — the adapter persists the new one).
+
+There is no manual API-key form — Cal.com connects through OAuth only, so the
+card reads **"Coming soon"** until `CALCOM_OAUTH_*` is set. Cal.com connections
+made under the old API-key flow keep working: the adapter still honors an
+`api_key` config, sending it as `Authorization: Bearer` to v2 (Cal.com API
+**v1 was shut down in April 2026**).
+
+---
+
+## 5. Verify
 
 1. Redeploy (or restart `dev`) so the env vars load.
 2. Open **Dashboard → Integrations**. The Google / Microsoft cards should now
@@ -111,6 +147,8 @@ MICROSOFT_OAUTH_CLIENT_SECRET=xxxxxxxx
 | `GOOGLE_OAUTH_CLIENT_SECRET` | Google | From Google Cloud Credentials |
 | `MICROSOFT_OAUTH_CLIENT_ID` | Outlook | Azure "Application (client) ID" |
 | `MICROSOFT_OAUTH_CLIENT_SECRET` | Outlook | Azure client secret **value** |
+| `CALCOM_OAUTH_CLIENT_ID` | Cal.com | From app.cal.com/settings/developer/oauth |
+| `CALCOM_OAUTH_CLIENT_SECRET` | Cal.com | Same page; client must be approved |
 
 (A `CALENDLY_OAUTH_CLIENT_ID` / `_SECRET` pair is also supported by the OAuth
 handler if Calendly is ever re-added to the catalog.)

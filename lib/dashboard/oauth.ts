@@ -1,8 +1,8 @@
 // OAuth "Login with…" for calendar providers. The app's own OAuth client
-// credentials live in env (GOOGLE_OAUTH_*, MICROSOFT_OAUTH_*, CALENDLY_OAUTH_*);
-// the user authorizes with their own account and we store the returned tokens
-// as the integration config. Optional - when a provider's creds aren't set, the
-// integrations page falls back to manual credential entry.
+// credentials live in env (GOOGLE_OAUTH_*, MICROSOFT_OAUTH_*, CALENDLY_OAUTH_*,
+// CALCOM_OAUTH_*); the user authorizes with their own account and we store the
+// returned tokens as the integration config. Optional - when a provider's creds
+// aren't set, the integrations page falls back to manual credential entry.
 
 interface OAuthDef {
   authUrl: string;
@@ -10,6 +10,10 @@ interface OAuthDef {
   scope: string;
   authParams: Record<string, string>;
   envPrefix: string;
+  /** Token endpoint body encoding - Cal.com expects JSON, everyone else form. */
+  tokenBody?: "json" | "form";
+  /** Post-exchange step that adds provider-specific fields to the config. */
+  enrich?: (config: Record<string, unknown>) => Promise<void>;
 }
 
 const PROVIDERS: Record<string, OAuthDef> = {
@@ -34,7 +38,55 @@ const PROVIDERS: Record<string, OAuthDef> = {
     authParams: {},
     envPrefix: "CALENDLY",
   },
+  calcom: {
+    authUrl: "https://app.cal.com/auth/oauth2/authorize",
+    tokenUrl: "https://api.cal.com/v2/auth/oauth2/token",
+    scope: "PROFILE_READ EVENT_TYPE_READ BOOKING_READ BOOKING_WRITE",
+    authParams: {},
+    envPrefix: "CALCOM",
+    tokenBody: "json",
+    enrich: enrichCalcom,
+  },
 };
+
+// Cal.com's booking + slots APIs are keyed by event type, which an OAuth login
+// doesn't provide - so after the token exchange, look up the user's profile and
+// default (first) event type so the connection works without any manual fields.
+// Fails closed: without an event type the integration can neither read
+// availability nor book, so storing tokens anyway would render a "Connected"
+// card that silently never works. Thrown messages surface on the integrations
+// page via the callback route.
+async function enrichCalcom(config: Record<string, unknown>): Promise<void> {
+  const token = config.access_token;
+  if (typeof token !== "string" || !token) return;
+  const auth = { authorization: `Bearer ${token}` };
+
+  const me = await fetch("https://api.cal.com/v2/me", { headers: auth });
+  if (!me.ok) throw new Error("Could not read your Cal.com profile. Please try again.");
+  const profile = (await me.json()) as {
+    data?: { username?: string; timeZone?: string };
+  };
+  if (profile.data?.username) config.username = profile.data.username;
+  if (profile.data?.timeZone) config.time_zone = profile.data.timeZone;
+
+  const username = typeof config.username === "string" ? config.username : "";
+  const res = await fetch(
+    `https://api.cal.com/v2/event-types?username=${encodeURIComponent(username)}`,
+    { headers: { ...auth, "cal-api-version": "2024-06-14" } },
+  );
+  if (!res.ok) throw new Error("Could not read your Cal.com event types. Please try again.");
+  const json = (await res.json()) as {
+    data?: { id?: number }[] | { eventTypes?: { id?: number }[] };
+  };
+  const list = Array.isArray(json.data) ? json.data : (json.data?.eventTypes ?? []);
+  const first = list.find((et) => et?.id);
+  if (!first?.id) {
+    throw new Error(
+      "No event type found on your Cal.com account. Create one in Cal.com, then reconnect.",
+    );
+  }
+  config.event_type_id = String(first.id);
+}
 
 function creds(id: string): { clientId: string; clientSecret: string } | null {
   const def = PROVIDERS[id];
@@ -79,29 +131,54 @@ export async function exchangeCode(
   const c = creds(id);
   if (!def || !c) return null;
 
-  const res = await fetch(def.tokenUrl, {
-    method: "POST",
-    headers: {
-      "content-type": "application/x-www-form-urlencoded",
-      accept: "application/json",
-    },
-    body: new URLSearchParams({
-      grant_type: "authorization_code",
-      code,
-      redirect_uri: redirectUri(id),
-      client_id: c.clientId,
-      client_secret: c.clientSecret,
-    }),
-  });
+  const grant = {
+    grant_type: "authorization_code",
+    code,
+    redirect_uri: redirectUri(id),
+    client_id: c.clientId,
+    client_secret: c.clientSecret,
+  };
+  const res = await fetch(
+    def.tokenUrl,
+    def.tokenBody === "json"
+      ? {
+          method: "POST",
+          headers: { "content-type": "application/json", accept: "application/json" },
+          body: JSON.stringify(grant),
+        }
+      : {
+          method: "POST",
+          headers: {
+            "content-type": "application/x-www-form-urlencoded",
+            accept: "application/json",
+          },
+          body: new URLSearchParams(grant),
+        },
+  );
   if (!res.ok) return null;
-  const tok = (await res.json()) as { access_token?: string; refresh_token?: string };
+  // Cal.com wraps the token response in { status, data } (and has used camelCase
+  // there); everyone else returns the bare OAuth shape. Accept all three.
+  const tok = (await res.json()) as {
+    access_token?: string;
+    refresh_token?: string;
+    data?: {
+      access_token?: string;
+      refresh_token?: string;
+      accessToken?: string;
+      refreshToken?: string;
+    };
+  };
+  const accessToken = tok.access_token ?? tok.data?.access_token ?? tok.data?.accessToken;
+  const refreshToken = tok.refresh_token ?? tok.data?.refresh_token ?? tok.data?.refreshToken;
+  if (!accessToken) return null;
 
   const config: Record<string, unknown> = {
     client_id: c.clientId,
     client_secret: c.clientSecret,
-    access_token: tok.access_token,
-    refresh_token: tok.refresh_token,
+    access_token: accessToken,
+    refresh_token: refreshToken,
   };
   if (id === "outlook") config.tenant = "common";
+  if (def.enrich) await def.enrich(config);
   return { config };
 }

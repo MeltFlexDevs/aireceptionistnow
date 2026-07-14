@@ -32,7 +32,14 @@ export async function GET(
     return fail(req, "Login session expired or invalid. Please try again.");
   }
 
-  const result = await exchangeCode(provider, code);
+  // A provider's post-exchange enrichment throws actionable messages (e.g.
+  // "No event type found on your Cal.com account…") - show them as-is.
+  let result: Awaited<ReturnType<typeof exchangeCode>>;
+  try {
+    result = await exchangeCode(provider, code);
+  } catch (err) {
+    return fail(req, (err as Error).message);
+  }
   if (!result) return fail(req, `Could not finish login with ${provider}.`);
 
   // This route lives under /api and is NOT behind the auth proxy - a valid state

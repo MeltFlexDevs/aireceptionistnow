@@ -19,6 +19,7 @@ const LOGIN_NAMES: Record<string, string> = {
   google: "Google",
   outlook: "Microsoft",
   calendly: "Calendly",
+  calcom: "Cal.com",
 };
 
 function ProviderIcon({ id }: { id: string }) {
@@ -50,7 +51,26 @@ function ProviderIcon({ id }: { id: string }) {
       </svg>
     );
   }
-  // Generic calendar glyph for providers without a brand mark (e.g. Cal.com).
+  if (id === "calcom") {
+    // Cal.com's black "Cal" wordmark pill.
+    return (
+      <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden>
+        <rect x="1" y="5" width="22" height="14" rx="4" fill="#292929" />
+        <text
+          x="12"
+          y="15.5"
+          textAnchor="middle"
+          fontSize="9"
+          fontWeight="700"
+          fill="#fff"
+          fontFamily="ui-sans-serif, system-ui"
+        >
+          Cal
+        </text>
+      </svg>
+    );
+  }
+  // Generic calendar glyph for providers without a brand mark.
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <rect x="3" y="4" width="18" height="17" rx="2" />
