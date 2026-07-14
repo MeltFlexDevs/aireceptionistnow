@@ -22,8 +22,9 @@ export interface CalendarProviderDef {
 // Calendars the assistant can book into during a call. Each `id` maps to a
 // booking adapter in the call engine (lib/call-engine/integrations/registry.ts)
 // and, for `oauth` providers, to an OAuth definition in lib/dashboard/oauth.ts.
-// Google/Outlook connect via OAuth ("Continue with…") when the app's OAuth env
-// creds are set; Cal.com connects with an API key + event type.
+// All three connect via OAuth only ("Continue with…") once the app's OAuth env
+// creds are set - no manual credential entry. Legacy Cal.com API-key rows in
+// the DB still work (the adapter sends api_key as a Bearer token).
 export const CALENDAR_PROVIDERS: CalendarProviderDef[] = [
   {
     id: "google",
@@ -44,12 +45,9 @@ export const CALENDAR_PROVIDERS: CalendarProviderDef[] = [
   {
     id: "calcom",
     name: "Cal.com",
-    blurb: "Open-source scheduling. Books against a Cal.com event type.",
+    blurb: "Open-source scheduling. Connect with your Cal.com account.",
     live: true,
-    fields: [
-      { name: "api_key", label: "API key", secret: true },
-      { name: "event_type_id", label: "Event type ID" },
-      { name: "time_zone", label: "Time zone", placeholder: "UTC", optional: true },
-    ],
+    oauth: true,
+    fields: [],
   },
 ];

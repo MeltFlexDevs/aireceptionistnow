@@ -56,7 +56,9 @@ async function refreshAccessToken(cfg: GoogleConfig): Promise<string | null> {
   if (!res.ok) return null;
   const json = (await res.json()) as { access_token?: string };
   const token = json.access_token ?? null;
-  if (token) persistAccessToken(cfg as Record<string, unknown>, token);
+  // Fire-and-forget: Google doesn't rotate the refresh token, so a lost write
+  // only costs one extra refresh after the next cold start.
+  if (token) void persistAccessToken(cfg as Record<string, unknown>, token);
   return token;
 }
 
