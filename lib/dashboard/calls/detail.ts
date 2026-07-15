@@ -1,7 +1,8 @@
 import { serviceClient } from "../supabase";
+import { ownerTimezone } from "../timezone";
 import { fetchTwilioCall } from "../twilio";
 import { assistantName, assistantOwnerId, num, str } from "./embed";
-import { fmtDateTime, fmtDuration, isLiveStatus, normalizeDirection, statusLabel } from "./format";
+import { dateTimeFmt, fmtDuration, isLiveStatus, normalizeDirection, statusLabel } from "./format";
 import type { CallActionItem, CallDetail, CallTurn } from "./types";
 
 // `assistant` = the stamped calls.assistant_id snapshot (reassignment-immune,
@@ -65,7 +66,8 @@ export async function getCallDetail(
     id: str(c.id),
     sid,
     date,
-    dateLabel: fmtDateTime(date),
+    // Owner's timezone, matching the call log and Calendar.
+    dateLabel: dateTimeFmt(await ownerTimezone(ownerId))(date),
     status,
     statusLabel: statusLabel(status),
     direction: normalizeDirection(str(c.direction)),

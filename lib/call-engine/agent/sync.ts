@@ -108,15 +108,19 @@ function composeSystemPrompt(
     calendar?: { access?: unknown[] };
   };
   const transferTo = typeof routing.transferTo === "string" ? routing.transferTo : "";
-  const hasCalendar =
-    Array.isArray(routing.calendar?.access) && routing.calendar!.access!.length > 0;
+  const access = Array.isArray(routing.calendar?.access) ? routing.calendar.access : [];
+  const canRead = access.length > 0;
+  const canBook = access.some((a) => (a as { level?: unknown })?.level === "write");
 
-  // Only describe a tool when it's actually wired. Scheduling + take_message are
-  // webhook tools (gated on hasServerTools); transfer + end_call are built-in and
-  // always present (transfer only when a target is configured).
-  if (hasServerTools && hasCalendar) {
+  // Only describe a tool when it's actually wired - and the calendar tools are
+  // gated separately, matching webhookToolSpecs. Telling a read-only assistant
+  // to "use book_appointment" would have it announce a booking it has no tool to
+  // make, which is worse than not offering to book at all.
+  if (hasServerTools && canRead) {
     parts.push(
-      "You can schedule appointments. Use check_availability to confirm a time is free before offering or booking it, then use book_appointment once the caller agrees. Never reveal what else is on the calendar or why a slot is taken - only whether it's free.",
+      canBook
+        ? "You can schedule appointments. Use check_availability to confirm a time is free before offering or booking it, then use book_appointment once the caller agrees. Never reveal what else is on the calendar or why a slot is taken - only whether it's free."
+        : "You can check the calendar but you cannot book. Use check_availability to tell the caller whether a time is free. If they want to take it, never claim it is booked - take a message so the team can confirm it. Never reveal what else is on the calendar or why a slot is taken - only whether it's free.",
     );
   }
   if (transferTo) {
@@ -370,6 +374,17 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
   // otherwise two blips in a row silently rebuild the agent English-only and
   // persist multilingual=false, killing language switching for every future
   // caller with nothing but a console.warn as evidence.
+  // ElevenLabs puts the useful part (which language preset / voice id it refused)
+  // in the error body, not the message - logging the bare error gave "Status code:
+  // 422" and nothing to fix.
+  const detail = (err: unknown): string => {
+    if (err instanceof ElevenLabsError) {
+      const body = typeof err.body === "string" ? err.body : JSON.stringify(err.body ?? {});
+      return `${err.statusCode} ${body}`.trim();
+    }
+    return (err as Error)?.message ?? String(err);
+  };
+
   const isConfigRejection = (err: unknown): boolean =>
     err instanceof ElevenLabsError && (err.statusCode === 400 || err.statusCode === 422);
 
@@ -389,16 +404,26 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
       // problem (auth, quota, bad base voice) rather than a downstream symptom.
       if (!isConfigRejection(err)) throw err;
       try {
-        console.warn("[agent-sync] multilingual config rejected, retrying without per-language voices", err);
+        console.warn(
+          `[agent-sync] ${assistantId}: multilingual config rejected, retrying without per-language voices - ${detail(err)}`,
+        );
         agentId = await write(multilingualPlainConfig);
       } catch (plainErr) {
         if (!isConfigRejection(plainErr)) throw plainErr;
-        console.warn("[agent-sync] plain multilingual config rejected, retrying English-only", plainErr);
         try {
           agentId = await write(englishConfig);
           // Agent is English-only now (no language presets) - the init webhook must
           // not send a per-caller language override it can't honor. Persisted below.
           multilingual = false;
+          // This is the single worst outcome a sync can have short of failing: the
+          // assistant will greet every caller in English and tell them it "can only
+          // communicate in English", for every call, until someone saves it again.
+          // It is not an incident the user can see, so say it loudly and say WHY -
+          // a bare "rejected" leaves nothing to act on.
+          console.error(
+            `[agent-sync] ${assistantId}: DOWNGRADED TO ENGLISH-ONLY - ElevenLabs rejected both multilingual configs. ` +
+              `This assistant can no longer answer callers in their own language. Reason: ${detail(plainErr)}`,
+          );
         } catch {
           throw err;
         }

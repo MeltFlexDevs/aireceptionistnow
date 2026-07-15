@@ -4,16 +4,34 @@ export function fmtDuration(sec: number): string {
   return `${Math.floor(s / 60)}m ${String(s % 60).padStart(2, "0")}s`;
 }
 
-export function fmtDateTime(iso: string): string {
-  if (!iso) return "-";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "-";
-  return d.toLocaleString("en-US", {
+/**
+ * Call timestamps in the user's own timezone (Settings → Time zone), matching the
+ * Calendar and Analytics.
+ *
+ * This used to call toLocaleString with no timeZone, which formats in the
+ * SERVER's zone - UTC in production. A 21:37 call in Bratislava rendered as
+ * "7:37 PM", so every call in the log and on the transcript was silently wrong
+ * by the user's UTC offset, while the Calendar right next to it was right.
+ * An empty/invalid tz (the settings field is free text) falls back to UTC.
+ */
+export function dateTimeFmt(tz: string): (iso: string) => string {
+  const opts = {
     month: "short",
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
-  });
+  } as const;
+  let fmt: Intl.DateTimeFormat;
+  try {
+    fmt = new Intl.DateTimeFormat("en-US", { timeZone: tz || "UTC", ...opts });
+  } catch {
+    fmt = new Intl.DateTimeFormat("en-US", { timeZone: "UTC", ...opts });
+  }
+  return (iso) => {
+    if (!iso) return "-";
+    const d = new Date(iso);
+    return Number.isNaN(d.getTime()) ? "-" : fmt.format(d);
+  };
 }
 
 export function statusLabel(raw: string): string {

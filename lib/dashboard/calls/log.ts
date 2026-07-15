@@ -1,9 +1,10 @@
 import { ensureBusinessId, getOwnedNumbers } from "../db";
 import { serviceClient } from "../supabase";
 import { listTwilioCalls, type TwilioCallLog } from "../twilio";
+import { ownerTimezone } from "../timezone";
 import { assistantName, num, str } from "./embed";
 import {
-  fmtDateTime,
+  dateTimeFmt,
   fmtDuration,
   isLiveStatus,
   normalizeDirection,
@@ -81,7 +82,7 @@ async function fetchDbCalls(
   });
 }
 
-function mergeRow(t: TwilioCallLog, db: DbCallRow | null): CallLogRow {
+function mergeRow(t: TwilioCallLog, db: DbCallRow | null, fmtDateTime: (iso: string) => string): CallLogRow {
   return {
     key: t.sid,
     dbId: db?.id ?? null,
@@ -101,7 +102,7 @@ function mergeRow(t: TwilioCallLog, db: DbCallRow | null): CallLogRow {
   };
 }
 
-function dbOnlyRow(c: DbCallRow): CallLogRow {
+function dbOnlyRow(c: DbCallRow, fmtDateTime: (iso: string) => string): CallLogRow {
   return {
     key: `db:${c.id}`,
     dbId: c.id,
@@ -165,10 +166,14 @@ export async function getCallLog(
   }
 
   // Pull a wider Twilio window since prior-owner noise gets filtered out below.
-  const [dbCalls, twilioCalls] = await Promise.all([
+  // Timestamps render in the user's own timezone (Settings), same as the
+  // Calendar and Analytics - not the server's.
+  const [dbCalls, twilioCalls, tz] = await Promise.all([
     fetchDbCalls(businessId, limit, ownerId),
     listTwilioCalls(Math.max(limit, 500)).catch(() => [] as TwilioCallLog[]),
+    ownerTimezone(ownerId),
   ]);
+  const fmtDateTime = dateTimeFmt(tz);
 
   const dbBySid = new Map<string, DbCallRow>();
   for (const c of dbCalls) if (c.sid) dbBySid.set(c.sid, c);
@@ -189,11 +194,11 @@ export async function getCallLog(
     if (!isOurs(t)) continue;
     const db = dbBySid.get(t.sid) ?? null;
     if (db) matched.add(t.sid);
-    rows.push(mergeRow(t, db));
+    rows.push(mergeRow(t, db, fmtDateTime));
   }
   for (const c of dbCalls) {
     if (c.sid && matched.has(c.sid)) continue;
-    rows.push(dbOnlyRow(c));
+    rows.push(dbOnlyRow(c, fmtDateTime));
   }
 
   // Only surface calls handled by one of the user's assistants. An assistant name
