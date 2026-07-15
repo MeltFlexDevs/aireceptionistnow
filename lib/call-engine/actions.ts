@@ -76,6 +76,11 @@ export async function checkAvailabilityAction(
     return null;
   });
   if (!answer || !answer.ok) {
+    // The caller is about to be told we can't check - make that traceable to a
+    // call id, since this is the one failure a user actually hears.
+    console.error(
+      `[actions] check_availability failed for call ${ctx.callId}: ${answer?.error ?? "no answer"}`,
+    );
     return "I couldn't check the calendar right now. Offer to take a message or have someone from our team confirm, without guessing whether the time is free.";
   }
   if (answer.requestedFree) {

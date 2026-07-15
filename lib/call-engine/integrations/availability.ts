@@ -100,9 +100,18 @@ export async function checkAvailability(
   }
   const durationMs = endMs - startMs;
 
+  // getBusy is optional on the adapter: a write-only provider (Outlook today)
+  // silently drops out here, which looks identical to "no calendar granted" from
+  // the caller's side - so name it, or an assistant that can book but can never
+  // quote a time is undiagnosable.
   const readable = calendars.filter((c) => typeof c.provider.getBusy === "function");
   if (readable.length === 0) {
-    return { ok: false, requestedFree: false, alternatives: [] };
+    const why =
+      calendars.length === 0
+        ? "no calendar granted read access"
+        : "granted calendars cannot be read (provider has no availability support)";
+    console.error(`[availability] ${why}`);
+    return { ok: false, requestedFree: false, alternatives: [], error: why };
   }
 
   const timeMin = new Date(Math.min(startMs, Date.now())).toISOString();
@@ -112,12 +121,32 @@ export async function checkAvailability(
     readable.map((c) =>
       c.provider
         .getBusy!({ timeMin, timeMax })
-        .catch(() => ({ ok: false, busy: [] as BusyInterval[] })),
+        .catch((err: Error) => ({
+          ok: false,
+          busy: [] as BusyInterval[],
+          error: err?.message ?? "threw",
+        })),
     ),
   );
-  // If every read failed, we can't make a claim about availability.
+  // If every read failed, we can't make a claim about availability. Say WHY:
+  // the caller just heard "I can't check the calendar", and without this the
+  // reason each provider gave (cal.com 401, "not configured", a thrown fetch)
+  // was dropped on the floor - the failure was unreportable from the logs alone.
   if (results.every((r) => !r.ok)) {
-    return { ok: false, requestedFree: false, alternatives: [] };
+    const why = results
+      .map((r, i) => `${readable[i].integrationId}: ${r.error ?? "unknown"}`)
+      .join("; ");
+    console.error(`[availability] every calendar read failed - ${why}`);
+    return { ok: false, requestedFree: false, alternatives: [], error: why };
+  }
+  // Partial failure still answers, but a silently-half-read calendar is how you
+  // double-book: log the ones that failed.
+  for (const [i, r] of results.entries()) {
+    if (!r.ok) {
+      console.warn(
+        `[availability] ${readable[i].integrationId} read failed (${r.error ?? "unknown"}) - answering from the calendars that did read`,
+      );
+    }
   }
   const busy = results.flatMap((r) => r.busy);
 
