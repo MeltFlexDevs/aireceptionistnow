@@ -123,6 +123,21 @@ function composeSystemPrompt(
         ? "You can schedule appointments. Use check_availability to confirm a time is free before offering or booking it, then use book_appointment once the caller agrees. Never reveal what else is on the calendar or why a slot is taken - only whether it's free."
         : "You can check the calendar but you cannot book. Use check_availability to tell the caller whether a time is free. If they want to take it, never claim it is booked - take a message so the team can confirm it. Never reveal what else is on the calendar or why a slot is taken - only whether it's free.",
     );
+    // What to ask before booking is business-specific, and only this agent knows
+    // which business it answers for - so it decides from its own knowledge rather
+    // than us hardcoding a field list. A dental practice needs to know why the
+    // caller is coming (a check-up and a broken tooth are not the same
+    // appointment); a barber asking "what's this regarding?" just sounds odd. The
+    // failure mode to avoid is interrogation: a receptionist asks the one thing
+    // that changes the appointment, not a form.
+    parts.push(
+      [
+        "Before you book, get the details this particular business would need to prepare for the appointment.",
+        "Work out what those are from what you know about the business and the services it offers, and ask only for those - a dental practice needs to know the reason for the visit (a check-up, ongoing pain, or an emergency change how long it takes and who should see them), while a hair salon usually needs nothing beyond which service the caller wants.",
+        "Ask at most one or two short questions, never a list, and never invent a requirement this business doesn't have. If nothing about the business suggests a question, don't ask one.",
+        "Always get the caller's name. Pass the reason and anything else you learned to book_appointment in `notes`, so whoever runs the appointment sees it.",
+      ].join(" "),
+    );
   }
   if (transferTo) {
     parts.push(

@@ -85,13 +85,48 @@ async function doRefresh(cfg: CalcomConfig): Promise<string | null> {
   return token;
 }
 
+/**
+ * Turn a failed Cal.com response into an error a human can act on.
+ *
+ * `cal.com 400` on its own is unactionable - Cal.com rejects a booking for many
+ * different reasons (slot already gone, a required booking field missing, a bad
+ * attendee phone/timezone) and says which in the body. Dropping it meant the
+ * dashboard showed a failed booking with no way to find out why. Bounded, and
+ * tolerant of a non-JSON body (Cal.com returns HTML on some 5xx).
+ */
+async function failure(res: Response): Promise<string> {
+  let detail = "";
+  try {
+    const text = (await res.text()).trim();
+    try {
+      const json = JSON.parse(text) as {
+        error?: { message?: string; code?: string; details?: unknown };
+        message?: string;
+      };
+      detail =
+        json.error?.message ??
+        json.message ??
+        (json.error?.code ? String(json.error.code) : "") ??
+        "";
+      if (!detail && json.error?.details) detail = JSON.stringify(json.error.details);
+    } catch {
+      detail = text; // not JSON - keep the raw body
+    }
+  } catch {
+    // body already consumed / unreadable - status alone is all we have
+  }
+  return `cal.com ${res.status}${detail ? `: ${detail.slice(0, 300)}` : ""}`;
+}
+
 export const createCalcom: CalendarFactory = (config): CalendarProvider => {
   const cfg = config as CalcomConfig;
   const bearer = () =>
     cachedAccessToken(cfg.refresh_token) ?? cfg.access_token ?? cfg.api_key ?? null;
   const canRefresh = Boolean(cfg.refresh_token && cfg.client_id && cfg.client_secret);
 
-  const post = (token: string, req: BookingRequest) =>
+  // `withNotes: false` drops the caller's reason from the payload - see the
+  // retry in createEvent.
+  const post = (token: string, req: BookingRequest, withNotes = true) =>
     fetch(`${API}/bookings`, {
       method: "POST",
       headers: {
@@ -110,9 +145,23 @@ export const createCalcom: CalendarFactory = (config): CalendarProvider => {
           timeZone: cfg.time_zone ?? "UTC",
           ...(req.attendeePhone ? { phoneNumber: req.attendeePhone } : {}),
         },
-        ...(req.notes ? { bookingFieldsResponses: { notes: req.notes } } : {}),
+        // Why the caller is coming, so whoever runs the appointment sees it.
+        // Cal.com documents bookingFieldsResponses as taking the slugs of
+        // CUSTOM booking fields, so "notes" only lands if this event type
+        // actually has such a field - hence the retry-without-notes below.
+        // metadata always survives, so the reason is never silently lost.
+        ...(withNotes && req.notes
+          ? {
+              bookingFieldsResponses: { notes: req.notes },
+              metadata: { notes: req.notes.slice(0, 500) },
+            }
+          : {}),
       }),
     });
+
+  /** A 400 that's complaining about the optional notes field, not the booking. */
+  const isBookingFieldRejection = (status: number, body: string): boolean =>
+    status === 400 && /booking ?fields?|notes/i.test(body);
 
   return {
     async createEvent(req): Promise<BookingResult> {
@@ -124,7 +173,23 @@ export const createCalcom: CalendarFactory = (config): CalendarProvider => {
         if (token) res = await post(token, req);
       }
       if (!res) return { ok: false, error: "cal.com not authorized" };
-      if (!res.ok) return { ok: false, error: `cal.com ${res.status}` };
+
+      // Losing the whole appointment because the reason couldn't be attached is
+      // a bad trade: the caller is on the phone, and the reason is already saved
+      // on the call record either way. If Cal.com rejects the notes field, book
+      // without it and say so, rather than telling the caller it failed.
+      if (!res.ok && req.notes) {
+        const body = await res.clone().text().catch(() => "");
+        if (isBookingFieldRejection(res.status, body) && token) {
+          console.warn(
+            `[calcom] booking rejected with notes (${body.slice(0, 160)}) - retrying without them. ` +
+              `Add a custom booking field with slug "notes" to this event type to keep the caller's reason on the booking.`,
+          );
+          res = await post(token, req, false);
+        }
+      }
+
+      if (!res.ok) return { ok: false, error: await failure(res) };
       const json = (await res.json()) as {
         data?: { id?: number; uid?: string };
         id?: number;
@@ -155,7 +220,7 @@ export const createCalcom: CalendarFactory = (config): CalendarProvider => {
       const res = await fetch(`${API}/slots?${params.toString()}`, {
         headers: { "cal-api-version": "2024-09-04" },
       });
-      if (!res.ok) return { ok: false, busy: [], error: `cal.com ${res.status}` };
+      if (!res.ok) return { ok: false, busy: [], error: await failure(res) };
       const json = (await res.json()) as {
         data?: Record<string, (string | { start?: string; end?: string })[]>;
       };

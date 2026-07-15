@@ -159,6 +159,14 @@ export async function bookAppointmentAction(
   }
 
   const result = await resolved.provider.createEvent(req);
+  if (!result.ok) {
+    // A caller was just told their appointment didn't go through. That's the
+    // sharpest failure this product has, so it belongs in the logs with the call
+    // id and the provider's own reason - not only on the dashboard card.
+    console.error(
+      `[actions] book_appointment failed for call ${ctx.callId} on ${resolved.integrationId}: ${result.error ?? "unknown"}`,
+    );
+  }
   await repo.recordAction(
     ctx.callId,
     {

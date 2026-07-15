@@ -10,6 +10,8 @@ import { SubmitButton } from "../components/SubmitButton";
 import { Hint } from "../components/Hint";
 import { PlanUsage } from "../components/PlanUsage";
 import { BillingPortalButton } from "./BillingPortalButton";
+import { TimezoneSelect } from "./TimezoneSelect";
+import { supportedTimezones } from "@/lib/dashboard/timezones";
 import { saveAccountAction, saveNotificationsAction } from "./actions";
 import { getDictionary } from "@/lib/i18n/server";
 
@@ -47,6 +49,9 @@ export default async function SettingsPage({
     account = await getAccountSettings(userId).catch(() => null);
   }
   const planCtx = await getPlanContext(userId).catch(() => null);
+  // Resolved on the server so the option list is in the payload rather than
+  // rebuilt in every browser; the client only picks the default from it.
+  const zones = supportedTimezones();
 
   return (
     <div className="space-y-6 rise">
@@ -92,7 +97,12 @@ export default async function SettingsPage({
               </div>
               <div>
                 <label htmlFor="timezone" className={labelCls}>{s.timezone}</label>
-                <input id="timezone" name="timezone" defaultValue={account?.timezone ?? ""} placeholder="America/New_York" className={field} disabled={!userId} />
+                <TimezoneSelect
+                  value={account?.timezone ?? ""}
+                  zones={zones}
+                  className={field}
+                  disabled={!userId}
+                />
               </div>
             </div>
 

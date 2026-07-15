@@ -101,17 +101,24 @@ function webhookToolSpecs(assistant: Assistant): WebhookToolSpec[] {
       name: "book_appointment",
       path: "/api/agent/book-appointment",
       description:
-        "Book an appointment on the business calendar once the caller has agreed to a specific time. Only call after confirming the time is free. Collect the caller's name if you can.",
+        "Book an appointment on the business calendar once the caller has agreed to a specific time. Only call after confirming the time is free. Collect the caller's name, and whatever this business needs to know about the appointment (see `notes`), before calling this.",
       params: {
         title: {
           type: "string",
-          description: "Short title for the appointment, e.g. 'Consultation with Jane Doe'.",
+          description:
+            "Short title for the appointment, naming what it's for when you know - e.g. 'Check-up - Jane Doe' or 'Consultation with Jane Doe'. This is what the business sees in its calendar.",
         },
         start_time: { type: "string", description: "Start, ISO 8601 with explicit UTC offset." },
         end_time: { type: "string", description: "End, ISO 8601 with explicit UTC offset." },
         attendee_name: { type: "string", description: "Caller's full name, if given." },
         attendee_phone: { type: "string", description: "Callback number, if different from caller ID." },
-        notes: { type: "string", description: "Any relevant details the caller mentioned." },
+        notes: {
+          type: "string",
+          // The agent decides what's worth asking from the business's own
+          // knowledge (see composeSystemPrompt) - this is where the answer lands.
+          description:
+            "Why the caller is coming and anything the business needs to prepare, in their own words - e.g. the reason for a medical visit, or the service they want. Include only what's relevant to this business; leave empty if nothing about it warranted asking.",
+        },
       },
       required: ["title", "start_time", "end_time"],
     });

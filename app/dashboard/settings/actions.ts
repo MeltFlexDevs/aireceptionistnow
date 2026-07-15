@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { currentUserId } from "@/lib/auth";
 import { saveAccountProfile, saveNotificationSettings } from "@/lib/dashboard/account";
+import { normalizeTimezone } from "@/lib/dashboard/timezones";
 
 function done(tab: string): never {
   revalidatePath("/dashboard/settings");
@@ -12,6 +13,20 @@ function done(tab: string): never {
 
 function fail(message: string): never {
   redirect(`/dashboard/settings?error=${encodeURIComponent(message)}`);
+}
+
+/** Blank is fine (means "UTC"); a value we can't format in is not - saving it
+ *  would look like it worked while every timestamp stayed UTC. */
+function timezoneOrFail(raw: string): string {
+  const input = raw.trim();
+  if (!input) return "";
+  const zone = normalizeTimezone(input);
+  if (!zone) {
+    fail(
+      `"${input}" isn't a time zone we recognise. Pick one from the list - it should look like Europe/Bratislava.`,
+    );
+  }
+  return zone;
 }
 
 export async function saveAccountAction(formData: FormData): Promise<void> {
@@ -24,7 +39,12 @@ export async function saveAccountAction(formData: FormData): Promise<void> {
       company: String(formData.get("company") ?? "").trim(),
       role: String(formData.get("role") ?? "").trim(),
       phone: String(formData.get("phone") ?? "").trim(),
-      timezone: String(formData.get("timezone") ?? "").trim(),
+      // Never store a zone Intl can't format in: every timestamp on the
+      // dashboard silently falls back to UTC when it can't, with nothing to say
+      // why. normalizeTimezone salvages a near-miss ("bratislava" ->
+      // "Europe/Bratislava"); anything unsalvageable is rejected out loud
+      // rather than saved and quietly ignored.
+      timezone: timezoneOrFail(String(formData.get("timezone") ?? "")),
       about: String(formData.get("about") ?? "").trim(),
       share_with_assistants: formData.get("share_with_assistants") === "on",
     });
