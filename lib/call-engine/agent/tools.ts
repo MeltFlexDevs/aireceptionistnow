@@ -41,24 +41,38 @@ interface WebhookToolSpec {
   required: string[];
 }
 
-/** Read the capability flags off an assistant's routing JSON. */
-function capabilities(assistant: Assistant): { transferTo: string; hasCalendar: boolean } {
+/**
+ * Read the capability flags off an assistant's routing JSON.
+ *
+ * Read and write are separate flags, not one "hasCalendar": the three levels a
+ * user picks per calendar (none / read / write) only mean anything if a
+ * read-only grant withholds the booking tool. Handing an agent a tool it isn't
+ * allowed to use invites it to try - and to tell the caller it booked.
+ */
+function capabilities(assistant: Assistant): {
+  transferTo: string;
+  canRead: boolean;
+  canBook: boolean;
+} {
   const r = (assistant.routing ?? {}) as {
     transferTo?: unknown;
     calendar?: { access?: unknown[] };
   };
   const transferTo = typeof r.transferTo === "string" ? r.transferTo.trim() : "";
-  const access = r.calendar?.access;
-  const hasCalendar = Array.isArray(access) && access.length > 0;
-  return { transferTo, hasCalendar };
+  const access = Array.isArray(r.calendar?.access) ? r.calendar.access : [];
+  // Any granted level can read free/busy; only an explicit "write" may book.
+  // Legacy "busy" grants are read-only (the dashboard maps them to read on save).
+  const canRead = access.length > 0;
+  const canBook = access.some((a) => (a as { level?: unknown })?.level === "write");
+  return { transferTo, canRead, canBook };
 }
 
 /** Which webhook server tools this assistant should expose, per its settings. */
 function webhookToolSpecs(assistant: Assistant): WebhookToolSpec[] {
-  const { hasCalendar } = capabilities(assistant);
+  const { canRead, canBook } = capabilities(assistant);
   const specs: WebhookToolSpec[] = [];
 
-  if (hasCalendar) {
+  if (canRead) {
     specs.push({
       name: "check_availability",
       path: "/api/agent/check-availability",
@@ -78,6 +92,11 @@ function webhookToolSpecs(assistant: Assistant): WebhookToolSpec[] {
       },
       required: ["start_time", "end_time"],
     });
+  }
+
+  // Booking is gated separately: a read-only assistant can quote free/busy but
+  // must not be able to write to someone's calendar.
+  if (canBook) {
     specs.push({
       name: "book_appointment",
       path: "/api/agent/book-appointment",

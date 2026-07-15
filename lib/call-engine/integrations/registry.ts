@@ -20,15 +20,11 @@ export interface ResolvedCalendar {
   integrationId: string;
 }
 
-/** Pick the first enabled calendar integration and build its adapter. */
-export function resolveCalendarProvider(
-  integrations: IntegrationConfig[],
-): ResolvedCalendar | null {
-  const calendar = integrations.find((i) => i.type === "calendar" && i.enabled);
-  if (!calendar) return null;
-  const factory = FACTORIES[calendar.provider] ?? createWebhookCalendar;
-  return { provider: factory(calendar.config), integrationId: calendar.id };
-}
+// There is deliberately no "just pick the first connected calendar" helper here.
+// Every calendar an assistant touches must come from an explicit grant in its
+// routing (resolveCalendarById / resolveCalendarsForAccess) - a positional
+// fallback ignores the none/read/write level the user chose, and picks by
+// connection order rather than by what was granted.
 
 export interface CalendarAccessEntry {
   integrationId: string;

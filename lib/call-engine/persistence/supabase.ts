@@ -83,8 +83,8 @@ export class SupabaseCallRepository implements CallRepository {
     const ownerId = cfg.owner_id ? String(cfg.owner_id) : "";
 
     // Scope calendars to the assistant's owner (unowned/legacy rows allowed, same
-    // rule as the dashboard). Without this, a caller's appointment could be booked
-    // into another tenant's calendar via the resolveCalendarProvider fallback.
+    // rule as the dashboard): this list is what every calendar grant resolves
+    // against, so another tenant's calendar must never enter it in the first place.
     let integrationsQuery = db()
       .from("integrations")
       .select("*")

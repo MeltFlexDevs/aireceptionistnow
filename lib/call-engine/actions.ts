@@ -1,7 +1,6 @@
 import { checkAvailability } from "./integrations/availability";
 import {
   resolveCalendarById,
-  resolveCalendarProvider,
   resolveCalendarsForAccess,
   type CalendarAccessEntry,
 } from "./integrations/registry";
@@ -93,9 +92,10 @@ export async function checkAvailabilityAction(
 }
 
 /**
- * Book an appointment on the assistant's write calendar (falling back to the
- * first connected calendar, then to a pending request if none is reachable).
- * Records the booking action either way.
+ * Book an appointment on the calendar this assistant was granted WRITE access to.
+ * With only read access (or none), nothing is written: the booking is recorded as
+ * a pending request for a human to confirm. Records the action either way, so a
+ * request the assistant couldn't fulfil still surfaces on the dashboard.
  */
 export async function bookAppointmentAction(
   ctx: ActionContext,
@@ -122,10 +122,15 @@ export async function bookAppointmentAction(
     return "I need a valid start and end time to book - please confirm the exact date and time with the caller.";
   }
 
-  let resolved = writeEntry
+  // Write access is the ONLY way to reach createEvent. This used to fall back to
+  // resolveCalendarProvider ("the first enabled calendar") whenever there was no
+  // write grant, which quietly booked into a calendar the assistant was allowed
+  // only to read - or was never granted at all - and could even pick a different
+  // calendar than the one the user granted. No grant, no write: the request is
+  // recorded as pending and a human confirms it.
+  const resolved = writeEntry
     ? resolveCalendarById(ctx.config.integrations, writeEntry.integrationId)
     : null;
-  if (!resolved) resolved = resolveCalendarProvider(ctx.config.integrations);
   if (!resolved) {
     await repo.recordAction(ctx.callId, {
       type: "booking",
