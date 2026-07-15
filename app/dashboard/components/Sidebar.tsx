@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Logo, Grid, Phone, Bot, Building, Plug, ChartBar, Gear, Sparkle, Hash } from "../icons";
+import { Logo, Grid, Phone, Bot, Building, Plug, ChartBar, Gear, Sparkle, Hash, Calendar } from "../icons";
 import { useT } from "@/lib/i18n/client";
 import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 
@@ -30,6 +30,7 @@ const NAV: { titleKey: NavKey; items: { href: string; label: NavKey; hint: NavKe
     items: [
       { href: "/dashboard", label: "overview", hint: "overviewHint", Icon: Grid },
       { href: "/dashboard/calls", label: "calls", hint: "callsHint", Icon: Phone },
+      { href: "/dashboard/calendar", label: "calendar", hint: "calendarHint", Icon: Calendar },
       { href: "/dashboard/analytics", label: "analytics", hint: "analyticsHint", Icon: ChartBar },
     ],
   },

@@ -1,8 +1,8 @@
 import { cache } from "react";
 import { unstable_cache } from "next/cache";
-import { getAccountSettings } from "./account";
 import { ensureBusinessId, getOwnedNumbers } from "./db";
 import { serviceClient } from "./supabase";
+import { dayKeyFn, ownerTimezone, timeFmt } from "./timezone";
 import { countryFromPhone, flagEmoji } from "../call-engine/voice/phone-language";
 
 // Dashboard analytics from the calls / call_turns tables (read-only, one business).
@@ -152,24 +152,6 @@ function pctDelta(recent: number, prior: number): number {
   if (prior === 0) return recent > 0 ? 100 : 0;
   return Math.round(((recent - prior) / prior) * 1000) / 10;
 }
-// Days are bucketed in the user's timezone (account settings), not the
-// server's, so an evening call lands on the day the user saw it. en-CA
-// formats dates as ISO "YYYY-MM-DD"; an empty or invalid timezone (the
-// settings field is free text) falls back to UTC.
-function dayKeyFn(tz: string): (d: Date) => string {
-  const opts = { year: "numeric", month: "2-digit", day: "2-digit" } as const;
-  let fmt: Intl.DateTimeFormat;
-  try {
-    fmt = new Intl.DateTimeFormat("en-CA", { timeZone: tz || "UTC", ...opts });
-  } catch {
-    fmt = new Intl.DateTimeFormat("en-CA", { timeZone: "UTC", ...opts });
-  }
-  return (d) => fmt.format(d);
-}
-async function ownerTimezone(ownerId?: string | null): Promise<string> {
-  if (!ownerId) return "UTC";
-  return (await getAccountSettings(ownerId)).timezone.trim() || "UTC";
-}
 function dayBuckets(calls: CallRow[], days: number, toKey: (d: Date) => string): Bar[] {
   const counts = new Map<string, number>();
   for (const c of calls) {
@@ -211,17 +193,6 @@ function dailySeries(
   return out;
 }
 
-// Absolute timestamp in the user's timezone, for tooltips next to "2 hr ago".
-function timeFmt(tz: string): (iso: string) => string {
-  const opts = { dateStyle: "medium", timeStyle: "short" } as const;
-  let fmt: Intl.DateTimeFormat;
-  try {
-    fmt = new Intl.DateTimeFormat("en-GB", { timeZone: tz || "UTC", ...opts });
-  } catch {
-    fmt = new Intl.DateTimeFormat("en-GB", { timeZone: "UTC", ...opts });
-  }
-  return (iso) => fmt.format(new Date(iso));
-}
 
 function capitalize(s: string): string {
   return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;

@@ -31,6 +31,18 @@ export const Phone = ({ className = base }: IconProps) => (
   <Stroke className={className}><path d="M4 5c0 8.284 6.716 15 15 15a2 2 0 0 0 2-2v-2.5a1 1 0 0 0-.8-.98l-3.4-.68a1 1 0 0 0-1 .42l-.9 1.2a12 12 0 0 1-5.1-5.1l1.2-.9a1 1 0 0 0 .42-1l-.68-3.4A1 1 0 0 0 8.5 3H6a2 2 0 0 0-2 2Z" /></Stroke>
 );
 
+export const Calendar = ({ className = base }: IconProps) => (
+  <Stroke className={className}><rect x="3" y="4" width="18" height="17" rx="2" /><path d="M3 9h18M8 2v4M16 2v4" /></Stroke>
+);
+
+export const ChevronLeft = ({ className = base }: IconProps) => (
+  <Stroke className={className}><path d="m15 6-6 6 6 6" /></Stroke>
+);
+
+export const ChevronRight = ({ className = base }: IconProps) => (
+  <Stroke className={className}><path d="m9 6 6 6-6 6" /></Stroke>
+);
+
 export const Hash = ({ className = base }: IconProps) => (
   <Stroke className={className}><path d="M5 9h14M5 15h14M10 4l-2 16M16 4l-2 16" /></Stroke>
 );
