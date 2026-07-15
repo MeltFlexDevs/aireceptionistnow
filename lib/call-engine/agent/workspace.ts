@@ -50,6 +50,65 @@ export async function configureWorkspaceWebhooks(): Promise<WorkspaceSetupResult
   return { conversationInitiationWebhook: initUrl, postCallWebhookId: postCallId ?? null };
 }
 
+// Wiring the init webhook was a manual, once-after-deploy curl to
+// /api/agent/setup - and if it was never run (or APP_BASE_URL later changed),
+// EVERY caller silently got the agent's English default greeting instead of one
+// in their own language. Nothing surfaced it: the feature just quietly did
+// nothing, because ElevenLabs had no URL to call. So assistant sync now asserts
+// it too, and the greeting localization can't be left unplugged.
+let ensured: Promise<void> | null = null;
+
+/**
+ * Best-effort: make sure ElevenLabs points its conversation-init webhook at THIS
+ * deployment, so /api/agent/init can translate the greeting per caller.
+ *
+ * Only ever fills in a MISSING url - it never repoints one that's already set.
+ * The setting is workspace-global while deployments are not: a preview build
+ * auto-repointing it would hijack production's calls. A mismatch is loud instead,
+ * and /api/agent/setup remains the explicit way to take ownership.
+ *
+ * Memoized per warm instance; a failure clears the memo so the next sync retries.
+ */
+export function ensureInitWebhook(): Promise<void> {
+  ensured ??= wireInitWebhookOnce().catch((err) => {
+    console.warn("[workspace] could not verify the conversation-init webhook", err);
+    ensured = null;
+  });
+  return ensured;
+}
+
+async function wireInitWebhookOnce(): Promise<void> {
+  const base = (process.env.APP_BASE_URL ?? "").replace(/\/$/, "");
+  const secret = process.env.AGENT_WEBHOOK_SECRET;
+  // Nothing to point at / no way to authenticate it. /api/agent/setup reports
+  // this properly; a sync shouldn't fail over it.
+  if (!base || !secret) return;
+  const want = `${base}/api/agent/init`;
+
+  const settings = (await elevenClient().conversationalAi.settings.get()) as unknown as {
+    conversationInitiationClientDataWebhook?: { url?: string };
+  };
+  const current = settings.conversationInitiationClientDataWebhook?.url ?? "";
+  if (current === want) return;
+
+  if (current) {
+    console.warn(
+      `[workspace] conversation-init webhook points at ${current}, not ${want} - leaving it. ` +
+        `Callers get this deployment's default greeting, not one in their language. ` +
+        `POST /api/agent/setup from the deployment that should own it.`,
+    );
+    return;
+  }
+
+  await elevenClient().conversationalAi.settings.update({
+    conversationInitiationClientDataWebhook: {
+      url: want,
+      requestHeaders: { "x-agent-secret": secret },
+    },
+  });
+  console.log(`[workspace] conversation-init webhook was unset - wired it to ${want}`);
+}
+
 /**
  * Import every DB pool number that isn't in ElevenLabs yet and backfill its
  * ElevenLabs phone-number id. Numbers are imported UNASSIGNED (no inbound agent)

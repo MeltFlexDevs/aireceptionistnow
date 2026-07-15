@@ -126,6 +126,21 @@ export default async function AssistantSettingsPage({
         back={{ href: "/dashboard/assistant", label: "Assistants" }}
       />
 
+      {/* The English-only downgrade is silent, sticky, and only visible in a
+          server log at the moment it happens: ElevenLabs rejected the
+          multilingual config during a sync, so this agent now tells every caller
+          it "can only communicate in English" until someone saves it again.
+          Callers feel it on every call, so the owner should see it on the page,
+          not have to go reading logs. Saving retries the full multilingual ladder. */}
+      {assistant.elevenlabs_multilingual === false && (
+        <div className="shape-pill flex flex-wrap items-center justify-between gap-3 border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-700">
+          <span>
+            <span className="font-medium">This assistant is English-only.</span>{" "}
+            It can&apos;t answer callers in their own language - setting up its languages failed the
+            last time it was saved. Save settings below to try again.
+          </span>
+        </div>
+      )}
       {saved && (
         <div className="shape-pill border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm text-emerald-700">
           Settings saved.

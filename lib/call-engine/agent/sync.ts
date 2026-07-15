@@ -12,6 +12,7 @@ import { MAX_SOURCE_CHARS, type AssistantKnowledge } from "../../knowledge/sourc
 import { ELEVENLABS_LANGUAGES, SUPPORTED_LANGUAGES } from "../voice/phone-language";
 import { DEFAULT_VOICE_ID, voiceForLanguage } from "../voice/catalog";
 import { routeNumberToAgent } from "../elevenlabs";
+import { ensureInitWebhook } from "./workspace";
 import { buildBuiltInTools, createAgentTools, deleteAgentTools } from "./tools";
 
 // Sync a dashboard assistant to a managed ElevenLabs Conversational AI agent.
@@ -443,6 +444,14 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
   // on a first-ever sync this ensures the brand-new agent id is saved so a retry
   // reuses it instead of creating a duplicate agent.
   await setAssistantAgent(assistantId, agentId, docs, tools, multilingual);
+
+  // An agent that CAN speak the caller's language still opens in English unless
+  // ElevenLabs calls /api/agent/init for the per-caller greeting override. That
+  // webhook is workspace-global and was only ever wired by a manual
+  // /api/agent/setup, so a deployment that never ran it greeted every caller in
+  // English with nothing to show why. Assert it on every save - best-effort, and
+  // it never repoints a url another deployment owns.
+  await ensureInitWebhook();
 
   // If write() recreated a stale/deleted agent (404 recovery), the assistant's
   // connected number still routes to the dead agent id - re-point it, or inbound
