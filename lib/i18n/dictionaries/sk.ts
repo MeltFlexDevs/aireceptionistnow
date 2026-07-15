@@ -22,13 +22,15 @@ export const sk: Dictionary = {
     integrationsHint: "Kalendáre, CRM a ďalšie",
     settings: "Nastavenia",
     settingsHint: "Účet a fakturácia",
-    needAHand: "Potrebujete pomoc?",
+    aiKnows: "Čo o vás AI vie",
+    aiKnowsHint: "Pozrite si všetko, čo vaši asistenti vedia o vás a vašom podnikaní.",
   },
   topbar: {
     search: "Hľadať hovory, volajúcich, čísla...",
     language: "Jazyk",
   },
   user: {
+    tutorial: "Návod",
     signOut: "Odhlásiť sa",
     signedInAs: "Prihlásený ako",
   },
@@ -78,29 +80,11 @@ export const sk: Dictionary = {
   },
   overview: {
     title: "Prehľad",
-    description:
-      "Pozrite sa, ako si vedie vaša AI recepčná. Prijaté hovory, ako prebehli, a trendy v čase.",
+    description: "Ako sa práve teraz darí vašej AI recepčnej a čo volajúci naozaj povedali.",
     loadError: "Analytiku sa nepodarilo načítať",
     noCallsTitle: "Zatiaľ žiadne hovory",
-    noCallsBody:
-      "Keď vaša AI recepčná prijme prvý hovor, zobrazia sa tu živé štatistiky - objem, nálada, rezervácie a latencia.",
+    noCallsBody: "Keď vaša AI recepčná zdvihne prvý hovor, objavia sa tu čísla a AI zhrnutie každého hovoru.",
     setUpAssistant: "Nastaviť asistenta",
-    assistants: "Asistenti",
-    assistantsSub: "Výsledky každého asistenta za posledných 14 dní",
-    callVolume: "Objem hovorov",
-    callVolumeSub: "Prijaté hovory za posledných 14 dní",
-    talkRatio: "Pomer rozprávania",
-    talkRatioSub: "Čas rozprávania volajúceho vs. AI",
-    noConversation: "Zatiaľ žiadne údaje o konverzácii.",
-    voiceLatency: "Latencia hlasu",
-    voiceLatencySub: "Volajúci prestane → AI odpovie",
-    callersByCountry: "Volajúci podľa krajiny",
-    callersByCountrySub: "Odkiaľ volajú nedávni volajúci",
-    noCalls: "Zatiaľ žiadne hovory.",
-    thisMonth: "Tento mesiac",
-    thisMonthSub: "Spracované hovory",
-    talkMinutes: "Minúty rozhovoru",
-    bookings: "Rezervácie",
     recentCalls: "Nedávne hovory",
     aiSummaries: "AI zhrnutia hovorov",
     aiSummariesSub: "Automaticky vytvorené po každom hovore",
@@ -133,6 +117,13 @@ export const sk: Dictionary = {
     outbound: "Odchádzajúci",
   },
   analytics: {
+    latencyUnder: "Pod cieľom",
+    latencyOver: "Nad cieľom",
+    voiceLatency: "Latencia hlasu",
+    voiceLatencySub: "Volajúci prestane → AI odpovie",
+    talkRatio: "Pomer rozprávania",
+    talkRatioSub: "Čas rozprávania volajúceho vs. AI",
+    noConversation: "Zatiaľ žiadne údaje o konverzácii.",
     title: "Analytika",
     allAssistants: "Všetci asistenti. Posledných 30 dní.",
     loadError: "Analytiku sa nepodarilo načítať",
@@ -293,5 +284,146 @@ export const sk: Dictionary = {
     billing: "Fakturácia",
     billingSub: "Váš plán a spotreba.",
     noSubscription: "Žiadne aktívne predplatné. Vyberte plán a zvýšte svoje limity.",
+  },
+  tutorial: {
+    title: "Návod",
+    description: "Čo robí každá obrazovka, čo na nej môžete urobiť a na čo si dať pozor.",
+    startHere: "Začnite tu",
+    startHereSub: "Štyri kroky od prázdneho prehľadu k AI, ktorá dvíha váš telefón.",
+    everyScreen: "Každá obrazovka",
+    everyScreenSub: "Preskočte rovno na jednu alebo čítajte ďalej.",
+    whatYouCanDo: "Čo tu môžete urobiť",
+    goodToKnow: "Dobré vedieť",
+    readOnly: "Iba na čítanie",
+    open: "Otvoriť",
+    knowledgeWhere: "Karta v spodnej časti bočného panela",
+    footer: "Niečo tu nesedí s tým, čo vidíte?",
+    footerLink: "Nahláste to pri hovore",
+    footerEnd: "a pozrieme sa na to.",
+    quickStart: [
+      {
+        title: "Vytvorte organizáciu",
+        body: "Obsahuje fakty, z ktorých vaši asistenti odpovedajú - služby, otváracie hodiny, ceny. Zadajte ich raz a prečíta si ich každý priradený asistent.",
+      },
+      {
+        title: "Pripojte kalendár",
+        body: "Bez neho asistent požiadavku prijme, ale nemôže ponúknuť skutočný termín ani nič rezervovať.",
+      },
+      {
+        title: "Vytvorte asistenta a prideľte mu číslo",
+        body: "Asistent je hlas: jeho meno, jazyk, pozdrav a správanie. Číslo je to, čo volajúci vytáčajú - kým nie je priradené k asistentovi, nerobí nič.",
+      },
+      {
+        title: "Sledujte prichádzajúce hovory",
+        body: "Každý hovor pristane v Hovoroch s nahrávkou, prepisom a AI zhrnutím. Analytika ukazuje, ako sa darí.",
+      },
+    ],
+    sections: {
+      overview: {
+        purpose: "Vaše výsledky na jeden pohľad: počet hovorov, miera zdvihnutia, rezervácie a ako si vedie každý asistent.",
+        can: [
+          "Pozrite si hlavné čísla za posledných 14 dní a spotrebu tento mesiac oproti vášmu plánu.",
+          "Prečítajte si najnovšie AI zhrnutia a posledné hovory bez otvárania každého z nich.",
+          "Sledujte sprievodcu nastavením, kým nepríde prvý hovor - odškrtáva sa sám.",
+        ],
+        gotcha:
+          "Pred prvým hovorom nie je čo zobraziť, takže táto stránka namiesto štatistík ukazuje sprievodcu nastavením.",
+      },
+      calls: {
+        purpose: "Každý prichádzajúci hovor, zosúladený s vašimi Twilio záznamami, a za každým celý prepis.",
+        can: [
+          "Hľadajte podľa telefónneho čísla, asistenta, výsledku alebo Call SID.",
+          "Filtrujte podľa stavu: dokončené, nezdvihnuté alebo prebiehajúce.",
+          "Otvorte hovor, prehrajte si alebo stiahnite nahrávku a prečítajte prepis.",
+          "Pozrite si, čo asistent urobil - rezervoval termín, prijal odkaz, prepojil hovor - a či to vyšlo.",
+          "Nahláste problém pri hovore. Vaša poznámka sa odošle aj s prepisom, takže zlú odpoveď je možné dohľadať a doladiť.",
+        ],
+        gotcha:
+          "Hovor sa zobrazí až vtedy, keď je priradený asistentovi, takže šum od operátora sa sem nedostane. Prebiehajúci hovor sa sám obnovuje každých pár sekúnd.",
+      },
+      calendar: {
+        purpose: "Každý termín, ktorý vaši asistenti rezervovali počas hovoru, po mesiacoch.",
+        can: [
+          "Prechádzajte medzi mesiacmi alebo skočte späť na dnešok.",
+          "Kliknite na rezerváciu a otvorte hovor, z ktorého vznikla.",
+          "Pozrite si, kto volal, ktorý asistent rezervoval a do ktorého kalendára to pristálo.",
+        ],
+        gotcha:
+          "Všímajte si „Žiadosti na potvrdenie“. To je volajúci, ktorý chcel termín, ale nepodarilo sa zachytiť použiteľný čas - zvyčajne nebol pripojený kalendár. Tie treba vybaviť ručne. Časy sa riadia časovým pásmom v Nastaveniach.",
+      },
+      analytics: {
+        purpose: "Posledných 30 dní do hĺbky: počty hovorov, miera zdvihnutia, odkiaľ volajúci sú a ako sa cítili.",
+        can: [
+          "Filtrujte podľa organizácie a potom podľa konkrétneho asistenta v nej.",
+          "Porovnajte asistentov vedľa seba v tabuľke „Podľa asistenta“.",
+          "Pozrite si volajúcich podľa krajiny a celkovú náladu.",
+        ],
+        gotcha:
+          "Pokles miery zdvihnutia zvyčajne znamená, že asistent prišiel o číslo. Dni sa počítajú v časovom pásme z Nastavení.",
+      },
+      organizations: {
+        purpose: "Firma, za ktorú vaši asistenti hovoria, a spoločné znalosti, z ktorých všetci odpovedajú.",
+        can: [
+          "Vytvorte organizáciu a dajte jej názov a popis.",
+          "Importujte web cez URL, nahrajte PDF alebo napíšte poznámky a FAQ - hodiny, pravidlá, pobočky, ceny.",
+          "Priraďte k nej asistentov. Asistent môže byť naraz len v jednej organizácii.",
+          "Odstráňte zdroj, z ktorého už nechcete, aby AI citovala.",
+        ],
+        gotcha:
+          "Toto je najúčinnejšia obrazovka: pridajte fakt raz a vie ho každý priradený asistent. Zmazaním organizácie o asistentov neprídete - len sa odpoja od jej znalostí.",
+      },
+      assistant: {
+        purpose: "Hlas v telefóne: kto je, ako znie a čo smie robiť.",
+        can: [
+          "Nastavte meno, pozdrav, jazyk a hlas - v Pokročilých môžete pripnúť konkrétny hlas pre každý jazyk.",
+          "Získajte pre neho telefónne číslo alebo odpojte to súčasné.",
+          "Vyberte, z ktorej organizácie číta znalosti.",
+          "Dajte mu prístup ku kalendáru: len čítať dostupnosť, alebo aj rezervovať.",
+          "Po každom hovore pošlite e-mailom zhrnutie a prepis.",
+          "Zavolajte si testovací hovor a vypočujte si ho skôr než vaši zákazníci.",
+        ],
+        gotcha:
+          "Asistent bez čísla nemôže prijímať hovory. Hlas, jazyk aj správanie žijú tu na asistentovi - nikdy nie na čísle.",
+      },
+      numbers: {
+        purpose: "Zásoba čísel, ktoré sú voľné na priradenie.",
+        can: [
+          "Otvorte dostupné číslo a priraďte ho asistentovi, aby ste ho spustili.",
+          "Nastavte číslo späť na Voľné a prestane dvíhať.",
+        ],
+        gotcha:
+          "Táto stránka zobrazuje iba nepriradené čísla, takže číslo v aktívnom používaní tu nie je - to je správne, nie chyba. Nové číslo získate v asistentovi cez „Získať číslo“: najprv siahne po voľnom zo zásoby a až potom kúpi novú linku.",
+      },
+      integrations: {
+        purpose: "Vonkajšie služby, ku ktorým vaši asistenti dosiahnu - dnes kalendáre, čoskoro vaše vlastné systémy.",
+        can: [
+          "Pripojte Google, Microsoft, Cal.com alebo Calendly, aby si volajúci mohli rezervovať skutočné termíny.",
+          "Kalendár môžete kedykoľvek odpojiť.",
+        ],
+        gotcha:
+          "Pripojením kalendára ho tu len sprístupníte. Každému asistentovi treba prístup k nemu ešte povoliť v jeho vlastných nastaveniach. CRM push v sekcii Vývojár pripravujeme.",
+      },
+      knowledge: {
+        purpose: "Všetko, čo vaši asistenti vedia o vás a vašom podnikaní, na jednej stránke a zrozumiteľne.",
+        can: [
+          "Prečítajte si AI zhrnutie toho, čo vaši asistenti spoľahlivo zodpovedajú - a čo chýba.",
+          "Pozrite si každý zdroj, ktorý čítajú, a ktorí asistenti ho čítajú.",
+          "Skontrolujte, či sa váš vlastný profil zdieľa s volajúcimi.",
+        ],
+        gotcha:
+          "Ak fakt nie je na tejto stránke, vaši asistenti ho nepoznajú. Začnite tu, keď volajúci dostane odpoveď, ktorú ste nečakali.",
+      },
+      settings: {
+        purpose: "Údaje o účte, čo o vás asistenti smú povedať, notifikácie a fakturácia.",
+        can: [
+          "Nastavte meno, firmu, rolu, telefón a časové pásmo.",
+          "Napíšte poznámku „O vás“ a vyberte, či ju asistenti smú spomínať pri hovoroch.",
+          "Zapnite alebo vypnite e-maily so zhrnutím hovoru a urgentné SMS upozornenia.",
+          "Pozrite si spotrebu plánu a spravujte fakturáciu či zmeňte plán cez fakturačný portál.",
+        ],
+        gotcha:
+          "Vaše časové pásmo je kľúčové: v ňom sa zobrazuje Kalendár aj Analytika. Prihlasovací e-mail sa tu meniť nedá.",
+      },
+    },
   },
 };

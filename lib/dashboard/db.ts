@@ -222,6 +222,30 @@ export async function upsertCalendarIntegration(
   if (error) throw error;
 }
 
+/** Add a CRM push endpoint - one row per endpoint, deliberately NOT keyed like
+ *  upsertCalendarIntegration: a user may keep several (Zapier, an ERP intake, a
+ *  custom webhook) and point any number of assistants at each. Assistants
+ *  reference the row by id (routing.crm.targets), so editing the URL here
+ *  changes it for every assistant sharing it. */
+export async function createCrmIntegration(
+  config: Record<string, unknown>,
+  ownerId?: string | null,
+): Promise<void> {
+  // Fail closed, same rule as upsertCalendarIntegration: with auth on an owner is
+  // required, otherwise the row would be unowned and visible to every tenant.
+  if (authConfigured() && !ownerId) throw new Error("Not signed in.");
+  const businessId = await ensureBusinessId();
+  const { error } = await db().from("integrations").insert({
+    business_id: businessId,
+    type: "crm",
+    provider: "webhook",
+    config,
+    enabled: true,
+    ...(ownerId ? { owner_id: ownerId } : {}),
+  });
+  if (error) throw error;
+}
+
 /** Delete an integration. When an ownerId is passed (auth on), only the
  *  caller's own - or a legacy unowned - row matches, so one tenant can't
  *  disconnect another's calendar (same unowned-allowed rule as
@@ -539,6 +563,22 @@ export async function listImportedFreeNumbers(): Promise<PhoneNumber[]> {
     .not("elevenlabs_phone_number_id", "is", null);
   if (error) throw error;
   return (data ?? []) as PhoneNumber[];
+}
+
+/** ElevenLabs phone-number ids currently linked to an assistant - i.e. lines a
+ *  customer's calls run on. The public demo must never place a call from one:
+ *  ElevenLabs reports that line as the call's agent_number, so the post-call
+ *  webhook resolves it to that assistant and the demo lands in the owner's
+ *  dashboard (stamped by the calls_set_assignment trigger). */
+export async function assignedElevenLabsNumberIds(): Promise<Set<string>> {
+  const { data, error } = await db()
+    .from("phone_numbers")
+    .select("elevenlabs_phone_number_id")
+    .is("deleted_at", null)
+    .not("assistant_id", "is", null)
+    .not("elevenlabs_phone_number_id", "is", null);
+  if (error) throw error;
+  return new Set((data ?? []).map((r) => String(r.elevenlabs_phone_number_id)));
 }
 
 /** How many free numbers the pool currently holds (same "free" rule as claim). */

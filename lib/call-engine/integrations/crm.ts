@@ -1,15 +1,21 @@
 import { createHmac } from "node:crypto";
 import { isSafeHttpsUrl } from "../../net/safe-url";
-import type { CallSummary, TranscriptTurn } from "../types";
+import type { CallSummary, IntegrationConfig, TranscriptTurn } from "../types";
 
-// Optional per-assistant CRM/ERP push. After a call wraps up, POST the call
-// record (summary + transcript) to a URL the user configures - Salesforce/
-// HubSpot via a middleware, an ERP intake endpoint, Zapier, Make, n8n, or a
-// custom webhook. Generic on purpose: one JSON contract drives any system.
+// Optional CRM/ERP push. After a call wraps up, POST the call record (summary +
+// transcript) to a URL the user configures - Salesforce/HubSpot via a
+// middleware, an ERP intake endpoint, Zapier, Make, n8n, or a custom webhook.
+// Generic on purpose: one JSON contract drives any system.
+//
+// An endpoint is a shared `crm` integration owned by the account (Integrations
+// page), not per-assistant config: several assistants can push to one endpoint,
+// and an assistant can push to several. The assistant's routing only stores
+// which ones it uses - see resolveCrmTargets.
 
 export interface CrmConfig {
-  enabled?: boolean;
-  url?: string;
+  /** Endpoint label, for logs only. */
+  name: string;
+  url: string;
   secret?: string;
 }
 
@@ -25,11 +31,41 @@ export interface CrmPayload {
 
 const TIMEOUT_MS = 10_000;
 
-/** Read and validate the CRM config off an assistant's routing JSON. */
-export function readCrmConfig(routing: Record<string, unknown>): CrmConfig | null {
-  const crm = (routing.crm as CrmConfig) ?? null;
-  if (!crm || !crm.enabled || !crm.url) return null;
-  return crm;
+/** What an assistant's routing JSON stores: which shared endpoints it pushes to. */
+interface CrmTarget {
+  integrationId: string;
+}
+
+/**
+ * The CRM endpoints this assistant pushes completed calls to: its routing target
+ * ids resolved against the integrations loaded for the call.
+ *
+ * Resolving against that list (rather than trusting the ids) is what keeps a
+ * stale target harmless - `integrations` is already scoped to the assistant's
+ * business + owner and filtered to enabled rows by resolveInboundNumber, so a
+ * deleted, disabled, or another tenant's endpoint simply drops out.
+ */
+export function resolveCrmTargets(
+  routing: Record<string, unknown>,
+  integrations: IntegrationConfig[],
+): CrmConfig[] {
+  const targets = (routing.crm as { targets?: CrmTarget[] } | undefined)?.targets;
+  if (!Array.isArray(targets) || targets.length === 0) return [];
+
+  const byId = new Map(
+    integrations.filter((i) => i.type === "crm" && i.enabled).map((i) => [i.id, i]),
+  );
+  const out: CrmConfig[] = [];
+  for (const t of targets) {
+    const row = byId.get(t?.integrationId);
+    if (!row) continue;
+    const url = typeof row.config.url === "string" ? row.config.url : "";
+    if (!url) continue;
+    const secret = typeof row.config.secret === "string" ? row.config.secret : "";
+    const name = typeof row.config.name === "string" ? row.config.name : "CRM";
+    out.push({ name, url, ...(secret ? { secret } : {}) });
+  }
+  return out;
 }
 
 /**
@@ -41,7 +77,6 @@ export async function pushCallToCrm(
   crm: CrmConfig,
   payload: CrmPayload,
 ): Promise<{ ok: boolean; status?: number; error?: string }> {
-  if (!crm.url) return { ok: false, error: "no crm url configured" };
   // Re-validate at dispatch, not just at save time: a hostname that was public
   // when saved can be repointed to an internal address before this fires (DNS
   // rebinding). Combined with redirect:"manual" below (an open redirect would

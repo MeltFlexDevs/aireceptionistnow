@@ -1,4 +1,4 @@
-import { pushCallToCrm, readCrmConfig } from "../integrations/crm";
+import { pushCallToCrm, resolveCrmTargets } from "../integrations/crm";
 import type { CallRepository } from "../persistence/types";
 import type { CallSummary, NumberConfig, TranscriptTurn } from "../types";
 import { readEmailConfig, sendTranscriptEmail } from "./email";
@@ -55,9 +55,10 @@ async function deliverCrm(
   summary: CallSummary,
   turns: TranscriptTurn[],
 ): Promise<void> {
-  const crm = readCrmConfig(config.routing);
-  if (!crm) return;
-  const res = await pushCallToCrm(crm, {
+  const targets = resolveCrmTargets(config.routing, config.integrations);
+  if (targets.length === 0) return;
+
+  const payload = {
     callId,
     businessName: config.businessName,
     line: config.label,
@@ -65,8 +66,15 @@ async function deliverCrm(
     from: from || undefined,
     summary,
     transcript: turns.map((t) => ({ role: t.role, text: t.text })),
-  });
-  if (!res.ok) {
-    console.error(`[postcall] crm push failed for ${callId}: ${res.error}`);
-  }
+  };
+  // One assistant can push to several endpoints; a dead one must not stop the
+  // rest, so they go out together and each reports on its own.
+  await Promise.allSettled(
+    targets.map(async (crm) => {
+      const res = await pushCallToCrm(crm, payload);
+      if (!res.ok) {
+        console.error(`[postcall] crm push to "${crm.name}" failed for ${callId}: ${res.error}`);
+      }
+    }),
+  );
 }

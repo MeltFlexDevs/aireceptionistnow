@@ -22,26 +22,16 @@ export interface CalendarProviderDef {
 // Calendars the assistant can book into during a call. Each `id` maps to a
 // booking adapter in the call engine (lib/call-engine/integrations/registry.ts)
 // and, for `oauth` providers, to an OAuth definition in lib/dashboard/oauth.ts.
-// All three connect via OAuth only ("Continue with…") once the app's OAuth env
-// creds are set - no manual credential entry. Legacy Cal.com API-key rows in
-// the DB still work (the adapter sends api_key as a Bearer token).
+// Connects via OAuth only ("Continue with…") once the app's OAuth env creds are
+// set - no manual credential entry. Legacy Cal.com API-key rows in the DB still
+// work (the adapter sends api_key as a Bearer token).
+//
+// This catalog is the connect surface, not the whole story: the google/outlook
+// adapters, OAuth defs, and icons stay in the codebase, so an existing row for
+// a provider that is not listed here keeps booking. Nothing off-catalog can be
+// connected, and (as with `calendly`) nothing off-catalog renders here either -
+// so re-adding an entry is all it takes to bring one back.
 export const CALENDAR_PROVIDERS: CalendarProviderDef[] = [
-  {
-    id: "google",
-    name: "Google Calendar",
-    blurb: "Books straight into your Google Calendar. Connect with your Google account.",
-    live: true,
-    oauth: true,
-    fields: [],
-  },
-  {
-    id: "outlook",
-    name: "Microsoft Outlook",
-    blurb: "Books into Outlook / Microsoft 365. Connect with your Microsoft account.",
-    live: true,
-    oauth: true,
-    fields: [],
-  },
   {
     id: "calcom",
     name: "Cal.com",

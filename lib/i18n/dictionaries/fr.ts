@@ -22,13 +22,15 @@ export const fr: Dictionary = {
     integrationsHint: "Agendas, CRM et plus",
     settings: "Paramètres",
     settingsHint: "Compte et facturation",
-    needAHand: "Besoin d'aide ?",
+    aiKnows: "Ce que votre IA sait",
+    aiKnowsHint: "Voyez tout ce que vos assistants savent sur vous et votre entreprise.",
   },
   topbar: {
     search: "Rechercher appels, appelants, numéros...",
     language: "Langue",
   },
   user: {
+    tutorial: "Tutoriel",
     signOut: "Se déconnecter",
     signedInAs: "Connecté en tant que",
   },
@@ -78,29 +80,11 @@ export const fr: Dictionary = {
   },
   overview: {
     title: "Aperçu",
-    description:
-      "Découvrez comment se porte votre réceptionniste IA. Appels pris, leur déroulement et tendances dans le temps.",
+    description: "Comment se porte votre standard IA en ce moment, et ce que les appelants ont vraiment dit.",
     loadError: "Impossible de charger les analyses",
     noCallsTitle: "Aucun appel pour l'instant",
-    noCallsBody:
-      "Dès que votre réceptionniste IA prend son premier appel, les statistiques en direct - volume, sentiment, réservations et latence - apparaissent ici.",
+    noCallsBody: "Dès que votre standard IA prend son premier appel, les chiffres et le résumé IA de chaque appel s'affichent ici.",
     setUpAssistant: "Configurer votre assistant",
-    assistants: "Assistants",
-    assistantsSub: "Résultats de chaque assistant sur les 14 derniers jours",
-    callVolume: "Volume d'appels",
-    callVolumeSub: "Appels pris sur les 14 derniers jours",
-    talkRatio: "Répartition de parole",
-    talkRatioSub: "Temps de parole appelant vs IA",
-    noConversation: "Pas encore de données de conversation.",
-    voiceLatency: "Latence vocale",
-    voiceLatencySub: "L'appelant s'arrête → l'IA répond",
-    callersByCountry: "Appelants par pays",
-    callersByCountrySub: "D'où appellent les appelants récents",
-    noCalls: "Aucun appel pour l'instant.",
-    thisMonth: "Ce mois-ci",
-    thisMonthSub: "Appels traités",
-    talkMinutes: "Minutes de conversation",
-    bookings: "Réservations",
     recentCalls: "Appels récents",
     aiSummaries: "Résumés d'appels IA",
     aiSummariesSub: "Générés automatiquement après chaque appel",
@@ -133,6 +117,13 @@ export const fr: Dictionary = {
     outbound: "Sortant",
   },
   analytics: {
+    latencyUnder: "Sous l'objectif",
+    latencyOver: "Au-dessus de l'objectif",
+    voiceLatency: "Latence vocale",
+    voiceLatencySub: "L'appelant s'arrête → l'IA répond",
+    talkRatio: "Répartition de parole",
+    talkRatioSub: "Temps de parole appelant vs IA",
+    noConversation: "Pas encore de données de conversation.",
     title: "Analyses",
     allAssistants: "Tous les assistants. 30 derniers jours.",
     loadError: "Impossible de charger les analyses",
@@ -293,5 +284,146 @@ export const fr: Dictionary = {
     billing: "Facturation",
     billingSub: "Votre forfait et votre usage.",
     noSubscription: "Aucun abonnement actif. Choisissez un forfait pour augmenter vos limites.",
+  },
+  tutorial: {
+    title: "Tutoriel",
+    description: "Ce que fait chaque écran, ce que vous pouvez y faire et les détails qui piègent tout le monde.",
+    startHere: "Commencez ici",
+    startHereSub: "Quatre étapes entre un tableau de bord vide et une IA qui répond à votre téléphone.",
+    everyScreen: "Tous les écrans",
+    everyScreenSub: "Allez directement à l'un d'eux ou poursuivez la lecture.",
+    whatYouCanDo: "Ce que vous pouvez faire",
+    goodToKnow: "Bon à savoir",
+    readOnly: "Lecture seule",
+    open: "Ouvrir",
+    knowledgeWhere: "La carte en bas de la barre latérale",
+    footer: "Quelque chose ici ne correspond pas à ce que vous voyez ?",
+    footerLink: "Signalez-le sur un appel",
+    footerEnd: "et nous y jetterons un œil.",
+    quickStart: [
+      {
+        title: "Créez une organisation",
+        body: "Elle contient les informations dont vos assistants se servent pour répondre : prestations, horaires, tarifs. Saisissez-les une fois et chaque assistant rattaché les lit.",
+      },
+      {
+        title: "Connectez un agenda",
+        body: "Sans agenda, l'assistant peut noter la demande, mais il ne peut ni proposer un vrai créneau ni réserver.",
+      },
+      {
+        title: "Créez un assistant et donnez-lui un numéro",
+        body: "L'assistant, c'est la voix : son nom, sa langue, son accueil et son comportement. Le numéro est ce que vos correspondants composent : il ne sert à rien tant qu'il n'est pas relié à un assistant.",
+      },
+      {
+        title: "Regardez les appels arriver",
+        body: "Chaque appel arrive dans Appels avec enregistrement, transcription et résumé IA. Analyses montre la tendance.",
+      },
+    ],
+    sections: {
+      overview: {
+        purpose: "Vos résultats en un coup d'œil : volume d'appels, taux de réponse, réservations et performance de chaque assistant.",
+        can: [
+          "Voir les chiffres clés des 14 derniers jours et la consommation du mois par rapport à votre forfait.",
+          "Lire les derniers résumés IA et les appels récents sans les ouvrir un par un.",
+          "Suivre le guide de configuration jusqu'au premier appel : il se coche tout seul.",
+        ],
+        gotcha:
+          "Avant votre premier appel il n'y a rien à afficher : cette page montre donc le guide de configuration à la place des statistiques.",
+      },
+      calls: {
+        purpose: "Chaque appel entrant, rapproché de vos journaux Twilio, avec la transcription complète derrière.",
+        can: [
+          "Rechercher par numéro, assistant, résultat ou Call SID.",
+          "Filtrer par statut : terminé, sans réponse ou en cours.",
+          "Ouvrir un appel pour écouter ou télécharger l'enregistrement et lire la transcription.",
+          "Voir ce qu'a fait l'assistant : rendez-vous réservé, message pris, appel transféré, et si cela a fonctionné.",
+          "Signaler un problème sur un appel. Votre note part avec la transcription jointe, pour retrouver et corriger une mauvaise réponse.",
+        ],
+        gotcha:
+          "Un appel n'apparaît qu'une fois rattaché à un assistant : le bruit de l'opérateur reste dehors. Un appel en cours se rafraîchit tout seul toutes les quelques secondes.",
+      },
+      calendar: {
+        purpose: "Chaque rendez-vous réservé par vos assistants pendant un appel, par mois.",
+        can: [
+          "Passer d'un mois à l'autre ou revenir à aujourd'hui.",
+          "Cliquer sur une réservation pour ouvrir l'appel dont elle provient.",
+          "Voir qui a appelé, quel assistant a réservé et dans quel agenda cela a atterri.",
+        ],
+        gotcha:
+          "Surveillez « Demandes à confirmer ». Ce sont des personnes qui voulaient un rendez-vous sans qu'une heure exploitable soit captée, en général faute d'agenda connecté. Celles-là demandent un suivi manuel. Les heures suivent le fuseau horaire des Paramètres.",
+      },
+      analytics: {
+        purpose: "Les 30 derniers jours en détail : volume, taux de réponse, provenance des appelants et leur ressenti.",
+        can: [
+          "Filtrer par organisation, puis par un assistant précis à l'intérieur.",
+          "Comparer les assistants côte à côte dans le tableau « Par assistant ».",
+          "Voir les appelants par pays et le sentiment global.",
+        ],
+        gotcha:
+          "Une baisse du taux de réponse signifie généralement qu'un assistant a perdu son numéro. Les jours sont regroupés selon le fuseau horaire des Paramètres.",
+      },
+      organizations: {
+        purpose: "L'entreprise au nom de laquelle parlent vos assistants, et les connaissances partagées dont ils se servent tous.",
+        can: [
+          "Créer une organisation et lui donner un nom et une description.",
+          "Importer un site par URL, téléverser un PDF ou saisir des notes et FAQ : horaires, règles, adresses, tarifs.",
+          "Y rattacher des assistants. Un assistant n'appartient qu'à une seule organisation à la fois.",
+          "Retirer une source que vous ne voulez plus voir citée par l'IA.",
+        ],
+        gotcha:
+          "C'est l'écran le plus rentable : ajoutez une information une fois et chaque assistant rattaché la connaît. Supprimer une organisation ne supprime pas vos assistants : ils sont seulement détachés de ses connaissances.",
+      },
+      assistant: {
+        purpose: "La voix au téléphone : qui elle est, comment elle sonne et ce qu'elle a le droit de faire.",
+        can: [
+          "Définir le nom, l'accueil, la langue et la voix, et fixer une voix par langue dans Avancé.",
+          "Lui obtenir un numéro ou détacher celui qu'il a.",
+          "Choisir de quelle organisation il tire ses connaissances.",
+          "Lui donner accès à l'agenda : lire les disponibilités seulement, ou aussi réserver.",
+          "Envoyer par e-mail un récapitulatif et la transcription après chaque appel.",
+          "Passer un appel test et l'entendre vous-même avant vos clients.",
+        ],
+        gotcha:
+          "Un assistant sans numéro ne peut pas prendre d'appels. La voix, la langue et le comportement vivent ici, sur l'assistant, jamais sur le numéro.",
+      },
+      numbers: {
+        purpose: "Le pool de numéros libres à attribuer.",
+        can: [
+          "Ouvrir un numéro disponible et l'attribuer à un assistant pour le mettre en service.",
+          "Remettre un numéro sur Libre pour qu'il cesse de répondre.",
+        ],
+        gotcha:
+          "Cette page ne liste que les numéros non attribués : un numéro en service n'y figure donc pas, c'est normal. Pour en obtenir un nouveau, ouvrez un assistant et utilisez « Obtenir un numéro » : il prend d'abord un numéro libre du pool avant d'en acheter un.",
+      },
+      integrations: {
+        purpose: "Les services externes que vos assistants peuvent atteindre : les agendas aujourd'hui, vos propres systèmes ensuite.",
+        can: [
+          "Connecter Google, Microsoft, Cal.com ou Calendly pour que vos correspondants réservent de vrais rendez-vous.",
+          "Déconnecter un agenda à tout moment.",
+        ],
+        gotcha:
+          "Connecter un agenda ici le rend seulement disponible. Il faut encore donner l'accès à chaque assistant dans ses propres réglages. L'envoi vers un CRM, sous Développeur, arrive bientôt.",
+      },
+      knowledge: {
+        purpose: "Tout ce que vos assistants savent de vous et de votre activité, sur une page et en langage clair.",
+        can: [
+          "Lire un résumé IA de ce que vos assistants savent répondre avec certitude, et de ce qui manque.",
+          "Voir chaque source qu'ils lisent et quels assistants la lisent.",
+          "Vérifier si votre propre profil est partagé avec les appelants.",
+        ],
+        gotcha:
+          "Si une information n'est pas sur cette page, vos assistants ne la connaissent pas. Commencez ici quand un appelant reçoit une réponse inattendue.",
+      },
+      settings: {
+        purpose: "Les informations de votre compte, ce que les assistants peuvent dire de vous, les notifications et la facturation.",
+        can: [
+          "Renseigner votre nom, société, rôle, téléphone et fuseau horaire.",
+          "Écrire une note « À propos de vous » et choisir si les assistants peuvent la partager pendant les appels.",
+          "Activer ou désactiver les e-mails de résumé et les alertes SMS urgentes.",
+          "Voir la consommation de votre forfait et gérer la facturation ou changer de forfait via le portail.",
+        ],
+        gotcha:
+          "Votre fuseau horaire est déterminant : c'est celui dans lequel s'affichent l'Agenda et les Analyses. L'e-mail de connexion ne se change pas ici.",
+      },
+    },
   },
 };

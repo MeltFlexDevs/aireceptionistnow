@@ -1,8 +1,9 @@
 import type { NextRequest } from "next/server";
 import { assertUnderCallCaps, placeAgentCall } from "@/lib/call-engine/elevenlabs";
 import { provisionDemoAgent } from "@/lib/call-engine/agent/sync";
+import { pickDemoCallerId } from "@/lib/call-engine/demo-caller";
 import { languageFromPhone } from "@/lib/call-engine/voice/phone-language";
-import { listImportedFreeNumbers } from "@/lib/dashboard/db";
+import { assignedElevenLabsNumberIds, listImportedFreeNumbers } from "@/lib/dashboard/db";
 
 // Public "Talk to our AI now" endpoint: an ElevenLabs Conversational AI agent
 // places an outbound call to the visitor's number and talks to them live.
@@ -39,28 +40,21 @@ function json(body: unknown, status = 200): Response {
 }
 
 /**
- * Pick the free pool number whose country best matches the destination, so the
- * visitor sees a local(ish) caller ID - a +420 number for +420/+421 callers, a
- * +1 number for NANP callers. "Best" = longest shared E.164 prefix; ties go to
- * the oldest number. Returns its ElevenLabs phone-number id, or undefined (→
- * placeAgentCall falls back to the env demo number) when the pool is empty or
- * the lookup fails - the demo button must never break on a DB hiccup.
+ * Load the candidates and pick the line to dial from (see pickDemoCallerId).
+ * Deliberately fails CLOSED on a DB error: without the in-use set we can't tell a
+ * spare line from a customer's, and a demo that's briefly unavailable beats one
+ * that dials out on a real customer's number.
  */
-async function demoCallerNumberId(to: string): Promise<string | undefined> {
+async function demoCallerNumberId(to: string): Promise<string | null> {
   try {
-    const pool = await listImportedFreeNumbers();
-    let best: { id: string; shared: number } | null = null;
-    for (const n of pool) {
-      let shared = 0;
-      while (shared < n.e164.length && n.e164[shared] === to[shared]) shared++;
-      if (!best || shared > best.shared) {
-        best = { id: n.elevenlabs_phone_number_id!, shared };
-      }
-    }
-    return best?.id;
+    const [pool, inUse] = await Promise.all([
+      listImportedFreeNumbers(),
+      assignedElevenLabsNumberIds(),
+    ]);
+    return pickDemoCallerId(to, pool, inUse, process.env.ELEVENLABS_AGENT_PHONE_NUMBER_ID);
   } catch (err) {
-    console.warn("[test-call] pool lookup failed, using env demo number", err);
-    return undefined;
+    console.error("[test-call] caller-ID lookup failed; refusing rather than guessing", err);
+    return null;
   }
 }
 
@@ -92,6 +86,16 @@ export async function POST(req: NextRequest): Promise<Response> {
       ensureDemoAgent(),
       demoCallerNumberId(to),
     ]);
+    // No free line to call from. Refuse instead of letting placeAgentCall fall
+    // back to the env number unchecked - that fallback is what put demo calls on
+    // a customer's line (and in their dashboard) in the first place.
+    if (!callerNumberId) {
+      console.error("[test-call] no unassigned caller ID available - demo call refused");
+      return json(
+        { ok: false, error: "Our demo line is busy right now. Please try again shortly." },
+        503,
+      );
+    }
     await placeAgentCall(to, {
       language: demo?.multilingual ? (languageFromPhone(to) ?? undefined) : undefined,
       agentPhoneNumberId: callerNumberId,

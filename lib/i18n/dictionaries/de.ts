@@ -22,13 +22,15 @@ export const de: Dictionary = {
     integrationsHint: "Kalender, CRM & mehr",
     settings: "Einstellungen",
     settingsHint: "Konto & Abrechnung",
-    needAHand: "Brauchst du Hilfe?",
+    aiKnows: "Was deine KI weiß",
+    aiKnowsHint: "Sieh alles, was deine Assistenten über dich und dein Unternehmen wissen.",
   },
   topbar: {
     search: "Anrufe, Anrufer, Nummern suchen...",
     language: "Sprache",
   },
   user: {
+    tutorial: "Anleitung",
     signOut: "Abmelden",
     signedInAs: "Angemeldet als",
   },
@@ -78,29 +80,11 @@ export const de: Dictionary = {
   },
   overview: {
     title: "Übersicht",
-    description:
-      "Sieh, wie sich deine KI-Rezeption schlägt. Angenommene Anrufe, wie sie verliefen und Trends über die Zeit.",
+    description: "Wie deine KI-Rezeption gerade läuft und was Anrufer wirklich gesagt haben.",
     loadError: "Analysen konnten nicht geladen werden",
     noCallsTitle: "Noch keine Anrufe",
-    noCallsBody:
-      "Sobald deine KI-Rezeption ihren ersten Anruf annimmt, erscheinen hier Live-Statistiken: Volumen, Stimmung, Buchungen und Latenz.",
+    noCallsBody: "Sobald deine KI-Rezeption den ersten Anruf annimmt, erscheinen hier die Zahlen und die KI-Zusammenfassung jedes Anrufs.",
     setUpAssistant: "Assistent einrichten",
-    assistants: "Assistenten",
-    assistantsSub: "Ergebnisse jedes Assistenten der letzten 14 Tage",
-    callVolume: "Anrufvolumen",
-    callVolumeSub: "Angenommene Anrufe der letzten 14 Tage",
-    talkRatio: "Sprechanteil",
-    talkRatioSub: "Sprechzeit von Anrufer und KI",
-    noConversation: "Noch keine Gesprächsdaten.",
-    voiceLatency: "Sprachlatenz",
-    voiceLatencySub: "Anrufer hört auf → KI antwortet",
-    callersByCountry: "Anrufer nach Land",
-    callersByCountrySub: "Woher jüngste Anrufer anrufen",
-    noCalls: "Noch keine Anrufe.",
-    thisMonth: "Diesen Monat",
-    thisMonthSub: "Bearbeitete Anrufe",
-    talkMinutes: "Gesprächsminuten",
-    bookings: "Buchungen",
     recentCalls: "Letzte Anrufe",
     aiSummaries: "KI-Anrufzusammenfassungen",
     aiSummariesSub: "Nach jedem Anruf automatisch erstellt",
@@ -133,6 +117,13 @@ export const de: Dictionary = {
     outbound: "Ausgehend",
   },
   analytics: {
+    latencyUnder: "Unter Zielwert",
+    latencyOver: "Über Zielwert",
+    voiceLatency: "Sprachlatenz",
+    voiceLatencySub: "Anrufer hört auf → KI antwortet",
+    talkRatio: "Sprechanteil",
+    talkRatioSub: "Sprechzeit von Anrufer und KI",
+    noConversation: "Noch keine Gesprächsdaten.",
     title: "Analysen",
     allAssistants: "Alle Assistenten. Letzte 30 Tage.",
     loadError: "Analysen konnten nicht geladen werden",
@@ -293,5 +284,146 @@ export const de: Dictionary = {
     billing: "Abrechnung",
     billingSub: "Dein Tarif und deine Nutzung.",
     noSubscription: "Kein aktives Abo. Wähle einen Tarif, um deine Limits zu erhöhen.",
+  },
+  tutorial: {
+    title: "Anleitung",
+    description: "Was jeder Bildschirm macht, was du dort tun kannst und worauf du achten solltest.",
+    startHere: "Hier starten",
+    startHereSub: "Vier Schritte vom leeren Dashboard zur KI, die dein Telefon abnimmt.",
+    everyScreen: "Jeder Bildschirm",
+    everyScreenSub: "Spring direkt zu einem oder lies weiter.",
+    whatYouCanDo: "Was du hier tun kannst",
+    goodToKnow: "Gut zu wissen",
+    readOnly: "Nur lesen",
+    open: "Öffnen",
+    knowledgeWhere: "Die Karte unten in der Seitenleiste",
+    footer: "Passt hier etwas nicht zu dem, was du siehst?",
+    footerLink: "Melde es bei einem Anruf",
+    footerEnd: "und wir schauen es uns an.",
+    quickStart: [
+      {
+        title: "Organisation anlegen",
+        body: "Sie enthält die Fakten, aus denen deine Assistenten antworten - Leistungen, Öffnungszeiten, Preise. Einmal eintragen, und jeder zugewiesene Assistent liest sie.",
+      },
+      {
+        title: "Kalender verbinden",
+        body: "Ohne Kalender nimmt der Assistent den Wunsch zwar auf, kann aber keinen echten Termin anbieten oder buchen.",
+      },
+      {
+        title: "Assistent anlegen und Nummer geben",
+        body: "Der Assistent ist die Stimme: Name, Sprache, Begrüßung und Verhalten. Die Nummer ist das, was deine Anrufer wählen - ohne Assistent tut sie nichts.",
+      },
+      {
+        title: "Den Anrufen zusehen",
+        body: "Jeder Anruf landet unter Anrufe mit Aufnahme, Transkript und KI-Zusammenfassung. Analysen zeigen den Trend.",
+      },
+    ],
+    sections: {
+      overview: {
+        purpose: "Deine Ergebnisse auf einen Blick: Anrufvolumen, Antwortrate, Buchungen und wie jeder Assistent abschneidet.",
+        can: [
+          "Die wichtigsten Zahlen der letzten 14 Tage sehen und den Verbrauch dieses Monats gegen deinen Tarif.",
+          "Die neuesten KI-Zusammenfassungen und letzten Anrufe lesen, ohne jeden einzeln zu öffnen.",
+          "Der Einrichtungshilfe folgen, bis der erste Anruf kommt - sie hakt sich selbst ab.",
+        ],
+        gotcha:
+          "Vor dem ersten Anruf gibt es nichts zu zeigen, deshalb erscheint hier statt der Statistik die Einrichtungshilfe.",
+      },
+      calls: {
+        purpose: "Jeder eingehende Anruf, abgeglichen mit deinen Twilio-Protokollen, mit dem vollständigen Transkript dahinter.",
+        can: [
+          "Nach Rufnummer, Assistent, Ergebnis oder Call SID suchen.",
+          "Nach Status filtern: abgeschlossen, unbeantwortet oder laufend.",
+          "Einen Anruf öffnen, die Aufnahme abspielen oder herunterladen und das Transkript lesen.",
+          "Sehen, was der Assistent getan hat - Termin gebucht, Nachricht aufgenommen, Anruf weitergeleitet - und ob es geklappt hat.",
+          "Ein Problem zu einem Anruf melden. Deine Notiz geht mit dem Transkript raus, damit sich eine schlechte Antwort nachvollziehen und nachschärfen lässt.",
+        ],
+        gotcha:
+          "Ein Anruf erscheint erst, wenn er einem Assistenten zugeordnet ist - Rauschen vom Netzbetreiber bleibt draußen. Ein laufender Anruf aktualisiert sich alle paar Sekunden selbst.",
+      },
+      calendar: {
+        purpose: "Jeder Termin, den deine Assistenten im Gespräch gebucht haben, nach Monat.",
+        can: [
+          "Zwischen Monaten wechseln oder zurück zu heute springen.",
+          "Auf eine Buchung klicken, um den Anruf zu öffnen, aus dem sie stammt.",
+          "Sehen, wer angerufen hat, welcher Assistent gebucht hat und in welchem Kalender es gelandet ist.",
+        ],
+        gotcha:
+          "Achte auf „Zu bestätigende Anfragen“. Das ist ein Anrufer, der einen Termin wollte, bei dem keine brauchbare Zeit erfasst wurde - meist war kein Kalender verbunden. Die musst du selbst nachfassen. Zeiten richten sich nach der Zeitzone in den Einstellungen.",
+      },
+      analytics: {
+        purpose: "Die letzten 30 Tage im Detail: Volumen, Antwortrate, Herkunft der Anrufer und ihre Stimmung.",
+        can: [
+          "Nach Organisation filtern, dann nach einem einzelnen Assistenten darin.",
+          "Assistenten in der Tabelle „Nach Assistent“ nebeneinander vergleichen.",
+          "Anrufer nach Land und die Gesamtstimmung sehen.",
+        ],
+        gotcha:
+          "Ein Einbruch der Antwortrate heißt meist, dass ein Assistent seine Nummer verloren hat. Tage werden in deiner Zeitzone aus den Einstellungen gebündelt.",
+      },
+      organizations: {
+        purpose: "Das Unternehmen, für das deine Assistenten sprechen, und das gemeinsame Wissen, aus dem alle antworten.",
+        can: [
+          "Eine Organisation anlegen und ihr Namen und Beschreibung geben.",
+          "Eine Website per URL importieren, ein PDF hochladen oder Notizen und FAQs tippen - Zeiten, Regeln, Standorte, Preise.",
+          "Assistenten zuweisen. Ein Assistent gehört immer nur zu einer Organisation.",
+          "Eine Quelle entfernen, aus der die KI nicht mehr zitieren soll.",
+        ],
+        gotcha:
+          "Das ist der wirkungsvollste Bildschirm: einmal eine Tatsache eintragen, und jeder zugewiesene Assistent kennt sie. Beim Löschen einer Organisation bleiben deine Assistenten erhalten - sie werden nur von ihrem Wissen getrennt.",
+      },
+      assistant: {
+        purpose: "Die Stimme am Telefon: wer sie ist, wie sie klingt und was sie darf.",
+        can: [
+          "Name, Begrüßung, Sprache und Stimme festlegen - unter Erweitert auch eine feste Stimme je Sprache.",
+          "Eine Rufnummer holen oder die vorhandene lösen.",
+          "Wählen, aus welcher Organisation er sein Wissen bezieht.",
+          "Kalenderzugriff geben: nur Verfügbarkeit lesen oder auch buchen.",
+          "Nach jedem Anruf Zusammenfassung und Transkript per E-Mail schicken.",
+          "Einen Testanruf starten und ihn selbst hören, bevor deine Kunden es tun.",
+        ],
+        gotcha:
+          "Ein Assistent ohne Nummer kann keine Anrufe annehmen. Stimme, Sprache und Verhalten liegen hier am Assistenten - nie an der Nummer.",
+      },
+      numbers: {
+        purpose: "Der Pool an Nummern, die frei zuweisbar sind.",
+        can: [
+          "Eine verfügbare Nummer öffnen und einem Assistenten zuweisen, um sie live zu schalten.",
+          "Eine Nummer wieder auf Frei setzen, damit sie nicht mehr abnimmt.",
+        ],
+        gotcha:
+          "Diese Seite zeigt nur nicht zugewiesene Nummern - eine aktive Nummer fehlt hier also absichtlich, das ist kein Fehler. Eine neue Nummer bekommst du beim Assistenten über „Nummer holen“: erst wird eine freie aus dem Pool genommen, gekauft wird nur, wenn nötig.",
+      },
+      integrations: {
+        purpose: "Die externen Dienste, die deine Assistenten erreichen - heute Kalender, bald deine eigenen Systeme.",
+        can: [
+          "Google, Microsoft, Cal.com oder Calendly verbinden, damit Anrufer echte Termine buchen können.",
+          "Einen Kalender jederzeit trennen.",
+        ],
+        gotcha:
+          "Hier verbindest du den Kalender nur - verfügbar machen reicht nicht. Jeder Assistent braucht den Zugriff zusätzlich in seinen eigenen Einstellungen. CRM-Push unter Entwickler kommt bald.",
+      },
+      knowledge: {
+        purpose: "Alles, was deine Assistenten über dich und dein Unternehmen wissen, auf einer Seite und in klarer Sprache.",
+        can: [
+          "Eine KI-Zusammenfassung lesen, was deine Assistenten sicher beantworten - und was fehlt.",
+          "Jede Quelle sehen, die sie lesen, und welche Assistenten sie lesen.",
+          "Prüfen, ob dein eigenes Profil mit Anrufern geteilt wird.",
+        ],
+        gotcha:
+          "Steht eine Tatsache nicht auf dieser Seite, kennen deine Assistenten sie nicht. Fang hier an, wenn ein Anrufer eine unerwartete Antwort bekommt.",
+      },
+      settings: {
+        purpose: "Deine Kontodaten, was Assistenten über dich sagen dürfen, Benachrichtigungen und Abrechnung.",
+        can: [
+          "Name, Firma, Rolle, Telefon und Zeitzone festlegen.",
+          "Eine Notiz „Über dich“ schreiben und entscheiden, ob Assistenten sie im Gespräch erwähnen dürfen.",
+          "E-Mails mit Anrufzusammenfassungen und dringende SMS-Hinweise ein- oder ausschalten.",
+          "Tarifverbrauch sehen und Abrechnung oder Tarif über das Portal verwalten.",
+        ],
+        gotcha:
+          "Deine Zeitzone ist entscheidend: In ihr werden Kalender und Analysen dargestellt. Deine Anmelde-E-Mail lässt sich hier nicht ändern.",
+      },
+    },
   },
 };

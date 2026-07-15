@@ -4,12 +4,12 @@ import { getAssistant, getAssistantNumber, listIntegrations, listNumbers } from 
 import { getTwilioStatus } from "@/lib/dashboard/twilio";
 import { getOrganization } from "@/lib/dashboard/organizations";
 import { getPlanContext } from "@/lib/dashboard/plan";
-import { formatPhone } from "@/lib/call-engine/voice/phone-language";
+import { countryFromPhone, formatPhone } from "@/lib/call-engine/voice/phone-language";
 import { currentUserId } from "@/lib/auth";
 import { getDictionary } from "@/lib/i18n/server";
 import { SectionCard } from "../../components/SectionCard";
 import { PageHeader } from "../../components/PageHeader";
-import { StatusRow } from "../../components/StatusBadge";
+import { StatusDot, StatusRow, type StatusTone } from "../../components/StatusBadge";
 import { SubmitButton } from "../../components/SubmitButton";
 import { Tabs } from "../../components/Tabs";
 import { CALENDAR_PROVIDERS } from "../../integrations/providers";
@@ -60,8 +60,12 @@ export default async function AssistantSettingsPage({
 
   const emailCfg =
     (assistant.routing as { emailTranscripts?: { enabled?: boolean; to?: string } })?.emailTranscripts ?? {};
-  const crmCfg =
-    (assistant.routing as { crm?: { enabled?: boolean; url?: string; secret?: string } })?.crm ?? {};
+  // CRM endpoints are shared account-level integrations; the assistant only
+  // stores which of them it pushes to.
+  const crmTargets = new Set(
+    ((assistant.routing as { crm?: { targets?: Array<{ integrationId: string }> } })?.crm?.targets ?? [])
+      .map((t) => t.integrationId),
+  );
   const transferTo = String((assistant.routing as { transferTo?: string })?.transferTo ?? "");
   const smsAlerts = (assistant.routing as { smsAlerts?: boolean })?.smsAlerts ?? true;
   const calAccess =
@@ -89,10 +93,14 @@ export default async function AssistantSettingsPage({
   });
 
   let calendars: Awaited<ReturnType<typeof listIntegrations>> = [];
+  let crms: Awaited<ReturnType<typeof listIntegrations>> = [];
   try {
-    calendars = (await listIntegrations(ownerId ?? undefined)).filter((i) => i.type === "calendar");
+    const all = await listIntegrations(ownerId ?? undefined);
+    calendars = all.filter((i) => i.type === "calendar");
+    crms = all.filter((i) => i.type === "crm");
   } catch {
     calendars = [];
+    crms = [];
   }
 
   const number = await getAssistantNumber(assistant.id).catch(() => null);
@@ -105,6 +113,8 @@ export default async function AssistantSettingsPage({
       .catch(() => 0);
   }
   const twilio = await getTwilioStatus();
+  const twilioTone: StatusTone = twilio.ok ? "ok" : twilio.configured ? "error" : "warn";
+  const country = number ? countryFromPhone(number.e164) : null;
   const planCtx = await getPlanContext(ownerId).catch(() => null);
   const credits = planCtx?.limits.minutesIncluded ?? 1000;
 
@@ -135,18 +145,16 @@ export default async function AssistantSettingsPage({
 
       {/* ── Phone number ────────────────────────────────────────────────── */}
       <SectionCard title="Phone number" subtitle="The number callers dial to reach this assistant.">
-        <div className="mb-4">
-          <StatusRow
-            tone={twilio.ok ? "ok" : twilio.configured ? "error" : "warn"}
-            label="Twilio"
-            detail={twilio.configured ? twilio.error : "Not configured"}
-          />
-        </div>
         {number ? (
           <div className="flex items-center justify-between gap-3">
-            <div>
-              <div className="text-lg font-medium tracking-tight text-neutral-900">{formatPhone(number.e164)}</div>
-              <div className="text-xs text-neutral-400">Linked · routed via ElevenLabs</div>
+            <div className="flex items-center gap-2.5">
+              <StatusDot tone={twilioTone} />
+              {country && (
+                <span className="text-lg leading-none" role="img" aria-label={country.iso}>
+                  {country.flag}
+                </span>
+              )}
+              <span className="text-lg font-medium tracking-tight text-neutral-900">{formatPhone(number.e164)}</span>
             </div>
             <form action={unlinkNumberAction}>
               <input type="hidden" name="number_id" value={number.id} />
@@ -157,7 +165,16 @@ export default async function AssistantSettingsPage({
             </form>
           </div>
         ) : (
-          <GetNumberForm assistantId={assistant.id} credits={credits} availableCount={availableNumbers} />
+          <>
+            <div className="mb-4">
+              <StatusRow
+                tone={twilioTone}
+                label="Twilio"
+                detail={twilio.configured ? twilio.error : "Not configured"}
+              />
+            </div>
+            <GetNumberForm assistantId={assistant.id} credits={credits} availableCount={availableNumbers} />
+          </>
         )}
       </SectionCard>
 
@@ -322,24 +339,48 @@ export default async function AssistantSettingsPage({
           </div>
         </SectionCard>
 
-        <SectionCard title="CRM push" subtitle="POST each completed call to your own system.">
-          <div className="space-y-3">
-            <label className={toggleRow}>
-              <span>
-                <span className="block text-sm font-medium text-neutral-800">{t.assistants.pushCrm}</span>
-                <span className="block text-xs text-neutral-400">{t.assistants.pushCrmSub}</span>
-              </span>
-              <input type="checkbox" name="crm_enabled" defaultChecked={crmCfg.enabled ?? false} className="peer sr-only" />
-              <span className={toggle} />
-            </label>
-            <div>
-              <label htmlFor="crm_url" className={labelCls}>{t.assistants.endpointUrl}</label>
-              <input id="crm_url" name="crm_url" type="url" defaultValue={crmCfg.url ?? ""} placeholder="https://hooks.zapier.com/..." className={field} />
-            </div>
-            <div>
-              <label htmlFor="crm_secret" className={labelCls}>Signing secret (optional)</label>
-              <input id="crm_secret" name="crm_secret" defaultValue={crmCfg.secret ?? ""} placeholder="Used to HMAC-sign the payload" className={field} />
-            </div>
+        <SectionCard
+          title="CRM push"
+          subtitle={t.assistants.pushCrmSub}
+          action={
+            <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-rose-50 px-2 py-0.5 text-[11px] font-medium text-rose-600">
+              <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
+              {t.common.comingSoon}
+            </span>
+          }
+        >
+          {/* Preview only until this ships - matches the blurred CRM push block on
+              Integrations. `inert` keeps the toggles off the keyboard/AT tree; a
+              box that's already checked still posts, so saving the form leaves any
+              existing assignment untouched rather than silently clearing it. */}
+          <div inert className="select-none blur-[3px] saturate-50">
+            {crms.length === 0 ? (
+              <p className="text-sm text-neutral-500">
+                No CRM push set up yet. Create one in Integrations, then pick it here.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {crms.map((c) => (
+                  <label key={c.id} className={toggleRow}>
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-medium text-neutral-800">
+                        {String(c.config?.name ?? "CRM push")}
+                      </span>
+                      <span className="block truncate font-mono text-xs text-neutral-400">
+                        {String(c.config?.url ?? "")}
+                      </span>
+                    </span>
+                    <input
+                      type="checkbox"
+                      name={`crm_target_${c.id}`}
+                      defaultChecked={crmTargets.has(c.id)}
+                      className="peer sr-only"
+                    />
+                    <span className={toggle} />
+                  </label>
+                ))}
+              </div>
+            )}
           </div>
         </SectionCard>
         </div>

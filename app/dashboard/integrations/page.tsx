@@ -1,13 +1,13 @@
 import { currentUserId } from "@/lib/auth";
-import { listIntegrations, type Integration } from "@/lib/dashboard/db";
-import { getServiceStatuses } from "@/lib/dashboard/health";
+import { listAssistants, listIntegrations, type Integration } from "@/lib/dashboard/db";
 import { isOAuthConfigured } from "@/lib/dashboard/oauth";
+import { ChevronDown, Plug } from "../icons";
 import { PageHeader } from "../components/PageHeader";
 import { SectionCard } from "../components/SectionCard";
-import { StatusDot, StatusRow } from "../components/StatusBadge";
+import { StatusDot } from "../components/StatusBadge";
 import { SubmitButton } from "../components/SubmitButton";
 import { CALENDAR_PROVIDERS, type CalendarProviderDef } from "./providers";
-import { connectCalendarAction, disconnectCalendarAction } from "./actions";
+import { connectCalendarAction, createCrmAction, deleteCrmAction, disconnectCalendarAction } from "./actions";
 import { getDictionary } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
@@ -107,17 +107,32 @@ function CredentialForm({ def }: { def: CalendarProviderDef }) {
   );
 }
 
+/** How many assistants push to each CRM endpoint, keyed by integration id. An
+ *  endpoint is shared, so this is the only place the fan-out is visible. */
+function crmUsageCounts(assistants: Array<{ routing: Record<string, unknown> }>): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const a of assistants) {
+    const targets = (a.routing?.crm as { targets?: Array<{ integrationId?: string }> } | undefined)?.targets;
+    if (!Array.isArray(targets)) continue;
+    for (const t of targets) {
+      if (t?.integrationId) counts.set(t.integrationId, (counts.get(t.integrationId) ?? 0) + 1);
+    }
+  }
+  return counts;
+}
+
 export default async function IntegrationsPage({
   searchParams,
 }: {
   searchParams: Promise<{ connected?: string; error?: string }>;
 }) {
   const [{ connected, error }, t] = await Promise.all([searchParams, getDictionary()]);
+  const ownerId = (await currentUserId()) ?? undefined;
 
   let integrations: Integration[] = [];
   let loadError = "";
   try {
-    integrations = await listIntegrations((await currentUserId()) ?? undefined);
+    integrations = await listIntegrations(ownerId);
   } catch (err) {
     loadError = (err as Error).message;
   }
@@ -126,32 +141,12 @@ export default async function IntegrationsPage({
   const byProvider = new Map(calendars.map((i) => [i.provider, i]));
   const primaryId = calendars.find((i) => i.enabled)?.id;
 
-  const services = await getServiceStatuses();
+  const crms = integrations.filter((i) => i.type === "crm");
+  const crmUsage = crmUsageCounts(await listAssistants(ownerId).catch(() => []));
 
   return (
     <div className="space-y-6 rise">
       <PageHeader title={t.integrations.title} description={t.integrations.description} />
-
-      <SectionCard
-        title={t.integrations.serviceStatus}
-        subtitle={t.integrations.serviceStatusSub}
-        action={
-          <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-500">
-            Dev
-          </span>
-        }
-      >
-        <div className="grid gap-3 sm:grid-cols-2">
-          {services.map((s) => (
-            <StatusRow
-              key={s.name}
-              tone={s.ok ? "ok" : s.configured ? "error" : "warn"}
-              label={s.name}
-              detail={s.configured ? s.detail : t.integrations.notConfigured}
-            />
-          ))}
-        </div>
-      </SectionCard>
 
       {connected && (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
@@ -248,6 +243,143 @@ export default async function IntegrationsPage({
           );
         })}
       </div>
+
+      {/* Developer - webhook wiring, folded away behind a disclosure: most
+          accounts only ever connect a calendar, and an endpoint form sitting open
+          on every visit makes the page read as far more technical than it is. */}
+      <details className="group shape-card glass overflow-hidden">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-neutral-50/60 [&::-webkit-details-marker]:hidden">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-500">
+              <Plug className="h-4 w-4" />
+            </span>
+            <div className="min-w-0">
+              <h2 className="text-sm font-medium text-neutral-900">Developer</h2>
+              <p className="mt-0.5 text-xs text-neutral-500">Send call data to your own systems.</p>
+            </div>
+          </div>
+          <span className="flex shrink-0 items-center gap-1.5 text-xs font-medium text-neutral-500">
+            <span className="group-open:hidden">Load more</span>
+            <span className="hidden group-open:inline">Hide</span>
+            <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
+          </span>
+        </summary>
+
+        <div className="border-t border-neutral-200/70 px-5 py-5">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="text-sm font-medium text-neutral-900">CRM push</h3>
+            <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-0.5 text-[11px] font-medium text-rose-600">
+              <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
+              {t.common.comingSoon}
+            </span>
+          </div>
+          <p className="mt-0.5 text-xs text-neutral-500">
+            POST each completed call to your own system. Assign one to as many assistants as you like.
+          </p>
+
+          {/* Preview only until this ships: `inert` (not just pointer-events) so the
+              blurred controls are unreachable by keyboard and screen readers too. */}
+          <div inert className="mt-4 select-none blur-[3px] saturate-50">
+        {crms.length > 0 && (
+          <ul className="mb-5 space-y-2">
+            {crms.map((c) => {
+              const name = String(c.config?.name ?? "CRM push");
+              const url = String(c.config?.url ?? "");
+              const signed = Boolean(c.config?.secret);
+              const used = crmUsage.get(c.id) ?? 0;
+              return (
+                <li
+                  key={c.id}
+                  className="flex items-center justify-between gap-3 rounded-lg border border-neutral-200/70 bg-white/60 px-3 py-2.5"
+                >
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <StatusDot tone="ok" />
+                      <span className="truncate text-sm font-medium text-neutral-800">{name}</span>
+                      {signed && (
+                        <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-500">
+                          Signed
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-0.5 truncate font-mono text-xs text-neutral-500">{url}</div>
+                    <div className="mt-0.5 text-xs text-neutral-400">
+                      {used === 0
+                        ? "Not used by any assistant yet"
+                        : `Used by ${used} assistant${used === 1 ? "" : "s"}`}
+                    </div>
+                  </div>
+                  <form action={deleteCrmAction}>
+                    <input type="hidden" name="id" value={c.id} />
+                    <SubmitButton variant="danger" pendingText="Removing…" className="press shrink-0">
+                      Remove
+                    </SubmitButton>
+                  </form>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+
+        <form action={createCrmAction} className="space-y-3">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <label htmlFor="crm_name" className="mb-1 block text-xs font-medium text-neutral-600">
+                Name
+              </label>
+              <input
+                id="crm_name"
+                name="crm_name"
+                required
+                placeholder="Sales Zapier hook"
+                autoComplete="off"
+                className={field}
+              />
+            </div>
+            <div>
+              <label htmlFor="crm_url" className="mb-1 block text-xs font-medium text-neutral-600">
+                {t.assistants.endpointUrl}
+              </label>
+              <input
+                id="crm_url"
+                name="crm_url"
+                type="url"
+                required
+                // Say the rule up front and let the browser hold the line on submit,
+                // so the https requirement isn't a surprise round-trip. createCrmAction
+                // still re-checks: pattern only catches the scheme, not a private host.
+                pattern="https://.+"
+                title="CRM URL must be a public https:// address."
+                aria-describedby="crm_url_hint"
+                placeholder="https://hooks.zapier.com/..."
+                autoComplete="off"
+                className={field}
+              />
+              <p id="crm_url_hint" className="mt-1 text-xs text-neutral-400">
+                CRM URL must be a public https:// address.
+              </p>
+            </div>
+          </div>
+          <div>
+            <label htmlFor="crm_secret" className="mb-1 block text-xs font-medium text-neutral-600">
+              Signing secret <span className="text-neutral-400">(optional)</span>
+            </label>
+            <input
+              id="crm_secret"
+              name="crm_secret"
+              type="password"
+              placeholder="Used to HMAC-sign the payload"
+              autoComplete="off"
+              className={field}
+            />
+          </div>
+          <SubmitButton pendingText="Adding…" className="press w-full sm:w-auto">
+            Add CRM push
+          </SubmitButton>
+        </form>
+          </div>
+        </div>
+      </details>
     </div>
   );
 }

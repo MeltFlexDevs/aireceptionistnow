@@ -2,8 +2,9 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
-import { ChevronDown } from "../icons";
+import { Book, ChevronDown } from "../icons";
 import { createClient } from "@/lib/supabase/client";
 import { useT } from "@/lib/i18n/client";
 import type { AppUser } from "@/lib/auth-user";
@@ -85,6 +86,15 @@ export function UserMenu({ user }: { user: AppUser }) {
               <span className="block truncate text-xs text-neutral-500">{user.email}</span>
             </span>
           </div>
+          <Link
+            href="/dashboard/tutorial"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+            className="flex w-full items-center gap-2.5 border-b border-neutral-100 px-4 py-3 text-left text-sm text-neutral-700 transition-colors hover:bg-neutral-50"
+          >
+            <Book className="h-[18px] w-[18px] text-neutral-500" />
+            {t.user.tutorial}
+          </Link>
           <button
             type="button"
             role="menuitem"

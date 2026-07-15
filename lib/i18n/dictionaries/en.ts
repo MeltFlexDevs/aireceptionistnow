@@ -23,13 +23,15 @@ export const en = {
     integrationsHint: "Calendars, CRM & more",
     settings: "Settings",
     settingsHint: "Account & billing",
-    needAHand: "Need a hand?",
+    aiKnows: "What your AI knows",
+    aiKnowsHint: "See everything your assistants know about you and your business.",
   },
   topbar: {
     search: "Search calls, callers, numbers...",
     language: "Language",
   },
   user: {
+    tutorial: "Tutorial",
     signOut: "Sign out",
     signedInAs: "Signed in as",
   },
@@ -82,29 +84,11 @@ export const en = {
   },
   overview: {
     title: "Overview",
-    description:
-      "See how your AI receptionist is doing. Calls answered, how they went, and trends over time.",
+    description: "How your AI receptionist is doing right now, and what callers actually said.",
     loadError: "Couldn't load analytics",
     noCallsTitle: "No calls yet",
-    noCallsBody:
-      "Once your AI receptionist answers its first call, live stats - volume, sentiment, bookings and latency - show up here.",
+    noCallsBody: "Once your AI receptionist answers its first call, the numbers and each call's AI summary show up here.",
     setUpAssistant: "Set up your assistant",
-    assistants: "Assistants",
-    assistantsSub: "Each assistant's results over the last 14 days",
-    callVolume: "Call volume",
-    callVolumeSub: "Calls answered over the last 14 days",
-    talkRatio: "Talk ratio",
-    talkRatioSub: "Caller vs AI speaking time",
-    noConversation: "No conversation data yet.",
-    voiceLatency: "Voice latency",
-    voiceLatencySub: "Caller stops → AI replies",
-    callersByCountry: "Callers by country",
-    callersByCountrySub: "Where recent callers are calling from",
-    noCalls: "No calls yet.",
-    thisMonth: "This month",
-    thisMonthSub: "Calls handled",
-    talkMinutes: "Talk minutes",
-    bookings: "Bookings",
     recentCalls: "Recent calls",
     aiSummaries: "AI call summaries",
     aiSummariesSub: "Auto-generated after each call",
@@ -137,6 +121,13 @@ export const en = {
     outbound: "Outbound",
   },
   analytics: {
+    latencyUnder: "Under target",
+    latencyOver: "Over target",
+    voiceLatency: "Voice latency",
+    voiceLatencySub: "Caller stops → AI replies",
+    talkRatio: "Talk ratio",
+    talkRatioSub: "Caller vs AI speaking time",
+    noConversation: "No conversation data yet.",
     title: "Analytics",
     allAssistants: "All assistants. Last 30 days.",
     loadError: "Couldn't load analytics",
@@ -298,9 +289,162 @@ export const en = {
     billingSub: "Your plan and usage.",
     noSubscription: "No active subscription. Pick a plan to lift your limits.",
   },
+  // Section titles and the "where to find it" chips are NOT here: they're
+  // composed from `nav` at render, so the tutorial always names screens exactly
+  // as the sidebar does - in every language, and without re-translating them.
+  tutorial: {
+    title: "Tutorial",
+    description: "What every screen does, what you can do on it, and the bits that catch people out.",
+    startHere: "Start here",
+    startHereSub: "Four steps from empty dashboard to an AI answering your phone.",
+    everyScreen: "Every screen",
+    everyScreenSub: "Jump straight to one, or read on.",
+    whatYouCanDo: "What you can do",
+    goodToKnow: "Good to know",
+    readOnly: "Read-only",
+    open: "Open",
+    knowledgeWhere: "The card at the bottom of the sidebar",
+    footer: "Something here not match what you see?",
+    footerLink: "Report it on a call",
+    footerEnd: "and we'll take a look.",
+    quickStart: [
+      {
+        title: "Create an organization",
+        body: "It holds the facts your assistants answer from - services, hours, pricing. Add them once and every assistant assigned to it reads them.",
+      },
+      {
+        title: "Connect a calendar",
+        body: "Without one, the assistant can still take the request, but it can't offer a real time or book anything.",
+      },
+      {
+        title: "Create an assistant and give it a number",
+        body: "The assistant is the voice: its name, language, greeting, and behavior. The number is what your callers dial - it does nothing until it's linked to an assistant.",
+      },
+      {
+        title: "Watch the calls come in",
+        body: "Every call lands in Calls with a recording, transcript, and AI summary. Analytics shows how it's trending.",
+      },
+    ],
+    sections: {
+      overview: {
+        purpose: "Your results at a glance: call volume, answer rate, bookings, and how each assistant is doing.",
+        can: [
+          "See headline numbers for the last 14 days, and this month's usage against your plan.",
+          "Read the latest AI call summaries and recent calls without opening each one.",
+          "Follow the setup guide until your first call arrives - it ticks itself off as you go.",
+        ],
+        gotcha:
+          "Before your first call there's nothing to chart, so this page shows the setup guide instead of the stats.",
+      },
+      calls: {
+        purpose: "Every incoming call, reconciled with your Twilio logs, with the full transcript behind each one.",
+        can: [
+          "Search by phone number, assistant, outcome, or Call SID.",
+          "Filter by status: completed, unanswered, or in progress.",
+          "Open a call to play or download the recording and read the transcript.",
+          "See what the assistant did - appointment booked, message taken, call transferred - and whether it succeeded.",
+          "Report an issue on a call. Your note is sent with the transcript attached, so a bad answer can be traced and tuned.",
+        ],
+        gotcha:
+          "A call only appears once it's tied to an assistant, so raw carrier noise stays out. A call that's still live refreshes itself every few seconds.",
+      },
+      calendar: {
+        purpose: "Every appointment your assistants booked while on a call, by month.",
+        can: [
+          "Move between months, or jump back to today.",
+          "Click any booking to open the call it came from.",
+          "See who called, which assistant booked it, and which calendar it landed in.",
+        ],
+        gotcha:
+          "Watch for \"Requests to confirm\". That's a caller who asked for an appointment where no usable time was captured - usually no calendar was connected. Those need you to follow up by hand. Times follow the time zone in Settings.",
+      },
+      analytics: {
+        purpose: "The last 30 days in more depth: volume, answer rate, where callers are from, and how they felt.",
+        can: [
+          "Filter by organization, then by a single assistant within it.",
+          "Compare assistants side by side in the \"By assistant\" table.",
+          "See callers by country and overall sentiment.",
+        ],
+        gotcha:
+          "A dip in answer rate usually means an assistant lost its number. Days are bucketed in your Settings time zone.",
+      },
+      organizations: {
+        purpose: "The company your assistants speak for, and the shared knowledge they all answer from.",
+        can: [
+          "Create an organization and give it a name and description.",
+          "Import a website by URL, upload a PDF, or type notes and FAQs - hours, policies, locations, pricing.",
+          "Assign assistants to it. An assistant can belong to only one organization at a time.",
+          "Remove a source you no longer want the AI quoting.",
+        ],
+        gotcha:
+          "This is the highest-leverage screen: add a fact here once and every assigned assistant knows it. Deleting an organization keeps your assistants - they're just detached from its knowledge.",
+      },
+      assistant: {
+        purpose: "The voice on the phone: who it is, how it sounds, and what it's allowed to do.",
+        can: [
+          "Set the name, greeting, language, and voice - and pin a specific voice per language under Advanced.",
+          "Get a phone number for it, or unlink the one it has.",
+          "Choose which organization's knowledge it answers from.",
+          "Give it calendar access: read availability only, or also book.",
+          "Email a recap and transcript after each call.",
+          "Place a test call to hear it yourself before your customers do.",
+        ],
+        gotcha:
+          "An assistant with no number can't take calls. Voice, language, and behavior all live here on the assistant - never on the number.",
+      },
+      numbers: {
+        purpose: "The pool of numbers that are free to assign.",
+        can: [
+          "Open an available number and assign it to an assistant to put it live.",
+          "Set a number back to Free to stop it answering.",
+        ],
+        gotcha:
+          "This page lists only unassigned numbers, so a number in active use is not here - that's expected, not a bug. To get a new number, open an assistant and use \"Get number\": it claims a free one from the pool before ever buying a new line.",
+      },
+      integrations: {
+        purpose: "The outside services your assistants can reach - calendars today, your own systems next.",
+        can: [
+          "Connect Google, Microsoft, Cal.com, or Calendly so callers can book real appointments.",
+          "Disconnect a calendar at any time.",
+        ],
+        gotcha:
+          "Connecting a calendar here only makes it available. Each assistant still needs to be given access to it in its own settings. CRM push, under Developer, is coming soon.",
+      },
+      knowledge: {
+        purpose: "Everything your assistants know about you and your business, on one page, in plain language.",
+        can: [
+          "Read an AI summary of what your assistants can confidently answer - and what's missing.",
+          "See every source they read, and which assistants read it.",
+          "Check whether your own profile is being shared with callers.",
+        ],
+        gotcha:
+          "If a fact isn't on this page, your assistants don't know it. Start here when a caller gets an answer you didn't expect.",
+      },
+      settings: {
+        purpose: "Your account details, what assistants may say about you, notifications, and billing.",
+        can: [
+          "Set your name, company, role, phone, and time zone.",
+          "Write an \"About you\" note and choose whether assistants may share it on calls.",
+          "Turn call summary emails and urgent SMS alerts on or off.",
+          "See your plan usage, and manage billing or change plan through the billing portal.",
+        ],
+        gotcha:
+          "Your time zone is load-bearing: it's the one the Calendar and Analytics render in. Your sign-in email can't be changed here.",
+      },
+    },
+  },
 } as const;
 
 // Widened so translations only need `string`, not the English string literals.
-export type Dictionary = {
-  [K in keyof typeof en]: { [P in keyof (typeof en)[K]]: string };
-};
+// Structure-preserving on purpose: it recurses through nested groups and string
+// lists, so prose-heavy screens (the tutorial's bullet lists, its per-section
+// blocks) can be shaped like the UI instead of being flattened into
+// `overviewCan1`, `overviewCan2`… A locale still can't drop or misname a key -
+// only the wording is free, and a list may differ in length between languages.
+type Translated<T> = T extends string
+  ? string
+  : T extends readonly (infer U)[]
+    ? readonly Translated<U>[]
+    : { [K in keyof T]: Translated<T[K]> };
+
+export type Dictionary = Translated<typeof en>;

@@ -75,6 +75,10 @@ export interface Analytics {
   volume: Bar[];
   countries: Segment[];
   sentiment: Segment[];
+  /** Who did the talking. Depth metrics: they moved off the overview, which is
+   *  now a glance, and landed here where the filters make them meaningful. */
+  talkRatio: Segment[];
+  latency: Latency;
 }
 
 interface CallRow {
@@ -695,7 +699,13 @@ export async function getAnalytics(
         : c.phone_number_id !== null && fallback.has(c.phone_number_id),
     );
   }
-  const bookedIds = await bookedCallIds(calls.map((c) => c.id));
+  // Both scans run over the same filtered call set, so the talk split and
+  // latency respect the org/assistant filters - which is the point of moving
+  // them here from the (unfilterable) overview.
+  const [bookedIds, ratio] = await Promise.all([
+    bookedCallIds(calls.map((c) => c.id)),
+    talkRatio(calls.map((c) => c.id)),
+  ]);
 
   const completed = calls.filter((c) => c.status === "completed").length;
   const sentimentCounts = new Map<string, number>();
@@ -724,6 +734,8 @@ export async function getAnalytics(
     volume: dayBuckets(calls, 30, toKey),
     countries: countriesFrom(calls),
     sentiment,
+    talkRatio: ratio,
+    latency: latencyFrom(calls),
   };
 }
 

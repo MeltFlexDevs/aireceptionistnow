@@ -27,7 +27,6 @@ import {
   routeNumberToAgent,
 } from "@/lib/call-engine/elevenlabs";
 import { syncAssistantAgent, deleteAssistantAgent } from "@/lib/call-engine/agent/sync";
-import { isSafeHttpsUrl } from "@/lib/net/safe-url";
 import { SUPPORTED_LANGUAGES } from "@/lib/call-engine/voice/phone-language";
 import { addSharedVoice } from "@/lib/call-engine/voice/catalog";
 
@@ -110,9 +109,9 @@ export async function updateAssistantAction(formData: FormData): Promise<void> {
 
   const transferTo = String(formData.get("transfer_to") ?? "").trim();
 
-  const calendars = await listIntegrations((await currentUserId()) ?? undefined).catch(() => []);
+  const integrations = await listIntegrations((await currentUserId()) ?? undefined).catch(() => []);
   const access: Array<{ integrationId: string; level: string }> = [];
-  for (const c of calendars) {
+  for (const c of integrations) {
     if (c.type !== "calendar") continue;
     // Two capabilities: read (availability only) or write (also book). Legacy
     // "busy" maps to read.
@@ -123,12 +122,24 @@ export async function updateAssistantAction(formData: FormData): Promise<void> {
     }
   }
 
+  // CRM push targets. The endpoints themselves are shared account-level `crm`
+  // integrations (Integrations page) - this form only picks which ones this
+  // assistant pushes to, so several assistants can share one. Iterating the
+  // owner's own integrations (rather than reading ids out of the form) is what
+  // stops a forged field from pointing this assistant at another tenant's row.
+  const crmTargets: Array<{ integrationId: string }> = [];
+  for (const c of integrations) {
+    if (c.type !== "crm") continue;
+    if (formData.get(`crm_target_${c.id}`) === "on") crmTargets.push({ integrationId: c.id });
+  }
+
   const routing: Record<string, unknown> = {};
   if (transferTo) {
     routing.transferTo = transferTo;
     routing.smsAlerts = formData.get("sms_alerts") === "on";
   }
   if (access.length) routing.calendar = { access };
+  if (crmTargets.length) routing.crm = { targets: crmTargets };
 
   // Email transcripts (optional). Stored even when sending isn't wired yet.
   const emailTo = String(formData.get("email_to") ?? "").trim();
@@ -179,18 +190,6 @@ export async function updateAssistantAction(formData: FormData): Promise<void> {
     }),
   );
   if (Object.keys(voiceByLanguage).length) routing.voiceByLanguage = voiceByLanguage;
-
-  // CRM / ERP push (optional).
-  const crmUrl = String(formData.get("crm_url") ?? "").trim();
-  if (formData.get("crm_enabled") === "on" && crmUrl) {
-    if (!isSafeHttpsUrl(crmUrl)) {
-      redirect(
-        `/dashboard/assistant/${id}?error=${encodeURIComponent("CRM URL must be a public https:// address.")}`,
-      );
-    }
-    const crmSecret = String(formData.get("crm_secret") ?? "").trim();
-    routing.crm = { enabled: true, url: crmUrl, ...(crmSecret ? { secret: crmSecret } : {}) };
-  }
 
   // Knowledge lives at the organization level now; preserve whatever this
   // assistant already has untouched (this form only edits behavior + routing).

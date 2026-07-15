@@ -22,13 +22,15 @@ export const pt: Dictionary = {
     integrationsHint: "Calendários, CRM e mais",
     settings: "Definições",
     settingsHint: "Conta e faturação",
-    needAHand: "Precisas de ajuda?",
+    aiKnows: "O que a tua IA sabe",
+    aiKnowsHint: "Vê tudo o que os teus assistentes sabem sobre ti e o teu negócio.",
   },
   topbar: {
     search: "Procurar chamadas, contactos, números...",
     language: "Idioma",
   },
   user: {
+    tutorial: "Tutorial",
     signOut: "Terminar sessão",
     signedInAs: "Sessão iniciada como",
   },
@@ -81,29 +83,11 @@ export const pt: Dictionary = {
   },
   overview: {
     title: "Visão geral",
-    description:
-      "Vê como está a tua rececionista de IA. Chamadas atendidas, como correram e tendências ao longo do tempo.",
+    description: "Como está a correr a tua rececionista de IA agora e o que quem ligou disse mesmo.",
     loadError: "Não foi possível carregar as análises",
     noCallsTitle: "Ainda sem chamadas",
-    noCallsBody:
-      "Assim que a tua rececionista de IA atender a primeira chamada, as estatísticas em direto - volume, sentimento, reservas e latência - aparecem aqui.",
+    noCallsBody: "Assim que a tua rececionista de IA atender a primeira chamada, aparecem aqui os números e o resumo de IA de cada chamada.",
     setUpAssistant: "Configura o teu assistente",
-    assistants: "Assistentes",
-    assistantsSub: "Resultados de cada assistente nos últimos 14 dias",
-    callVolume: "Volume de chamadas",
-    callVolumeSub: "Chamadas atendidas nos últimos 14 dias",
-    talkRatio: "Rácio de fala",
-    talkRatioSub: "Tempo de fala do contacto vs. IA",
-    noConversation: "Ainda sem dados de conversa.",
-    voiceLatency: "Latência de voz",
-    voiceLatencySub: "O contacto para → a IA responde",
-    callersByCountry: "Contactos por país",
-    callersByCountrySub: "De onde ligam os contactos recentes",
-    noCalls: "Ainda sem chamadas.",
-    thisMonth: "Este mês",
-    thisMonthSub: "Chamadas tratadas",
-    talkMinutes: "Minutos de conversa",
-    bookings: "Reservas",
     recentCalls: "Chamadas recentes",
     aiSummaries: "Resumos de chamadas por IA",
     aiSummariesSub: "Gerados automaticamente após cada chamada",
@@ -136,6 +120,13 @@ export const pt: Dictionary = {
     outbound: "Efetuada",
   },
   analytics: {
+    latencyUnder: "Abaixo do alvo",
+    latencyOver: "Acima do alvo",
+    voiceLatency: "Latência de voz",
+    voiceLatencySub: "O contacto para → a IA responde",
+    talkRatio: "Rácio de fala",
+    talkRatioSub: "Tempo de fala do contacto vs. IA",
+    noConversation: "Ainda sem dados de conversa.",
     title: "Análises",
     allAssistants: "Todos os assistentes. Últimos 30 dias.",
     loadError: "Não foi possível carregar as análises",
@@ -296,5 +287,146 @@ export const pt: Dictionary = {
     billing: "Faturação",
     billingSub: "O teu plano e utilização.",
     noSubscription: "Sem subscrição ativa. Escolhe um plano para aumentar os teus limites.",
+  },
+  tutorial: {
+    title: "Tutorial",
+    description: "O que faz cada ecrã, o que podes fazer nele e os pormenores que costumam escapar.",
+    startHere: "Começa aqui",
+    startHereSub: "Quatro passos de um painel vazio até uma IA que atende o teu telefone.",
+    everyScreen: "Todos os ecrãs",
+    everyScreenSub: "Salta directamente para um ou continua a ler.",
+    whatYouCanDo: "O que podes fazer",
+    goodToKnow: "Bom saber",
+    readOnly: "Apenas leitura",
+    open: "Abrir",
+    knowledgeWhere: "O cartão no fundo da barra lateral",
+    footer: "Algo aqui não corresponde ao que vês?",
+    footerLink: "Reporta numa chamada",
+    footerEnd: "e vamos verificar.",
+    quickStart: [
+      {
+        title: "Cria uma organização",
+        body: "Guarda os factos com que os teus assistentes respondem: serviços, horários, preços. Insere-os uma vez e todos os assistentes atribuídos leem-nos.",
+      },
+      {
+        title: "Liga um calendário",
+        body: "Sem ele, o assistente até regista o pedido, mas não consegue propor uma hora real nem marcar nada.",
+      },
+      {
+        title: "Cria um assistente e dá-lhe um número",
+        body: "O assistente é a voz: nome, idioma, saudação e comportamento. O número é o que os teus clientes marcam - não faz nada até estar ligado a um assistente.",
+      },
+      {
+        title: "Vê as chamadas a entrar",
+        body: "Cada chamada chega a Chamadas com gravação, transcrição e resumo de IA. As Análises mostram a tendência.",
+      },
+    ],
+    sections: {
+      overview: {
+        purpose: "Os teus resultados num relance: volume de chamadas, taxa de atendimento, marcações e como está cada assistente.",
+        can: [
+          "Ver os números principais dos últimos 14 dias e o consumo deste mês face ao teu plano.",
+          "Ler os resumos de IA mais recentes e as últimas chamadas sem abrir uma a uma.",
+          "Seguir o guia de configuração até à primeira chamada - vai-se assinalando sozinho.",
+        ],
+        gotcha:
+          "Antes da primeira chamada não há nada para mostrar, por isso esta página apresenta o guia de configuração em vez das estatísticas.",
+      },
+      calls: {
+        purpose: "Cada chamada recebida, reconciliada com os teus registos Twilio, com a transcrição completa por trás.",
+        can: [
+          "Procurar por número, assistente, resultado ou Call SID.",
+          "Filtrar por estado: concluída, não atendida ou em curso.",
+          "Abrir uma chamada para ouvir ou transferir a gravação e ler a transcrição.",
+          "Ver o que o assistente fez: marcou consulta, tirou recado, transferiu a chamada - e se resultou.",
+          "Reportar um problema numa chamada. A tua nota segue com a transcrição anexada, para se rastrear e afinar uma resposta má.",
+        ],
+        gotcha:
+          "Uma chamada só aparece quando está ligada a um assistente, para o ruído do operador ficar de fora. Uma chamada em curso actualiza-se sozinha a cada poucos segundos.",
+      },
+      calendar: {
+        purpose: "Cada marcação que os teus assistentes fizeram durante uma chamada, por mês.",
+        can: [
+          "Navegar entre meses ou voltar a hoje.",
+          "Clicar numa marcação para abrir a chamada de onde veio.",
+          "Ver quem ligou, que assistente marcou e em que calendário ficou.",
+        ],
+        gotcha:
+          "Atenção aos «Pedidos por confirmar». É alguém que quis marcação sem que fosse captada uma hora utilizável - normalmente por não haver calendário ligado. Esses exigem seguimento manual. As horas seguem o fuso horário definido nas Definições.",
+      },
+      analytics: {
+        purpose: "Os últimos 30 dias com mais detalhe: volume, taxa de atendimento, de onde ligam e como se sentiram.",
+        can: [
+          "Filtrar por organização e depois por um assistente específico dentro dela.",
+          "Comparar assistentes lado a lado na tabela «Por assistente».",
+          "Ver quem liga por país e o sentimento geral.",
+        ],
+        gotcha:
+          "Uma queda na taxa de atendimento costuma significar que um assistente ficou sem número. Os dias são agrupados no fuso horário das Definições.",
+      },
+      organizations: {
+        purpose: "A empresa por quem os teus assistentes falam e o conhecimento partilhado com que todos respondem.",
+        can: [
+          "Criar uma organização e dar-lhe nome e descrição.",
+          "Importar um site por URL, carregar um PDF ou escrever notas e FAQ: horários, políticas, moradas, preços.",
+          "Atribuir-lhe assistentes. Um assistente só pode estar numa organização de cada vez.",
+          "Remover uma fonte que já não queres que a IA cite.",
+        ],
+        gotcha:
+          "É o ecrã com mais impacto: acrescenta um facto uma vez e todos os assistentes atribuídos passam a sabê-lo. Apagar uma organização não apaga os assistentes - apenas os desliga do conhecimento dela.",
+      },
+      assistant: {
+        purpose: "A voz ao telefone: quem é, como soa e o que lhe é permitido fazer.",
+        can: [
+          "Definir nome, saudação, idioma e voz - e fixar uma voz por idioma em Avançado.",
+          "Arranjar-lhe um número de telefone ou desligar o que tem.",
+          "Escolher de que organização retira o conhecimento.",
+          "Dar-lhe acesso ao calendário: só ler disponibilidade, ou também marcar.",
+          "Enviar por email um resumo e a transcrição depois de cada chamada.",
+          "Fazer uma chamada de teste e ouvi-lo antes dos teus clientes.",
+        ],
+        gotcha:
+          "Um assistente sem número não pode atender chamadas. A voz, o idioma e o comportamento vivem aqui no assistente, nunca no número.",
+      },
+      numbers: {
+        purpose: "O conjunto de números livres para atribuir.",
+        can: [
+          "Abrir um número disponível e atribuí-lo a um assistente para o pôr no ar.",
+          "Voltar a pôr um número em Livre para deixar de atender.",
+        ],
+        gotcha:
+          "Esta página lista apenas números não atribuídos, por isso um número em uso não está aqui - é o esperado, não é uma falha. Para obter um novo, abre um assistente e usa «Obter número»: primeiro usa um livre do conjunto e só depois compra uma linha nova.",
+      },
+      integrations: {
+        purpose: "Os serviços externos que os teus assistentes alcançam - hoje calendários, a seguir os teus próprios sistemas.",
+        can: [
+          "Ligar o Google, a Microsoft, o Cal.com ou o Calendly para que quem liga possa marcar de verdade.",
+          "Desligar um calendário a qualquer momento.",
+        ],
+        gotcha:
+          "Ligar um calendário aqui apenas o torna disponível. Cada assistente ainda precisa de receber acesso nas suas próprias definições. O envio para CRM, em Programador, está para breve.",
+      },
+      knowledge: {
+        purpose: "Tudo o que os teus assistentes sabem sobre ti e o teu negócio, numa página e em linguagem simples.",
+        can: [
+          "Ler um resumo de IA do que os teus assistentes conseguem responder com confiança - e do que falta.",
+          "Ver cada fonte que leem e que assistentes a leem.",
+          "Confirmar se o teu perfil está a ser partilhado com quem liga.",
+        ],
+        gotcha:
+          "Se um facto não está nesta página, os teus assistentes não o sabem. Começa por aqui quando alguém receber uma resposta inesperada.",
+      },
+      settings: {
+        purpose: "Os dados da tua conta, o que os assistentes podem dizer sobre ti, notificações e faturação.",
+        can: [
+          "Definir o teu nome, empresa, função, telefone e fuso horário.",
+          "Escrever uma nota «Sobre ti» e escolher se os assistentes a podem partilhar nas chamadas.",
+          "Ligar ou desligar os emails de resumo e os alertas urgentes por SMS.",
+          "Ver o consumo do plano e gerir a faturação ou mudar de plano pelo portal.",
+        ],
+        gotcha:
+          "O teu fuso horário é decisivo: é nele que o Calendário e as Análises são apresentados. O email de acesso não se altera aqui.",
+      },
+    },
   },
 };

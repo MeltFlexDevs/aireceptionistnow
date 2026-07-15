@@ -9,9 +9,25 @@ import { AssistantStats } from "../components/AssistantStats";
 import { PageHeader } from "../components/PageHeader";
 import { AssistantPicker } from "./AssistantPicker";
 import { OrganizationPicker } from "./OrganizationPicker";
+import { Bolt } from "../icons";
 import { getDictionary } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
+
+/** Sparkline path for the latency trend, normalized to the card's viewBox. */
+function latencyPoints(values: number[]): string {
+  if (values.length === 0) return "";
+  const max = Math.max(...values, 1);
+  const min = Math.min(...values, 0);
+  const span = max - min || 1;
+  return values
+    .map((v, i) => {
+      const x = (i / Math.max(values.length - 1, 1)) * 100;
+      const y = 24 - ((v - min) / span) * 20 - 2;
+      return `${x.toFixed(2)},${y.toFixed(2)}`;
+    })
+    .join(" ");
+}
 
 export default async function AnalyticsPage({
   searchParams,
@@ -101,6 +117,12 @@ export default async function AnalyticsPage({
     { label: a.bookings, value: String(data.totals.bookings) },
   ];
   const positive = data.sentiment.find((s) => s.label === "Positive")?.value ?? 0;
+  // Talk-split + latency labels: the analytics layer returns locale-free English
+  // keys, so they're translated at render (same rule as the KPI labels).
+  const caller = data.talkRatio.find((s) => s.label === "Caller")?.value ?? 0;
+  const talkLabel = (label: string) =>
+    label === "Caller" ? t.data.talkCaller : label === "AI" ? t.data.talkAi : label;
+  const underTarget = data.latency.medianMs > 0 && data.latency.medianMs <= data.latency.targetMs;
 
   return (
     <div className="space-y-6 rise">
@@ -140,6 +162,64 @@ export default async function AnalyticsPage({
           ) : (
             <p className="text-sm text-neutral-500">{a.noCalls}</p>
           )}
+        </SectionCard>
+      </div>
+
+      {/* Depth metrics, moved off the overview so it stays a glance. They also
+          gain something here they never had there: the org/assistant filters. */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <SectionCard title={a.talkRatio} subtitle={a.talkRatioSub}>
+          {data.talkRatio.length > 0 ? (
+            <DonutChart
+              segments={data.talkRatio.map((s) => ({ ...s, label: talkLabel(s.label) }))}
+              centerLabel={`${caller}%`}
+              centerSub={t.data.talkCaller}
+            />
+          ) : (
+            <p className="text-sm text-neutral-500">{a.noConversation}</p>
+          )}
+        </SectionCard>
+
+        <SectionCard title={a.voiceLatency} subtitle={a.voiceLatencySub}>
+          <div className="flex items-end justify-between">
+            <div>
+              <div className="text-[28px] font-medium leading-none tracking-tight text-neutral-900">
+                {data.latency.medianMs > 0 ? data.latency.medianMs : "-"}
+                {data.latency.medianMs > 0 && (
+                  <span className="ml-1 text-base font-normal text-neutral-400">ms</span>
+                )}
+              </div>
+              {data.latency.medianMs > 0 && (
+                <span
+                  className={`mt-2 inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[11px] font-medium ${
+                    underTarget ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
+                  }`}
+                >
+                  <Bolt className="h-3 w-3" />
+                  {underTarget ? a.latencyUnder : a.latencyOver} ({data.latency.targetMs}ms)
+                </span>
+              )}
+            </div>
+            {data.latency.spark.length > 1 && (
+              <svg viewBox="0 0 100 24" preserveAspectRatio="none" className="h-10 w-28">
+                <polyline
+                  points={latencyPoints(data.latency.spark)}
+                  fill="none"
+                  stroke="#1D1D1D"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  vectorEffect="non-scaling-stroke"
+                />
+              </svg>
+            )}
+          </div>
+          <div className="mt-4 border-t border-neutral-100 pt-3 text-sm text-neutral-500">
+            p95{" "}
+            <span className="font-medium text-neutral-900">
+              {data.latency.p95Ms > 0 ? `${data.latency.p95Ms}ms` : "-"}
+            </span>
+          </div>
         </SectionCard>
       </div>
     </div>

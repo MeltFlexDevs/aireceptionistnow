@@ -100,6 +100,21 @@ export async function POST(req: Request): Promise<Response> {
   const conversationId = pick(data, ["conversation_id"]);
   if (!conversationId) return json({ error: "missing conversation_id" }, 400);
 
+  // Drop the public "Talk to our AI now" demo before anything is written. The
+  // ElevenLabs webhook is workspace-wide, so it delivers demo conversations too,
+  // and they are nobody's business calls: the demo dials out from a pool line, so
+  // resolveInboundNumber below would attribute it to whichever assistant holds
+  // that number (or to the sole business when the deployment is single-tenant),
+  // and the calls_set_assignment trigger would stamp an owner - putting a
+  // stranger's demo transcript + AI summary in a customer's dashboard. Keying on
+  // the agent (not the number) also keeps it out once a pool line is later
+  // claimed by a real assistant.
+  const demoAgentId = (process.env.ELEVENLABS_AGENT_ID ?? "").trim();
+  const agentId = pick(data, ["agent_id"]);
+  if (demoAgentId && agentId === demoAgentId) {
+    return json({ ok: true, skipped: "demo" });
+  }
+
   const metadata = (data.metadata as Record<string, unknown>) ?? {};
   const phone = (metadata.phone_call as Record<string, unknown>) ?? {};
   const toNumber = pick(phone, ["agent_number", "called_number", "to_number"]);

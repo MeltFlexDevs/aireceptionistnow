@@ -22,13 +22,15 @@ export const nl: Dictionary = {
     integrationsHint: "Agenda's, CRM en meer",
     settings: "Instellingen",
     settingsHint: "Account en facturatie",
-    needAHand: "Hulp nodig?",
+    aiKnows: "Wat jouw AI weet",
+    aiKnowsHint: "Bekijk alles wat je assistenten over jou en je bedrijf weten.",
   },
   topbar: {
     search: "Zoek gesprekken, bellers, nummers...",
     language: "Taal",
   },
   user: {
+    tutorial: "Handleiding",
     signOut: "Afmelden",
     signedInAs: "Aangemeld als",
   },
@@ -78,29 +80,11 @@ export const nl: Dictionary = {
   },
   overview: {
     title: "Overzicht",
-    description:
-      "Bekijk hoe je AI-receptionist het doet. Aangenomen gesprekken, hoe ze verliepen en trends door de tijd.",
+    description: "Hoe je AI-receptionist er nu voor staat en wat bellers echt zeiden.",
     loadError: "Analyses konden niet worden geladen",
     noCallsTitle: "Nog geen gesprekken",
-    noCallsBody:
-      "Zodra je AI-receptionist het eerste gesprek aanneemt, verschijnen hier live-statistieken: volume, sentiment, boekingen en latentie.",
+    noCallsBody: "Zodra je AI-receptionist het eerste gesprek aanneemt, verschijnen hier de cijfers en de AI-samenvatting van elk gesprek.",
     setUpAssistant: "Stel je assistent in",
-    assistants: "Assistenten",
-    assistantsSub: "Resultaten van elke assistent over de laatste 14 dagen",
-    callVolume: "Gespreksvolume",
-    callVolumeSub: "Aangenomen gesprekken over de laatste 14 dagen",
-    talkRatio: "Spreekverhouding",
-    talkRatioSub: "Spreektijd beller vs. AI",
-    noConversation: "Nog geen gespreksgegevens.",
-    voiceLatency: "Spraaklatentie",
-    voiceLatencySub: "Beller stopt → AI antwoordt",
-    callersByCountry: "Bellers per land",
-    callersByCountrySub: "Waar recente bellers vandaan bellen",
-    noCalls: "Nog geen gesprekken.",
-    thisMonth: "Deze maand",
-    thisMonthSub: "Afgehandelde gesprekken",
-    talkMinutes: "Gespreksminuten",
-    bookings: "Boekingen",
     recentCalls: "Recente gesprekken",
     aiSummaries: "AI-gespreksamenvattingen",
     aiSummariesSub: "Automatisch gegenereerd na elk gesprek",
@@ -133,6 +117,13 @@ export const nl: Dictionary = {
     outbound: "Uitgaand",
   },
   analytics: {
+    latencyUnder: "Onder doel",
+    latencyOver: "Boven doel",
+    voiceLatency: "Spraaklatentie",
+    voiceLatencySub: "Beller stopt → AI antwoordt",
+    talkRatio: "Spreekverhouding",
+    talkRatioSub: "Spreektijd beller vs. AI",
+    noConversation: "Nog geen gespreksgegevens.",
     title: "Analyses",
     allAssistants: "Alle assistenten. Laatste 30 dagen.",
     loadError: "Analyses konden niet worden geladen",
@@ -293,5 +284,146 @@ export const nl: Dictionary = {
     billing: "Facturatie",
     billingSub: "Je abonnement en gebruik.",
     noSubscription: "Geen actief abonnement. Kies een abonnement om je limieten te verhogen.",
+  },
+  tutorial: {
+    title: "Handleiding",
+    description: "Wat elk scherm doet, wat je er kunt doen en de dingen waar mensen over struikelen.",
+    startHere: "Begin hier",
+    startHereSub: "Vier stappen van een leeg dashboard naar een AI die je telefoon opneemt.",
+    everyScreen: "Elk scherm",
+    everyScreenSub: "Spring direct naar één of lees verder.",
+    whatYouCanDo: "Wat je kunt doen",
+    goodToKnow: "Goed om te weten",
+    readOnly: "Alleen lezen",
+    open: "Openen",
+    knowledgeWhere: "De kaart onderaan de zijbalk",
+    footer: "Klopt hier iets niet met wat je ziet?",
+    footerLink: "Meld het bij een gesprek",
+    footerEnd: "en we kijken ernaar.",
+    quickStart: [
+      {
+        title: "Maak een organisatie",
+        body: "Die bevat de feiten waaruit je assistenten antwoorden: diensten, openingstijden, prijzen. Eén keer invoeren en elke toegewezen assistent leest ze.",
+      },
+      {
+        title: "Koppel een agenda",
+        body: "Zonder agenda neemt de assistent het verzoek wel aan, maar kan hij geen echt tijdstip aanbieden of iets boeken.",
+      },
+      {
+        title: "Maak een assistent en geef hem een nummer",
+        body: "De assistent is de stem: naam, taal, begroeting en gedrag. Het nummer is wat bellers draaien - het doet niets tot het aan een assistent is gekoppeld.",
+      },
+      {
+        title: "Zie de gesprekken binnenkomen",
+        body: "Elk gesprek belandt in Gesprekken met opname, transcript en AI-samenvatting. Analyses laat de trend zien.",
+      },
+    ],
+    sections: {
+      overview: {
+        purpose: "Je resultaten in één oogopslag: gespreksvolume, opnamepercentage, boekingen en hoe elke assistent het doet.",
+        can: [
+          "De belangrijkste cijfers van de laatste 14 dagen zien en het verbruik deze maand tegenover je abonnement.",
+          "De nieuwste AI-samenvattingen en recente gesprekken lezen zonder ze stuk voor stuk te openen.",
+          "De installatiegids volgen tot je eerste gesprek - hij vinkt zichzelf af.",
+        ],
+        gotcha:
+          "Vóór je eerste gesprek valt er niets te tonen, dus laat deze pagina de installatiegids zien in plaats van de statistieken.",
+      },
+      calls: {
+        purpose: "Elk binnenkomend gesprek, afgestemd op je Twilio-logs, met het volledige transcript erachter.",
+        can: [
+          "Zoeken op nummer, assistent, uitkomst of Call SID.",
+          "Filteren op status: afgerond, niet opgenomen of loopt nog.",
+          "Een gesprek openen om de opname af te spelen of te downloaden en het transcript te lezen.",
+          "Zien wat de assistent deed: afspraak geboekt, bericht aangenomen, gesprek doorverbonden - en of het lukte.",
+          "Een probleem melden bij een gesprek. Je notitie gaat mee met het transcript, zodat een slecht antwoord te herleiden en bij te sturen is.",
+        ],
+        gotcha:
+          "Een gesprek verschijnt pas als het aan een assistent hangt, zo blijft ruis van de provider buiten. Een lopend gesprek ververst zichzelf om de paar seconden.",
+      },
+      calendar: {
+        purpose: "Elke afspraak die je assistenten tijdens een gesprek boekten, per maand.",
+        can: [
+          "Tussen maanden bladeren of terugspringen naar vandaag.",
+          "Op een boeking klikken om het gesprek te openen waar hij vandaan komt.",
+          "Zien wie belde, welke assistent boekte en in welke agenda het terechtkwam.",
+        ],
+        gotcha:
+          "Let op „Te bevestigen verzoeken”. Dat is een beller die een afspraak wilde zonder dat er een bruikbaar tijdstip is vastgelegd - meestal was er geen agenda gekoppeld. Die moet je zelf opvolgen. Tijden volgen de tijdzone in Instellingen.",
+      },
+      analytics: {
+        purpose: "De laatste 30 dagen uitgebreider: volume, opnamepercentage, waar bellers vandaan komen en hoe ze zich voelden.",
+        can: [
+          "Filteren op organisatie en daarna op één assistent daarbinnen.",
+          "Assistenten naast elkaar vergelijken in de tabel „Per assistent”.",
+          "Bellers per land en het algemene sentiment zien.",
+        ],
+        gotcha:
+          "Een dip in het opnamepercentage betekent meestal dat een assistent zijn nummer kwijt is. Dagen worden gebundeld in je tijdzone uit Instellingen.",
+      },
+      organizations: {
+        purpose: "Het bedrijf waarvoor je assistenten spreken, en de gedeelde kennis waaruit ze allemaal antwoorden.",
+        can: [
+          "Een organisatie maken en die een naam en beschrijving geven.",
+          "Een website via URL importeren, een pdf uploaden of notities en FAQ's typen: tijden, regels, locaties, prijzen.",
+          "Assistenten eraan toewijzen. Een assistent hoort maar bij één organisatie tegelijk.",
+          "Een bron verwijderen waaruit de AI niet meer mag citeren.",
+        ],
+        gotcha:
+          "Dit is het scherm met de meeste hefboom: voeg een feit één keer toe en elke toegewezen assistent kent het. Een organisatie verwijderen laat je assistenten bestaan - ze worden alleen losgekoppeld van die kennis.",
+      },
+      assistant: {
+        purpose: "De stem aan de telefoon: wie hij is, hoe hij klinkt en wat hij mag doen.",
+        can: [
+          "Naam, begroeting, taal en stem instellen - en onder Geavanceerd een vaste stem per taal kiezen.",
+          "Er een telefoonnummer bij halen of het huidige loskoppelen.",
+          "Kiezen uit welke organisatie hij zijn kennis haalt.",
+          "Agenda-toegang geven: alleen beschikbaarheid lezen, of ook boeken.",
+          "Na elk gesprek een samenvatting en transcript mailen.",
+          "Een testgesprek starten en hem zelf horen vóór je klanten dat doen.",
+        ],
+        gotcha:
+          "Een assistent zonder nummer kan geen gesprekken aannemen. Stem, taal en gedrag zitten hier op de assistent, nooit op het nummer.",
+      },
+      numbers: {
+        purpose: "De voorraad nummers die vrij zijn om toe te wijzen.",
+        can: [
+          "Een beschikbaar nummer openen en aan een assistent toewijzen om het live te zetten.",
+          "Een nummer terugzetten op Vrij zodat het niet meer opneemt.",
+        ],
+        gotcha:
+          "Deze pagina toont alleen niet-toegewezen nummers, dus een nummer dat in gebruik is staat er niet - dat hoort zo, het is geen fout. Een nieuw nummer haal je bij een assistent via „Nummer ophalen”: eerst wordt een vrij nummer uit de voorraad gepakt en pas daarna een nieuwe lijn gekocht.",
+      },
+      integrations: {
+        purpose: "De externe diensten die je assistenten kunnen bereiken - vandaag agenda's, straks je eigen systemen.",
+        can: [
+          "Google, Microsoft, Cal.com of Calendly koppelen zodat bellers echte afspraken kunnen boeken.",
+          "Een agenda op elk moment loskoppelen.",
+        ],
+        gotcha:
+          "Een agenda koppelen maakt hem hier alleen beschikbaar. Elke assistent moet daarnaast in zijn eigen instellingen toegang krijgen. CRM-push onder Ontwikkelaar komt eraan.",
+      },
+      knowledge: {
+        purpose: "Alles wat je assistenten over jou en je bedrijf weten, op één pagina en in gewone taal.",
+        can: [
+          "Een AI-samenvatting lezen van wat je assistenten met zekerheid kunnen beantwoorden - en wat ontbreekt.",
+          "Elke bron zien die ze lezen, en welke assistenten hem lezen.",
+          "Controleren of je eigen profiel met bellers wordt gedeeld.",
+        ],
+        gotcha:
+          "Staat een feit niet op deze pagina, dan kennen je assistenten het niet. Begin hier als een beller een antwoord krijgt dat je niet verwachtte.",
+      },
+      settings: {
+        purpose: "Je accountgegevens, wat assistenten over je mogen zeggen, meldingen en facturatie.",
+        can: [
+          "Je naam, bedrijf, rol, telefoon en tijdzone instellen.",
+          "Een notitie „Over jou” schrijven en kiezen of assistenten die tijdens gesprekken mogen delen.",
+          "E-mails met gesprekssamenvattingen en urgente sms-meldingen aan- of uitzetten.",
+          "Je verbruik zien en facturatie beheren of van abonnement wisselen via het portaal.",
+        ],
+        gotcha:
+          "Je tijdzone is bepalend: daarin worden de Agenda en Analyses getoond. Je inlog-e-mail kun je hier niet wijzigen.",
+      },
+    },
   },
 };
