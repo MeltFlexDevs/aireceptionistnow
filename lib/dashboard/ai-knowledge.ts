@@ -140,3 +140,41 @@ export async function summarizeOrgKnowledge(entry: OrgKnowledge): Promise<string
     return null;
   }
 }
+
+const SOURCE_SUMMARY_SYSTEM = [
+  "You summarize ONE document from a business's knowledge base for the business owner.",
+  "Write 1-3 short plain sentences, in English, saying what this document covers and the kind of caller questions it lets the AI answer.",
+  "Ground it in the actual content - name the concrete topics it contains (e.g. hours, prices, policies).",
+  "No preamble, no headings, no bullet points, no markdown.",
+].join(" ");
+
+/**
+ * A short summary of a single knowledge source's converted markdown. Generated
+ * once at upload and stored on the source, so the dashboard shows it instantly.
+ * Returns null on empty content or a model error, so the upload still succeeds
+ * with the document itself - the summary is a nicety, not a requirement.
+ */
+export async function summarizeSourceMarkdown(
+  title: string,
+  markdown: string,
+): Promise<string | null> {
+  const text = (markdown ?? "").trim();
+  if (!text) return null;
+
+  const prompt = `Document title: ${title}\n\nContent:\n${text.slice(0, SUMMARY_INPUT_CHARS)}`;
+  try {
+    const res = await getGemini().models.generateContent({
+      model: getEnv().GEMINI_MODEL,
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      config: {
+        systemInstruction: SOURCE_SUMMARY_SYSTEM,
+        maxOutputTokens: 180,
+        thinkingConfig: { thinkingBudget: 0 },
+      },
+    });
+    return (res.text ?? "").trim() || null;
+  } catch (err) {
+    console.error(`[ai-knowledge] source summary failed for "${title}"`, err);
+    return null;
+  }
+}

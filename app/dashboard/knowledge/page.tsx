@@ -12,7 +12,7 @@ import { PageHeader } from "../components/PageHeader";
 import { SectionCard } from "../components/SectionCard";
 import { Skeleton } from "../components/Skeleton";
 import { StatusDot } from "../components/StatusBadge";
-import { Bot, Building, Calendar, Sparkle } from "../icons";
+import { Bot, Building, Calendar, ChevronDown, Sparkle } from "../icons";
 
 // "What your AI knows about you" - a read-only mirror of everything the call
 // engine feeds the assistant at pickup, in one place. The dashboard otherwise
@@ -179,17 +179,39 @@ export default async function KnowledgePage() {
                     {entry.sources.map((s) => (
                       <li
                         key={s.id}
-                        className="flex items-center justify-between gap-3 rounded-lg border border-neutral-200/70 bg-white/60 px-3 py-2.5"
+                        className="rounded-lg border border-neutral-200/70 bg-white/60"
                       >
-                        <div className="min-w-0">
-                          <div className="truncate text-sm font-medium text-neutral-800">{s.title}</div>
-                          <div className="truncate text-xs text-neutral-500">
-                            {s.url ?? `${s.kind} · ${(s.charCount || 0).toLocaleString()} characters`}
+                        <details className="group">
+                          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2.5 [&::-webkit-details-marker]:hidden">
+                            <span className="min-w-0">
+                              <span className="block truncate text-sm font-medium text-neutral-800">
+                                {s.title}
+                              </span>
+                              <span className="block truncate text-xs text-neutral-500">
+                                {s.url ?? `${s.kind} · ${(s.charCount || 0).toLocaleString()} characters`}
+                              </span>
+                            </span>
+                            <span className="flex shrink-0 items-center gap-2">
+                              <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-500">
+                                {s.kind}
+                              </span>
+                              <ChevronDown className="h-4 w-4 text-neutral-400 transition-transform group-open:rotate-180" />
+                            </span>
+                          </summary>
+                          <div className="border-t border-neutral-200/70 px-3 py-2.5">
+                            <div className="mb-1 flex items-center gap-1.5 text-[11px] font-medium text-neutral-500">
+                              <Sparkle className="h-3 w-3" />
+                              AI summary
+                            </div>
+                            {s.summary ? (
+                              <p className="text-sm leading-relaxed text-neutral-700">{s.summary}</p>
+                            ) : (
+                              <p className="text-xs text-neutral-400">
+                                No summary yet - re-upload this document to generate one.
+                              </p>
+                            )}
                           </div>
-                        </div>
-                        <span className="shrink-0 rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-500">
-                          {s.kind}
-                        </span>
+                        </details>
                       </li>
                     ))}
                   </ul>

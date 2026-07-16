@@ -13,6 +13,9 @@ export interface KnowledgeSource {
   markdown: string; // processed content
   charCount: number;
   addedAt: string; // ISO 8601
+  /** Short AI summary of `markdown`, generated once at upload and stored, so the
+   *  dashboard can show it instantly without a per-view model call. */
+  summary?: string;
 }
 
 export interface AssistantKnowledge {

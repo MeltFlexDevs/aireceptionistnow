@@ -20,6 +20,7 @@ import { getAssistant } from "@/lib/dashboard/db";
 import { syncAssistantAgent } from "@/lib/call-engine/agent/sync";
 import { fetchWebsiteMarkdown } from "@/lib/knowledge/website";
 import { parsePdfMarkdown } from "@/lib/knowledge/pdf";
+import { summarizeSourceMarkdown } from "@/lib/dashboard/ai-knowledge";
 import {
   addSource,
   readKnowledge,
@@ -184,6 +185,11 @@ export async function addOrgWebsiteKnowledgeAction(formData: FormData): Promise<
     orgError(id, (err as Error).message);
   }
 
+  // Summarize the converted markdown once, now, and store it with the source, so
+  // "What your AI knows" can show it instantly. A summary failure never fails the
+  // import - the document is what matters.
+  source.summary = (await summarizeSourceMarkdown(source.title, source.markdown)) ?? undefined;
+
   const next = addSource(readKnowledge(org.knowledge), source);
   await updateOrganizationKnowledge(id, { ...next }).catch((err) =>
     orgError(id, (err as Error).message),
@@ -219,6 +225,10 @@ export async function addOrgPdfKnowledgeAction(formData: FormData): Promise<void
   } catch (err) {
     orgError(id, (err as Error).message);
   }
+
+  // Summarize the converted markdown now and store it with the source (same as
+  // the website import) so the dashboard shows it without a per-view model call.
+  source.summary = (await summarizeSourceMarkdown(source.title, source.markdown)) ?? undefined;
 
   const next = addSource(readKnowledge(org.knowledge), source);
   await updateOrganizationKnowledge(id, { ...next }).catch((err) =>
