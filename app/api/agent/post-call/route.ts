@@ -1,6 +1,12 @@
+import { after } from "next/server";
 import { verifyElevenLabsSignature } from "@/lib/call-engine/agent/auth";
 import { getRepository } from "@/lib/call-engine/persistence/supabase";
 import { runPostCall } from "@/lib/call-engine/summary/dispatch";
+import { wasAnswered } from "@/lib/call-engine/cancellation";
+import {
+  findBookingByNotifyConversation,
+  resolveCancellationNotify,
+} from "@/lib/dashboard/booking-cancel";
 import type { TranscriptTurn } from "@/lib/call-engine/types";
 
 // Tier-A post-call webhook. ElevenLabs posts the full transcript when a call
@@ -125,6 +131,23 @@ export async function POST(req: Request): Promise<Response> {
   // customer call. Anything unexpected/absent defaults to inbound.
   const direction = pick(phone, ["direction"]) === "outbound" ? "outbound" : "inbound";
   const durationSeconds = Number(metadata.call_duration_secs ?? 0) || undefined;
+
+  // If this outbound call was a booking-cancellation notification, decide the SMS
+  // fallback: no real engagement (ring-out / voicemail) -> text the customer the
+  // same message. Runs off the response (after) so it never delays the webhook,
+  // and still lets the call fall through to normal recording below.
+  if (direction === "outbound") {
+    const notify = await findBookingByNotifyConversation(conversationId).catch(() => null);
+    if (notify) {
+      const callerTurns = Array.isArray(data.transcript)
+        ? (data.transcript as { role?: string; message?: string; text?: string }[]).filter(
+            (t) => t.role === "user" && (t.message ?? t.text ?? "").trim(),
+          ).length
+        : 0;
+      const answered = wasAnswered({ durationSecs: durationSeconds ?? 0, callerTurns });
+      after(() => resolveCancellationNotify(notify.actionId, notify.state, answered));
+    }
+  }
 
   const repo = getRepository();
 

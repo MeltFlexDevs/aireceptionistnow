@@ -15,7 +15,14 @@ import { assistantName, str } from "./calls/embed";
 // day the user saw it; grid arithmetic is pure UTC calendar math on "YYYY-MM-DD"
 // keys, which keeps it free of DST edge cases.
 
-export type BookingStatus = "pending" | "done" | "failed";
+export type BookingStatus = "pending" | "done" | "failed" | "cancelled";
+
+/** Where an in-flight cancellation notification is, surfaced on the booking. */
+export interface BookingCancellation {
+  reason: string;
+  offerRebook: boolean;
+  notifyStatus: "pending" | "calling" | "answered" | "sms_sent" | "failed";
+}
 
 export interface Booking {
   id: string;
@@ -41,6 +48,8 @@ export interface Booking {
   /** Calendar the event was written to ('calcom', 'google'…). Null when the
    *  booking was saved as a request with no calendar resolved. */
   provider: string | null;
+  /** Present once the owner has cancelled this booking. */
+  cancellation: BookingCancellation | null;
 }
 
 // `!inner` on calls so a booking whose call was deleted drops out, and so the
@@ -58,7 +67,20 @@ function one(v: unknown): Record<string, unknown> | null {
 }
 
 function toStatus(v: unknown): BookingStatus {
-  return v === "done" || v === "failed" ? v : "pending";
+  return v === "done" || v === "failed" || v === "cancelled" ? v : "pending";
+}
+
+function toCancellation(payload: Record<string, unknown>): BookingCancellation | null {
+  const c = payload.cancellation as Partial<BookingCancellation> | undefined;
+  if (!c || typeof c !== "object") return null;
+  return {
+    reason: typeof c.reason === "string" ? c.reason : "",
+    offerRebook: Boolean(c.offerRebook),
+    notifyStatus:
+      (["pending", "calling", "answered", "sms_sent", "failed"] as const).find(
+        (s) => s === c.notifyStatus,
+      ) ?? "pending",
+  };
 }
 
 function nullableStr(v: unknown): string | null {
@@ -116,6 +138,7 @@ export async function listBookings(
       callerNumber: str(call.from_number),
       assistant: assistantName(call),
       provider: integration ? nullableStr(integration.provider) : null,
+      cancellation: toCancellation(payload),
     };
   });
 }

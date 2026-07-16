@@ -5,6 +5,7 @@ import type {
   BusyInterval,
   CalendarFactory,
   CalendarProvider,
+  CancelResult,
 } from "./types";
 
 // Cal.com adapter (API v2 - v1 was shut down in April 2026). Auth is a Bearer
@@ -261,6 +262,33 @@ export const createCalcom: CalendarFactory = (config): CalendarProvider => {
         busy.push({ start: new Date(cursor).toISOString(), end: new Date(windowEnd).toISOString() });
       }
       return { ok: true, busy };
+    },
+
+    async cancelEvent(externalId, reason): Promise<CancelResult> {
+      if (!externalId) return { ok: false, error: "no cal.com booking id" };
+      const cancel = (token: string) =>
+        fetch(`${API}/bookings/${encodeURIComponent(externalId)}/cancel`, {
+          method: "POST",
+          headers: {
+            authorization: `Bearer ${token}`,
+            "content-type": "application/json",
+            "cal-api-version": "2024-08-13",
+          },
+          body: JSON.stringify(reason ? { cancellationReason: reason.slice(0, 500) } : {}),
+        });
+
+      let token = bearer();
+      let res = token ? await cancel(token) : null;
+      if ((!res || res.status === 401) && canRefresh) {
+        token = await refreshAccessToken(cfg);
+        if (token) res = await cancel(token);
+      }
+      if (!res) return { ok: false, error: "cal.com not authorized" };
+      // Already cancelled/gone is success from our side - the goal (no live event)
+      // is met, and a retry after a partial failure must not error on the second try.
+      if (res.status === 404) return { ok: true };
+      if (!res.ok) return { ok: false, error: await failure(res) };
+      return { ok: true };
     },
   };
 };

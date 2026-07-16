@@ -28,10 +28,19 @@ export interface AvailabilityResult {
   error?: string;
 }
 
+export interface CancelResult {
+  ok: boolean;
+  error?: string;
+}
+
 export interface CalendarProvider {
   createEvent(req: BookingRequest): Promise<BookingResult>;
   /** Read busy intervals in a window. Omitted when the provider can't read. */
   getBusy?(query: AvailabilityQuery): Promise<AvailabilityResult>;
+  /** Cancel a previously booked event by the provider id createEvent returned.
+   *  Omitted when the provider can't cancel (e.g. a write-only webhook), in
+   *  which case the caller notifies the customer but leaves the event in place. */
+  cancelEvent?(externalId: string, reason?: string): Promise<CancelResult>;
 }
 
 export type CalendarFactory = (

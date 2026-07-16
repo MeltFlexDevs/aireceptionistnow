@@ -3,6 +3,7 @@
 import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { currentUserId } from "@/lib/auth";
 import { authConfigured } from "@/lib/supabase/config";
 import {
@@ -61,22 +62,31 @@ function orgError(id: string, message: string): never {
 }
 
 /**
- * Re-push this org's shared knowledge into every assigned assistant's ElevenLabs
- * agent. The agent bakes in the org+assistant merged knowledge at sync time, so
- * an org knowledge edit is invisible on calls until each assistant re-syncs -
- * this closes that gap so knowledge changes take effect on the next call.
- * Best-effort per assistant: a sync failure is logged, never blocks the save
- * (the knowledge is already persisted; a later assistant save re-syncs too).
+ * Push an org's changed knowledge to its assistants' live ElevenLabs agents.
+ * The agent bakes in the org+assistant merged knowledge at sync time, so an org
+ * knowledge edit is invisible on calls until each assistant re-syncs; this closes
+ * that gap so changes take effect on the next call.
+ *
+ * Scheduled with `after()`, NOT awaited: this is several ElevenLabs round-trips
+ * per assistant, and an org with a few assistants made every knowledge save sit
+ * on a spinner for many seconds ("still saving..."). The save itself is the DB
+ * write the caller already awaited; this only propagates it to the voice agents
+ * so the next call reflects it. It was always fire-and-forget - it swallows its
+ * own errors and never surfaced them - so moving it off the response changes
+ * nothing the user could see, except the wait. `after` still runs after a
+ * redirect() (per the Next docs), so callers schedule it then redirect at once.
  */
-async function resyncOrgAgents(orgId: string): Promise<void> {
-  const assistants = await listOrganizationAssistants(orgId).catch(() => []);
-  await Promise.all(
-    assistants.map((a) =>
-      syncAssistantAgent(a.id).catch((err) =>
-        console.error("[organizations] agent re-sync failed", a.id, err),
+function resyncOrgAgents(orgId: string): void {
+  after(async () => {
+    const assistants = await listOrganizationAssistants(orgId).catch(() => []);
+    await Promise.all(
+      assistants.map((a) =>
+        syncAssistantAgent(a.id).catch((err) =>
+          console.error("[organizations] agent re-sync failed", a.id, err),
+        ),
       ),
-    ),
-  );
+    );
+  });
 }
 
 export async function updateOrganizationAction(formData: FormData): Promise<void> {
@@ -112,13 +122,17 @@ export async function deleteOrganizationAction(formData: FormData): Promise<void
     } catch (err) {
       orgError(id, (err as Error).message);
     }
-    await Promise.all(
-      members.map((a) =>
-        syncAssistantAgent(a.id).catch((e) =>
-          console.error("[organizations] agent re-sync after org delete failed", a.id, e),
+    // Re-sync detached members off the response, same as every knowledge edit -
+    // deleting an org shouldn't hang on ElevenLabs. `after` runs post-redirect.
+    after(async () => {
+      await Promise.all(
+        members.map((a) =>
+          syncAssistantAgent(a.id).catch((e) =>
+            console.error("[organizations] agent re-sync after org delete failed", a.id, e),
+          ),
         ),
-      ),
-    );
+      );
+    });
     revalidatePath("/dashboard/organizations");
   }
   redirect("/dashboard/organizations");
@@ -138,7 +152,7 @@ export async function updateOrganizationNotesAction(formData: FormData): Promise
   await updateOrganizationKnowledge(id, { ...knowledge }).catch((err) =>
     orgError(id, (err as Error).message),
   );
-  await resyncOrgAgents(id);
+  resyncOrgAgents(id); // fire-and-forget via after()
 
   revalidatePath(`/dashboard/organizations/${id}`);
   redirect(`/dashboard/organizations/${id}?saved=1`);
@@ -174,7 +188,7 @@ export async function addOrgWebsiteKnowledgeAction(formData: FormData): Promise<
   await updateOrganizationKnowledge(id, { ...next }).catch((err) =>
     orgError(id, (err as Error).message),
   );
-  await resyncOrgAgents(id);
+  resyncOrgAgents(id); // fire-and-forget via after()
 
   revalidatePath(`/dashboard/organizations/${id}`);
   redirect(`/dashboard/organizations/${id}?saved=1`);
@@ -210,7 +224,7 @@ export async function addOrgPdfKnowledgeAction(formData: FormData): Promise<void
   await updateOrganizationKnowledge(id, { ...next }).catch((err) =>
     orgError(id, (err as Error).message),
   );
-  await resyncOrgAgents(id);
+  resyncOrgAgents(id); // fire-and-forget via after()
 
   revalidatePath(`/dashboard/organizations/${id}`);
   redirect(`/dashboard/organizations/${id}?saved=1`);
@@ -225,7 +239,7 @@ export async function removeOrgKnowledgeSourceAction(formData: FormData): Promis
   const org = await ownedOrgOrRedirect(id);
   const next = removeSource(readKnowledge(org.knowledge), sourceId);
   await updateOrganizationKnowledge(id, { ...next }).catch(() => {});
-  await resyncOrgAgents(id);
+  resyncOrgAgents(id); // fire-and-forget via after()
 
   revalidatePath(`/dashboard/organizations/${id}`);
   redirect(`/dashboard/organizations/${id}?saved=1`);

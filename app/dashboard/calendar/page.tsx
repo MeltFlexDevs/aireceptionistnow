@@ -18,6 +18,7 @@ import { Calendar, ChevronLeft, ChevronRight } from "../icons";
 import { PageHeader } from "../components/PageHeader";
 import { SectionCard } from "../components/SectionCard";
 import { StatusDot } from "../components/StatusBadge";
+import { CancelBooking } from "./CancelBooking";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +26,7 @@ const TONE: Record<BookingStatus, { dot: "ok" | "warn" | "error"; chip: string }
   done: { dot: "ok", chip: "bg-emerald-50 text-emerald-700 ring-emerald-100" },
   pending: { dot: "warn", chip: "bg-amber-50 text-amber-700 ring-amber-100" },
   failed: { dot: "error", chip: "bg-rose-50 text-rose-700 ring-rose-100" },
+  cancelled: { dot: "error", chip: "bg-neutral-100 text-neutral-500 ring-neutral-200 line-through" },
 };
 
 const PROVIDER_NAMES: Record<string, string> = {
@@ -64,9 +66,9 @@ function MonthNav({ cursor, label }: { cursor: MonthCursor; label: string }) {
 export default async function CalendarPage({
   searchParams,
 }: {
-  searchParams: Promise<{ month?: string }>;
+  searchParams: Promise<{ month?: string; saved?: string; error?: string }>;
 }) {
-  const [{ month }, t, locale] = await Promise.all([
+  const [{ month, saved, error }, t, locale] = await Promise.all([
     searchParams,
     getDictionary(),
     getLocale(),
@@ -128,6 +130,17 @@ export default async function CalendarPage({
           </div>
         }
       />
+
+      {saved && (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          {saved}
+        </div>
+      )}
+      {error && (
+        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          {error}
+        </div>
+      )}
 
       {loadError && (
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
@@ -243,13 +256,25 @@ export default async function CalendarPage({
                   </dl>
                   {b.notes && <p className="mt-1 text-xs text-neutral-500">{b.notes}</p>}
                   {b.error && <p className="mt-1 text-xs text-rose-600">{b.error}</p>}
+                  {b.cancellation?.reason && (
+                    <p className="mt-1 text-xs text-neutral-400">
+                      Cancelled: {b.cancellation.reason}
+                    </p>
+                  )}
                 </div>
-                <Link
-                  href={`/dashboard/calls/${b.callId}`}
-                  className="press shrink-0 rounded-lg border border-neutral-200 bg-white px-2.5 py-1 text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-50"
-                >
-                  {c.viewCall}
-                </Link>
+                <div className="flex shrink-0 items-start gap-2">
+                  <Link
+                    href={`/dashboard/calls/${b.callId}`}
+                    className="press shrink-0 rounded-lg border border-neutral-200 bg-white px-2.5 py-1 text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-50"
+                  >
+                    {c.viewCall}
+                  </Link>
+                  {/* Only successfully-booked, still-active appointments can be
+                      cancelled; a cancelled one shows its notify status instead. */}
+                  {(b.status === "done" || b.cancellation) && (
+                    <CancelBooking actionId={b.id} cancellation={b.cancellation} />
+                  )}
+                </div>
               </li>
             ))}
           </ul>

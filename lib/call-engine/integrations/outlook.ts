@@ -1,6 +1,6 @@
 import type { BookingRequest, BookingResult } from "../types";
 import { cachedAccessToken, persistAccessToken } from "./token-store";
-import type { CalendarFactory, CalendarProvider } from "./types";
+import type { CalendarFactory, CalendarProvider, CancelResult } from "./types";
 
 // Microsoft Outlook / Microsoft 365 adapter via Microsoft Graph. Config holds an
 // OAuth refresh token + app registration, refreshed on demand; calendar_id is
@@ -75,6 +75,27 @@ export const createOutlookCalendar: CalendarFactory = (config): CalendarProvider
       if (!res.ok) return { ok: false, error: `outlook ${res.status}` };
       const json = (await res.json()) as { id?: string };
       return { ok: true, externalId: json.id };
+    },
+
+    async cancelEvent(externalId): Promise<CancelResult> {
+      if (!externalId) return { ok: false, error: "no outlook event id" };
+      // DELETE removes the event from the organizer's calendar. (Graph also has a
+      // /cancel action that emails attendees; we do our own outbound notify, so a
+      // plain delete is what we want.)
+      const del = (token: string) =>
+        fetch(`https://graph.microsoft.com/v1.0/me/events/${encodeURIComponent(externalId)}`, {
+          method: "DELETE",
+          headers: { authorization: `Bearer ${token}` },
+        });
+      let token = cachedAccessToken(cfg.refresh_token) ?? cfg.access_token ?? null;
+      let res = token ? await del(token) : null;
+      if (!res || res.status === 401) {
+        token = await refreshAccessToken(cfg);
+        if (token) res = await del(token);
+      }
+      if (!res) return { ok: false, error: "outlook not authorized" };
+      if (res.ok || res.status === 404) return { ok: true };
+      return { ok: false, error: `outlook ${res.status}` };
     },
   };
 };

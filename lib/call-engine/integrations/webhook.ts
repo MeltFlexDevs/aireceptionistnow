@@ -5,6 +5,7 @@ import type {
   BusyInterval,
   CalendarFactory,
   CalendarProvider,
+  CancelResult,
 } from "./types";
 
 // Generic "bring your own" adapter: POST the booking to a URL the user supplies.
@@ -51,6 +52,26 @@ export const createWebhookCalendar: CalendarFactory = (config): CalendarProvider
         // non-JSON 2xx is still a success
       }
       return { ok: true, externalId };
+    },
+
+    // Cancellation: POST { type: "cancellation", externalId, reason }. The
+    // endpoint owner deletes the matching event however their system does it. A
+    // non-2xx means we couldn't confirm cancellation - report it so the caller
+    // can still notify the customer but flag the calendar side as unconfirmed.
+    async cancelEvent(externalId, reason): Promise<CancelResult> {
+      if (!cfg.url) return { ok: false, error: "no webhook url configured" };
+      if (!isSafeHttpsUrl(cfg.url)) return { ok: false, error: "webhook url not allowed" };
+      const res = await fetch(cfg.url, {
+        method: "POST",
+        redirect: "manual",
+        headers: {
+          "content-type": "application/json",
+          ...(cfg.secret ? { "x-webhook-secret": cfg.secret } : {}),
+        },
+        body: JSON.stringify({ type: "cancellation", externalId, reason }),
+      });
+      if (!res.ok) return { ok: false, error: `webhook ${res.status}` };
+      return { ok: true };
     },
 
     // Availability read: POST a freebusy request and expect { busy: [{start,end}] }.

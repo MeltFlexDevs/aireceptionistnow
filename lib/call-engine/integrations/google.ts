@@ -6,6 +6,7 @@ import type {
   BusyInterval,
   CalendarFactory,
   CalendarProvider,
+  CancelResult,
 } from "./types";
 
 // Google Calendar adapter. Config holds the user's OAuth credentials - an
@@ -114,6 +115,27 @@ export const createGoogleCalendar: CalendarFactory = (config): CalendarProvider 
       if (!res.ok) return { ok: false, error: `google calendar ${res.status}` };
       const json = (await res.json()) as { id?: string };
       return { ok: true, externalId: json.id };
+    },
+
+    async cancelEvent(externalId): Promise<CancelResult> {
+      if (!externalId) return { ok: false, error: "no google event id" };
+      const del = (token: string) =>
+        fetch(
+          `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(
+            cfg.calendar_id || "primary",
+          )}/events/${encodeURIComponent(externalId)}`,
+          { method: "DELETE", headers: { authorization: `Bearer ${token}` } },
+        );
+      let token = storedToken();
+      let res = token ? await del(token) : null;
+      if (!res || res.status === 401) {
+        token = await refreshAccessToken(cfg);
+        if (token) res = await del(token);
+      }
+      if (!res) return { ok: false, error: "google calendar not authorized" };
+      // 204 = deleted; 404/410 = already gone. All mean "no live event" - success.
+      if (res.ok || res.status === 404 || res.status === 410) return { ok: true };
+      return { ok: false, error: `google calendar ${res.status}` };
     },
 
     async getBusy(q): Promise<AvailabilityResult> {

@@ -300,6 +300,48 @@ export function demoOverrideCandidates(opts: {
 }
 
 /**
+ * Override ladder for a caller-purpose call (e.g. cancellation), where a custom
+ * first_message + prompt MUST be applied - including for English callers, unlike
+ * the demo. Steps down voice → language, but NEVER drops to a bare `{}`: a
+ * cancellation call that connected the customer to the agent's default receptionist
+ * persona (no idea it's calling to cancel) would be worse than not calling. If
+ * every override is rejected, placeAgentCall surfaces the error and the caller
+ * falls back to the SMS.
+ */
+export function customOverrideCandidates(opts: {
+  language?: string;
+  firstMessage?: string;
+  prompt?: string;
+  voiceId?: string;
+  defaultVoiceId: string;
+}): Record<string, unknown>[] {
+  const { language, firstMessage, prompt, voiceId, defaultVoiceId } = opts;
+  const agent: Record<string, unknown> = {};
+  if (firstMessage) agent.first_message = firstMessage;
+  if (prompt) agent.prompt = { prompt };
+  if (language && language !== "en") agent.language = language;
+
+  const wrap = (override: Record<string, unknown>) => ({
+    conversation_initiation_client_data: { conversation_config_override: override },
+  });
+
+  const candidates: Record<string, unknown>[] = [];
+  // Native voice + full script, then script without the voice, then script
+  // without the language override (voice/language are the likeliest to be refused;
+  // the first_message + prompt are the point of the call and are kept longest).
+  if (voiceId && voiceId !== defaultVoiceId) {
+    candidates.push(wrap({ agent, tts: { voice_id: voiceId } }));
+  }
+  candidates.push(wrap({ agent }));
+  if (agent.language) {
+    const { language: _drop, ...agentNoLang } = agent;
+    void _drop;
+    candidates.push(wrap({ agent: agentNoLang }));
+  }
+  return candidates;
+}
+
+/**
  * Have an ElevenLabs agent call `toNumber` (E.164).
  *
  * Defaults to the public demo agent + its number (the landing page's "Talk to
@@ -310,7 +352,17 @@ export function demoOverrideCandidates(opts: {
  */
 export async function placeAgentCall(
   toNumber: string,
-  opts: { agentId?: string; agentPhoneNumberId?: string; language?: string } = {},
+  opts: {
+    agentId?: string;
+    agentPhoneNumberId?: string;
+    language?: string;
+    /** Verbatim opening line, localized to `language` (e.g. a cancellation
+     *  notice). When set, the override is applied even for English calls. */
+    firstMessage?: string;
+    /** Per-call system prompt override giving the agent this call's goal
+     *  (e.g. "you're calling to cancel and rebook"). */
+    prompt?: string;
+  } = {},
 ): Promise<PlaceAgentCallResult> {
   const apiKey = process.env.ELEVENLABS_API_KEY;
   const agentId = opts.agentId || process.env.ELEVENLABS_AGENT_ID;
@@ -321,19 +373,25 @@ export async function placeAgentCall(
     throw new Error("Calling isn't configured.");
   }
 
+  // A caller-purpose call (opts.prompt/firstMessage set, e.g. a cancellation)
+  // carries its own script; a demo/test call localizes the agent's own greeting.
+  const custom = Boolean(opts.prompt || opts.firstMessage);
+
   // Outbound calls never hit the conversation-init webhook (that's inbound-only),
   // so the caller's language, a localized greeting, AND a native voice are set here
   // in the request body instead. Requires the agent to have "overrides" enabled for
   // language + first_message + voice (asserted by /api/agent/setup for the demo
-  // agent).
-  let firstMessage: string | undefined;
+  // agent, and by syncAssistantAgent for managed assistants).
+  let firstMessage: string | undefined = opts.firstMessage;
   let voiceId: string | undefined;
   if (opts.language && opts.language !== "en") {
-    const greeting = await agentFirstMessage(agentId, apiKey);
-    if (greeting) {
-      // Cached per (greeting, language) - repeat demo calls skip the Gemini trip.
-      const localized = await localizeGreeting(greeting, opts.language);
-      if (localized !== greeting) firstMessage = localized;
+    // Localize the opening line: the provided one for a custom call, else the
+    // agent's own greeting for a demo call.
+    const source = opts.firstMessage ?? (await agentFirstMessage(agentId, apiKey));
+    if (source) {
+      // Cached per (text, language) - repeat calls skip the Gemini trip.
+      const localized = await localizeGreeting(source, opts.language);
+      if (localized !== source) firstMessage = localized;
     }
     // Match the voice to the caller's language (a native one when the account has
     // or can import it), mirroring the inbound init webhook. Deadline-guarded so a
@@ -368,12 +426,20 @@ export async function placeAgentCall(
   // instead of the old single-retry that collapsed straight back to English and
   // made the demo answer in the wrong language. A 429/5xx is a real outage and
   // breaks out immediately - a second placement there would double-dial.
-  const candidates = demoOverrideCandidates({
-    language: opts.language,
-    firstMessage,
-    voiceId,
-    defaultVoiceId: DEFAULT_VOICE_ID,
-  });
+  const candidates = custom
+    ? customOverrideCandidates({
+        language: opts.language,
+        firstMessage,
+        prompt: opts.prompt,
+        voiceId,
+        defaultVoiceId: DEFAULT_VOICE_ID,
+      })
+    : demoOverrideCandidates({
+        language: opts.language,
+        firstMessage,
+        voiceId,
+        defaultVoiceId: DEFAULT_VOICE_ID,
+      });
   let res = await place({ ...base, ...candidates[0] });
   for (let i = 1; i < candidates.length; i++) {
     if (res.status !== 400 && res.status !== 422) break;
