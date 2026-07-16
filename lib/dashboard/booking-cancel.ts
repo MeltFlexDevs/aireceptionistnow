@@ -6,6 +6,7 @@ import { getRepository } from "../call-engine/persistence/supabase";
 import { resolveCalendarById } from "../call-engine/integrations/registry";
 import { clearSnapshot } from "../call-engine/integrations/snapshot-store";
 import { composeCancellationSms } from "../call-engine/cancellation";
+import { localizeSms } from "../call-engine/llm/greeting";
 import { sendSms } from "../call-engine/telephony";
 import { languageFromPhone } from "../call-engine/voice/phone-language";
 import type { NumberConfig } from "../call-engine/types";
@@ -15,6 +16,7 @@ export interface CancellationState {
   offerRebook: boolean;
   notifyStatus: "pending" | "calling" | "answered" | "sms_sent" | "failed";
   notifyConversationId?: string;
+  notifyAt?: string; // when the outbound call was placed (sweep staleness)
   calendarCancelled: boolean;
   calendarError?: string;
   at: string;
@@ -168,11 +170,10 @@ export async function resolveCancellationNotify(
   answered: boolean,
 ): Promise<void> {
   if (state.notifyStatus !== "calling") return; // already resolved
-  if (answered) {
-    await patchCancellationState(actionId, { notifyStatus: "answered" }).catch(() => {});
-    return;
-  }
 
+  // Always follow up with an SMS: voicemail pickups look "answered" to the
+  // duration/turn heuristic, and even a real answer deserves written
+  // confirmation. `answered` only decides the status when the SMS fails.
   const booking = await loadBookingForCancel(actionId, null).catch(() => null);
   if (!booking) {
     await patchCancellationState(actionId, { notifyStatus: "failed" }).catch(() => {});
@@ -188,10 +189,16 @@ export async function resolveCancellationNotify(
       offerRebook: state.offerRebook,
       callbackNumber: booking.fromNumber,
     });
-    await sendSms(booking.attendeePhone, booking.fromNumber, body);
+    // Speak the caller's language (from their phone country) and send under
+    // the business's name.
+    const lang = languageFromPhone(booking.attendeePhone);
+    const localized = lang ? await localizeSms(body, lang) : body;
+    await sendSms(booking.attendeePhone, booking.fromNumber, localized, booking.config.businessName);
     await patchCancellationState(actionId, { notifyStatus: "sms_sent" }).catch(() => {});
   } catch (err) {
-    console.error(`[cancel] no-answer SMS failed for ${actionId}`, err);
-    await patchCancellationState(actionId, { notifyStatus: "failed" }).catch(() => {});
+    console.error(`[cancel] follow-up SMS failed for ${actionId}`, err);
+    await patchCancellationState(actionId, {
+      notifyStatus: answered ? "answered" : "failed",
+    }).catch(() => {});
   }
 }

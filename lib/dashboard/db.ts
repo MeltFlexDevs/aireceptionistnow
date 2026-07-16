@@ -175,6 +175,29 @@ export async function createCrmIntegration(
   if (error) throw error;
 }
 
+// Marks one connected calendar as the primary (config.primary flag); clears
+// the flag on every other calendar the owner can see.
+export async function setPrimaryCalendar(id: string, ownerId?: string | null): Promise<void> {
+  if (authConfigured() && !ownerId) throw new Error("Not signed in.");
+  let query = db().from("integrations").select("id, config").eq("type", "calendar");
+  if (ownerId) query = query.or(`owner_id.eq.${ownerId},owner_id.is.null`);
+  const { data, error } = await query;
+  if (error) throw error;
+  if (!(data ?? []).some((row) => String(row.id) === id)) throw new Error("Calendar not found.");
+  await Promise.all(
+    (data ?? []).map(async (row) => {
+      const cfg = (row.config as Record<string, unknown>) ?? {};
+      const isTarget = String(row.id) === id;
+      if (Boolean(cfg.primary) === isTarget) return;
+      const config = { ...cfg };
+      if (isTarget) config.primary = true;
+      else delete config.primary;
+      const { error: upErr } = await db().from("integrations").update({ config }).eq("id", row.id);
+      if (upErr) throw upErr;
+    }),
+  );
+}
+
 export async function deleteIntegration(id: string, ownerId?: string | null): Promise<void> {
   if (authConfigured() && !ownerId) throw new Error("Not signed in.");
   let query = db().from("integrations").delete().eq("id", id);

@@ -15,7 +15,9 @@ import { ownerTimezone } from "@/lib/dashboard/timezone";
 import { dateTimeFmt } from "@/lib/dashboard/calls/format";
 import { composeCancellationScript, composeCancellationSms } from "@/lib/call-engine/cancellation";
 import { placeAgentCall } from "@/lib/call-engine/elevenlabs";
+import { localizeSms } from "@/lib/call-engine/llm/greeting";
 import { sendSms } from "@/lib/call-engine/telephony";
+import { languageFromPhone } from "@/lib/call-engine/voice/phone-language";
 
 function back(msg: string, kind: "saved" | "error" = "saved"): never {
   revalidatePath("/dashboard/calendar");
@@ -90,6 +92,7 @@ async function notifyCustomer(
       await patchCancellationState(actionId, {
         notifyStatus: "calling",
         notifyConversationId: res.conversationId,
+        notifyAt: new Date().toISOString(),
       }).catch(() => {});
     } else {
       await smsFallback(actionId, booking, ctx);
@@ -106,7 +109,10 @@ async function smsFallback(
   ctx: Parameters<typeof composeCancellationSms>[0],
 ): Promise<void> {
   try {
-    await sendSms(booking.attendeePhone, booking.fromNumber, composeCancellationSms(ctx));
+    const lang = languageFromPhone(booking.attendeePhone);
+    const body = composeCancellationSms(ctx);
+    const localized = lang ? await localizeSms(body, lang) : body;
+    await sendSms(booking.attendeePhone, booking.fromNumber, localized, ctx.businessName);
     await patchCancellationState(actionId, { notifyStatus: "sms_sent" }).catch(() => {});
   } catch (err) {
     console.error(`[cancel] SMS fallback failed for ${actionId}`, err);

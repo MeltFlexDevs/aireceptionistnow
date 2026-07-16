@@ -177,7 +177,7 @@ async function alertOwner(
   const cb = input.callback_number ? ` (${input.callback_number})` : "";
   const body = `New message for ${ctx.config.businessName}: ${input.message} - from ${who}${cb}`;
   try {
-    await withDeadline(sendSms(r.transferTo, ctx.to, body), 3000, undefined);
+    await withDeadline(sendSms(r.transferTo, ctx.to, body, ctx.config.businessName), 3000, undefined);
   } catch (err) {
     console.error("[actions] sms alert", err);
   }

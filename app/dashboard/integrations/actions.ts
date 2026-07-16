@@ -3,7 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { currentUserId } from "@/lib/auth";
-import { createCrmIntegration, deleteIntegration, upsertCalendarIntegration } from "@/lib/dashboard/db";
+import {
+  createCrmIntegration,
+  deleteIntegration,
+  setPrimaryCalendar,
+  upsertCalendarIntegration,
+} from "@/lib/dashboard/db";
 import { isSafeHttpsUrl } from "@/lib/net/safe-url";
 import { CALENDAR_PROVIDERS } from "./providers";
 
@@ -69,6 +74,19 @@ export async function deleteCrmAction(formData: FormData): Promise<void> {
     }
     revalidatePath("/dashboard/integrations");
     revalidatePath("/dashboard/assistant", "layout");
+  }
+  redirect("/dashboard/integrations");
+}
+
+export async function setPrimaryCalendarAction(formData: FormData): Promise<void> {
+  const id = String(formData.get("id") ?? "");
+  if (id) {
+    try {
+      await setPrimaryCalendar(id, (await currentUserId()) ?? undefined);
+    } catch (err) {
+      redirect(`/dashboard/integrations?error=${encodeURIComponent((err as Error).message)}`);
+    }
+    revalidatePath("/dashboard/integrations");
   }
   redirect("/dashboard/integrations");
 }

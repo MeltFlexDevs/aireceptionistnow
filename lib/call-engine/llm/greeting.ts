@@ -37,6 +37,37 @@ export async function localizeGreeting(
   }
 }
 
+const smsCache = new Map<string, string>();
+
+// Translate an outbound customer SMS into the caller's language. Falls back
+// to the original text on any failure.
+export async function localizeSms(body: string, languageCode: string): Promise<string> {
+  const name = languageName(languageCode);
+  if (!body.trim() || name === "English" || name === languageCode) return body;
+
+  const cacheKey = `${languageCode} ${body}`;
+  const cached = smsCache.get(cacheKey);
+  if (cached) return cached;
+
+  const system =
+    "You translate a short SMS a business sends to its customer. " +
+    "Return ONLY the translated SMS text - no quotes, no notes. " +
+    "Keep business names, person names, phone numbers, dates and times verbatim, " +
+    "and keep it as short, warm, and clear as the original.";
+  try {
+    const text = await translateWithGemini(system, `Translate this SMS into ${name}:\n${body}`);
+    const cleaned = text.trim().replace(/^["']|["']$/g, "");
+    if (cleaned) {
+      smsCache.set(cacheKey, cleaned);
+      if (smsCache.size > 200) smsCache.clear();
+    }
+    return cleaned || body;
+  } catch (err) {
+    console.error("[sms] localize failed", err);
+    return body;
+  }
+}
+
 async function translateWithGemini(system: string, prompt: string): Promise<string> {
   const res = await getGemini().models.generateContent({
     model: getEnv().GEMINI_MODEL,

@@ -10,7 +10,13 @@ import { SectionCard } from "../components/SectionCard";
 import { StatusDot } from "../components/StatusBadge";
 import { SubmitButton } from "../components/SubmitButton";
 import { CALENDAR_PROVIDERS, type CalendarProviderDef } from "./providers";
-import { connectCalendarAction, createCrmAction, deleteCrmAction, disconnectCalendarAction } from "./actions";
+import {
+  connectCalendarAction,
+  createCrmAction,
+  deleteCrmAction,
+  disconnectCalendarAction,
+  setPrimaryCalendarAction,
+} from "./actions";
 import { getDictionary } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
@@ -168,7 +174,10 @@ export default async function IntegrationsPage({
 
   const calendars = integrations.filter((i) => i.type === "calendar");
   const byProvider = new Map(calendars.map((i) => [i.provider, i]));
-  const primaryId = calendars.find((i) => i.enabled)?.id;
+  // Explicitly chosen primary wins; otherwise the first enabled calendar.
+  const primaryId =
+    calendars.find((i) => i.enabled && (i.config as { primary?: boolean })?.primary)?.id ??
+    calendars.find((i) => i.enabled)?.id;
 
   const crms = integrations.filter((i) => i.type === "crm");
   const crmUsage = crmUsageCounts(assistants);
@@ -255,12 +264,22 @@ export default async function IntegrationsPage({
                       ))}
                     </ul>
                   )}
-                  <form action={disconnectCalendarAction}>
-                    <input type="hidden" name="id" value={conn.id} />
-                    <SubmitButton variant="danger" pendingText={`${t.common.disconnect}…`} className="press w-full sm:w-auto">
-                      {t.common.disconnect}
-                    </SubmitButton>
-                  </form>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {!isPrimary && (
+                      <form action={setPrimaryCalendarAction}>
+                        <input type="hidden" name="id" value={conn.id} />
+                        <SubmitButton pendingText="Setting…" className="press w-full sm:w-auto">
+                          Set as primary
+                        </SubmitButton>
+                      </form>
+                    )}
+                    <form action={disconnectCalendarAction}>
+                      <input type="hidden" name="id" value={conn.id} />
+                      <SubmitButton variant="danger" pendingText={`${t.common.disconnect}…`} className="press w-full sm:w-auto">
+                        {t.common.disconnect}
+                      </SubmitButton>
+                    </form>
+                  </div>
                 </div>
               ) : (
                 <div className="mt-4 space-y-3">
