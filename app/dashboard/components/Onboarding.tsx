@@ -3,10 +3,6 @@ import type { OnboardingState, OnboardingStep } from "@/lib/dashboard/onboarding
 import { SectionCard } from "./SectionCard";
 import { Check, ChartBar, Phone } from "../icons";
 
-// The new-user setup guide. Replaces the old "no calls yet" dead end on the
-// overview: same moment, but it says what to do next and ticks itself off from
-// real state (see getOnboardingState) rather than tracking dismissals.
-
 function StepNumber({ step, index }: { step: OnboardingStep; index: number }) {
   if (step.done) {
     return (
@@ -22,8 +18,6 @@ function StepNumber({ step, index }: { step: OnboardingStep; index: number }) {
   );
 }
 
-/** The final step is the payoff, not a task - once live it points at the two
- *  screens where the calls actually show up. */
 function LiveStepLinks() {
   return (
     <div className="mt-2 flex flex-wrap gap-2">
@@ -47,8 +41,6 @@ function LiveStepLinks() {
 
 export function Onboarding({ state }: { state: OnboardingState }) {
   const { steps, doneCount } = state;
-  // The first unfinished step is the only one with a live CTA - one obvious next
-  // action beats four competing buttons.
   const nextIndex = steps.findIndex((s) => !s.done);
 
   return (
@@ -88,7 +80,6 @@ export function Onboarding({ state }: { state: OnboardingState }) {
                     </span>
                   )}
                 </div>
-                {/* Body only where it helps: the step you're on, and the payoff. */}
                 {(isNext || (isLive && step.done)) && (
                   <p className="mt-0.5 text-xs leading-relaxed text-neutral-500">{step.body}</p>
                 )}

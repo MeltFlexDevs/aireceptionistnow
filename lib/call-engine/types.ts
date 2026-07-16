@@ -1,5 +1,3 @@
-// Shared domain types for the call engine. Kept dependency-free so both the
-// Next.js webhooks and the standalone WebSocket media server can import them.
 
 export type Direction = "inbound" | "outbound";
 
@@ -19,7 +17,6 @@ export type Sentiment =
   | "frustrated"
   | "angry";
 
-/** A turn in the live transcript. `assistant` is the AI receptionist. */
 export type TurnRole = "caller" | "assistant";
 
 export interface TranscriptTurn {
@@ -28,7 +25,6 @@ export interface TranscriptTurn {
   tsMs: number; // ms since call start
 }
 
-/** A connected third-party integration (calendar, CRM, webhook). */
 export interface IntegrationConfig {
   id: string;
   type: "calendar" | "crm" | "webhook";
@@ -37,7 +33,6 @@ export interface IntegrationConfig {
   enabled: boolean;
 }
 
-/** Everything the engine needs to answer one phone line, resolved at pickup. */
 export interface NumberConfig {
   numberId: string;
   businessId: string;
@@ -48,20 +43,13 @@ export interface NumberConfig {
   systemPrompt: string;
   voiceId: string;
   language: string;
-  /** The dashboard owner's chosen UI locale (e.g. "sk"), so post-call summaries
-   *  are written in their language. "" when unknown/unset -> falls back to the
-   *  caller's spoken language. */
   ownerLocale: string;
-  /** Whether the assistant's ElevenLabs agent is multilingual. When false (English-
-   *  only fallback agent), the init webhook must not send a per-caller language
-   *  override the agent can't honor. */
   multilingual: boolean;
   knowledge: Record<string, unknown>; // hours, services, pricing, FAQs
   routing: Record<string, unknown>; // transfer targets, business hours
   integrations: IntegrationConfig[];
 }
 
-/** Identifies a live call and carries its resolved configuration. */
 export interface CallContext {
   callId: string;
   callSid: string;

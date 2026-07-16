@@ -22,13 +22,6 @@ function back(msg: string, kind: "saved" | "error" = "saved"): never {
   redirect(`/dashboard/calendar?${kind}=${encodeURIComponent(msg)}`);
 }
 
-/**
- * Cancel an AI-made booking and tell the customer. Cancels the real calendar
- * event, records the cancellation, then (off the response, via after) places an
- * outbound call explaining it - offering to rebook if asked - and falls back to
- * an SMS when the customer doesn't pick up (that fallback happens in the
- * post-call webhook, or here immediately if the call can't even be placed).
- */
 export async function cancelBookingAction(formData: FormData): Promise<void> {
   const actionId = String(formData.get("action_id") ?? "");
   if (!actionId) back("Missing booking.", "error");
@@ -39,13 +32,8 @@ export async function cancelBookingAction(formData: FormData): Promise<void> {
   const booking = await loadBookingForCancel(actionId, ownerId).catch(() => null);
   if (!booking) back("That booking couldn't be found.", "error");
 
-  // 1. Cancel the real event. A provider that can't cancel automatically (or a
-  // booking with no event on record) doesn't block the notification - we still
-  // tell the customer and flag the calendar side for the owner to handle.
   const cal = await cancelCalendarEvent(booking, reason);
 
-  // 2. Persist the cancellation up front, so it survives even if the notify work
-  // below is interrupted.
   await saveCancellationState(actionId, {
     reason,
     offerRebook,
@@ -55,8 +43,6 @@ export async function cancelBookingAction(formData: FormData): Promise<void> {
     at: new Date().toISOString(),
   });
 
-  // 3. Notify off the response - placing a call is several seconds and must not
-  // hang the Cancel button.
   after(() => notifyCustomer(actionId, booking, reason, offerRebook, ownerId));
 
   const calNote = cal.ok
@@ -100,8 +86,6 @@ async function notifyCustomer(
       firstMessage: script.firstMessage,
       prompt: script.prompt,
     });
-    // Record the call so the post-call webhook can match it and, on no-answer,
-    // send the SMS. No conversation id means we can't correlate - text now.
     if (res.conversationId) {
       await patchCancellationState(actionId, {
         notifyStatus: "calling",

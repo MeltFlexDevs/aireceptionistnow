@@ -224,7 +224,6 @@ export default function SmithAiComparePage() {
       <SiteHeader />
 
       <div className="compare-page">
-        {/* ── Hero: title left, "who wins what" table right ── */}
         <section className="compare-hero">
           <div className="compare-hero-inner">
             <div className="compare-hero-left">
@@ -234,14 +233,12 @@ export default function SmithAiComparePage() {
                 <br />vs Smith.ai
               </h1>
 
-              {/* Brand lockup: our mark vs Smith.ai wordmark */}
               <div className="airn-vs">
                 <span className="airn-vs-us">
                   <span className="airn-vs-mark"><PauseMark color="#fff" /></span>
                   AI Receptionist Now
                 </span>
                 <span className="airn-vs-sep">vs</span>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img className="airn-vs-smith" src="/compare/logos/smith-ai.svg" alt="Smith.ai" />
               </div>
 
@@ -299,7 +296,6 @@ export default function SmithAiComparePage() {
               </div>
             </div>
 
-            {/* Who-wins-what mini table */}
             <table className="compare-hero-table">
               <thead>
                 <tr>
@@ -321,7 +317,6 @@ export default function SmithAiComparePage() {
           </div>
         </section>
 
-        {/* ── Why choose the alternative + showcase ── */}
         <section className="compare-why">
           <h2>Why look past Smith.ai?</h2>
           <p>
@@ -336,7 +331,6 @@ export default function SmithAiComparePage() {
           </p>
 
           <div className="compare-showcase">
-            {/* Card 1: the human story, before/after */}
             <div className="compare-showcase-card">
               <span className="compare-showcase-tag">The outcome</span>
               <h3>From a missed call to a booked job</h3>
@@ -358,7 +352,6 @@ export default function SmithAiComparePage() {
               </div>
             </div>
 
-            {/* Card 2: dark — live in minutes */}
             <div className="compare-showcase-card">
               <span className="compare-showcase-tag">The setup</span>
               <h3>Live in minutes, not a managed onboarding</h3>
@@ -386,7 +379,6 @@ export default function SmithAiComparePage() {
               </div>
             </div>
 
-            {/* Card 3: full — plugs into your tools (logos) */}
             <div className="compare-showcase-card compare-showcase-card--full">
               <span className="compare-showcase-tag compare-showcase-tag--exclusive">Plugs in</span>
               <h3>It drops straight into the tools you already use</h3>
@@ -417,7 +409,6 @@ export default function SmithAiComparePage() {
                 <span className="works-with-label">Works with</span>
                 {INTEGRATION_LOGOS.map((it) => (
                   <span className="works-with-item" key={it.name}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={it.logo} alt={it.name} loading="lazy" />
                     {it.name}
                   </span>
@@ -427,7 +418,6 @@ export default function SmithAiComparePage() {
             </div>
           </div>
 
-          {/* Story strip: the journey of one call */}
           <div className="story-strip">
             {STORY.map((s) => (
               <figure className="story-fig" key={s.src}>
@@ -438,12 +428,10 @@ export default function SmithAiComparePage() {
           </div>
         </section>
 
-        {/* ── Main: sidebar TOC + article ── */}
         <div className="compare-main">
           <CompareToc items={TOC} />
 
           <article className="compare-article">
-            {/* stats */}
             <div className="compare-stats">
               {STATS.map((s) => (
                 <div className="compare-stat" key={s.v}>
@@ -453,7 +441,6 @@ export default function SmithAiComparePage() {
               ))}
             </div>
 
-            {/* scenario grid */}
             <div className="compare-diagnostic">
               <div className="compare-diagnostic-label">What matters most to you?</div>
               <div className="compare-diagnostic-grid">
@@ -466,7 +453,6 @@ export default function SmithAiComparePage() {
               </div>
             </div>
 
-            {/* who wins what table */}
             <section className="compare-table-section" id="who-wins-what">
               <h2>Who wins what</h2>
               <p className="compare-table-sub">
@@ -497,7 +483,6 @@ export default function SmithAiComparePage() {
                 </tbody>
               </table>
 
-              {/* output cards: what each is best at */}
               <div className="compare-output">
                 <div className="compare-output-label">What each is best at</div>
                 <div className="compare-output-grid">
@@ -521,7 +506,6 @@ export default function SmithAiComparePage() {
               </div>
             </section>
 
-            {/* mid CTA */}
             <div className="compare-cta-section">
               <h2>Hear it answer your business</h2>
               <p>
@@ -536,7 +520,6 @@ export default function SmithAiComparePage() {
               </div>
             </div>
 
-            {/* Section 01: pricing */}
             <section className="compare-section" id="pricing">
               <div className="compare-section-number">Section 01</div>
               <h2>Pricing: per-call vs per-minute</h2>
@@ -607,7 +590,6 @@ export default function SmithAiComparePage() {
               </div>
             </section>
 
-            {/* Section 02: setup */}
             <section className="compare-section" id="setup">
               <div className="compare-section-number">Section 02</div>
               <h2>Setup &amp; control</h2>
@@ -666,7 +648,6 @@ export default function SmithAiComparePage() {
               </div>
             </section>
 
-            {/* Section 03: languages */}
             <section className="compare-section" id="languages">
               <div className="compare-section-number">Section 03</div>
               <h2>Languages &amp; voice</h2>
@@ -701,7 +682,6 @@ export default function SmithAiComparePage() {
               </div>
             </section>
 
-            {/* Section 04: when Smith.ai wins */}
             <section className="compare-section" id="when-smith">
               <div className="compare-section-number">Section 04</div>
               <h2>When Smith.ai is the better call</h2>
@@ -735,7 +715,6 @@ export default function SmithAiComparePage() {
               </div>
             </section>
 
-            {/* Verdict */}
             <section className="compare-section" id="verdict">
               <div className="compare-section-number">Verdict</div>
               <h2>The bottom line</h2>
@@ -754,10 +733,8 @@ export default function SmithAiComparePage() {
               </div>
             </section>
 
-            {/* Other comparisons + internal links */}
             <RelatedComparisons currentSlug={PATH.slice("/compare/".length)} />
 
-            {/* final CTA */}
             <div className="compare-cta-section">
               <h2>Try the alternative free</h2>
               <p>
@@ -772,7 +749,6 @@ export default function SmithAiComparePage() {
               </div>
             </div>
 
-            {/* FAQ */}
             <section className="compare-faq" id="faq">
               <h2>Frequently asked questions</h2>
               {FAQS.map((item) => (

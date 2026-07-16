@@ -7,10 +7,7 @@ import { FALLBACK_VOICES, type VoiceOption } from "./voices";
 interface Props {
   name?: string;
   defaultValue?: string;
-  /** Trigger text when nothing is selected. Defaults to "Select a voice". */
   placeholder?: string;
-  /** When set, only voices labeled/verified for this language are listed (e.g.
-   *  "sk" shows only Slovak-capable voices). */
   language?: string;
 }
 
@@ -23,8 +20,6 @@ export function VoiceSelect({
   const [selected, setSelected] = useState(defaultValue);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  // null = not fetched yet; loading is derived from it so the effect never has
-  // to set a flag synchronously.
   const [voices, setVoices] = useState<VoiceOption[] | null>(null);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const loading = voices === null && (open || selected !== "");
@@ -45,10 +40,6 @@ export function VoiceSelect({
 
   useEffect(() => {
     if (voices !== null) return;
-    // Load when the dropdown opens, or on mount when a voice is already set - so
-    // the trigger shows its name instead of the raw voice ID. In language mode we
-    // pull that language's voices from the ElevenLabs library (no English
-    // fallback - an empty result should read as "none for this language yet").
     if (!open && !selected) return;
     const load = language ? loadLibraryVoices(language) : loadVoices();
     const empty = language ? [] : FALLBACK_VOICES;
@@ -59,8 +50,6 @@ export function VoiceSelect({
 
   const voiceList = voices ?? [];
   const current = voiceList.find((v) => v.voiceId === selected);
-  // Restrict to voices that can speak the chosen language before searching. The
-  // selected voice still resolves its name from the full list above.
   const langBase = language.split("-")[0].toLowerCase();
   const inLanguage = langBase
     ? voiceList.filter((v) => v.languages?.includes(langBase))

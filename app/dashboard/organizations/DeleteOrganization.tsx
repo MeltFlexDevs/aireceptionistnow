@@ -5,9 +5,6 @@ import { useT } from "@/lib/i18n/client";
 import { SubmitButton } from "../components/SubmitButton";
 import { deleteOrganizationAction } from "./actions";
 
-// Delete with a confirmation modal - requires typing the organization name (or
-// "delete") so it can't be triggered accidentally. Assistants survive; they are
-// only detached from the organization.
 export function DeleteOrganization({ id, name }: { id: string; name: string }) {
   const t = useT();
   const [open, setOpen] = useState(false);

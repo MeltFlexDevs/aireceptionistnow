@@ -4,9 +4,6 @@ import { authConfigured } from "@/lib/supabase/config";
 import { exchangeCode } from "@/lib/dashboard/oauth";
 import { upsertCalendarIntegration } from "@/lib/dashboard/db";
 
-// OAuth callback: verify state, exchange the code for tokens, store them as the
-// calendar integration, and return to the integrations page.
-
 export const dynamic = "force-dynamic";
 
 function fail(req: NextRequest, message: string): Response {
@@ -32,8 +29,6 @@ export async function GET(
     return fail(req, "Login session expired or invalid. Please try again.");
   }
 
-  // A provider's post-exchange enrichment throws actionable messages (e.g.
-  // "No event type found on your Cal.com account…") - show them as-is.
   let result: Awaited<ReturnType<typeof exchangeCode>>;
   try {
     result = await exchangeCode(provider, code);
@@ -42,10 +37,6 @@ export async function GET(
   }
   if (!result) return fail(req, `Could not finish login with ${provider}.`);
 
-  // This route lives under /api and is NOT behind the auth proxy - a valid state
-  // cookie is the attacker's own. Fail CLOSED when auth is on but no session
-  // resolves, otherwise upsertCalendarIntegration would run unscoped and could
-  // overwrite another tenant's stored calendar tokens with the caller's.
   const ownerId = await currentUserId();
   if (authConfigured() && ownerId === null) {
     return fail(req, "Please sign in to connect a calendar.");

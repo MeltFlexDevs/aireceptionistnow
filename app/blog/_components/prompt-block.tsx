@@ -2,10 +2,6 @@
 
 import { useState } from "react";
 
-/**
- * Copy-paste prompt template block for blog posts. Editorial styling to match
- * the prose components: soft gray panel, mono text, quiet copy affordance.
- */
 export function PromptBlock({
   label = "Prompt template",
   text,

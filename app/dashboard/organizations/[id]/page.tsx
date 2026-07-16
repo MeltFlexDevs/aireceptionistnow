@@ -38,22 +38,18 @@ export default async function OrganizationDetailPage({
   const { saved, error } = await searchParams;
   const t = await getDictionary();
 
-  const org = await getOrganization(id).catch(() => null);
-  if (!org) notFound();
-
   const ownerId = await currentUserId();
+  const [org, assistants] = await Promise.all([
+    getOrganization(id).catch(() => null),
+    listAssistants(ownerId).catch(() => [] as Assistant[]),
+  ]);
+  if (!org) notFound();
   if (ownerId && org.owner_id && org.owner_id !== ownerId) notFound();
 
   const knowledge = readKnowledge(org.knowledge);
   const notes = knowledge.notes ?? "";
   const sources = knowledge.sources ?? [];
 
-  let assistants: Assistant[] = [];
-  try {
-    assistants = await listAssistants(ownerId);
-  } catch {
-    assistants = [];
-  }
   const assigned = assistants.filter((a) => a.organization_id === id);
 
   return (
@@ -75,7 +71,6 @@ export default async function OrganizationDetailPage({
         </div>
       )}
 
-      {/* ── Details ─────────────────────────────────────────────────────── */}
       <form action={updateOrganizationAction}>
         <input type="hidden" name="id" value={org.id} />
         <SectionCard title="Details" subtitle="Name and describe this organization.">
@@ -100,7 +95,6 @@ export default async function OrganizationDetailPage({
         </SectionCard>
       </form>
 
-      {/* ── Assistants ──────────────────────────────────────────────────── */}
       <SectionCard
         title="Assistants"
         subtitle={
@@ -153,7 +147,6 @@ export default async function OrganizationDetailPage({
         )}
       </SectionCard>
 
-      {/* ── Shared knowledge ────────────────────────────────────────────── */}
       <SectionCard
         title="Shared knowledge"
         subtitle="Add websites, PDFs, or notes. Every assigned assistant reads them on calls."
@@ -228,7 +221,6 @@ export default async function OrganizationDetailPage({
         </div>
       </SectionCard>
 
-      {/* ── Danger zone ─────────────────────────────────────────────────── */}
       <SectionCard title="Danger zone">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-neutral-500">

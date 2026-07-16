@@ -18,8 +18,6 @@ export async function connectCalendarAction(formData: FormData): Promise<void> {
     if (value) config[f.name] = value;
   }
 
-  // A "bring your own" webhook calendar is fetched server-side on every call, so a
-  // private/internal URL here is an SSRF vector. Require a public https address.
   if (typeof config.url === "string" && !isSafeHttpsUrl(config.url)) {
     redirect(
       `/dashboard/integrations?error=${encodeURIComponent("Webhook URL must be a public https:// address.")}`,
@@ -36,8 +34,6 @@ export async function connectCalendarAction(formData: FormData): Promise<void> {
   redirect("/dashboard/integrations?connected=1");
 }
 
-/** Create a CRM push endpoint. Assistants then opt in to it individually, so one
- *  endpoint here can serve any number of them. */
 export async function createCrmAction(formData: FormData): Promise<void> {
   const name = String(formData.get("crm_name") ?? "").trim();
   const url = String(formData.get("crm_url") ?? "").trim();
@@ -47,9 +43,6 @@ export async function createCrmAction(formData: FormData): Promise<void> {
     redirect(`/dashboard/integrations?error=${encodeURIComponent(msg)}`);
 
   if (!name) fail("Give the CRM push a name so you can tell it apart.");
-  // Every completed call is POSTed here server-side, so a private/internal URL is
-  // an SSRF vector. Same public-https rule as the webhook calendar; pushCallToCrm
-  // re-checks at dispatch in case the hostname is repointed later.
   if (!isSafeHttpsUrl(url)) fail("CRM URL must be a public https:// address.");
 
   try {
@@ -66,9 +59,6 @@ export async function createCrmAction(formData: FormData): Promise<void> {
   redirect("/dashboard/integrations?connected=1");
 }
 
-/** Remove a CRM push endpoint. Assistants pointing at it stop pushing: their
- *  stored target id no longer resolves (see resolveCrmTargets) and it drops from
- *  their routing on the next save. */
 export async function deleteCrmAction(formData: FormData): Promise<void> {
   const id = String(formData.get("id") ?? "");
   if (id) {

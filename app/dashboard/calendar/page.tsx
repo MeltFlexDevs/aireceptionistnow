@@ -37,7 +37,6 @@ const PROVIDER_NAMES: Record<string, string> = {
   webhook: "Webhook",
 };
 
-/** What the caller is called: the name they gave, else their caller ID. */
 function callerLabel(b: Booking, unknown: string): string {
   return b.attendeeName || b.callerNumber || unknown;
 }
@@ -106,8 +105,6 @@ export default async function CalendarPage({
     timeZone: "UTC",
   }).format(new Date(Date.UTC(cursor.year, cursor.month - 1, 1)));
 
-  // Weekday headers in the active language, Monday-first. 2024-01-01 was a
-  // Monday, so it seeds the sequence without any locale-specific ordering table.
   const weekdayFmt = new Intl.DateTimeFormat(locale, { weekday: "short", timeZone: "UTC" });
   const weekdays = Array.from({ length: 7 }, (_, i) =>
     weekdayFmt.format(new Date(Date.UTC(2024, 0, 1 + i))),
@@ -269,8 +266,6 @@ export default async function CalendarPage({
                   >
                     {c.viewCall}
                   </Link>
-                  {/* Only successfully-booked, still-active appointments can be
-                      cancelled; a cancelled one shows its notify status instead. */}
                   {(b.status === "done" || b.cancellation) && (
                     <CancelBooking actionId={b.id} cancellation={b.cancellation} />
                   )}

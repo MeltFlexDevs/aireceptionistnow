@@ -6,10 +6,6 @@ import { getCustomerId } from "@/lib/billing";
 
 export const runtime = "nodejs";
 
-/**
- * Open the Stripe Customer Portal so a subscriber can update payment details,
- * switch plans, or cancel. Requires an existing Stripe customer for the user.
- */
 export async function POST(req: Request) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();

@@ -9,12 +9,6 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except:
-     * - api routes (Twilio webhooks, integration callbacks - never gated)
-     * - _next/static, _next/image (build assets)
-     * - favicon / icon / image assets
-     */
     "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|webmanifest)$).*)",
   ],
 };

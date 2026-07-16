@@ -34,8 +34,6 @@ export interface CallTurn {
   role: string; // caller | assistant
   text: string;
   tsMs: number;
-  /** Wall-clock time of day this turn was spoken, in the owner's timezone
-   *  ("23:26:05"). Empty when the call's start time can't be parsed. */
   atLabel: string;
 }
 

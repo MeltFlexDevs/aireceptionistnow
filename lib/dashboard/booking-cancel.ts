@@ -9,18 +9,10 @@ import { sendSms } from "../call-engine/telephony";
 import { languageFromPhone } from "../call-engine/voice/phone-language";
 import type { NumberConfig } from "../call-engine/types";
 
-// Data layer for cancelling an AI-made booking and notifying the customer. The
-// booking is a `call_actions` row (type='booking') carrying the provider booking
-// id (external_id), which calendar it's on (integration_id), and the appointment
-// details (payload). Cancellation state lives back on that same row's payload -
-// no new table, so nothing to migrate.
-
 export interface CancellationState {
   reason: string;
   offerRebook: boolean;
-  /** pending → calling → answered | sms_sent | failed */
   notifyStatus: "pending" | "calling" | "answered" | "sms_sent" | "failed";
-  /** The outbound notify call's conversation id, for the webhook to correlate. */
   notifyConversationId?: string;
   calendarCancelled: boolean;
   calendarError?: string;
@@ -33,17 +25,12 @@ export interface BookingForCancel {
   ownerId: string | null;
   externalId: string | null;
   integrationId: string | null;
-  /** Who to call/text - the appointment attendee. */
   attendeePhone: string;
   attendeeName: string;
-  /** ISO start of the appointment being cancelled. */
   startTime: string;
   title: string;
-  /** Resolved call config (business name, integrations) for the assistant's line. */
   config: NumberConfig;
-  /** The assistant's ElevenLabs agent (the outbound call's brain). */
   agentId: string | null;
-  /** The assistant's connected number, as the outbound caller ID + SMS sender. */
   agentPhoneNumberId: string | null;
   fromNumber: string;
   language: string | null;
@@ -53,12 +40,6 @@ function str(v: unknown): string {
   return typeof v === "string" ? v : "";
 }
 
-/**
- * Everything needed to cancel one booking and notify its customer, or null when
- * the action isn't a booking, doesn't belong to the caller, or can't be resolved.
- * Owner-scoped (auth on): a booking whose call is owned by another user is hidden,
- * same rule as the call detail page.
- */
 export async function loadBookingForCancel(
   actionId: string,
   ownerId: string | null,
@@ -115,9 +96,6 @@ export async function loadBookingForCancel(
   };
 }
 
-/** Cancel the real calendar event this booking is on, if the provider supports
- *  it. Returns { ok, error }; a provider without cancelEvent (or no external id)
- *  reports notSupported so the caller can still notify but flag the calendar side. */
 export async function cancelCalendarEvent(
   booking: BookingForCancel,
   reason: string,
@@ -136,8 +114,6 @@ export async function cancelCalendarEvent(
   return res;
 }
 
-/** Persist the cancellation onto the booking action: status → 'cancelled', and a
- *  `cancellation` block on the payload holding reason/offer/notify state. */
 export async function saveCancellationState(
   actionId: string,
   state: CancellationState,
@@ -152,8 +128,6 @@ export async function saveCancellationState(
   if (error) throw error;
 }
 
-/** For the post-call webhook: find the booking whose notify call this
- *  conversation is, so it can decide the SMS fallback. */
 export async function findBookingByNotifyConversation(
   conversationId: string,
 ): Promise<{ actionId: string; state: CancellationState } | null> {
@@ -170,7 +144,6 @@ export async function findBookingByNotifyConversation(
   return { actionId: str(data.id), state };
 }
 
-/** Merge a patch into the stored cancellation block (webhook updates status). */
 export async function patchCancellationState(
   actionId: string,
   patch: Partial<CancellationState>,
@@ -186,12 +159,6 @@ export async function patchCancellationState(
   if (error) throw error;
 }
 
-/**
- * Called by the post-call webhook when a cancellation-notify call finishes.
- * Answered -> just record it. Not answered (ring-out / voicemail) -> send the
- * SMS the customer was supposed to hear. Idempotent-ish: only acts while the
- * status is still "calling", so a duplicate webhook delivery won't double-text.
- */
 export async function resolveCancellationNotify(
   actionId: string,
   state: CancellationState,

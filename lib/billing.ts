@@ -1,13 +1,3 @@
-/**
- * Server-side billing operations: the bridge between Stripe and Supabase. Every
- * write goes through Postgres SECURITY DEFINER functions invoked with the
- * service-role key, so the browser can never grant itself a subscription or
- * tamper with its billing state.
- *
- * The user id is always derived from a trusted source - the Supabase user
- * recorded on the Stripe customer / subscription metadata - never from the
- * browser.
- */
 import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -23,11 +13,6 @@ export type BillingRecord = {
   currentPeriodEnd: string | null;
 };
 
-/**
- * The Stripe customer id stored for a user, or null if they have never started
- * checkout. Used so a returning subscriber reuses the same customer instead of
- * creating a duplicate.
- */
 export async function getCustomerId(userId: string): Promise<string | null> {
   const admin = createAdminClient();
   const { data, error } = await admin.rpc("get_billing", { p_user: userId });
@@ -36,7 +21,6 @@ export async function getCustomerId(userId: string): Promise<string | null> {
   return (row?.stripe_customer_id as string | undefined) ?? null;
 }
 
-/** Read a user's full billing row (returns null if none). */
 export async function getBilling(userId: string): Promise<BillingRecord | null> {
   const admin = createAdminClient();
   const { data, error } = await admin.rpc("get_billing", { p_user: userId });
@@ -54,7 +38,6 @@ export async function getBilling(userId: string): Promise<BillingRecord | null> 
   };
 }
 
-/** Map a Stripe customer back to the Supabase user that owns it. */
 export async function getUserIdByCustomer(
   customerId: string,
 ): Promise<string | null> {
@@ -68,7 +51,6 @@ export async function getUserIdByCustomer(
   return typeof id === "string" && id ? id : null;
 }
 
-/** Persist the Stripe customer id for a user (called when checkout starts). */
 export async function saveCustomerId(
   userId: string,
   customerId: string,
@@ -81,7 +63,6 @@ export async function saveCustomerId(
   if (error) throw new Error(`set_customer failed: ${error.message}`);
 }
 
-/** Record the user's current subscription state (plan, cycle, status, ids). */
 export async function saveSubscription(params: {
   userId: string;
   customerId: string;
@@ -104,11 +85,6 @@ export async function saveSubscription(params: {
   if (error) throw new Error(`set_subscription failed: ${error.message}`);
 }
 
-/**
- * Idempotency guard for webhook events. Returns true the first time an event id
- * is seen and false on every retry, so a subscription change is never applied
- * twice even if Stripe redelivers the event. Backed by a unique insert.
- */
 export async function claimEvent(eventId: string): Promise<boolean> {
   const admin = createAdminClient();
   const { data, error } = await admin.rpc("claim_stripe_event", {
@@ -118,11 +94,6 @@ export async function claimEvent(eventId: string): Promise<boolean> {
   return data === true;
 }
 
-/**
- * Release a previously-claimed event so a later Stripe retry can reprocess it.
- * Called when handling failed after the claim. Best-effort: a failure here is
- * only logged.
- */
 export async function releaseEvent(eventId: string): Promise<void> {
   const admin = createAdminClient();
   const { error } = await admin.rpc("release_stripe_event", {

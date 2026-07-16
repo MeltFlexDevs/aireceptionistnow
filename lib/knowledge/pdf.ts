@@ -2,9 +2,6 @@ import { extractText, getDocumentProxy } from "unpdf";
 import { truncate } from "./markdown";
 import { MAX_SOURCE_CHARS } from "./sources";
 
-// Extract a PDF's text to Markdown for the knowledge base. unpdf is a pure-JS,
-// serverless-friendly PDF reader (no native deps), so this runs fine on Vercel.
-
 const MAX_PDF_BYTES = 15_000_000; // 15 MB
 
 export interface PdfResult {
@@ -25,9 +22,6 @@ export async function parsePdfMarkdown(bytes: Uint8Array): Promise<PdfResult> {
     throw new Error("Couldn't read that PDF - it may be scanned images or corrupted.");
   }
 
-  // Normalize PDF text into clean Markdown prose. PDF extraction emits a hard
-  // line break at every visual line, hyphenates words split across lines, and
-  // scatters runs of spaces - all of which read badly in the system prompt.
   const cleaned = text
     .replace(/\r\n?/g, "\n") // normalize line endings
     .replace(/[ \t]+/g, " ") // collapse runs of spaces

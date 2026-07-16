@@ -1,8 +1,3 @@
-// OAuth "Login with…" for calendar providers. The app's own OAuth client
-// credentials live in env (GOOGLE_OAUTH_*, MICROSOFT_OAUTH_*, CALENDLY_OAUTH_*,
-// CALCOM_OAUTH_*); the user authorizes with their own account and we store the
-// returned tokens as the integration config. Optional - when a provider's creds
-// aren't set, the integrations page falls back to manual credential entry.
 
 interface OAuthDef {
   authUrl: string;
@@ -10,9 +5,7 @@ interface OAuthDef {
   scope: string;
   authParams: Record<string, string>;
   envPrefix: string;
-  /** Token endpoint body encoding - Cal.com expects JSON, everyone else form. */
   tokenBody?: "json" | "form";
-  /** Post-exchange step that adds provider-specific fields to the config. */
   enrich?: (config: Record<string, unknown>) => Promise<void>;
 }
 
@@ -49,13 +42,6 @@ const PROVIDERS: Record<string, OAuthDef> = {
   },
 };
 
-// Cal.com's booking + slots APIs are keyed by event type, which an OAuth login
-// doesn't provide - so after the token exchange, look up the user's profile and
-// default (first) event type so the connection works without any manual fields.
-// Fails closed: without an event type the integration can neither read
-// availability nor book, so storing tokens anyway would render a "Connected"
-// card that silently never works. Thrown messages surface on the integrations
-// page via the callback route.
 async function enrichCalcom(config: Record<string, unknown>): Promise<void> {
   const token = config.access_token;
   if (typeof token !== "string" || !token) return;
@@ -122,7 +108,6 @@ export function buildAuthorizeUrl(id: string, state: string): string {
   return `${def.authUrl}?${params.toString()}`;
 }
 
-/** Exchange the authorization code for tokens and build the integration config. */
 export async function exchangeCode(
   id: string,
   code: string,
@@ -156,8 +141,6 @@ export async function exchangeCode(
         },
   );
   if (!res.ok) return null;
-  // Cal.com wraps the token response in { status, data } (and has used camelCase
-  // there); everyone else returns the bare OAuth shape. Accept all three.
   const tok = (await res.json()) as {
     access_token?: string;
     refresh_token?: string;

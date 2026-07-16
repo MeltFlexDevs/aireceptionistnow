@@ -14,8 +14,6 @@ export const runtime = "nodejs";
 // Stripe signature verification needs the raw, unparsed body.
 export const dynamic = "force-dynamic";
 
-/** Pull the Supabase user id off whatever Stripe object we have, preferring
- *  metadata and falling back to the customer→user mapping saved at checkout. */
 async function resolveUserId(
   metadataUserId: string | undefined,
   customerId: string | null,
@@ -30,13 +28,11 @@ function customerIdOf(value: string | { id: string } | null): string | null {
   return typeof value === "string" ? value : value.id;
 }
 
-/** ISO timestamp for a Stripe unix seconds value, or null. */
 function isoFrom(seconds: number | null | undefined): string | null {
   if (!seconds) return null;
   return new Date(seconds * 1000).toISOString();
 }
 
-/** Persist the state of a Stripe subscription onto our billing row. */
 async function applySubscription(sub: Stripe.Subscription): Promise<void> {
   const customerId = customerIdOf(sub.customer);
   const userId = await resolveUserId(
@@ -54,8 +50,6 @@ async function applySubscription(sub: Stripe.Subscription): Promise<void> {
   const match = priceId ? getPlanByPriceId(priceId) : undefined;
   const active = sub.status === "active" || sub.status === "trialing";
 
-  // Prefer the price→plan mapping; fall back to the metadata stamped at
-  // checkout so a renamed/rotated price still resolves a plan.
   const plan: PlanId | null = active
     ? match?.plan.id ?? ((sub.metadata?.plan as PlanId) || null)
     : null;
@@ -103,10 +97,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid signature." }, { status: 400 });
   }
 
-  // Stripe retries until it gets a 2xx, and may deliver an event more than once.
-  // Claim it so the state change is applied once. If handling then fails we
-  // release the claim (below) so the retry can reprocess instead of being
-  // swallowed as a duplicate.
   const fresh = await claimEvent(event.id).catch((err) => {
     console.error(`[webhook] claim failed: ${err}`);
     return null;
@@ -123,8 +113,6 @@ export async function POST(req: Request) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
         const subscriptionId = customerIdOf(session.subscription);
-        // Fetch the full subscription so plan/cycle/period are recorded the
-        // same way as on every later update.
         if (subscriptionId) {
           const sub = await stripe.subscriptions.retrieve(subscriptionId);
           await applySubscription(sub);
@@ -134,11 +122,6 @@ export async function POST(req: Request) {
 
       case "customer.subscription.created":
       case "customer.subscription.updated": {
-        // Stripe doesn't guarantee delivery order, so never apply the event
-        // payload directly - a delayed stale "updated" (status: active) after a
-        // "deleted" would re-activate a canceled plan indefinitely. Fetch the
-        // subscription fresh instead: retrieve returns current truth (including
-        // status "canceled" for a deleted sub) regardless of event order.
         const sub = event.data.object as Stripe.Subscription;
         await applySubscription(await stripe.subscriptions.retrieve(sub.id));
         break;

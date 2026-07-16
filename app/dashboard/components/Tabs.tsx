@@ -2,8 +2,6 @@
 
 import { Children, useState, type ReactNode } from "react";
 
-// Tabs that keep every panel mounted (inactive ones just hidden) so a single
-// surrounding <form> still submits all fields regardless of the active tab.
 export function Tabs({ labels, children }: { labels: string[]; children: ReactNode }) {
   const [active, setActive] = useState(0);
   const panels = Children.toArray(children);

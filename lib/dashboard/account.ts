@@ -1,9 +1,6 @@
 import { cache } from "react";
 import { serviceClient } from "./supabase";
 
-// Per-user account settings: profile, the "about" blurb optionally shared with
-// the user's AI assistants, and notification preferences. Server-side only.
-
 export interface AccountSettings {
   user_id: string;
   full_name: string;
@@ -40,8 +37,6 @@ const EMPTY: Omit<AccountSettings, "user_id"> = {
   notify_sms_number: "",
 };
 
-// Cached per request: read by the settings page, plan context, and the
-// analytics timezone helper - one query serves them all.
 export const getAccountSettings = cache(async (userId: string): Promise<AccountSettings> => {
   const { data, error } = await serviceClient()
     .from("account_settings")
@@ -70,11 +65,6 @@ export async function saveNotificationSettings(userId: string, input: Notificati
   await upsert(userId, input);
 }
 
-/**
- * Turn the owner's shared profile into a plain-text knowledge block for the
- * call prompt, or "" when sharing is off / nothing useful is set. Merged into
- * every assistant the user owns so callers can be told who the owner is.
- */
 export function accountKnowledgeNotes(s: AccountSettings | null | undefined): string {
   if (!s || !s.share_with_assistants) return "";
   const lines: string[] = [];

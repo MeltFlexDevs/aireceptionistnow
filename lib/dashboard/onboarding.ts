@@ -2,38 +2,24 @@ import { currentUserId } from "../auth";
 import { getAssistantNumbers, listAssistants, listIntegrations } from "./db";
 import { listOrganizations } from "./organizations";
 
-// New-user setup state. Every step is derived from real data - nothing is
-// stored and nothing is "dismissed", so the guide can't claim you've done
-// something you haven't (or nag about something you have).
-
 export type OnboardingStepId = "organization" | "calendar" | "assistant" | "live";
 
 export interface OnboardingStep {
   id: OnboardingStepId;
   title: string;
   body: string;
-  /** Where the step is completed. Absent on the final step. */
   href?: string;
   cta?: string;
   done: boolean;
-  /** Filled in once done - the real thing that satisfied the step. */
   detail?: string;
 }
 
 export interface OnboardingState {
   steps: OnboardingStep[];
   doneCount: number;
-  /** True once every step is satisfied - the guide stops showing. */
   complete: boolean;
 }
 
-/**
- * Where the user is in setup. The order is the order the product needs: an
- * organization holds the knowledge, a calendar gives the assistant something to
- * book into, and only then is an assistant with a number worth pointing callers
- * at. Each read is independent and failure-tolerant - a broken query marks its
- * step not-done rather than blanking the guide.
- */
 export async function getOnboardingState(): Promise<OnboardingState> {
   const ownerId = (await currentUserId()) ?? undefined;
 
@@ -45,8 +31,6 @@ export async function getOnboardingState(): Promise<OnboardingState> {
 
   const calendars = integrations.filter((i) => i.type === "calendar" && i.enabled);
 
-  // An assistant only counts once it has a number - without one it can't take a
-  // call, which is the whole point of the step.
   const numbered = (
     await Promise.all(
       assistants.map(async (a) =>

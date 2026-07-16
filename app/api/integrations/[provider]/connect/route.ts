@@ -2,9 +2,6 @@ import { NextResponse, type NextRequest } from "next/server";
 import { randomUUID } from "node:crypto";
 import { buildAuthorizeUrl, isOAuthConfigured } from "@/lib/dashboard/oauth";
 
-// Kicks off the OAuth login: set a CSRF state cookie and redirect the user to
-// the provider's consent screen.
-
 export const dynamic = "force-dynamic";
 
 export async function GET(

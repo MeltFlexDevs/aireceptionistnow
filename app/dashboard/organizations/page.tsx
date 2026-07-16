@@ -24,12 +24,10 @@ export default async function OrganizationsPage({
         </div>
       )}
 
-      {/* Create row paints immediately - no waiting on the list query. */}
       <section className="rise shape-card glass p-5">
         <CreateOrganizationForm />
       </section>
 
-      {/* List streams in the background; skeleton holds the layout meanwhile. */}
       <Suspense fallback={<ListSkeleton />}>
         <OrganizationsList />
       </Suspense>

@@ -1,17 +1,7 @@
+import { INTEGRATION_TIMEOUT_MS, withDeadline } from "../net";
 import type { ResolvedCalendar } from "./registry";
 import type { BusyInterval } from "./types";
 
-// Availability logic for the check_availability tool. It reads busy intervals
-// from every readable calendar and returns ONLY what's safe to say out loud:
-// whether the requested slot is free, and a few free alternatives. It never
-// returns event titles, attendees, or reasons - read access is for availability
-// only, so the assistant can say "that time isn't available, I'm free at 3pm"
-// without ever revealing what is on the calendar or why.
-
-// Hours the assistant will offer slots within, as a privacy-safe heuristic when
-// no explicit business hours are configured. Times are evaluated in the zone the
-// request was written in (its UTC offset), and alternatives are returned in that
-// zone, spoken-friendly with an explicit-offset ISO the model can book with.
 const DAY_START_HOUR = 8;
 const DAY_END_HOUR = 20;
 const SLOT_STEP_MIN = 30;
@@ -19,12 +9,8 @@ const SEARCH_DAYS = 3;
 const MAX_ALTERNATIVES = 3;
 
 export interface AvailabilityAnswer {
-  /** false when no calendar could be read (assistant should take a message). */
   ok: boolean;
-  /** Whether the requested [start,end) is free. */
   requestedFree: boolean;
-  /** Free alternatives of the same duration, e.g.
-   *  "Friday, July 3, 9:00 AM (2026-07-03T09:00:00-04:00)". */
   alternatives: string[];
   error?: string;
 }
@@ -37,10 +23,6 @@ function overlaps(start: number, end: number, busy: BusyInterval[]): boolean {
   });
 }
 
-// UTC offset (minutes east) the request was written in: an explicit offset in
-// the ISO string wins, otherwise the server zone Date.parse assumed for it.
-// ponytail: the request's offset stands in for the business timezone until one
-// is stored in the schema - an IANA zone would also track DST across the search.
 function requestOffsetMin(iso: string, ms: number): number {
   if (/[zZ]$/.test(iso)) return 0;
   const m = iso.match(/([+-])(\d{2}):?(\d{2})$/);
@@ -62,8 +44,6 @@ function withinHours(startMs: number, endMs: number, offsetMin: number): boolean
   );
 }
 
-// "Friday, July 3, 9:00 AM (2026-07-03T09:00:00-04:00)" - the spoken part is
-// what the caller hears, the explicit-offset ISO is what books unambiguously.
 function formatSlot(ms: number, offsetMin: number): string {
   const shifted = new Date(ms + offsetMin * 60 * 1000);
   const spoken = shifted.toLocaleString("en-US", {
@@ -82,12 +62,6 @@ function formatSlot(ms: number, offsetMin: number): string {
   return `${spoken} (${shifted.toISOString().slice(0, 19)}${offset})`;
 }
 
-/**
- * Decide if the requested slot is free and, if not, find the next few free slots
- * of the same duration. Pulls busy from all readable calendars in parallel; if
- * none can be read, returns ok:false so the caller takes a message instead of
- * inventing availability.
- */
 export async function checkAvailability(
   calendars: ResolvedCalendar[],
   startIso: string,
@@ -100,10 +74,6 @@ export async function checkAvailability(
   }
   const durationMs = endMs - startMs;
 
-  // getBusy is optional on the adapter: a write-only provider (Outlook today)
-  // silently drops out here, which looks identical to "no calendar granted" from
-  // the caller's side - so name it, or an assistant that can book but can never
-  // quote a time is undiagnosable.
   const readable = calendars.filter((c) => typeof c.provider.getBusy === "function");
   if (readable.length === 0) {
     const why =
@@ -118,20 +88,21 @@ export async function checkAvailability(
   const timeMax = new Date(startMs + SEARCH_DAYS * 24 * 60 * 60 * 1000).toISOString();
 
   const results = await Promise.all(
-    readable.map((c) =>
-      c.provider
+    readable.map((c) => {
+      const read = c.provider
         .getBusy!({ timeMin, timeMax })
         .catch((err: Error) => ({
           ok: false,
           busy: [] as BusyInterval[],
           error: err?.message ?? "threw",
-        })),
-    ),
+        }));
+      return withDeadline(read, INTEGRATION_TIMEOUT_MS, {
+        ok: false,
+        busy: [] as BusyInterval[],
+        error: "timeout",
+      });
+    }),
   );
-  // If every read failed, we can't make a claim about availability. Say WHY:
-  // the caller just heard "I can't check the calendar", and without this the
-  // reason each provider gave (cal.com 401, "not configured", a thrown fetch)
-  // was dropped on the floor - the failure was unreportable from the logs alone.
   if (results.every((r) => !r.ok)) {
     const why = results
       .map((r, i) => `${readable[i].integrationId}: ${r.error ?? "unknown"}`)
@@ -139,8 +110,6 @@ export async function checkAvailability(
     console.error(`[availability] every calendar read failed - ${why}`);
     return { ok: false, requestedFree: false, alternatives: [], error: why };
   }
-  // Partial failure still answers, but a silently-half-read calendar is how you
-  // double-book: log the ones that failed.
   for (const [i, r] of results.entries()) {
     if (!r.ok) {
       console.warn(
@@ -150,9 +119,6 @@ export async function checkAvailability(
   }
   const busy = results.flatMap((r) => r.busy);
 
-  // A time the caller explicitly asked for is free purely on calendar conflict -
-  // the business-hours window only bounds the alternatives we proactively offer,
-  // so we never reject a valid slot just because of the heuristic window/zone.
   const requestedFree = !overlaps(startMs, endMs, busy);
 
   const offsetMin = requestOffsetMin(startIso.trim(), startMs);

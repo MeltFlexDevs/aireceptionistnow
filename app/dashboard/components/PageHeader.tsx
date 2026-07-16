@@ -5,13 +5,9 @@ interface Props {
   title: string;
   description?: string;
   action?: ReactNode;
-  /** Optional back link, e.g. { href: "/dashboard/organizations", label: "Organizations" }. */
   back?: { href: string; label: string };
 }
 
-// One consistent page header across the dashboard: a clear title, a plain-
-// language description, an optional back link, and a primary action on the
-// right. Keeping every page on the same shape makes the product easy to learn.
 export function PageHeader({ title, description, action, back }: Props) {
   return (
     <header className="flex flex-wrap items-end justify-between gap-4">

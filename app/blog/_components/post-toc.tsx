@@ -6,11 +6,6 @@ import { cn } from "@/lib/utils";
 
 type Section = { id: string; title: string };
 
-/**
- * Sticky table of contents with scroll-spy. Highlights the section currently in
- * view (IntersectionObserver) and smooth-scrolls on click. Used in the blog
- * post sidebar.
- */
 export function PostToc({ sections }: { sections: Section[] }) {
   const [activeId, setActiveId] = React.useState("");
 

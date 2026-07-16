@@ -1,21 +1,3 @@
-/**
- * One-time (idempotent) Stripe setup: creates the AI Receptionist subscription
- * products and their recurring EUR prices — a monthly price and a discounted
- * annual price per plan — then prints the env lines to paste into Vercel /
- * .env.local.
- *
- * Mirrors lib/plans.ts:
- *   Solo  €99/mo   → annual €1009.80/yr  (-15%)
- *   Team  €299/mo  → annual €3049.80/yr  (-15%)
- *
- * Usage:
- *   STRIPE_SECRET_KEY=sk_test_… node scripts/setup-stripe.mjs
- *   STRIPE_SECRET_KEY=sk_live_… node scripts/setup-stripe.mjs   # live
- *
- * Safe to re-run: products are matched by the `air_plan` metadata key and
- * reused; a new price is only created when no active price with the right
- * amount/interval already exists (Stripe prices are immutable).
- */
 import Stripe from "stripe";
 
 const ANNUAL_DISCOUNT = 0.15;

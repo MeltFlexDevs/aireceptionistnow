@@ -1,4 +1,5 @@
 import { isSafeHttpsUrl } from "../../net/safe-url";
+import { timedFetch } from "../net";
 import type { BookingRequest, BookingResult } from "../types";
 import type {
   AvailabilityResult,
@@ -7,11 +8,6 @@ import type {
   CalendarProvider,
   CancelResult,
 } from "./types";
-
-// Generic "bring your own" adapter: POST the booking to a URL the user supplies.
-// This is the broad-compatibility path - point it at Zapier, Make, n8n, or a
-// custom endpoint and any calendar can be driven from there. Used as the
-// fallback for providers without a dedicated adapter.
 
 interface WebhookConfig {
   url?: string;
@@ -25,7 +21,7 @@ export const createWebhookCalendar: CalendarFactory = (config): CalendarProvider
     async createEvent(req): Promise<BookingResult> {
       if (!cfg.url) return { ok: false, error: "no webhook url configured" };
       if (!isSafeHttpsUrl(cfg.url)) return { ok: false, error: "webhook url not allowed" };
-      const res = await fetch(cfg.url, {
+      const res = await timedFetch(cfg.url, {
         method: "POST",
         redirect: "manual", // don't follow a 3xx into an internal host (SSRF)
         headers: {
@@ -54,14 +50,10 @@ export const createWebhookCalendar: CalendarFactory = (config): CalendarProvider
       return { ok: true, externalId };
     },
 
-    // Cancellation: POST { type: "cancellation", externalId, reason }. The
-    // endpoint owner deletes the matching event however their system does it. A
-    // non-2xx means we couldn't confirm cancellation - report it so the caller
-    // can still notify the customer but flag the calendar side as unconfirmed.
     async cancelEvent(externalId, reason): Promise<CancelResult> {
       if (!cfg.url) return { ok: false, error: "no webhook url configured" };
       if (!isSafeHttpsUrl(cfg.url)) return { ok: false, error: "webhook url not allowed" };
-      const res = await fetch(cfg.url, {
+      const res = await timedFetch(cfg.url, {
         method: "POST",
         redirect: "manual",
         headers: {
@@ -74,13 +66,10 @@ export const createWebhookCalendar: CalendarFactory = (config): CalendarProvider
       return { ok: true };
     },
 
-    // Availability read: POST a freebusy request and expect { busy: [{start,end}] }.
-    // The endpoint owner decides how to source it (Zapier/Make/custom). If they
-    // don't support it, a non-2xx degrades the assistant to taking a message.
     async getBusy(query): Promise<AvailabilityResult> {
       if (!cfg.url) return { ok: false, busy: [], error: "no webhook url configured" };
       if (!isSafeHttpsUrl(cfg.url)) return { ok: false, busy: [], error: "webhook url not allowed" };
-      const res = await fetch(cfg.url, {
+      const res = await timedFetch(cfg.url, {
         method: "POST",
         redirect: "manual", // don't follow a 3xx into an internal host (SSRF)
         headers: {

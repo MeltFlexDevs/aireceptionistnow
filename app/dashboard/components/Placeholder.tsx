@@ -7,8 +7,6 @@ interface Props {
   bullets?: string[];
 }
 
-// Shared "section not built yet" view so sidebar links resolve to a real,
-// intentional page instead of a 404 while these areas are implemented.
 export function Placeholder({ title, description, icon, bullets }: Props) {
   return (
     <div className="space-y-6">

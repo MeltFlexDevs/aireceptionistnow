@@ -20,9 +20,6 @@ interface NavGroup {
   items: NavItem[];
 }
 
-// Nav structure: icons + routes live here; the labels/hints/group titles are
-// dictionary keys, resolved to the active language in DashboardNav. A short hint
-// under each label tells a first-time user what every screen is for.
 const NAV: { titleKey: NavKey; items: { href: string; label: NavKey; hint: NavKey; Icon: NavItem["Icon"] }[] }[] = [
   {
     titleKey: "monitor",
@@ -91,8 +88,6 @@ export function Brand() {
   );
 }
 
-// Single source of truth for the nav - rendered by both the desktop sidebar
-// and the mobile drawer.
 export function DashboardNav() {
   const pathname = usePathname();
   const nav = useT().nav;
@@ -136,9 +131,6 @@ export function DashboardNav() {
   );
 }
 
-// The sidebar's closing card. Points at the one screen that answers "what will
-// my AI actually say to callers?" - the tips carousel that used to live here
-// repeated what each screen's own hints already say.
 function AiKnowsCard() {
   const pathname = usePathname();
   const t = useT();

@@ -66,7 +66,6 @@ export type PostMeta = {
 
 export type Post = PostMeta & { Body: ComponentType; author: AuthorKey };
 
-/** Which author is credited on each post. */
 const postAuthors: Record<string, AuthorKey> = {
   "can-an-ai-receptionist-replace-a-human-receptionist": "matus",
   "how-to-choose-an-ai-receptionist": "brano",

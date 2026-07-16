@@ -1,6 +1,3 @@
-// CNAM (caller ID name) display-name rules per Twilio Trust Hub: max 15
-// characters, must start with a letter, only letters / numbers / periods /
-// commas / spaces. Kept SDK-free so server components can import it.
 export const CNAM_POLICY_SID = "RNf3db3cd1fe25fcfd3c3ded065c8fea53";
 export const CNAM_MAX = 15;
 

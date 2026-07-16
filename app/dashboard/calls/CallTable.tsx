@@ -47,8 +47,6 @@ function StatusBadges({ row }: { row: CallLogRow }) {
   );
 }
 
-// A call is only openable when it has a DB row (transcript + details live there,
-// keyed by id). Twilio-only rows have nothing to show.
 function hrefOf(row: CallLogRow): string | null {
   return row.dbId ? `/dashboard/calls/${row.dbId}` : null;
 }
@@ -60,7 +58,6 @@ export function CallTable({ rows }: { rows: CallLogRow[] }) {
 
   return (
     <>
-      {/* Desktop: dense 6-column table. */}
       <div className="hidden overflow-x-auto sm:block">
         <table className="w-full text-sm">
           <thead>
@@ -108,7 +105,6 @@ export function CallTable({ rows }: { rows: CallLogRow[] }) {
         </table>
       </div>
 
-      {/* Mobile: one tappable card per call - a 6-column table is unreadable on a phone. */}
       <ul className="rise-stagger space-y-2.5 sm:hidden">
         {rows.map((c, i) => {
           const href = hrefOf(c);

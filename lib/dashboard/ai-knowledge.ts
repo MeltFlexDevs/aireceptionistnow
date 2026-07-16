@@ -6,28 +6,18 @@ import { listAssistants, listIntegrations, type Assistant } from "./db";
 import { listOrganizations, type Organization } from "./organizations";
 import { mergeKnowledge, readKnowledge, renderKnowledgeMarkdown, type KnowledgeSource } from "../knowledge/sources";
 
-// Everything the AI knows about a user, assembled for the "What your AI knows"
-// page. Read-only mirror of what the call engine composes at pickup
-// (resolveInboundNumber): the assistant's own knowledge, its organization's
-// shared knowledge, and the owner's profile notes. Kept here rather than in the
-// page so the page renders one shape and this stays testable.
-
 export interface OrgKnowledge {
   org: Organization;
-  /** Assistants reading this organization's knowledge. */
   assistants: Assistant[];
   notes: string;
   sources: KnowledgeSource[];
-  /** Characters of knowledge the AI reads for this org - the prompt's weight. */
   charCount: number;
 }
 
 export interface AiKnowledge {
   account: AccountSettings | null;
-  /** The owner block the AI actually receives, or "" when sharing is off. */
   ownerNotes: string;
   organizations: OrgKnowledge[];
-  /** Assistants with no organization - they read only their own knowledge. */
   unaffiliated: Assistant[];
   assistantCount: number;
 }
@@ -45,8 +35,6 @@ function knowledgeOf(raw: Record<string, unknown> | null | undefined): {
   return { notes, sources, charCount };
 }
 
-/** Assemble everything the AI reads about this owner. Cached per request: the
- *  page body and its streamed summary sections all need the same tree. */
 export const getAiKnowledge = cache(async (ownerId: string | null): Promise<AiKnowledge> => {
   const [account, orgs, assistants] = await Promise.all([
     ownerId ? getAccountSettings(ownerId).catch(() => null) : Promise.resolve(null),
@@ -69,18 +57,11 @@ export const getAiKnowledge = cache(async (ownerId: string | null): Promise<AiKn
   };
 });
 
-/** Calendars the assistants can reach - part of "what it can do on a call". */
 export async function connectedCalendarCount(ownerId: string | null): Promise<number> {
   const list = await listIntegrations(ownerId ?? undefined).catch(() => []);
   return list.filter((i) => i.type === "calendar" && i.enabled).length;
 }
 
-/**
- * Exactly what one assistant's prompt knowledge resolves to at pickup - its own
- * knowledge merged with its organization's, plus the owner block. Mirrors
- * resolveInboundNumber's precedence (org first, then assistant, then owner) so
- * the page can't drift from what callers actually get.
- */
 export function assistantKnowledgeMarkdown(
   assistant: Assistant,
   org: Organization | null,
@@ -93,8 +74,6 @@ export function assistantKnowledgeMarkdown(
   return renderKnowledgeMarkdown(merged);
 }
 
-// Keep the summary prompt bounded: a few large PDFs can push an org's knowledge
-// past a sensible request size, and the first slice is the representative part.
 const SUMMARY_INPUT_CHARS = 16_000;
 
 const SUMMARY_SYSTEM = [
@@ -105,12 +84,6 @@ const SUMMARY_SYSTEM = [
   "No preamble, no headings, no bullet points, no markdown.",
 ].join(" ");
 
-/**
- * A plain-language summary of what the AI can answer for one organization,
- * generated from its knowledge. Returns null when there's nothing to summarize
- * or the model is unavailable/misconfigured - the page then shows the raw
- * sources instead, so a Gemini outage degrades one card rather than the screen.
- */
 export async function summarizeOrgKnowledge(entry: OrgKnowledge): Promise<string | null> {
   const markdown = renderKnowledgeMarkdown(entry.org.knowledge);
   const description = entry.org.description?.trim() ?? "";
@@ -148,12 +121,6 @@ const SOURCE_SUMMARY_SYSTEM = [
   "No preamble, no headings, no bullet points, no markdown.",
 ].join(" ");
 
-/**
- * A short summary of a single knowledge source's converted markdown. Generated
- * once at upload and stored on the source, so the dashboard shows it instantly.
- * Returns null on empty content or a model error, so the upload still succeeds
- * with the document itself - the summary is a nicety, not a requirement.
- */
 export async function summarizeSourceMarkdown(
   title: string,
   markdown: string,

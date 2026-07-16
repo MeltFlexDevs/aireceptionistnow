@@ -1,5 +1,3 @@
-// English is the source of truth: its shape defines `Dictionary`, so every other
-// language file is compile-checked to have exactly these keys.
 
 export const en = {
   nav: {
@@ -58,9 +56,6 @@ export const en = {
     noMatches: "No matches",
     notifications: "Notifications",
   },
-  // Rendered from server-computed data (KPI keys, per-assistant table, call
-  // recaps). The values are looked up by key at render so the analytics layer
-  // stays locale-free.
   data: {
     kpiCalls: "Total calls",
     kpiAvg: "Avg call time",
@@ -289,9 +284,6 @@ export const en = {
     billingSub: "Your plan and usage.",
     noSubscription: "No active subscription. Pick a plan to lift your limits.",
   },
-  // Section titles and the "where to find it" chips are NOT here: they're
-  // composed from `nav` at render, so the tutorial always names screens exactly
-  // as the sidebar does - in every language, and without re-translating them.
   tutorial: {
     title: "Tutorial",
     description: "What every screen does, what you can do on it, and the bits that catch people out.",
@@ -435,12 +427,6 @@ export const en = {
   },
 } as const;
 
-// Widened so translations only need `string`, not the English string literals.
-// Structure-preserving on purpose: it recurses through nested groups and string
-// lists, so prose-heavy screens (the tutorial's bullet lists, its per-section
-// blocks) can be shaped like the UI instead of being flattened into
-// `overviewCan1`, `overviewCan2`… A locale still can't drop or misname a key -
-// only the wording is free, and a list may differ in length between languages.
 type Translated<T> = T extends string
   ? string
   : T extends readonly (infer U)[]

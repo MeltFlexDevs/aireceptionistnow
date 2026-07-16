@@ -107,8 +107,6 @@ function CredentialForm({ def }: { def: CalendarProviderDef }) {
   );
 }
 
-/** How many assistants push to each CRM endpoint, keyed by integration id. An
- *  endpoint is shared, so this is the only place the fan-out is visible. */
 function crmUsageCounts(assistants: Array<{ routing: Record<string, unknown> }>): Map<string, number> {
   const counts = new Map<string, number>();
   for (const a of assistants) {
@@ -178,6 +176,11 @@ export default async function IntegrationsPage({
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <h2 className="text-sm font-medium text-neutral-900">{def.name}</h2>
+                    {def.recommended && (
+                      <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-medium text-indigo-600">
+                        Recommended
+                      </span>
+                    )}
                     {conn ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-600">
                         <StatusDot tone="ok" />
@@ -244,9 +247,6 @@ export default async function IntegrationsPage({
         })}
       </div>
 
-      {/* Developer - webhook wiring, folded away behind a disclosure: most
-          accounts only ever connect a calendar, and an endpoint form sitting open
-          on every visit makes the page read as far more technical than it is. */}
       <details className="group shape-card glass overflow-hidden">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-neutral-50/60 [&::-webkit-details-marker]:hidden">
           <div className="flex min-w-0 items-center gap-3">
@@ -277,8 +277,6 @@ export default async function IntegrationsPage({
             POST each completed call to your own system. Assign one to as many assistants as you like.
           </p>
 
-          {/* Preview only until this ships: `inert` (not just pointer-events) so the
-              blurred controls are unreachable by keyboard and screen readers too. */}
           <div inert className="mt-4 select-none blur-[3px] saturate-50">
         {crms.length > 0 && (
           <ul className="mb-5 space-y-2">
@@ -345,9 +343,6 @@ export default async function IntegrationsPage({
                 name="crm_url"
                 type="url"
                 required
-                // Say the rule up front and let the browser hold the line on submit,
-                // so the https requirement isn't a surprise round-trip. createCrmAction
-                // still re-checks: pattern only catches the scheme, not a private host.
                 pattern="https://.+"
                 title="CRM URL must be a public https:// address."
                 aria-describedby="crm_url_hint"

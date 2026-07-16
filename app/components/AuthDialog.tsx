@@ -101,8 +101,6 @@ export function AuthDialogProvider({ children }: { children: React.ReactNode }) 
 
   const value = React.useMemo(() => ({ open, close }), [open, close]);
 
-  // Open automatically when redirected here with `?auth=login`. A `next` param
-  // (e.g. from the pricing page's checkout flow) becomes the post-login target.
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const openFromUrl = params.get("auth") === "login";
@@ -220,7 +218,6 @@ export function AuthDialogProvider({ children }: { children: React.ReactNode }) 
             </button>
 
             <div className="grid sm:grid-cols-2">
-              {/* Left: brand image on the landing "voice" palette */}
               <div
                 className="relative hidden min-h-[600px] overflow-hidden sm:block"
                 style={{ background: "linear-gradient(160deg, #cdbef5 0%, #e4d6f2 44%, #ffd9c0 100%)" }}
@@ -236,7 +233,6 @@ export function AuthDialogProvider({ children }: { children: React.ReactNode }) 
                 />
               </div>
 
-              {/* Right: auth card */}
               <div className="flex flex-col items-center px-8 py-12 text-center sm:px-12 sm:py-14">
                 <div className="mb-8 flex justify-center text-neutral-900">
                   <BrandMark className="h-9 w-auto" />

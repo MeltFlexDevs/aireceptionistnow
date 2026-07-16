@@ -4,11 +4,6 @@ import { authConfigured } from "@/lib/supabase/config";
 import { mergeKnowledge, type AssistantKnowledge } from "../knowledge/sources";
 import { DEFAULT_VOICE_ID } from "../call-engine/voice/catalog";
 
-// Dashboard data access. Intentionally separate from the call engine's
-// repository: managing phone numbers only needs Supabase, not the full set of
-// telephony/LLM/voice secrets the engine's getEnv() demands. Server-side only -
-// uses the service-role key (RLS is added with auth later).
-
 let client: SupabaseClient | null = null;
 
 function db(): SupabaseClient {
@@ -26,13 +21,6 @@ function db(): SupabaseClient {
   return client;
 }
 
-/**
- * True for PostgREST's "column not in the schema cache" error (code PGRST204),
- * i.e. writing a column the connected database doesn't have yet. Used to survive
- * schema drift - a DB that hasn't applied migration 0004/0005 (the ElevenLabs
- * agent/tool/phone-id columns) - instead of hard-failing the flow. Same spirit as
- * migration 0003's drift fix.
- */
 function isMissingColumnError(error: unknown): boolean {
   const e = error as { code?: string; message?: string } | null;
   if (!e) return false;
@@ -45,7 +33,6 @@ export interface PhoneNumber {
   id: string;
   e164: string;
   twilio_sid: string | null;
-  /** The id ElevenLabs gives the number once imported; used to reassign/route it. */
   elevenlabs_phone_number_id: string | null;
   enabled: boolean;
   assistant_id: string | null;
@@ -62,7 +49,6 @@ export interface UpdateNumberInput {
   enabled: boolean;
 }
 
-/** First business, or create a default one. Single-tenant until auth lands. */
 export const ensureBusinessId = cache(async (): Promise<string> => {
   const existing = await db()
     .from("businesses")
@@ -104,8 +90,6 @@ export async function getNumber(id: string): Promise<PhoneNumber | null> {
 
 // Defaults applied to a freshly created assistant so it can take a call right away.
 const DEFAULT_ROUTING = { sttProvider: "elevenlabs" };
-// "multi" = auto-detect the caller's language and reply in it (the engine
-// matches voice + pronunciation). Users can pin a fixed language in settings.
 const DEFAULT_LANGUAGE = "multi";
 
 export async function createNumber(input: CreateNumberInput): Promise<string> {
@@ -148,43 +132,22 @@ export interface Integration {
   config: Record<string, unknown>;
   enabled: boolean;
   created_at: string;
-  /** The user who connected it (null on single-tenant-era rows). Scopes who may
-   *  see/use/disconnect the integration - its config holds OAuth tokens.
-   *  Requires migration 0008. */
   owner_id?: string | null;
 }
 
-/**
- * Integrations, scoped to an owner when one is passed (same contract as
- * listAssistants - pass currentUserId(); null/undefined skips scoping for
- * auth-off single-tenant deploys). An integration's config carries calendar
- * OAuth tokens, so an unscoped list would let one tenant see, book into, and
- * disconnect another tenant's calendar.
- */
 export async function listIntegrations(ownerId?: string | null): Promise<Integration[]> {
   let query = db().from("integrations").select("*");
-  // Unowned-allowed, same rule as deleteIntegration/upsertCalendarIntegration: a
-  // strict .eq would hide legacy owner_id-null rows (migration 0008 does not
-  // backfill), silently stripping pre-0008 calendars from assistant routing on
-  // the next save.
   if (ownerId) query = query.or(`owner_id.eq.${ownerId},owner_id.is.null`);
   const { data, error } = await query.order("created_at", { ascending: true });
   if (error) throw error;
   return (data ?? []) as Integration[];
 }
 
-/** Connect (or re-connect) a calendar provider - one row per provider PER
- *  OWNER. Pass the connecting user (currentUserId()) so one tenant reconnecting
- *  a provider can't overwrite another tenant's stored tokens; a legacy unowned
- *  row for the provider is claimed (stamped) rather than duplicated. */
 export async function upsertCalendarIntegration(
   provider: string,
   config: Record<string, unknown>,
   ownerId?: string | null,
 ): Promise<void> {
-  // Fail closed: with auth on, an owner is required. Without it the match below
-  // runs unscoped and could overwrite another tenant's stored OAuth tokens (the
-  // ungated OAuth callback reaches here with no session otherwise).
   if (authConfigured() && !ownerId) throw new Error("Not signed in.");
   const businessId = await ensureBusinessId();
   let match = db()
@@ -193,9 +156,6 @@ export async function upsertCalendarIntegration(
     .eq("business_id", businessId)
     .eq("type", "calendar")
     .eq("provider", provider);
-  // Per-owner key: reuse the caller's own row or an unowned single-tenant-era
-  // one, never another tenant's. Owned rows sort first so the claim prefers the
-  // caller's existing row over a legacy unowned one.
   if (ownerId) match = match.or(`owner_id.eq.${ownerId},owner_id.is.null`);
   const existing = await match
     .order("owner_id", { ascending: true, nullsFirst: false })
@@ -222,17 +182,10 @@ export async function upsertCalendarIntegration(
   if (error) throw error;
 }
 
-/** Add a CRM push endpoint - one row per endpoint, deliberately NOT keyed like
- *  upsertCalendarIntegration: a user may keep several (Zapier, an ERP intake, a
- *  custom webhook) and point any number of assistants at each. Assistants
- *  reference the row by id (routing.crm.targets), so editing the URL here
- *  changes it for every assistant sharing it. */
 export async function createCrmIntegration(
   config: Record<string, unknown>,
   ownerId?: string | null,
 ): Promise<void> {
-  // Fail closed, same rule as upsertCalendarIntegration: with auth on an owner is
-  // required, otherwise the row would be unowned and visible to every tenant.
   if (authConfigured() && !ownerId) throw new Error("Not signed in.");
   const businessId = await ensureBusinessId();
   const { error } = await db().from("integrations").insert({
@@ -246,14 +199,7 @@ export async function createCrmIntegration(
   if (error) throw error;
 }
 
-/** Delete an integration. When an ownerId is passed (auth on), only the
- *  caller's own - or a legacy unowned - row matches, so one tenant can't
- *  disconnect another's calendar (same unowned-allowed rule as
- *  requireAssistantOwner). */
 export async function deleteIntegration(id: string, ownerId?: string | null): Promise<void> {
-  // Fail closed: with auth on, an owner is required so no future unscoped caller
-  // can delete another tenant's integration by id (defense-in-depth - the only
-  // caller today, disconnectCalendarAction, is already behind the auth proxy).
   if (authConfigured() && !ownerId) throw new Error("Not signed in.");
   let query = db().from("integrations").delete().eq("id", id);
   if (ownerId) query = query.or(`owner_id.eq.${ownerId},owner_id.is.null`);
@@ -277,28 +223,17 @@ export interface Assistant {
   routing: Record<string, unknown>;
   enabled: boolean;
   created_at: string;
-  /** The managed ElevenLabs agent built from this assistant, or null pre-sync. */
   elevenlabs_agent_id: string | null;
-  /** Whether the agent was built multilingual (language presets accepted). When
-   *  false, the sync fell back to an English-only agent, so /api/agent/init must
-   *  NOT send a per-caller language override the agent can't honor. Defaults true
-   *  (undefined pre-migration is treated as multilingual). */
   elevenlabs_multilingual?: boolean;
-  /** Knowledge-base docs we uploaded for this agent, tracked for re-sync cleanup. */
   elevenlabs_kb: AgentKbDoc[];
-  /** Standalone ElevenLabs tool objects we created for this agent (webhook server
-   *  tools), tracked so a re-sync can delete the previous set and a delete can
-   *  tear them down. Empty until the first sync that attaches tools. */
   elevenlabs_tools: AgentTool[];
 }
 
-/** One ElevenLabs knowledge-base document we own on behalf of an assistant. */
 export interface AgentKbDoc {
   id: string;
   name: string;
 }
 
-/** One standalone ElevenLabs tool object we own on behalf of an assistant. */
 export interface AgentTool {
   id: string;
   name: string;
@@ -373,13 +308,11 @@ export async function updateAssistant(
   if (error) throw error;
 }
 
-/** Flip an assistant on/off without touching its other config. */
 export async function setAssistantEnabled(id: string, enabled: boolean): Promise<void> {
   const { error } = await db().from("assistants").update({ enabled }).eq("id", id);
   if (error) throw error;
 }
 
-/** Replace only the knowledge JSON (used by knowledge-source add/remove). */
 export async function updateAssistantKnowledge(
   id: string,
   knowledge: Record<string, unknown>,
@@ -399,8 +332,6 @@ export async function deleteAssistant(id: string): Promise<void> {
   if (error) throw error;
 }
 
-/** Record the managed ElevenLabs agent (its uploaded KB docs + created tool
- *  objects) for an assistant after a sync. Passing null agentId clears the link. */
 export async function setAssistantAgent(
   id: string,
   agentId: string | null,
@@ -414,11 +345,6 @@ export async function setAssistantAgent(
     .eq("id", id);
   if (error) {
     if (!isMissingColumnError(error)) throw error;
-    // Schema drift: the DB is missing elevenlabs_kb/elevenlabs_tools (migration
-    // 0005 not applied). Don't fail the whole "Get number"/save flow over the
-    // tracking columns - persist elevenlabs_agent_id alone (that one matters most:
-    // without it every sync would create a duplicate ElevenLabs agent). KB/tool
-    // cleanup stays disabled until the migration is applied.
     console.warn(
       "[db] assistants is missing elevenlabs_kb/elevenlabs_tools - apply migration 0005 for full tool/KB cleanup. Persisting agent id only for now.",
     );
@@ -429,10 +355,6 @@ export async function setAssistantAgent(
     if (agentOnly && !isMissingColumnError(agentOnly)) throw agentOnly;
   }
 
-  // Record the multilingual flag in a SEPARATE write so a missing
-  // elevenlabs_multilingual column (migration 0006 not applied) can't roll back
-  // the agent/kb/tools write above. Read side defaults to multilingual, so a drop
-  // here just means /api/agent/init keeps applying language overrides as before.
   const { error: mlErr } = await db()
     .from("assistants")
     .update({ elevenlabs_multilingual: multilingual })
@@ -443,16 +365,9 @@ export async function setAssistantAgent(
 export interface AssistantSyncContext {
   assistant: Assistant;
   businessName: string;
-  /** Assistant's own knowledge merged with its organization's shared knowledge. */
   knowledge: AssistantKnowledge;
 }
 
-/**
- * Everything needed to build/refresh an assistant's ElevenLabs agent: the
- * assistant row, its business name (for the agent prompt/persona), and its
- * effective knowledge (own + organization's shared), merged the same way the
- * call engine merges it at pickup. Returns null if the assistant is gone.
- */
 export async function getAssistantSyncContext(
   id: string,
 ): Promise<AssistantSyncContext | null> {
@@ -484,7 +399,6 @@ export async function getAssistantSyncContext(
   };
 }
 
-/** The phone number linked to an assistant, if any. */
 export async function getAssistantNumber(
   assistantId: string,
 ): Promise<PhoneNumber | null> {
@@ -500,13 +414,6 @@ export async function getAssistantNumber(
   return (data as PhoneNumber) ?? null;
 }
 
-/**
- * Claim the first free pooled number for an assistant. "Free" = active, enabled,
- * backed by a real Twilio number, and not yet linked to any assistant. The update
- * is guarded by `assistant_id IS NULL` so two concurrent creates can't grab the
- * same row - the loser's update matches zero rows and we try the next candidate.
- * Returns the claimed number, or null when the pool has none free.
- */
 export async function claimFreeNumber(
   assistantId: string,
 ): Promise<PhoneNumber | null> {
@@ -535,8 +442,6 @@ export async function claimFreeNumber(
   return null;
 }
 
-/** Active Twilio-backed numbers not yet imported into ElevenLabs - the setup
- *  endpoint sweeps these, imports each, and backfills the ElevenLabs id. */
 export async function listNumbersMissingElevenLabsId(): Promise<
   { id: string; e164: string }[]
 > {
@@ -550,9 +455,6 @@ export async function listNumbersMissingElevenLabsId(): Promise<
   return (data ?? []).map((r) => ({ id: String(r.id), e164: String(r.e164) }));
 }
 
-/** Free pool numbers already imported into ElevenLabs - usable as the outbound
- *  caller ID for the public demo call (free = not linked to any assistant, so a
- *  customer's number is never used as the demo's caller ID). */
 export async function listImportedFreeNumbers(): Promise<PhoneNumber[]> {
   const { data, error } = await db()
     .from("phone_numbers")
@@ -565,11 +467,6 @@ export async function listImportedFreeNumbers(): Promise<PhoneNumber[]> {
   return (data ?? []) as PhoneNumber[];
 }
 
-/** ElevenLabs phone-number ids currently linked to an assistant - i.e. lines a
- *  customer's calls run on. The public demo must never place a call from one:
- *  ElevenLabs reports that line as the call's agent_number, so the post-call
- *  webhook resolves it to that assistant and the demo lands in the owner's
- *  dashboard (stamped by the calls_set_assignment trigger). */
 export async function assignedElevenLabsNumberIds(): Promise<Set<string>> {
   const { data, error } = await db()
     .from("phone_numbers")
@@ -581,7 +478,6 @@ export async function assignedElevenLabsNumberIds(): Promise<Set<string>> {
   return new Set((data ?? []).map((r) => String(r.elevenlabs_phone_number_id)));
 }
 
-/** How many free numbers the pool currently holds (same "free" rule as claim). */
 export async function countFreeNumbers(): Promise<number> {
   const { count, error } = await db()
     .from("phone_numbers")
@@ -594,10 +490,6 @@ export async function countFreeNumbers(): Promise<number> {
   return count ?? 0;
 }
 
-/**
- * Return all of an assistant's active numbers to the shared pool (unlink, keep
- * them on Twilio). Used on assistant delete so another assistant can reuse them.
- */
 export async function freeAssistantNumbers(assistantId: string): Promise<void> {
   const { error } = await db()
     .from("phone_numbers")
@@ -607,7 +499,6 @@ export async function freeAssistantNumbers(assistantId: string): Promise<void> {
   if (error) throw error;
 }
 
-/** Link (or unlink) a phone number to an assistant. */
 export async function setNumberAssistant(
   numberId: string,
   assistantId: string | null,
@@ -619,8 +510,6 @@ export async function setNumberAssistant(
   if (error) throw error;
 }
 
-/** Record the ElevenLabs phone-number id a Twilio number was imported as, so the
- *  connect/reassign path can address it directly instead of re-scanning. */
 export async function setNumberElevenLabsId(
   numberId: string,
   elevenLabsPhoneNumberId: string,
@@ -631,10 +520,6 @@ export async function setNumberElevenLabsId(
     .update({ elevenlabs_phone_number_id: elevenLabsPhoneNumberId })
     .eq("id", numberId);
   if (!error) return;
-  // Schema drift: phone_numbers.elevenlabs_phone_number_id (migration 0005) not
-  // applied. This id is only a cache to skip re-scanning ElevenLabs on the next
-  // route, so skip persisting it rather than failing "Get number" - the connect
-  // still succeeded; a later reassign just re-looks-up the id.
   if (isMissingColumnError(error)) {
     console.warn(
       "[db] phone_numbers.elevenlabs_phone_number_id missing - apply migration 0005; skipping (ElevenLabs id will be re-scanned when needed).",
@@ -644,7 +529,6 @@ export async function setNumberElevenLabsId(
   throw error;
 }
 
-/** All active numbers linked to an assistant (with their Twilio SIDs to release). */
 export async function getAssistantNumbers(
   assistantId: string,
 ): Promise<{ id: string; twilio_sid: string | null }[]> {
@@ -668,7 +552,6 @@ export async function softDeleteNumber(id: string): Promise<void> {
   if (error) throw error;
 }
 
-/** Create a call record for a test call (so its transcript/summary persist). */
 export async function createTestCall(input: {
   businessId: string;
   numberId: string;
@@ -690,8 +573,6 @@ export async function createTestCall(input: {
   return String(data.id);
 }
 
-/** Attach the Twilio Call SID once an outbound call has been placed, so the
- *  call log can reconcile this DB row against the live Twilio call logs. */
 export async function setCallTwilioSid(callId: string, sid: string): Promise<void> {
   const { error } = await db()
     .from("calls")
@@ -706,9 +587,6 @@ export interface OwnedNumber {
   created_at: string;
 }
 
-/** Phone numbers belonging to a user's assistants. Calls link to a user through
- *  calls.phone_number_id -> phone_numbers.assistant_id -> assistants.owner_id, so
- *  these ids scope a user's statistics and call log. */
 export const getOwnedNumbers = cache(async (ownerId: string): Promise<OwnedNumber[]> => {
   const { data: assistants, error: aErr } = await db()
     .from("assistants")
@@ -730,8 +608,6 @@ export const getOwnedNumbers = cache(async (ownerId: string): Promise<OwnedNumbe
   }));
 });
 
-/** First active Twilio-backed number, used as the caller ID for landing test
- *  calls. Prefers a number linked to an assistant (so its config resolves). */
 export async function getDefaultCallableNumber(): Promise<{
   id: string;
   e164: string;

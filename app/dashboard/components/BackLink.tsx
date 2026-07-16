@@ -7,9 +7,6 @@ interface Props {
   className?: string;
 }
 
-// One consistent back control across the dashboard: a circular arrow that nudges
-// left and darkens on hover. Compositor-only motion; honours reduced-motion via
-// the shared `.press` utility.
 export function BackLink({ href, label, className = "" }: Props) {
   return (
     <Link

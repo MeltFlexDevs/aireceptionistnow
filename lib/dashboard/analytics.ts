@@ -46,14 +46,12 @@ export interface Call {
   outcome: string;
   sentiment: Sentiment;
   time: string;
-  /** Absolute timestamp in the user's timezone (tooltip next to `time`). */
   at: string;
 }
 export interface Summary {
   id: string;
   name: string;
   time: string;
-  /** Absolute timestamp in the user's timezone (tooltip next to `time`). */
   at: string;
   text: string;
   tags: string[];
@@ -75,8 +73,6 @@ export interface Analytics {
   volume: Bar[];
   countries: Segment[];
   sentiment: Segment[];
-  /** Who did the talking. Depth metrics: they moved off the overview, which is
-   *  now a glance, and landed here where the filters make them meaningful. */
   talkRatio: Segment[];
   latency: Latency;
 }
@@ -174,7 +170,6 @@ function dayBuckets(calls: CallRow[], days: number, toKey: (d: Date) => string):
   }
   return out;
 }
-/** Per-day values over the trailing `days`, oldest first (for KPI sparklines). */
 function dailySeries(
   calls: CallRow[],
   days: number,
@@ -197,30 +192,18 @@ function dailySeries(
   return out;
 }
 
-
 function capitalize(s: string): string {
   return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 }
 
-/** A user's stats scope. Calls are matched primarily on the insert-time
- *  owner_id / assistant_id snapshots (same rule as the call log), so history
- *  survives a number being unassigned, pooled, or deleted - scoping on the
- *  numbers *currently* linked to the owner's assistants silently dropped all
- *  of it. The owner's assistants and current numbers only serve as fallbacks
- *  for unstamped rows (owner_id null). undefined = auth off, no scoping. */
 interface CallScope {
   ownerId: string;
   assistantIds: string[];
   numberIds: string[];
 }
 
-// Cached per request: getOverview, getAssistantStats, and getAnalytics each
-// need the same owner scope - without this it ran the assistants+numbers
-// queries once per caller (3x) every render.
 const ownerScope = cache(async (ownerId?: string | null): Promise<CallScope | undefined> => {
   if (!ownerId) return undefined;
-  // Includes soft-deleted assistants on purpose: their call history still
-  // belongs to this owner.
   const { data: assistants, error } = await serviceClient()
     .from("assistants")
     .select("id")
@@ -235,13 +218,6 @@ const ownerScope = cache(async (ownerId?: string | null): Promise<CallScope | un
 });
 
 function scopeFilter(scope: CallScope): string {
-  // The assistant/number arms are fallbacks for unstamped rows ONLY - they must
-  // not match a call another tenant owns. Numbers are pooled and recycled
-  // across tenants, so an unconditioned phone_number_id arm would hand the new
-  // holder the previous tenant's stamped call history (same recycled-number
-  // rule the call log enforces in calls/log.ts).
-  // ponytail: or-filter lives in the request URL, fine for tens of assistants
-  // per owner; move to an RPC if a tenant ever owns hundreds.
   const parts = [`owner_id.eq.${scope.ownerId}`];
   if (scope.assistantIds.length > 0) {
     parts.push(`and(owner_id.is.null,assistant_id.in.(${scope.assistantIds.join(",")}))`);
@@ -284,8 +260,6 @@ async function fetchCalls(
   return rows;
 }
 
-// ISO 3166 alpha-2 → English country name, via the platform Intl data (no map to
-// maintain). Falls back to the raw code if the runtime can't resolve it.
 let regionNames: Intl.DisplayNames | null = null;
 function regionName(iso: string): string {
   try {
@@ -296,8 +270,6 @@ function regionName(iso: string): string {
   }
 }
 
-// Share of calls by the caller's country (guessed from their E.164 number). Top
-// six countries by volume, the rest folded into "Other".
 function countriesFrom(calls: CallRow[]): Segment[] {
   const counts = new Map<string, number>();
   for (const c of calls) {
@@ -345,9 +317,6 @@ async function talkRatio(callIds: string[]): Promise<Segment[]> {
   ];
 }
 
-// Ground truth for bookings: a completed "booking" action row (the calendar
-// event really got created), not the LLM-labeled outcome - that stays a
-// display label only. Chunked so the id list fits in a request URL.
 async function bookedCallIds(callIds: string[]): Promise<Set<string>> {
   const out = new Set<string>();
   for (let i = 0; i < callIds.length; i += 500) {
@@ -374,19 +343,12 @@ export async function getOverview(ownerId?: string | null): Promise<Overview> {
   const now = new Date();
   const since = new Date(now);
   since.setDate(now.getDate() - 14);
-  // "This month" is a true calendar month in the user's timezone, so fetch back
-  // to the month start once it predates the 14-day KPI window (one day of slack
-  // covers the timezone offset; the filters below trim the excess).
   const monthStartKey = `${toKey(now).slice(0, 8)}01`;
   const monthFetch = new Date(`${monthStartKey}T00:00:00Z`);
   monthFetch.setUTCDate(monthFetch.getUTCDate() - 1);
   const fetchSince = monthFetch < since ? monthFetch : since;
   const calls = await fetchCalls(businessId, fetchSince.toISOString(), scope);
 
-  // KPI windows are whole calendar days in the user's timezone (today-6..today
-  // vs the 7 days before), matching the sparkline buckets - a rolling cutoff
-  // counted calls the sparks silently dropped, so the spark didn't sum to the
-  // tile (getAnalytics trims its window the same way).
   const [y, m, d] = toKey(now).split("-").map(Number);
   const keyAt = (back: number) => new Date(Date.UTC(y, m - 1, d - back)).toISOString().slice(0, 10);
   const recentStartKey = keyAt(6);
@@ -409,12 +371,8 @@ export async function getOverview(ownerId?: string | null): Promise<Overview> {
     cs.length ? (cs.filter((c) => c.status === "completed").length / cs.length) * 100 : 0;
   const booked = (cs: CallRow[]) => cs.filter((c) => bookedIds.has(c.id)).length;
 
-  // Each KPI gets its own daily series - one shared call-count spark under
-  // "Avg call time" or "Answer rate" would just be a wrong chart.
   const spark = (value: (dayCalls: CallRow[]) => number) =>
     dailySeries(recent, 7, toKey, value);
-  // Rates/averages are undefined (not zero) on days with no calls - plotting 0
-  // would draw fake outage dips, so those days are skipped instead.
   const rateSpark = (value: (dayCalls: CallRow[]) => number) =>
     dailySeries(recent, 7, toKey, (cs) => (cs.length ? value(cs) : NaN)).filter(Number.isFinite);
 
@@ -530,8 +488,6 @@ async function numberMeta(numberIds?: string[]): Promise<Map<string, NumberMeta>
   return map;
 }
 
-/** Per-assistant call stats over the last `days`. Calls on numbers not linked to
- *  an assistant are grouped under a single "Unassigned" row. */
 export async function getAssistantStats(
   ownerId?: string | null,
   days = 30,
@@ -552,9 +508,6 @@ export async function getAssistantStats(
   const calls = org ? fetched.filter(inOrganization(org)) : fetched;
   const bookedIds = await bookedCallIds(calls.map((c) => c.id));
 
-  // Group on the call's own assistant_id - snapshotted at insert by the
-  // set_call_assignment trigger, so history survives number reassignment. The
-  // number's current assistant only names the group and covers legacy rows.
   const byAssistant = new Map<string, { name: string; e164: string }>();
   for (const m of meta.values()) {
     if (m.assistantId) byAssistant.set(m.assistantId, { name: m.assistantName, e164: m.e164 });
@@ -572,8 +525,6 @@ export async function getAssistantStats(
     groups.get(id)!.calls.push(c);
   }
 
-  // Surface assistants that own a number but have no calls yet, so each shows
-  // up (restricted to the organization when that filter is active).
   for (const m of meta.values()) {
     const id = m.assistantId ?? "unassigned";
     if (org && !(m.assistantId && org.assistantIds.has(m.assistantId))) continue;
@@ -582,8 +533,6 @@ export async function getAssistantStats(
     }
   }
 
-  // Name assistants that no longer hold a number (deleted/reassigned away) but
-  // still own call history via the snapshot.
   const unnamed = [...groups.keys()].filter((id) => id !== "unassigned" && !byAssistant.has(id));
   if (unnamed.length > 0) {
     const { data } = await serviceClient().from("assistants").select("id,name").in("id", unnamed);
@@ -616,7 +565,6 @@ export async function getAssistantStats(
     .sort((a, b) => b.calls - a.calls);
 }
 
-/** Active phone-number ids linked to a single assistant. */
 async function assistantNumberIds(assistantId: string): Promise<string[]> {
   const { data, error } = await serviceClient()
     .from("phone_numbers")
@@ -627,8 +575,6 @@ async function assistantNumberIds(assistantId: string): Promise<string[]> {
   return (data ?? []).map((r) => String((r as { id: string }).id));
 }
 
-/** An organization's assistants + their active numbers, for post-filtering
- *  calls (on the snapshot columns, same rule as the owner scope). */
 interface OrgScope {
   assistantIds: Set<string>;
   numberIds: Set<string>;
@@ -668,10 +614,6 @@ export async function getAnalytics(
   assistantId?: string | null,
   organizationId?: string | null,
 ): Promise<Analytics> {
-  // Owner scope matches calls on the insert-time owner/assistant snapshots (plus
-  // current numbers for legacy rows); an organization filter then narrows within
-  // that scope, so it can never widen it. The assistant filter applies per call,
-  // below.
   const [businessId, scope, org, tz] = await Promise.all([
     ensureBusinessId(),
     ownerScope(ownerId),
@@ -684,14 +626,10 @@ export async function getAnalytics(
   since.setDate(now.getDate() - 30);
   let calls = await fetchCalls(businessId, since.toISOString(), scope);
   if (org) calls = calls.filter(inOrganization(org));
-  // Trim the rolling fetch window to whole bucket days so the volume chart
-  // sums to the totals tile.
   const [y, m, d] = toKey(now).split("-").map(Number);
   const firstKey = new Date(Date.UTC(y, m - 1, d - 29)).toISOString().slice(0, 10);
   calls = calls.filter((c) => toKey(new Date(c.started_at)) >= firstKey);
   if (assistantId) {
-    // Filter on the call's snapshotted assistant_id (set at insert, immune to
-    // number reassignment); the current-number mapping covers legacy rows.
     const fallback = new Set(await assistantNumberIds(assistantId));
     calls = calls.filter((c) =>
       c.assistant_id
@@ -699,9 +637,6 @@ export async function getAnalytics(
         : c.phone_number_id !== null && fallback.has(c.phone_number_id),
     );
   }
-  // Both scans run over the same filtered call set, so the talk split and
-  // latency respect the org/assistant filters - which is the point of moving
-  // them here from the (unfilterable) overview.
   const [bookedIds, ratio] = await Promise.all([
     bookedCallIds(calls.map((c) => c.id)),
     talkRatio(calls.map((c) => c.id)),
@@ -739,12 +674,6 @@ export async function getAnalytics(
   };
 }
 
-// Cross-request cache for the dashboard's heavy call-table scans. A language
-// switch (router.refresh) or a quick re-navigation reuses the last result
-// instead of re-scanning calls - the data is unchanged, so it's free for those
-// cases; genuinely new calls still surface within the revalidate window. Keyed
-// by owner so tenants never share a cache entry. Bump/lower DASH_TTL to trade
-// freshness for speed, or revalidateTag("dashboard-data") from a write path.
 const DASH_TTL = 30;
 
 export const getOverviewCached = (ownerId?: string | null): Promise<Overview> =>

@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 
-// Opens the Stripe Customer Portal (update card, change plan, cancel). Posts to
-// the billing-portal route and follows the returned URL.
 export function BillingPortalButton() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");

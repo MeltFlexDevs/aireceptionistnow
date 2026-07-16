@@ -3,9 +3,6 @@
 import { useOptimistic, useTransition } from "react";
 import { toggleAssistantEnabledAction } from "./actions";
 
-// Optimistic Enable/Disable: the label + status pill flip the instant you click,
-// before the server action returns. The action revalidates the page, so if it
-// ever fails the server-rendered truth replaces the optimistic guess on refresh.
 export function EnabledToggle({ id, enabled }: { id: string; enabled: boolean }) {
   const [optimistic, setOptimistic] = useOptimistic(enabled);
   const [pending, startTransition] = useTransition();

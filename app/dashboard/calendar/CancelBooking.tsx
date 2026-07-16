@@ -5,11 +5,6 @@ import type { BookingCancellation } from "@/lib/dashboard/calendar";
 import { cancelBookingAction } from "./actions";
 import { SubmitButton } from "../components/SubmitButton";
 
-// Cancel an AI-made booking: opens a small form for the reason and whether the
-// assistant should offer a new time, then hands off to cancelBookingAction
-// (which cancels the real event and calls/texts the customer). A booking already
-// cancelled shows its notification status instead of the form.
-
 const NOTIFY_LABEL: Record<BookingCancellation["notifyStatus"], string> = {
   pending: "Contacting the customer…",
   calling: "Calling the customer…",

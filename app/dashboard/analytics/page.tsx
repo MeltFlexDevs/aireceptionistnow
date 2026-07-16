@@ -14,7 +14,6 @@ import { getDictionary } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
 
-/** Sparkline path for the latency trend, normalized to the card's viewBox. */
 function latencyPoints(values: number[]): string {
   if (values.length === 0) return "";
   const max = Math.max(...values, 1);
@@ -57,8 +56,6 @@ export default async function AnalyticsPage({
     // Only honor the org filter when it's one of the owner's organizations.
     selectedOrg = orgParam && orgs.some((o) => o.id === orgParam) ? orgParam : "";
 
-    // When an org is selected, the assistant dropdown only offers that org's
-    // assistants, and an out-of-org assistant filter is dropped.
     const inScope = selectedOrg ? all.filter((a) => a.organization_id === selectedOrg) : all;
     assistantList = inScope.map((a) => ({ id: a.id, name: a.name }));
     selectedId =
@@ -117,8 +114,6 @@ export default async function AnalyticsPage({
     { label: a.bookings, value: String(data.totals.bookings) },
   ];
   const positive = data.sentiment.find((s) => s.label === "Positive")?.value ?? 0;
-  // Talk-split + latency labels: the analytics layer returns locale-free English
-  // keys, so they're translated at render (same rule as the KPI labels).
   const caller = data.talkRatio.find((s) => s.label === "Caller")?.value ?? 0;
   const talkLabel = (label: string) =>
     label === "Caller" ? t.data.talkCaller : label === "AI" ? t.data.talkAi : label;
@@ -165,8 +160,6 @@ export default async function AnalyticsPage({
         </SectionCard>
       </div>
 
-      {/* Depth metrics, moved off the overview so it stays a glance. They also
-          gain something here they never had there: the org/assistant filters. */}
       <div className="grid gap-4 lg:grid-cols-2">
         <SectionCard title={a.talkRatio} subtitle={a.talkRatioSub}>
           {data.talkRatio.length > 0 ? (

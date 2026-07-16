@@ -57,9 +57,6 @@ export const pt: Dictionary = {
     noMatches: "Sem correspondências",
     notifications: "Notificações",
   },
-  // Rendered from server-computed data (KPI keys, per-assistant table, call
-  // recaps). The values are looked up by key at render so the analytics layer
-  // stays locale-free.
   data: {
     kpiCalls: "Total de chamadas",
     kpiAvg: "Duração média",

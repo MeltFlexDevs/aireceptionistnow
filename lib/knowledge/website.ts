@@ -2,10 +2,6 @@ import { extractTitle, htmlToMarkdown, truncate } from "./markdown";
 import { MAX_SOURCE_CHARS } from "./sources";
 import { isBlockedHost } from "../net/safe-url";
 
-// Fetch a public web page and process it to Markdown for the knowledge base.
-// User-supplied URL, so this guards against SSRF: https/http only, and no
-// private / loopback / link-local / metadata hosts.
-
 const FETCH_TIMEOUT_MS = 12_000;
 const MAX_BYTES = 3_000_000; // 3 MB of HTML is plenty for a content page
 

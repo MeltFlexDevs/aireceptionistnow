@@ -157,7 +157,6 @@ export default function SiteFooter() {
                 {[{ label: "Blog", href: "/blog" }, { label: "Answers", href: "/answers" }].map((l) => (
                   <li key={l.label}><Link href={l.href} style={resourceLinkStyle}>{l.label}</Link></li>
                 ))}
-                {/* Static file in public/ - plain <a>, client navigation can't serve it. */}
                 <li><a href="/llms.txt" style={resourceLinkStyle}>AI Information</a></li>
               </ul>
             </div>
@@ -188,10 +187,8 @@ export default function SiteFooter() {
           </div>
         </div>
       </div>
-      {/* ── COPYRIGHT BAR ── */}
       <div style={{ padding: "20px 0" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 40px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
-          {/* Left: copyright + links */}
           <div style={{ display: "flex", alignItems: "center", gap: "20px", flexWrap: "wrap" }}>
             <Link href="/" style={{ display: "flex", alignItems: "center", gap: "6px", textDecoration: "none", color: "#fff" }}>
               <PauseLogo color="#fff" />
@@ -201,7 +198,6 @@ export default function SiteFooter() {
             <Link href="/privacy-policy" style={{ color: "#fff", fontSize: "11px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.02em" }}>Data protection</Link>
           </div>
 
-          {/* Right: GDPR badge */}
           <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
             <img src="https://cdn.prod.website-files.com/66cdd640b6eaf9b4ea2f21c8/6848312f044b2bc8aef51e5d_leaves.svg" loading="lazy" alt="" style={{ height: "20px", width: "auto", filter: "brightness(0) invert(1)" }} />
             <span style={{ color: "#fff", fontSize: "11px", fontWeight: 300 }}>

@@ -34,12 +34,10 @@ export default async function AssistantsPage({
         </div>
       )}
 
-      {/* Create row paints immediately - no waiting on the list query. */}
       <section className="shape-card glass p-5">
         <CreateAssistantForm />
       </section>
 
-      {/* List streams in the background; skeleton holds the layout meanwhile. */}
       <Suspense fallback={<ListSkeleton />}>
         <AssistantsList />
       </Suspense>

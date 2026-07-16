@@ -9,12 +9,6 @@ import {
 } from "@/lib/dashboard/booking-cancel";
 import type { TranscriptTurn } from "@/lib/call-engine/types";
 
-// Tier-A post-call webhook. ElevenLabs posts the full transcript when a call
-// ends (signed with ELEVENLABS_WEBHOOK_SECRET). We persist the turns against the
-// conversation's call row, finalize it, and run the SAME post-call pipeline as
-// tier B (summary + email/CRM delivery) so both tiers land identically on the
-// dashboard.
-
 export const dynamic = "force-dynamic";
 
 function json(body: unknown, status = 200): Response {
@@ -40,16 +34,6 @@ interface RawTurn {
   conversation_turn_metrics?: { metrics?: Record<string, { elapsed_time?: number }> };
 }
 
-/**
- * Median agent reply latency (ms) across the call - the "voice latency" the
- * analytics page charts. ElevenLabs reports per-turn stage timings (LLM TTFB,
- * TTS, …) under conversation_turn_metrics.metrics; we take each agent turn's
- * slowest stage as its end-to-end reply time and return the median. undefined
- * when no turn carries metrics (older calls / tier-B), so we store nothing.
- *
- * ponytail: slowest-stage-per-turn is a proxy for end-to-end latency; pin a
- * specific metric key here once real payloads show which one is authoritative.
- */
 function medianReplyLatencyMs(raw: unknown): number | undefined {
   if (!Array.isArray(raw)) return undefined;
   const perTurnMs: number[] = [];
@@ -72,8 +56,6 @@ function medianReplyLatencyMs(raw: unknown): number | undefined {
   return Math.round(med);
 }
 
-/** Map ElevenLabs transcript entries to our turn shape. Their roles are
- *  "user"/"agent"; anything not the caller is treated as the assistant. */
 function mapTurns(raw: unknown): TranscriptTurn[] {
   if (!Array.isArray(raw)) return [];
   const turns: TranscriptTurn[] = [];
@@ -106,15 +88,6 @@ export async function POST(req: Request): Promise<Response> {
   const conversationId = pick(data, ["conversation_id"]);
   if (!conversationId) return json({ error: "missing conversation_id" }, 400);
 
-  // Drop the public "Talk to our AI now" demo before anything is written. The
-  // ElevenLabs webhook is workspace-wide, so it delivers demo conversations too,
-  // and they are nobody's business calls: the demo dials out from a pool line, so
-  // resolveInboundNumber below would attribute it to whichever assistant holds
-  // that number (or to the sole business when the deployment is single-tenant),
-  // and the calls_set_assignment trigger would stamp an owner - putting a
-  // stranger's demo transcript + AI summary in a customer's dashboard. Keying on
-  // the agent (not the number) also keeps it out once a pool line is later
-  // claimed by a real assistant.
   const demoAgentId = (process.env.ELEVENLABS_AGENT_ID ?? "").trim();
   const agentId = pick(data, ["agent_id"]);
   if (demoAgentId && agentId === demoAgentId) {
@@ -125,17 +98,9 @@ export async function POST(req: Request): Promise<Response> {
   const phone = (metadata.phone_call as Record<string, unknown>) ?? {};
   const toNumber = pick(phone, ["agent_number", "called_number", "to_number"]);
   const fromNumber = pick(phone, ["external_number", "caller_id", "from_number"]);
-  // Telephony payloads carry the real direction; agent_number is the assistant's
-  // own connected number either way (external_number is the other party), so an
-  // outbound test/demo call still resolves - record it as outbound, not as a
-  // customer call. Anything unexpected/absent defaults to inbound.
   const direction = pick(phone, ["direction"]) === "outbound" ? "outbound" : "inbound";
   const durationSeconds = Number(metadata.call_duration_secs ?? 0) || undefined;
 
-  // If this outbound call was a booking-cancellation notification, decide the SMS
-  // fallback: no real engagement (ring-out / voicemail) -> text the customer the
-  // same message. Runs off the response (after) so it never delays the webhook,
-  // and still lets the call fall through to normal recording below.
   if (direction === "outbound") {
     const notify = await findBookingByNotifyConversation(conversationId).catch(() => null);
     if (notify) {
@@ -151,8 +116,6 @@ export async function POST(req: Request): Promise<Response> {
 
   const repo = getRepository();
 
-  // Resolve + claim. A transient DB error here returns 500 so ElevenLabs retries;
-  // the atomic claim makes that retry safe (only the first delivery processes).
   let callId: string;
   let claimed: boolean;
   try {
@@ -172,14 +135,8 @@ export async function POST(req: Request): Promise<Response> {
     return json({ error: "temporarily unavailable" }, 500);
   }
 
-  // A retry (or duplicate delivery) - already processed. No-op so we don't
-  // duplicate transcript turns or re-send summary emails / CRM pushes.
   if (!claimed) return json({ ok: true, deduped: true });
 
-  // First delivery: persist the transcript and duration. If either fails we
-  // release the claim and return 500 so ElevenLabs' retry reprocesses instead
-  // of being answered as a duplicate - appendTurns replaces the call's turns,
-  // so the retry can't duplicate them.
   try {
     await repo.appendTurns(callId, mapTurns(data.transcript));
     const medianLatencyMs = medianReplyLatencyMs(data.transcript);
@@ -196,8 +153,6 @@ export async function POST(req: Request): Promise<Response> {
     return json({ error: "temporarily unavailable" }, 500);
   }
 
-  // Summary + email/CRM delivery log their own failures (runPostCall never
-  // throws); a webhook retry here would risk double emails/CRM pushes.
   await runPostCall(callId, repo);
 
   return json({ ok: true });

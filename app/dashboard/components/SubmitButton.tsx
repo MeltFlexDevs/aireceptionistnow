@@ -3,10 +3,6 @@
 import type { ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 
-// Submit button wired to its <form>'s pending state: shows a spinner, swaps to
-// a "working" label, disables itself, and flips to the wait cursor while the
-// server action runs. Drop-in replacement for a plain submit <button>.
-
 const VARIANTS = {
   primary: "bg-neutral-900 text-white hover:bg-neutral-800",
   secondary: "border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50",
@@ -32,12 +28,9 @@ function Spinner() {
 
 interface Props {
   children: ReactNode;
-  /** Label shown while the action runs (defaults to "Working…"). */
   pendingText?: string;
   variant?: keyof typeof VARIANTS;
-  /** Icon shown when idle (hidden while pending in favour of the spinner). */
   icon?: ReactNode;
-  /** Extra gate (e.g. not signed in) merged with the pending state. */
   disabled?: boolean;
   className?: string;
 }

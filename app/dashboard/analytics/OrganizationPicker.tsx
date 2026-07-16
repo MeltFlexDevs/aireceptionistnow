@@ -21,8 +21,6 @@ export function OrganizationPicker({ organizations, selected }: Props) {
     const next = new URLSearchParams(params.toString());
     if (value) next.set("org", value);
     else next.delete("org");
-    // Switching organization resets the assistant filter. It may not belong to
-    // the newly selected org.
     next.delete("assistant");
     router.replace(`${pathname}?${next.toString()}`, { scroll: false });
   }

@@ -25,15 +25,11 @@ export default async function NumberSettingsPage({
   const { saved, error } = await searchParams;
   const t = await getDictionary();
 
-  const number = await getNumber(id).catch(() => null);
+  const [number, assistants] = await Promise.all([
+    getNumber(id).catch(() => null),
+    listAssistants().catch(() => [] as Assistant[]),
+  ]);
   if (!number) notFound();
-
-  let assistants: Assistant[] = [];
-  try {
-    assistants = await listAssistants();
-  } catch {
-    assistants = [];
-  }
   const assigned = assistants.find((a) => a.id === number.assistant_id) ?? null;
   const { flag, name: country } = countryForE164(number.e164);
 

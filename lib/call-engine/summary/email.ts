@@ -1,14 +1,5 @@
 import type { CallSummary, NumberConfig, TranscriptTurn } from "../types";
 
-// Optional per-assistant email transcripts. After a call, email the owner a
-// recap + full transcript. Provider-agnostic and gated on env: with no email
-// provider configured this is a safe no-op (logged), so the feature can ship
-// and be switched on later by setting the provider keys - no code change.
-//
-// To enable sending, set:
-//   EMAIL_FROM        e.g. "AI Receptionist <calls@yourdomain.com>"
-//   RESEND_API_KEY    a Resend API key (https://resend.com)
-
 export interface EmailTranscriptConfig {
   enabled?: boolean;
   to?: string;
@@ -53,11 +44,6 @@ function renderBody(input: TranscriptEmailInput): { subject: string; text: strin
   return { subject: `New call - ${config.businessName} (${summary.outcome})`, text };
 }
 
-/**
- * Send the transcript email. Returns a result describing what happened;
- * `skipped: true` means no provider is configured (expected until keys are set).
- * Never throws - the post-call pipeline treats this as best-effort.
- */
 export async function sendTranscriptEmail(
   cfg: EmailTranscriptConfig,
   input: TranscriptEmailInput,
@@ -67,8 +53,6 @@ export async function sendTranscriptEmail(
   const { subject, text } = renderBody(input);
 
   if (!apiKey || !from) {
-    // Half-configured is loud: one var set with the other missing is almost
-    // certainly a typo'd env var name, not an intentional opt-out.
     if (apiKey || from) {
       console.error(
         `[email] transcript email for ${cfg.to} NOT sent: ${apiKey ? "EMAIL_FROM" : "RESEND_API_KEY"} is missing while ${apiKey ? "RESEND_API_KEY" : "EMAIL_FROM"} is set - check the env var names`,

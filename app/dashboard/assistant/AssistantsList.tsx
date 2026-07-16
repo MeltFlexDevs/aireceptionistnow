@@ -21,9 +21,6 @@ function languageLabel(code: string): string {
   return LANGUAGE_LABELS[code] ?? code.toUpperCase();
 }
 
-// Async server component: streams below the (instantly drawn) page header and
-// create form. The parent <Suspense> waits on this fetch, so the create UI is
-// interactive while these rows load in the background.
 export async function AssistantsList() {
   const ownerId = await currentUserId();
   const L = (await getDictionary()).assistants;
@@ -110,8 +107,6 @@ export async function AssistantsList() {
               style={{ "--i": i } as CSSProperties}
               className="group lift press relative flex items-center gap-4 px-4 py-4 hover:bg-white/70 sm:px-5"
             >
-              {/* Stretched link makes the whole row open the assistant; the
-                  toggle sits above it (z-10) so it stays clickable. */}
               <Link
                 href={`/dashboard/assistant/${a.id}`}
                 aria-label={`Open ${a.name}`}

@@ -12,12 +12,6 @@ export interface ReportState {
 
 const MAX_MESSAGE_CHARS = 2000;
 
-/**
- * File an issue report for a call. The report row snapshots the full context
- * support needs (transcript, latency, duration, date) server-side from the
- * call id - the client only ever supplies the free-text message, so a forged
- * request can't attach another tenant's transcript.
- */
 export async function reportCallIssue(
   _prev: ReportState,
   formData: FormData,
@@ -32,8 +26,6 @@ export async function reportCallIssue(
   const reporterId = await currentUserId();
   if (authConfigured() && !reporterId) return { ok: false, error: "Not signed in." };
 
-  // getCallDetail enforces the viewer's ownership (fails closed with auth on),
-  // and already carries the reconciled transcript/duration/date.
   const call = await getCallDetail(callId, reporterId).catch(() => null);
   if (!call) return { ok: false, error: "Call not found." };
 

@@ -4,9 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { useT } from "@/lib/i18n/client";
 import { LANGUAGES, findLanguage } from "./languages";
 
-// Searchable language picker with country flags. Submits through a hidden input
-// so it works inside the settings server-action form with no client API.
-
 interface Props {
   name?: string;
   defaultValue?: string;

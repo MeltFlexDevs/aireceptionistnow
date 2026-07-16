@@ -9,8 +9,6 @@ export function MobileNav() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
-  // Close when navigation lands so the drawer never covers the new page -
-  // state adjusted during render (not in an effect) per the React docs pattern.
   const [lastPath, setLastPath] = useState(pathname);
   if (pathname !== lastPath) {
     setLastPath(pathname);
@@ -51,7 +49,6 @@ export function MobileNav() {
         }`}
       />
 
-      {/* Kept mounted so the slide animates both ways; inert blocks focus while closed. */}
       <div
         role="dialog"
         aria-modal="true"

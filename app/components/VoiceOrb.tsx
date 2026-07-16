@@ -2,12 +2,6 @@
 
 import { useEffect, useRef } from "react";
 
-/**
- * Decorative "voice blob" on the landing hero - an edgeless smudge whose colours
- * come from /orb.webp, with a faint noise overlay and an organic, irregular
- * canvas animation (drifting light spots driven by summed sines with random
- * frequencies/phases) so it gently "moves like a voice". Purely visual.
- */
 export default function VoiceOrb() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -47,8 +41,6 @@ export default function VoiceOrb() {
       [255, 255, 255], // light
       [150, 200, 235], // soft blue
     ];
-    // Each spot follows a quasi-random path: two summed sines per axis with
-    // incommensurate frequencies + random phases => never repeats cleanly.
     const spots = Array.from({ length: 4 }, (_, i) => ({
       fx1: rand(0.05, 0.15), fx2: rand(0.17, 0.31), px1: rand(0, TAU), px2: rand(0, TAU),
       fy1: rand(0.06, 0.16), fy2: rand(0.18, 0.33), py1: rand(0, TAU), py2: rand(0, TAU),

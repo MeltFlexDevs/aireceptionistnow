@@ -4,9 +4,6 @@ import { useActionState } from "react";
 import { SubmitButton } from "../../components/SubmitButton";
 import { reportCallIssue, type ReportState } from "./actions";
 
-// "Report an issue" next to the transcript: expands into a small inline form,
-// sends the user's description via the server action (which snapshots the full
-// transcript, latency, duration and date server-side).
 export function ReportIssue({ callId }: { callId: string }) {
   const [state, formAction] = useActionState<ReportState, FormData>(reportCallIssue, {
     ok: false,

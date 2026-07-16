@@ -38,7 +38,6 @@ export function BlogCtaCard() {
 
   return (
     <div className="mt-8 overflow-hidden rounded-2xl bg-[#1D1D1D]" style={{ fontFamily: FONT }}>
-      {/* Image banner on the landing "voice" palette - same call image as the sign-in screen */}
       <div
         className="relative aspect-[16/10] w-full overflow-hidden"
         style={{ background: "linear-gradient(160deg, #cdbef5 0%, #e4d6f2 44%, #ffd9c0 100%)" }}

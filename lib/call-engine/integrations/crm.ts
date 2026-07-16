@@ -2,18 +2,7 @@ import { createHmac } from "node:crypto";
 import { isSafeHttpsUrl } from "../../net/safe-url";
 import type { CallSummary, IntegrationConfig, TranscriptTurn } from "../types";
 
-// Optional CRM/ERP push. After a call wraps up, POST the call record (summary +
-// transcript) to a URL the user configures - Salesforce/HubSpot via a
-// middleware, an ERP intake endpoint, Zapier, Make, n8n, or a custom webhook.
-// Generic on purpose: one JSON contract drives any system.
-//
-// An endpoint is a shared `crm` integration owned by the account (Integrations
-// page), not per-assistant config: several assistants can push to one endpoint,
-// and an assistant can push to several. The assistant's routing only stores
-// which ones it uses - see resolveCrmTargets.
-
 export interface CrmConfig {
-  /** Endpoint label, for logs only. */
   name: string;
   url: string;
   secret?: string;
@@ -31,20 +20,10 @@ export interface CrmPayload {
 
 const TIMEOUT_MS = 10_000;
 
-/** What an assistant's routing JSON stores: which shared endpoints it pushes to. */
 interface CrmTarget {
   integrationId: string;
 }
 
-/**
- * The CRM endpoints this assistant pushes completed calls to: its routing target
- * ids resolved against the integrations loaded for the call.
- *
- * Resolving against that list (rather than trusting the ids) is what keeps a
- * stale target harmless - `integrations` is already scoped to the assistant's
- * business + owner and filtered to enabled rows by resolveInboundNumber, so a
- * deleted, disabled, or another tenant's endpoint simply drops out.
- */
 export function resolveCrmTargets(
   routing: Record<string, unknown>,
   integrations: IntegrationConfig[],
@@ -68,19 +47,10 @@ export function resolveCrmTargets(
   return out;
 }
 
-/**
- * Deliver the call to the configured CRM endpoint. Best-effort: returns a
- * result object instead of throwing so the post-call pipeline never breaks on a
- * misconfigured or down endpoint.
- */
 export async function pushCallToCrm(
   crm: CrmConfig,
   payload: CrmPayload,
 ): Promise<{ ok: boolean; status?: number; error?: string }> {
-  // Re-validate at dispatch, not just at save time: a hostname that was public
-  // when saved can be repointed to an internal address before this fires (DNS
-  // rebinding). Combined with redirect:"manual" below (an open redirect would
-  // otherwise walk past the check), this is the dispatch-time SSRF guard.
   if (!isSafeHttpsUrl(crm.url)) return { ok: false, error: "crm url not allowed" };
 
   const body = JSON.stringify({

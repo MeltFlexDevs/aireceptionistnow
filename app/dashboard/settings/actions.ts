@@ -15,8 +15,6 @@ function fail(message: string): never {
   redirect(`/dashboard/settings?error=${encodeURIComponent(message)}`);
 }
 
-/** Blank is fine (means "UTC"); a value we can't format in is not - saving it
- *  would look like it worked while every timestamp stayed UTC. */
 function timezoneOrFail(raw: string): string {
   const input = raw.trim();
   if (!input) return "";
@@ -39,11 +37,6 @@ export async function saveAccountAction(formData: FormData): Promise<void> {
       company: String(formData.get("company") ?? "").trim(),
       role: String(formData.get("role") ?? "").trim(),
       phone: String(formData.get("phone") ?? "").trim(),
-      // Never store a zone Intl can't format in: every timestamp on the
-      // dashboard silently falls back to UTC when it can't, with nothing to say
-      // why. normalizeTimezone salvages a near-miss ("bratislava" ->
-      // "Europe/Bratislava"); anything unsalvageable is rejected out loud
-      // rather than saved and quietly ignored.
       timezone: timezoneOrFail(String(formData.get("timezone") ?? "")),
       about: String(formData.get("about") ?? "").trim(),
       share_with_assistants: formData.get("share_with_assistants") === "on",

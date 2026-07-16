@@ -1,11 +1,6 @@
 import { serviceClient } from "./supabase";
 import type { Assistant } from "./db";
 
-// Organizations data access. An organization groups a user's assistants and
-// owns shared knowledge they all read on calls. Server-side only - uses the
-// service-role client (RLS bypassed until auth policies land), like the rest of
-// the dashboard data layer.
-
 export interface Organization {
   id: string;
   owner_id: string | null;
@@ -60,7 +55,6 @@ export async function updateOrganization(
   if (error) throw error;
 }
 
-/** Replace only the knowledge JSON (used by knowledge-source add/remove). */
 export async function updateOrganizationKnowledge(
   id: string,
   knowledge: Record<string, unknown>,
@@ -72,7 +66,6 @@ export async function updateOrganizationKnowledge(
   if (error) throw error;
 }
 
-/** Soft-delete the organization and detach its assistants (they survive). */
 export async function deleteOrganization(id: string): Promise<void> {
   const sb = serviceClient();
   const unassign = await sb
@@ -88,7 +81,6 @@ export async function deleteOrganization(id: string): Promise<void> {
   if (error) throw error;
 }
 
-/** Assistants currently assigned to an organization. */
 export async function listOrganizationAssistants(orgId: string): Promise<Assistant[]> {
   const { data, error } = await serviceClient()
     .from("assistants")
@@ -100,7 +92,6 @@ export async function listOrganizationAssistants(orgId: string): Promise<Assista
   return (data ?? []) as Assistant[];
 }
 
-/** Assign (or unassign with null) an assistant to an organization. */
 export async function setAssistantOrganization(
   assistantId: string,
   orgId: string | null,
@@ -112,8 +103,6 @@ export async function setAssistantOrganization(
   if (error) throw error;
 }
 
-/** Knowledge JSON for an organization, or null. Used at call pickup to merge
- *  the org's shared knowledge into the assistant's prompt. */
 export async function getOrganizationKnowledge(
   orgId: string,
 ): Promise<Record<string, unknown> | null> {

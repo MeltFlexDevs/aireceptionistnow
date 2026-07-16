@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { useAuthDialog } from "@/app/components/AuthDialog";
 
-/** Pill CTA that matches the compare design and opens the sign-up dialog. */
 export function CompareCta({
   label = "Start free",
   outline = false,
@@ -26,7 +25,6 @@ export function CompareCta({
 
 export type TocItem = { id: string; label: string };
 
-/** Sticky table of contents with scroll-spy highlighting the active section. */
 export function CompareToc({ items }: { items: TocItem[] }) {
   const tocRef = useRef<HTMLElement>(null);
 
@@ -74,38 +72,22 @@ export function CompareToc({ items }: { items: TocItem[] }) {
   );
 }
 
-/**
- * How the competitor meters and prices calls, so the calculator can estimate
- * their monthly bill honestly. `perCall` covers per-call plans (base fee +
- * per-call overage after an included call bucket); `perMinute` covers
- * receptionist-minute plans (base fee + per-minute overage after included
- * minutes). All at published rates — see each page's cited source.
- */
 export type CompetitorPricing = {
-  /** Competitor brand, e.g. "Rosie". */
   name: string;
-  /** Currency symbol the competitor publishes in, e.g. "$". */
   currency: string;
-  /** Short label for the plan the estimate is based on. */
   planLabel: string;
 } & (
   | {
       model: "perCall";
-      /** Monthly base fee. */
       base: number;
-      /** Calls included in the base fee. */
       includedCalls: number;
-      /** Charge per call beyond the included bucket. */
       overagePerCall: number;
     }
   | {
       model: "perMinute";
       base: number;
-      /** Receptionist-minutes included in the base fee. */
       includedMinutes: number;
-      /** Charge per minute beyond the included bucket. */
       overagePerMinute: number;
-      /** Billing increment, e.g. round each call up to 30s. Optional label only. */
       roundsUp?: boolean;
     }
 );
@@ -115,12 +97,6 @@ function money(currency: string, n: number) {
   return `${currency}${rounded.toLocaleString("en-US")}`;
 }
 
-/**
- * Interactive "your cost vs theirs" estimator. The reader sets monthly call
- * volume and average call length; we compute our flat plan (Solo/Team, picking
- * whichever is cheaper with €0.09/min overage) against the competitor's
- * published billing model. Purely illustrative — labelled as such.
- */
 export function CompareCalculator({
   competitor,
   sourceUrl,

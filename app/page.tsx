@@ -8,7 +8,6 @@ import Image from "next/image";
 import { siteUrl, siteName, siteDescription } from "@/lib/site";
 import { PLANS } from "@/lib/plans";
 
-
 const StarSvg = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="#1D1D1D" xmlns="http://www.w3.org/2000/svg">
     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
@@ -185,8 +184,6 @@ export default function Home() {
   // Once the visitor picks a flag themselves, geo-detection must never override it.
   const flagPickedByUser = useRef(false);
 
-  // Default the dial code to the visitor's country (from their IP), falling back
-  // to the US flag. Runs once on mount; skipped if they've already chosen.
   useEffect(() => {
     let cancelled = false;
     fetch("/api/geo")
@@ -204,9 +201,6 @@ export default function Home() {
   }, []);
 
   async function placeTestCall() {
-    // Europeans habitually type the national trunk "0" (0912…, 07911…) which
-    // would dial a nonexistent number in E.164 - strip it. Italy is the
-    // exception: its leading 0 is a real part of the international number.
     const digits = phone.replace(/[^\d]/g, "");
     const national = dialCode === "+39" ? digits : digits.replace(/^0+/, "");
     const to = `${dialCode}${national}`;
@@ -506,16 +500,13 @@ export default function Home() {
         }
       `}</style>
 
-      {/* ── HEADER ── */}
       <SiteHeader />
 
-      {/* ── HERO ── */}
       <section className="lp-hero" style={{
         position: "relative", background: "#fff", minHeight: "100vh",
         display: "flex", flexDirection: "column", alignItems: "center",
         paddingTop: "110px", overflow: "hidden",
       }}>
-        {/* H1 - direct flex child so section's alignItems:center truly centers it */}
         <h1 className="hero-h1" style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "min(4.6vw, 62px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#1D1D1D", lineHeight: 1.06, marginTop: "56px", marginBottom: "44px", whiteSpace: "normal", textWrap: "balance", textTransform: "uppercase", position: "relative", zIndex: 2, textAlign: "center", maxWidth: "min(92vw, 900px)" }}>
           AI Receptionist That Answers Every Call 24/7
         </h1>
@@ -523,12 +514,9 @@ export default function Home() {
         <VoiceOrb />
 
         <div style={{ position: "relative", zIndex: 2, width: "100%", maxWidth: "860px", padding: "0 24px", textAlign: "center" }}>
-          {/* CTA Card */}
           <div style={{ maxWidth: "380px", margin: "0 auto 64px" }}>
             <div style={{ background: "#fff", border: "1px solid #e8e8e8", borderRadius: "16px", padding: "22px", display: "flex", flexDirection: "column", gap: "10px" }}>
-              {/* Phone input row with flag selector */}
               <div style={{ display: "flex", alignItems: "center", background: "#f8f8f8", border: "1px solid #e8e8e8", borderRadius: "10px", overflow: "visible", position: "relative" }}>
-                {/* Custom flag picker */}
                 <div style={{ position: "relative", flexShrink: 0, borderRight: "1px solid #e8e8e8" }}>
                   <button
                     onClick={() => setFlagOpen(!flagOpen)}
@@ -563,7 +551,6 @@ export default function Home() {
                   style={{ flex: 1, background: "transparent", border: "none", padding: "13px 16px", color: "#1D1D1D", fontSize: "14px", fontWeight: 300, fontFamily: "var(--font-inter), Inter, sans-serif", outline: "none" }}
                 />
               </div>
-              {/* Button full width */}
               <button
                 onClick={placeTestCall}
                 disabled={calling}
@@ -586,7 +573,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Trust bar */}
           <div style={{ display: "flex", alignItems: "center", gap: "20px", padding: "18px 0 4px", marginTop: "12px", marginBottom: "52px", justifyContent: "center", flexWrap: "wrap" }}>
             <div style={{ display: "flex", marginRight: "-4px" }}>
               {[
@@ -625,7 +611,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Logo marquee */}
         <div style={{ width: "100%", overflow: "hidden", paddingTop: "30px", paddingBottom: "48px" }}>
           <div className="marquee-inner">
             {[...brandLogos, ...brandLogos, ...brandLogos, ...brandLogos].map((brand, i) => (
@@ -639,7 +624,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── CUSTOMER REVIEWS ── */}
       <section className="lp-section" style={{ padding: "100px 0" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
           <div style={{ textAlign: "center", marginBottom: "40px" }}>
@@ -670,7 +654,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── HOW IT WORKS ── */}
       <section id="how-it-works" className="section hiw-vars lp-section" style={{ padding: "100px 0" }}>
         <div className="container">
           <div className="section-header align-center width-40rem">
@@ -735,7 +718,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── USE CASES ── */}
       <section id="features" className="lp-section" style={{ background: "#1D1D1D", padding: "100px 0" }}>
         <div className="lp-pad" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 40px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "40px", marginBottom: "56px", flexWrap: "wrap" }}>
@@ -791,7 +773,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── FAQ ── */}
       <section className="lp-section" style={{ padding: "100px 0" }}>
         <script
           type="application/ld+json"
@@ -834,7 +815,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── CTA BANNER ── */}
       <section className="cta-outer" style={{ padding: "0 40px 100px" }}>
         <div className="cta-card" style={{ maxWidth: "1200px", margin: "0 auto", background: "#fff", borderRadius: "24px", padding: "80px 60px", textAlign: "center" }}>
           <div>
@@ -854,7 +834,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── FOOTER ── */}
       <SiteFooter />
     </main>
   );

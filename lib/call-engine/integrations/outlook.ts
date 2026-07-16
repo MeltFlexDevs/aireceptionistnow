@@ -1,10 +1,7 @@
 import type { BookingRequest, BookingResult } from "../types";
+import { timedFetch } from "../net";
 import { cachedAccessToken, persistAccessToken } from "./token-store";
 import type { CalendarFactory, CalendarProvider, CancelResult } from "./types";
-
-// Microsoft Outlook / Microsoft 365 adapter via Microsoft Graph. Config holds an
-// OAuth refresh token + app registration, refreshed on demand; calendar_id is
-// optional (defaults to the primary calendar).
 
 interface OutlookConfig {
   access_token?: string;
@@ -18,7 +15,7 @@ interface OutlookConfig {
 async function refreshAccessToken(cfg: OutlookConfig): Promise<string | null> {
   if (!cfg.refresh_token || !cfg.client_id || !cfg.client_secret) return null;
   const tenant = cfg.tenant || "common";
-  const res = await fetch(`https://login.microsoftonline.com/${tenant}/oauth2/v2.0/token`, {
+  const res = await timedFetch(`https://login.microsoftonline.com/${tenant}/oauth2/v2.0/token`, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
@@ -44,11 +41,9 @@ export const createOutlookCalendar: CalendarFactory = (config): CalendarProvider
     const path = calendarId
       ? `https://graph.microsoft.com/v1.0/me/calendars/${encodeURIComponent(calendarId)}/events`
       : "https://graph.microsoft.com/v1.0/me/events";
-    return fetch(path, {
+    return timedFetch(path, {
       method: "POST",
       headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
-      // Graph ignores any offset embedded in dateTime once timeZone is set, so
-      // convert to the actual UTC instant before pairing it with timeZone UTC.
       body: JSON.stringify({
         subject: req.title,
         body: { contentType: "text", content: req.notes ?? "" },
@@ -60,8 +55,6 @@ export const createOutlookCalendar: CalendarFactory = (config): CalendarProvider
 
   return {
     async createEvent(req): Promise<BookingResult> {
-      // Fail out loud on an unparseable time - booking a wrong instant is worse
-      // than telling the caller we couldn't.
       if (!Number.isFinite(Date.parse(req.startTime)) || !Number.isFinite(Date.parse(req.endTime))) {
         return { ok: false, error: "invalid start/end time" };
       }
@@ -79,11 +72,8 @@ export const createOutlookCalendar: CalendarFactory = (config): CalendarProvider
 
     async cancelEvent(externalId): Promise<CancelResult> {
       if (!externalId) return { ok: false, error: "no outlook event id" };
-      // DELETE removes the event from the organizer's calendar. (Graph also has a
-      // /cancel action that emails attendees; we do our own outbound notify, so a
-      // plain delete is what we want.)
       const del = (token: string) =>
-        fetch(`https://graph.microsoft.com/v1.0/me/events/${encodeURIComponent(externalId)}`, {
+        timedFetch(`https://graph.microsoft.com/v1.0/me/events/${encodeURIComponent(externalId)}`, {
           method: "DELETE",
           headers: { authorization: `Bearer ${token}` },
         });

@@ -1,9 +1,6 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
 
-// Editorial blog-body styling: Inter light, near-black on white, soft grays,
-// generous line height. Mirrors the AI Receptionist Now marketing site.
-
 export function Lead({ children }: { children: ReactNode }) {
   return <p className="mb-8 text-[18px] leading-[1.7] text-[#333]">{children}</p>;
 }
@@ -66,7 +63,6 @@ export function Ext({
 }: {
   href: string;
   children: ReactNode;
-  /** Add rel="nofollow" - use for links we don't want to vouch for. */
   nofollow?: boolean;
 }) {
   return (
@@ -267,7 +263,6 @@ export function FAQList({ items }: { items: FaqItem[] }) {
 export type Source = {
   title: string;
   url: string;
-  /** Add rel="nofollow" - use for links we don't want to vouch for. */
   nofollow?: boolean;
 };
 

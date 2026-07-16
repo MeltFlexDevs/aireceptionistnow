@@ -17,13 +17,9 @@ const field =
 interface Props {
   assistantId: string;
   credits: number;
-  /** Free numbers waiting in the shared pool. When > 0, we assign one instantly
-   *  instead of showing the buy-a-new-number form. */
   availableCount?: number;
 }
 
-// Get-number form with a live pricing readout. Buying provisions a number from
-// our Twilio account and connects it to the assistant, so calls are logged here.
 export function GetNumberForm({ assistantId, credits, availableCount = 0 }: Props) {
   const t = useT();
   const [code, setCode] = useState(DEFAULT_COUNTRY);
@@ -31,8 +27,6 @@ export function GetNumberForm({ assistantId, credits, availableCount = 0 }: Prop
   const cpm = country.creditsPerMinute;
   const minutes = minutesForCredits(credits, cpm);
 
-  // A number is already free in the pool - one click claims it, no country pick
-  // or purchase needed (getAgentNumberAction reuses the pool before buying).
   if (availableCount > 0) {
     return (
       <form
@@ -95,7 +89,6 @@ export function GetNumberForm({ assistantId, credits, availableCount = 0 }: Prop
         </SubmitButton>
       </form>
 
-      {/* Live pricing readout */}
       <div className="grid grid-cols-3 divide-x divide-neutral-200/70 overflow-hidden rounded-lg border border-neutral-200/70 bg-white/60">
         <Stat label={t.numbers.country} value={`${country.flag} ${country.name}`} />
         <Stat label={t.numbers.rate} value={`${cpm} credit${cpm === 1 ? "" : "s"}/min`} />

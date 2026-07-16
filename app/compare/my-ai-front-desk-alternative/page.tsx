@@ -243,7 +243,6 @@ export default function MyAiFrontDeskComparePage() {
       <SiteHeader />
 
       <div className="compare-page">
-        {/* ── Hero ── */}
         <section className="compare-hero">
           <div className="compare-hero-inner">
             <div className="compare-hero-left">
@@ -260,7 +259,6 @@ export default function MyAiFrontDeskComparePage() {
                 </span>
                 <span className="airn-vs-sep">vs</span>
                 <span className="airn-vs-us">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img className="airn-vs-mark-img" src="/compare/logos/myaifrontdesk.svg" alt="My AI Front Desk" />
                   My AI Front Desk
                 </span>
@@ -343,7 +341,6 @@ export default function MyAiFrontDeskComparePage() {
           </div>
         </section>
 
-        {/* ── Why ── */}
         <section className="compare-why">
           <h2>Why look past My AI Front Desk?</h2>
           <p>
@@ -438,7 +435,6 @@ export default function MyAiFrontDeskComparePage() {
                 <span className="works-with-label">Works with</span>
                 {INTEGRATION_LOGOS.map((it) => (
                   <span className="works-with-item" key={it.name}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={it.logo} alt={it.name} loading="lazy" />
                     {it.name}
                   </span>
@@ -448,7 +444,6 @@ export default function MyAiFrontDeskComparePage() {
             </div>
           </div>
 
-          {/* Product screenshots */}
           <div className="story-strip">
             {SCREENS.map((s) => (
               <figure className="story-fig" key={s.src}>
@@ -458,7 +453,6 @@ export default function MyAiFrontDeskComparePage() {
             ))}
           </div>
 
-          {/* Story strip */}
           <div className="story-strip">
             {STORY.map((s) => (
               <figure className="story-fig" key={s.src}>
@@ -469,7 +463,6 @@ export default function MyAiFrontDeskComparePage() {
           </div>
         </section>
 
-        {/* ── Main ── */}
         <div className="compare-main">
           <CompareToc items={TOC} />
 
@@ -562,7 +555,6 @@ export default function MyAiFrontDeskComparePage() {
               </div>
             </div>
 
-            {/* Section 01: pricing */}
             <section className="compare-section" id="pricing">
               <div className="compare-section-number">Section 01</div>
               <h2>Pricing models compared</h2>
@@ -638,7 +630,6 @@ export default function MyAiFrontDeskComparePage() {
               </div>
             </section>
 
-            {/* Section 02: languages */}
             <section className="compare-section" id="languages">
               <div className="compare-section-number">Section 02</div>
               <h2>Languages &amp; reach</h2>
@@ -675,7 +666,6 @@ export default function MyAiFrontDeskComparePage() {
               </div>
             </section>
 
-            {/* Section 03: compliance */}
             <section className="compare-section" id="compliance">
               <div className="compare-section-number">Section 03</div>
               <h2>Compliance &amp; data</h2>
@@ -704,7 +694,6 @@ export default function MyAiFrontDeskComparePage() {
               </div>
             </section>
 
-            {/* Section 04: when Frontdesk wins */}
             <section className="compare-section" id="when-frontdesk">
               <div className="compare-section-number">Section 04</div>
               <h2>When My AI Front Desk is the better call</h2>
@@ -725,7 +714,6 @@ export default function MyAiFrontDeskComparePage() {
               </div>
             </section>
 
-            {/* Other alternatives listicle */}
             <section className="compare-section" id="alternatives">
               <div className="compare-section-number">Shortlist</div>
               <h2>Other AI receptionist alternatives</h2>
@@ -746,7 +734,6 @@ export default function MyAiFrontDeskComparePage() {
               </div>
             </section>
 
-            {/* Verdict */}
             <section className="compare-section" id="verdict">
               <div className="compare-section-number">Verdict</div>
               <h2>The bottom line</h2>

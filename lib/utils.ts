@@ -1,7 +1,3 @@
-/**
- * Tiny `cn` helper: joins truthy class values into a single className string.
- * Dependency-free (no clsx / tailwind-merge), which is all the blog needs.
- */
 export type ClassValue =
   | string
   | number

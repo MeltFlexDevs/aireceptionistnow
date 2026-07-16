@@ -2,24 +2,8 @@ import { getEnv } from "../env";
 import { languageName } from "../voice/phone-language";
 import { getGemini } from "./gemini";
 
-// Localize a fixed greeting into the caller's language. Used at call start (tier
-// B) and by the conversation-init webhook (tier A) so the very first thing the
-// caller hears is in their own language. Best-effort: any failure falls back to
-// the original greeting, so a translation hiccup never blocks the call.
-
-// A greeting translation is fully deterministic per (greeting, language) - the
-// greeting text is static assistant config and the language set is fixed - so
-// never pay the same Gemini round trip twice on the pickup-blocking path.
-// Failures are NOT cached, so a Gemini hiccup retries on the next call.
-// ponytail: per-warm-instance memo; persist per-assistant translations at save
-// time (greeting_i18n) if cold-start latency ever matters.
 const translationCache = new Map<string, string>();
 
-/**
- * Return the greeting rewritten in `languageCode`, or the original greeting when
- * the target language is English/unknown or translation fails. Kept to one short
- * sentence so it stays a natural phone greeting, not a paragraph.
- */
 export async function localizeGreeting(
   greeting: string,
   languageCode: string,

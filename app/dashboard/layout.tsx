@@ -16,12 +16,8 @@ export const metadata: Metadata = {
 const GUEST_USER: AppUser = { id: "", email: "", name: "Workspace", initials: "WS" };
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  // Gate the workspace only when auth is configured. getClaims() validates the
-  // JWT signature, so it's safe to trust (the proxy guards too - defense in depth).
   let user: AppUser = GUEST_USER;
   if (authConfigured()) {
-    // Shared, request-memoized claims: currentUserId() elsewhere in this render
-    // reuses the same getClaims() round-trip instead of a second auth call.
     const claims = (await getAuthClaims()) as Parameters<typeof toAppUser>[0] | null;
     if (!claims) redirect("/?auth=login");
     user = toAppUser(claims);

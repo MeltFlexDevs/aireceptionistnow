@@ -7,9 +7,6 @@ import { getPlan, priceIdFor, type BillingCycle } from "@/lib/plans";
 
 export const runtime = "nodejs";
 
-/** Base URL to send the customer back to, preferring the real request origin
- *  (so previews and localhost work) and falling back to the configured site
- *  (APP_BASE_URL - the canonical base URL the rest of the app uses). */
 function baseUrl(req: Request): string {
   return (
     req.headers.get("origin") ||
@@ -18,11 +15,6 @@ function baseUrl(req: Request): string {
   );
 }
 
-/**
- * Start a Stripe Checkout session for the chosen subscription plan + billing
- * cycle. The user must be signed in; the Stripe customer is linked to their
- * Supabase id so the webhook can record the subscription on the right account.
- */
 export async function POST(req: Request) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
@@ -42,7 +34,6 @@ export async function POST(req: Request) {
       cycle = body.cycle;
     }
   } catch {
-    /* no body */
   }
 
   const plan = planId ? getPlan(planId) : undefined;
@@ -80,8 +71,6 @@ export async function POST(req: Request) {
         line_items: [{ price: priceId, quantity: 1 }],
         allow_promotion_codes: true,
         client_reference_id: userId,
-        // Mirrored onto the subscription so the webhook can map any future
-        // renewal back to the user, plan and cycle without extra lookups.
         subscription_data: {
           metadata: {
             supabase_user_id: userId,
@@ -94,16 +83,12 @@ export async function POST(req: Request) {
         cancel_url: `${origin}/pricing?checkout=cancel`,
       });
 
-    // Reuse the stored customer for returning subscribers; create one on first
-    // checkout and store it so we never make duplicates.
     let customerId = (await getCustomerId(userId)) || (await newCustomer());
 
     let session;
     try {
       session = await createSession(customerId);
     } catch (err) {
-      // The stored customer can be stale - e.g. it belongs to the other Stripe
-      // mode (test vs live) or was deleted. Create a fresh one and retry once.
       const code = (err as { code?: string })?.code;
       if (code === "resource_missing") {
         customerId = await newCustomer();

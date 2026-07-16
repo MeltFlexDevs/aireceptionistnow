@@ -7,7 +7,6 @@ export function BarChart({ data }: { data: Bar[] }) {
   return (
     <div>
       <div className="flex h-44 items-end gap-1.5">
-        {/* Day-of-month labels repeat across month boundaries, so key by index. */}
         {data.map((d, i) => {
           const heightPct = (d.value / max) * 100;
           const isLast = i === data.length - 1;

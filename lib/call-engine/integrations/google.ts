@@ -1,4 +1,5 @@
 import type { BookingRequest, BookingResult } from "../types";
+import { timedFetch } from "../net";
 import { cachedAccessToken, persistAccessToken } from "./token-store";
 import type {
   AvailabilityQuery,
@@ -9,10 +10,6 @@ import type {
   CancelResult,
 } from "./types";
 
-// Google Calendar adapter. Config holds the user's OAuth credentials - an
-// access token (refreshed on 401 if a refresh token + client creds are present)
-// and the target calendar id.
-
 interface GoogleConfig {
   access_token?: string;
   refresh_token?: string;
@@ -22,9 +19,6 @@ interface GoogleConfig {
   calendar_id?: string;
 }
 
-// The UTC offset (e.g. "-04:00") of an IANA zone at a given calendar date, so an
-// all-day event's YYYY-MM-DD can be pinned to the right instant. Uses Intl only
-// - no tz database dependency. Falls back to "Z" if the zone is unknown.
 function zoneOffset(date: string, timeZone: string): string {
   try {
     const at = new Date(`${date}T12:00:00Z`); // midday avoids DST-edge rounding
@@ -44,7 +38,7 @@ function zoneOffset(date: string, timeZone: string): string {
 
 async function refreshAccessToken(cfg: GoogleConfig): Promise<string | null> {
   if (!cfg.refresh_token || !cfg.client_id || !cfg.client_secret) return null;
-  const res = await fetch(cfg.token_uri ?? "https://oauth2.googleapis.com/token", {
+  const res = await timedFetch(cfg.token_uri ?? "https://oauth2.googleapis.com/token", {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
@@ -57,8 +51,6 @@ async function refreshAccessToken(cfg: GoogleConfig): Promise<string | null> {
   if (!res.ok) return null;
   const json = (await res.json()) as { access_token?: string };
   const token = json.access_token ?? null;
-  // Fire-and-forget: Google doesn't rotate the refresh token, so a lost write
-  // only costs one extra refresh after the next cold start.
   if (token) void persistAccessToken(cfg as Record<string, unknown>, token);
   return token;
 }
@@ -68,7 +60,7 @@ export const createGoogleCalendar: CalendarFactory = (config): CalendarProvider 
   const storedToken = () => cachedAccessToken(cfg.refresh_token) ?? cfg.access_token ?? null;
 
   const post = (token: string, req: BookingRequest) =>
-    fetch(
+    timedFetch(
       `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(
         req.calendarId || cfg.calendar_id || "primary",
       )}/events`,
@@ -87,11 +79,8 @@ export const createGoogleCalendar: CalendarFactory = (config): CalendarProvider 
       },
     );
 
-  // Availability reads use events.list, not freeBusy: the OAuth grant is scoped
-  // to calendar.events only, which freeBusy rejects with a 403. Only start/end/
-  // transparency are requested, so event details never even reach this adapter.
   const listEvents = (token: string, q: AvailabilityQuery) =>
-    fetch(
+    timedFetch(
       `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(
         cfg.calendar_id || "primary",
       )}/events?${new URLSearchParams({
@@ -120,7 +109,7 @@ export const createGoogleCalendar: CalendarFactory = (config): CalendarProvider 
     async cancelEvent(externalId): Promise<CancelResult> {
       if (!externalId) return { ok: false, error: "no google event id" };
       const del = (token: string) =>
-        fetch(
+        timedFetch(
           `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(
             cfg.calendar_id || "primary",
           )}/events/${encodeURIComponent(externalId)}`,
@@ -155,10 +144,6 @@ export const createGoogleCalendar: CalendarFactory = (config): CalendarProvider 
           transparency?: string;
         }[];
       };
-      // An all-day event carries a bare `date` (YYYY-MM-DD) that spans midnight to
-      // midnight in the CALENDAR's zone, not UTC - resolve it in json.timeZone so
-      // a same-day busy block isn't shifted by the offset. dateTime is already a
-      // full instant. "transparent" events are marked free.
       const zone = json.timeZone || "UTC";
       const toInstant = (dateTime?: string, date?: string): string | null => {
         if (dateTime) return dateTime;

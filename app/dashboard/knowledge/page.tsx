@@ -14,12 +14,6 @@ import { Skeleton } from "../components/Skeleton";
 import { StatusDot } from "../components/StatusBadge";
 import { Bot, Building, Calendar, ChevronDown, Sparkle } from "../icons";
 
-// "What your AI knows about you" - a read-only mirror of everything the call
-// engine feeds the assistant at pickup, in one place. The dashboard otherwise
-// scatters this across Settings (owner profile), Organizations (shared
-// knowledge), and each assistant, so nobody could answer "what will it actually
-// say to my callers?" without opening four screens.
-
 export const dynamic = "force-dynamic";
 
 function Row({ label, value, href, cta }: { label: string; value: string; href?: string; cta?: string }) {
@@ -42,8 +36,6 @@ function Row({ label, value, href, cta }: { label: string; value: string; href?:
   );
 }
 
-/** The AI summary streams in on its own: it's a Gemini round-trip, and the rest
- *  of the page is plain DB reads that shouldn't wait for it. */
 async function OrgSummary({ entry }: { entry: OrgKnowledge }) {
   const summary = await summarizeOrgKnowledge(entry);
   if (!summary) {
@@ -73,7 +65,6 @@ export default async function KnowledgePage() {
         description="Everything your assistants read before they answer. This is the whole picture - if it's not here, they don't know it."
       />
 
-      {/* ── About you ───────────────────────────────────────────────────── */}
       <SectionCard
         title="About you"
         subtitle="From your account profile. Shared with your assistants so callers can be told who they've reached."
@@ -103,7 +94,6 @@ export default async function KnowledgePage() {
         )}
       </SectionCard>
 
-      {/* ── Organizations ───────────────────────────────────────────────── */}
       {k.organizations.length === 0 ? (
         <SectionCard title="Your business knowledge">
           <div className="flex flex-col items-center gap-3 py-8 text-center">
@@ -247,7 +237,6 @@ export default async function KnowledgePage() {
         ))
       )}
 
-      {/* ── Assistants outside any organization ─────────────────────────── */}
       {k.unaffiliated.length > 0 && (
         <SectionCard
           title="Assistants without an organization"
@@ -268,7 +257,6 @@ export default async function KnowledgePage() {
         </SectionCard>
       )}
 
-      {/* ── What it can do ──────────────────────────────────────────────── */}
       <SectionCard
         title="What it can do on a call"
         subtitle="Beyond answering questions, this is what your assistants are wired up to do."

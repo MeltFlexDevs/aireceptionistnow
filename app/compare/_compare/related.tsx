@@ -2,12 +2,6 @@ import Link from "next/link";
 
 import { COMPETITORS } from "./competitors";
 
-/**
- * "Other comparisons" cross-link block, rendered near the foot of each
- * comparison article. Links to the hub, every sibling comparison page, and a
- * couple of high-intent internal pages so the cluster stays interlinked for SEO
- * even while only one comparison exists.
- */
 export function RelatedComparisons({ currentSlug }: { currentSlug: string }) {
   const others = COMPETITORS.filter((c) => c.slug !== currentSlug);
   return (

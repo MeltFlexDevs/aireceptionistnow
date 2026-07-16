@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import twilio from "twilio";
 import { CNAM_POLICY_SID, sanitizeCnam } from "./cnam";
 
@@ -34,41 +35,36 @@ export interface TwilioStatus {
   error?: string;
 }
 
-/**
- * Live health check of the Twilio integration for the dashboard badge: are creds
- * present, and do they actually authenticate? Does one cheap read (fetch the
- * account) so an invalid/rotated key shows red, not just "unset". Never throws.
- */
+const accountReachable = unstable_cache(
+  async (accountSid: string): Promise<boolean> => {
+    const keySid = process.env.TWILIO_API_KEY_SID;
+    const keySecret = process.env.TWILIO_API_KEY_SECRET;
+    const token = process.env.TWILIO_AUTH_TOKEN;
+    const auth = keySid && keySecret ? `${keySid}:${keySecret}` : `${accountSid}:${token ?? ""}`;
+    try {
+      const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${accountSid}.json`, {
+        headers: { authorization: `Basic ${Buffer.from(auth).toString("base64")}` },
+        cache: "no-store",
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  },
+  ["twilio-account-ok"],
+  { revalidate: 60 },
+);
+
 export async function getTwilioStatus(): Promise<TwilioStatus> {
   const accountSid = process.env.TWILIO_ACCOUNT_SID;
   if (!twilioConfigured() || !accountSid) {
     return { configured: false, ok: false, error: "Twilio credentials not set." };
   }
-  const keySid = process.env.TWILIO_API_KEY_SID;
-  const keySecret = process.env.TWILIO_API_KEY_SECRET;
-  const token = process.env.TWILIO_AUTH_TOKEN;
-  const auth =
-    keySid && keySecret ? `${keySid}:${keySecret}` : `${accountSid}:${token ?? ""}`;
-  try {
-    const res = await fetch(
-      `https://api.twilio.com/2010-04-01/Accounts/${accountSid}.json`,
-      {
-        headers: { authorization: `Basic ${Buffer.from(auth).toString("base64")}` },
-        cache: "no-store",
-      },
-    );
-    if (res.ok) return { configured: true, ok: true };
-    return { configured: true, ok: false, error: "Unavailable" };
-  } catch {
-    return { configured: true, ok: false, error: "Unavailable" };
-  }
+  return (await accountReachable(accountSid))
+    ? { configured: true, ok: true }
+    : { configured: true, ok: false, error: "Unavailable" };
 }
 
-/**
- * Regulated countries (DE, GB, …) require an Address and/or Regulatory Bundle
- * on the purchase. Attach the account's matching ones if they exist, otherwise
- * buy unadorned (works for US/CA).
- */
 async function regulatoryAttachments(
   client: ReturnType<typeof twilioClient>,
   country: string,
@@ -110,12 +106,6 @@ export async function buyTwilioNumber(
   return first;
 }
 
-/**
- * Buy up to `count` voice numbers in one pass. Used to seed/replenish the shared
- * number pool. Lists `count` available numbers, then purchases each; numbers
- * snapped up by someone else between listing and buying are skipped. Throws only
- * when none could be bought (or on a regulatory-compliance blocker).
- */
 export async function buyTwilioNumbers(
   opts: { country: string; areaCode?: string },
   count: number,
@@ -125,10 +115,6 @@ export async function buyTwilioNumbers(
     throw new Error("Twilio credentials are not set on the server.");
   }
   if (count < 1) return [];
-  // ElevenLabs-only: ElevenLabs owns a number's voice webhook once it's imported,
-  // and this app has no /api/twilio/voice route - so default to NOT pointing
-  // Twilio at us (a bought number would otherwise route to a dead endpoint until
-  // it's imported). Callers opt in explicitly for the legacy self-hosted path.
   const configureWebhook = buyOpts.configureWebhook === true;
   const base = configureWebhook ? process.env.APP_BASE_URL : undefined;
   const client = twilioClient();
@@ -177,20 +163,11 @@ export async function buyTwilioNumbers(
   return bought;
 }
 
-/**
- * Make sure a specific number is set up in Twilio. If the account already owns
- * it, just (re)point its Voice webhook at our app. If not, provision that exact
- * number. Returns its SID, or null when Twilio isn't configured (connect-only).
- */
 export async function ensureTwilioNumber(
   e164: string,
   opts: { configureWebhook?: boolean } = {},
 ): Promise<{ sid: string | null; provisioned: boolean }> {
   if (!twilioConfigured()) return { sid: null, provisioned: false };
-  // ElevenLabs-only: routing is owned by ElevenLabs once the number is imported
-  // and assigned to an agent (on connect). Default to NOT pointing Twilio at our
-  // app - there is no /api/twilio/voice route, so setting it would dead-end a
-  // call made before the number is connected.
   const base = opts.configureWebhook ? process.env.APP_BASE_URL : undefined;
   const client = twilioClient();
   const voiceUrl = base ? `${base}/api/twilio/voice` : undefined;
@@ -220,13 +197,11 @@ export async function ensureTwilioNumber(
   return { sid: purchased.sid, provisioned: true };
 }
 
-/** Release (delete) a number from the Twilio account so it stops billing. */
 export async function releaseTwilioNumber(sid: string): Promise<void> {
   if (!twilioConfigured()) return;
   await twilioClient().incomingPhoneNumbers(sid).remove();
 }
 
-/** Place an outbound call that runs the given TwiML when answered. */
 export async function placeCall(
   to: string,
   from: string,
@@ -279,14 +254,12 @@ function toLog(c: TwilioCallInstance): TwilioCallLog {
   };
 }
 
-/** Recent Twilio call logs for the account (matches the Twilio Console list). */
 export async function listTwilioCalls(limit = 100): Promise<TwilioCallLog[]> {
   if (!twilioConfigured()) return [];
   const calls = await twilioClient().calls.list({ limit });
   return calls.map(toLog);
 }
 
-/** A single Twilio call by SID, or null if not configured / not found. */
 export async function fetchTwilioCall(sid: string): Promise<TwilioCallLog | null> {
   if (!twilioConfigured() || !sid) return null;
   try {
@@ -304,12 +277,6 @@ export interface CnamResult {
   status: string;
 }
 
-/**
- * Register a CNAM display name for a phone number through Trust Hub, so the
- * recipient sees the business/assistant name on outbound calls. Requires an
- * approved Trust Hub Business Profile; US long-code numbers only; allow 48-72h
- * to propagate. Best-effort with actionable errors for the common blockers.
- */
 export async function registerCnam(opts: {
   displayName: string;
   phoneSid: string;

@@ -3,26 +3,6 @@ import type { ElevenLabs } from "@elevenlabs/elevenlabs-js";
 import { elevenClient } from "./eleven-client";
 import type { AgentTool, Assistant } from "../../dashboard/db";
 
-// The receptionist's *actions* - what the ElevenLabs agent can actually DO on a
-// call, built from the assistant's settings. Two kinds:
-//
-//   • Webhook (server) tools - check_availability / book_appointment /
-//     take_message. Each is a standalone ElevenLabs "tool" object that POSTs to
-//     our /api/agent/* routes; the routes run the same shared actions (actions.ts)
-//     and hand a spoken string back to the agent. ElevenLabs deprecated inline
-//     prompt.tools in favour of tool_ids referencing these objects, so we create
-//     them here and attach their ids (see sync.ts). We track [{id, name}] so a
-//     re-sync deletes the previous set and a delete tears them down.
-//
-//   • Built-in system tools - end_call, transfer_to_number, voicemail_detection,
-//     language_detection. These live inline on the prompt (builtInTools) - no
-//     separate object to manage.
-//
-// Everything is gated by the assistant's settings so the agent is only offered
-// the capabilities it's actually configured for (e.g. no calendar → no booking).
-
-/** The three fields every server tool forwards, sourced from ElevenLabs system
- *  dynamic variables. resolveAgentContext (context.ts) reads exactly these. */
 function sharedFields(): Record<string, ElevenLabs.LiteralJsonSchemaProperty> {
   return {
     to_number: { type: "string", dynamicVariable: "system__called_number" },
@@ -36,19 +16,10 @@ interface WebhookToolSpec {
   name: string;
   path: string;
   description: string;
-  /** LLM-supplied params (beyond the shared three). */
   params: Record<string, ElevenLabs.LiteralJsonSchemaProperty>;
   required: string[];
 }
 
-/**
- * Read the capability flags off an assistant's routing JSON.
- *
- * Read and write are separate flags, not one "hasCalendar": the three levels a
- * user picks per calendar (none / read / write) only mean anything if a
- * read-only grant withholds the booking tool. Handing an agent a tool it isn't
- * allowed to use invites it to try - and to tell the caller it booked.
- */
 function capabilities(assistant: Assistant): {
   transferTo: string;
   canRead: boolean;
@@ -60,14 +31,11 @@ function capabilities(assistant: Assistant): {
   };
   const transferTo = typeof r.transferTo === "string" ? r.transferTo.trim() : "";
   const access = Array.isArray(r.calendar?.access) ? r.calendar.access : [];
-  // Any granted level can read free/busy; only an explicit "write" may book.
-  // Legacy "busy" grants are read-only (the dashboard maps them to read on save).
   const canRead = access.length > 0;
   const canBook = access.some((a) => (a as { level?: unknown })?.level === "write");
   return { transferTo, canRead, canBook };
 }
 
-/** Which webhook server tools this assistant should expose, per its settings. */
 function webhookToolSpecs(assistant: Assistant): WebhookToolSpec[] {
   const { canRead, canBook } = capabilities(assistant);
   const specs: WebhookToolSpec[] = [];
@@ -94,8 +62,6 @@ function webhookToolSpecs(assistant: Assistant): WebhookToolSpec[] {
     });
   }
 
-  // Booking is gated separately: a read-only assistant can quote free/busy but
-  // must not be able to write to someone's calendar.
   if (canBook) {
     specs.push({
       name: "book_appointment",
@@ -114,8 +80,6 @@ function webhookToolSpecs(assistant: Assistant): WebhookToolSpec[] {
         attendee_phone: { type: "string", description: "Callback number, if different from caller ID." },
         notes: {
           type: "string",
-          // The agent decides what's worth asking from the business's own
-          // knowledge (see composeSystemPrompt) - this is where the answer lands.
           description:
             "Why the caller is coming and anything the business needs to prepare, in their own words - e.g. the reason for a medical visit, or the service they want. Include only what's relevant to this business; leave empty if nothing about it warranted asking.",
         },
@@ -146,11 +110,6 @@ function webhookToolSpecs(assistant: Assistant): WebhookToolSpec[] {
   return specs;
 }
 
-// Locator for the workspace secret holding AGENT_WEBHOOK_SECRET, resolved once
-// per process. Referencing the secret by id keeps the raw value out of every
-// tool config (readable by anyone with workspace access in the dashboard). The
-// secret's name embeds a hash of its value, so rotating the env secret
-// automatically creates and uses a fresh workspace secret on the next sync.
 let secretLocatorPromise: Promise<ElevenLabs.ConvAiSecretLocator | null> | null = null;
 
 function workspaceSecretLocator(secret: string): Promise<ElevenLabs.ConvAiSecretLocator | null> {
@@ -165,11 +124,6 @@ function workspaceSecretLocator(secret: string): Promise<ElevenLabs.ConvAiSecret
       const created = await client.conversationalAi.secrets.create({ name, value: secret });
       return { secretId: created.secretId };
     } catch (err) {
-      // Best-effort hardening: fall back to the plaintext header value so tool
-      // creation (and therefore agent sync) never breaks on the secrets API.
-      // Clear the memo so a transient failure doesn't pin every future sync to
-      // the plaintext header for the whole process lifetime - the next sync
-      // retries the secrets API.
       console.error("[agent-tools] workspace secret setup failed, using plaintext header", err);
       secretLocatorPromise = null;
       return null;
@@ -178,7 +132,6 @@ function workspaceSecretLocator(secret: string): Promise<ElevenLabs.ConvAiSecret
   return secretLocatorPromise;
 }
 
-/** Turn a spec into the ElevenLabs standalone-tool create request. */
 function toToolRequest(
   spec: WebhookToolSpec,
   baseUrl: string,
@@ -189,7 +142,7 @@ function toToolRequest(
       type: "webhook",
       name: spec.name,
       description: spec.description,
-      responseTimeoutSecs: 20,
+      responseTimeoutSecs: 15,
       apiSchema: {
         url: `${baseUrl}${spec.path}`,
         method: "POST",
@@ -204,19 +157,8 @@ function toToolRequest(
   };
 }
 
-/**
- * Build the inline built-in system tools for an assistant. end_call is always
- * on; transfer_to_number is added only when a transfer target is configured;
- * voicemail_detection + language_detection are always useful for a receptionist.
- */
-// Returns the Output variant because ElevenLabs' ConversationalConfig (what
-// agents.create/update accept) is built from the shared Output-typed schema; the
-// system-tool bodies are structurally identical to the Input variant, so this is
-// purely a which-label question, not a runtime difference.
 export function buildBuiltInTools(
   assistant: Assistant,
-  // False for the English-only fallback agent: with no language presets there is
-  // nothing for language_detection to switch to.
   includeLanguageDetection = true,
 ): ElevenLabs.BuiltInToolsOutput {
   const { transferTo } = capabilities(assistant);
@@ -257,16 +199,6 @@ export function buildBuiltInTools(
   return tools;
 }
 
-/**
- * Create the standalone webhook tool objects for an assistant and return both the
- * ids to attach (prompt.toolIds) and the records to track. Skips webhook tools
- * (returning empty) when APP_BASE_URL or AGENT_WEBHOOK_SECRET is unset - the agent
- * still works for Q&A + system tools, it just can't reach our action routes.
- *
- * Best-effort per tool: one failed create is logged and skipped, never aborting
- * the whole sync. Callers pass the returned records to setAssistantAgent so a
- * later sync/delete can clean them up.
- */
 export async function createAgentTools(
   assistant: Assistant,
 ): Promise<{ toolIds: string[]; tools: AgentTool[] }> {
@@ -280,38 +212,36 @@ export async function createAgentTools(
   }
 
   const client = elevenClient();
-  const toolIds: string[] = [];
-  const tools: AgentTool[] = [];
 
-  // Prefer referencing the secret from the workspace secrets manager; falls
-  // back to the raw value if that setup fails.
   const headerValue = (await workspaceSecretLocator(secret)) ?? secret;
 
-  for (const spec of webhookToolSpecs(assistant)) {
-    try {
-      const created = await client.conversationalAi.tools.create(
-        toToolRequest(spec, baseUrl, headerValue),
-      );
-      toolIds.push(created.id);
-      tools.push({ id: created.id, name: spec.name });
-    } catch (err) {
-      console.error("[agent-tools] tool create failed", spec.name, err);
-    }
-  }
-
-  return { toolIds, tools };
+  const created = await Promise.all(
+    webhookToolSpecs(assistant).map(async (spec) => {
+      try {
+        const t = await client.conversationalAi.tools.create(
+          toToolRequest(spec, baseUrl, headerValue),
+        );
+        return { id: t.id, name: spec.name };
+      } catch (err) {
+        console.error("[agent-tools] tool create failed", spec.name, err);
+        return null;
+      }
+    }),
+  );
+  const tools = created.filter((t): t is AgentTool => t !== null);
+  return { toolIds: tools.map((t) => t.id), tools };
 }
 
-/** Delete standalone tool objects we previously created for an assistant. Best-
- *  effort: force-detaches from any agent and ignores already-gone tools. */
 export async function deleteAgentTools(tools: AgentTool[]): Promise<void> {
   if (!tools.length) return;
   const client = elevenClient();
-  for (const tool of tools) {
-    try {
-      await client.conversationalAi.tools.delete(tool.id, { force: true });
-    } catch (err) {
-      console.error("[agent-tools] tool delete failed", tool.id, err);
-    }
-  }
+  await Promise.all(
+    tools.map(async (tool) => {
+      try {
+        await client.conversationalAi.tools.delete(tool.id, { force: true });
+      } catch (err) {
+        console.error("[agent-tools] tool delete failed", tool.id, err);
+      }
+    }),
+  );
 }

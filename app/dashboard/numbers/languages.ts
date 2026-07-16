@@ -1,5 +1,3 @@
-// Languages the AI can speak/transcribe, keyed by the code stored on the number
-// and used by Deepgram STT. Flag is a representative country for the language.
 
 export interface Language {
   code: string;

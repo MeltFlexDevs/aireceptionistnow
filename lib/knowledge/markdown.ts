@@ -1,7 +1,3 @@
-// Minimal, dependency-free HTML → Markdown extraction. Good enough to turn a
-// business web page or a PDF's raw text into clean, readable Markdown the
-// receptionist can be primed with. Not a full converter - it strips chrome,
-// keeps headings/lists/links/paragraphs, and collapses noise.
 
 const NAMED_ENTITIES: Record<string, string> = {
   amp: "&",
@@ -18,7 +14,6 @@ const NAMED_ENTITIES: Record<string, string> = {
   trade: "™",
 };
 
-/** Decode the handful of HTML entities that actually show up in body copy. */
 export function decodeEntities(input: string): string {
   return input
     .replace(/&#(\d+);/g, (_, dec: string) => String.fromCodePoint(Number(dec)))
@@ -28,7 +23,6 @@ export function decodeEntities(input: string): string {
     .replace(/&([a-z]+);/gi, (m, name: string) => NAMED_ENTITIES[name.toLowerCase()] ?? m);
 }
 
-/** Pull the document title from <title> or the first <h1>, if present. */
 export function extractTitle(html: string): string {
   const title = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(html)?.[1];
   if (title) return collapseWhitespace(decodeEntities(stripTags(title)));
@@ -45,11 +39,6 @@ function collapseWhitespace(text: string): string {
   return text.replace(/[ \t\f\v]+/g, " ").trim();
 }
 
-/**
- * Convert an HTML document to Markdown. Removes non-content regions
- * (scripts, styles, nav, etc.), maps structural tags to Markdown, then strips
- * any remaining tags and tidies whitespace.
- */
 export function htmlToMarkdown(html: string): string {
   let s = html;
 
@@ -97,7 +86,6 @@ export function htmlToMarkdown(html: string): string {
   return s;
 }
 
-/** Cap text to a character budget on a word/line boundary, with an ellipsis note. */
 export function truncate(text: string, max: number): string {
   if (text.length <= max) return text;
   const cut = text.slice(0, max);

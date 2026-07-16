@@ -61,8 +61,6 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
 };
 
-// Theme the mobile browser chrome to match the site's near-black. Viewport
-// width/scale is auto-injected by Next; we deliberately do not lock zoom.
 export const viewport: Viewport = {
   themeColor: "#1D1D1D",
 };
@@ -105,11 +103,6 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            // @graph form (not a bare array) so the top-level object always has
-            // an "@context". Consumers that read `data["@context"]` directly -
-            // e.g. some browser SEO/schema extensions - throw on an array
-            // (data["@context"] is undefined), and that thrown inline script can
-            // abort the page's client bootstrap. @graph keeps them happy.
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@graph": [orgJsonLd, websiteJsonLd],

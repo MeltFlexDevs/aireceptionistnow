@@ -1,12 +1,5 @@
-/**
- * Browser-side helpers to kick off Stripe Checkout and the Customer Portal.
- * They call our server routes (which hold the secret key) and then redirect the
- * browser to the Stripe-hosted page.
- */
 import type { BillingCycle } from "@/lib/plans";
 
-/** Start checkout for a plan + billing cycle; resolves only if it fails
- *  (otherwise navigates away). Throws with a user-facing message on failure. */
 export async function startCheckout(
   plan: string,
   cycle: BillingCycle,
@@ -28,7 +21,6 @@ export async function startCheckout(
   window.location.assign(data.url as string);
 }
 
-/** Open the Stripe Customer Portal for the signed-in subscriber. */
 export async function openBillingPortal(): Promise<void> {
   const res = await fetch("/api/billing-portal", { method: "POST" });
   const data = await res.json().catch(() => null);

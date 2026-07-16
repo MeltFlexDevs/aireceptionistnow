@@ -1,19 +1,8 @@
-/**
- * Canonical registry of the "AI Receptionist Now vs [competitor]" comparison
- * landing pages. One entry per page. The hub (/compare) and each page's
- * "Other comparisons" cross-links both read from this list, so adding a new
- * comparison means adding one entry here (plus the page itself + sitemap).
- */
 export type CompetitorEntry = {
-  /** Route path under /compare, without a leading slash. */
   slug: string;
-  /** The competitor brand this page compares us against. */
   competitor: string;
-  /** Card heading, e.g. "AI Receptionist Now vs Smith.ai". */
   title: string;
-  /** One-line description of the specific comparison / angle. */
   blurb: string;
-  /** Competitor logo, served from public/. Used for the footer logo tiles. */
   logo: string;
 };
 

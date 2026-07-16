@@ -7,9 +7,6 @@ import type { Dictionary } from "./dictionaries/en";
 import { dictionaries } from "./dictionaries";
 import { setLocaleAction } from "./actions";
 
-// Active locale + dictionary, seeded once by the server (dashboard layout) and
-// then owned client-side so switching is instant. Client components read UI
-// strings with useT(); server components call getDictionary() directly.
 interface I18n {
   t: Dictionary;
   locale: Locale;
@@ -42,7 +39,6 @@ export function useI18n(): I18n {
   return ctx;
 }
 
-/** Shorthand: the message dictionary for the active locale. */
 export function useT(): Dictionary {
   return useI18n().t;
 }

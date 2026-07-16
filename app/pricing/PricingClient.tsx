@@ -290,7 +290,6 @@ export default function PricingClient() {
             Cancel anytime.
           </p>
 
-          {/* Billing cycle toggle */}
           <div
             style={{
               marginTop: "32px",
@@ -377,7 +376,6 @@ export default function PricingClient() {
             </p>
           ) : null}
 
-          {/* Plans */}
           <div style={{ marginTop: "48px", display: "flex", flexWrap: "wrap", alignItems: "stretch", justifyContent: "center", gap: "24px" }}>
             {PLANS.map((plan) => (
               <PlanCard

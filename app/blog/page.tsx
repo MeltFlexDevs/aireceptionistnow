@@ -101,7 +101,6 @@ export default function BlogPage() {
           target="_blank"
           rel="noopener noreferrer"
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="https://img.turbo0.com/badge-listed-light.svg"
             alt="Listed on Turbo0"

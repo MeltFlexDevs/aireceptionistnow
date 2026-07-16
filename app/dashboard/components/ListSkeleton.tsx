@@ -1,8 +1,5 @@
 import { Skeleton } from "./Skeleton";
 
-// Streaming fallback for a list section (organizations, assistants, …). Mirrors
-// the real list card so the layout does not shift when rows stream in. Rendered
-// inside a <Suspense> boundary while the server component fetches its rows.
 export function ListSkeleton({ rows = 3 }: { rows?: number }) {
   return (
     <section className="space-y-3">

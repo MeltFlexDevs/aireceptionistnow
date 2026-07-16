@@ -7,9 +7,6 @@ import { readKnowledge } from "@/lib/knowledge/sources";
 import { Building, Bot, ChevronDown } from "../icons";
 import { getDictionary } from "@/lib/i18n/server";
 
-// Async server component: streams below the (instantly drawn) page header and
-// create form. Its data fetch is what the parent <Suspense> waits on, so the
-// rest of the page paints immediately while these rows load in the background.
 export async function OrganizationsList() {
   const ownerId = await currentUserId();
   const t = await getDictionary();

@@ -23,8 +23,6 @@ const TONES: Record<Tone, { wrap: string; icon: string; Icon: (p: { className?: 
   },
 };
 
-// A friendly, plain-language guidance box. Use it to explain what a screen does
-// or what to do next, written for people who aren't technical.
 export function Hint({ title, children, tone = "info", className = "" }: Props) {
   const t = TONES[tone];
   return (

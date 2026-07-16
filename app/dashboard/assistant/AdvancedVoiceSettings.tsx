@@ -13,7 +13,6 @@ export interface LangOption {
 interface Props {
   defaultSpeed: number;
   defaultStability: number;
-  /** language base code -> voice id the user pinned for it. */
   voiceByLanguage: Record<string, string>;
   languages: LangOption[];
 }
@@ -65,11 +64,6 @@ function Slider({
   );
 }
 
-// Voice tuning (speed/stability) + an opt-in "voice per language" list. A row is
-// added only when the operator wants a specific voice for a language; every
-// language left off falls back to the default voice, matched to the caller
-// automatically. Kept opt-in so we never render 30 dropdowns - and so the voice
-// preview popovers aren't trapped inside a scroll container.
 export function AdvancedVoiceSettings({ defaultSpeed, defaultStability, voiceByLanguage, languages }: Props) {
   const t = useT();
   const byCode = new Map(languages.map((l) => [l.code, l]));

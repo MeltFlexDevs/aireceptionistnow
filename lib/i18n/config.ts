@@ -1,6 +1,3 @@
-// Dashboard UI localization. Lightweight + App-Router-native: a locale cookie
-// picks one of the message dictionaries below - no route restructuring, no
-// middleware. Add a language by adding its dictionary file + an entry here.
 
 export const LOCALES = [
   { code: "en", label: "English", flag: "🇬🇧" },

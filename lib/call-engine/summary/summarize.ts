@@ -8,9 +8,6 @@ import type {
   TranscriptTurn,
 } from "../types";
 
-// Post-call summarization. Not latency-sensitive, so this runs after the call
-// with structured output to guarantee a clean, dashboard-ready shape.
-
 const SUMMARY_SCHEMA = {
   type: "object",
   additionalProperties: false,
@@ -62,10 +59,6 @@ export async function summarizeCall(
 
   const actionsBlock = formatActions(actions);
 
-  // Write the recap in the dashboard owner's language so their whole dashboard
-  // reads consistently, whatever the caller spoke. Fall back to the caller's own
-  // language (read from the transcript / their number's country) when the owner
-  // hasn't set one. The enum fields (outcome, sentiment) stay English.
   const ownerLangName = localeName(config.ownerLocale);
   const phoneLang = languageFromPhone(from);
   const callerHint = phoneLang ? ` (most likely ${languageName(phoneLang)})` : "";
@@ -91,8 +84,6 @@ export async function summarizeCall(
     `Actions the assistant took:\n${actionsBlock}\n\n` +
     `Produce the JSON summary.`;
 
-  // Not latency-sensitive - structured JSON output guarantees a clean,
-  // dashboard-ready shape. Gemini is our only backend LLM.
   const raw = await summarizeWithGemini(system, prompt);
 
   return {
@@ -104,8 +95,6 @@ export async function summarizeCall(
   };
 }
 
-// Owner locale code ("sk") -> English language name ("Slovak") for the prompt.
-// "" (unset) or an unresolvable code falls the summary back to caller language.
 function localeName(locale: string): string {
   const code = (locale ?? "").trim();
   if (!code) return "";
@@ -116,9 +105,6 @@ function localeName(locale: string): string {
   }
 }
 
-/** Render the structured actions into compact lines for the prompt, e.g.
- *  "- booking [done]: Consultation at 2026-07-02T15:00:00Z". Keeps the most
- *  useful payload fields per action type and always shows the status + error. */
 function formatActions(actions: CallAction[]): string {
   if (actions.length === 0) return "(none)";
   return actions

@@ -2,10 +2,6 @@ import type { ActionContext } from "../actions";
 import { verifyToolSecret } from "./auth";
 import { AgentCallFields, resolveAgentContext } from "./context";
 
-// One request lifecycle for every tier-A tool webhook, so each route file is
-// just its action. ElevenLabs reads the JSON `result` string and feeds it back
-// to the agent as the tool output, exactly like the tier-B tool return values.
-
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
@@ -13,9 +9,6 @@ function json(body: unknown, status = 200): Response {
   });
 }
 
-/** Authenticate, resolve context, run the action, and shape the response. Tool
- *  failures return 200 with a spoken `result` so the agent recovers gracefully
- *  instead of the LLM seeing a hard HTTP error mid-call. */
 export async function handleTool(
   req: Request,
   run: (ctx: ActionContext, body: Record<string, unknown>) => Promise<string>,
@@ -40,8 +33,6 @@ export async function handleTool(
   try {
     ctx = await resolveAgentContext(fields.data);
   } catch (err) {
-    // resolveInboundNumber / getOrCreateAgentCall throw on any DB error. Return a
-    // spoken fallback (not a 500) so the live call recovers gracefully.
     console.error("[agent] resolve context failed", err);
     return json({
       result: "I'm sorry, our system is having a little trouble right now. Please try again in a moment.",

@@ -33,7 +33,6 @@ const TOC: TocItem[] = [
   { id: "faq", label: "FAQ" },
 ];
 
-/** Illustrative weekly call-mix bars for the results section (not live data). */
 const ANALYTICS_BARS = [
   { label: "Calls answered", value: "100%", pct: 100, muted: false },
   { label: "Booked or captured", value: "~68%", pct: 68, muted: false },
@@ -125,7 +124,6 @@ export function IndustryPage({ industry: ind }: { industry: Industry }) {
       <SiteHeader />
 
       <div className="ind-page" style={cssVars}>
-        {/* ── Hero ── */}
         <section className="ind-hero">
           <div className="ind-hero-inner">
             <div className="ind-hero-left">
@@ -173,7 +171,6 @@ export function IndustryPage({ industry: ind }: { industry: Industry }) {
           </div>
         </section>
 
-        {/* ── Stats ── */}
         <div className="ind-stats">
           {ind.stats.map((s) => (
             <div className="ind-stat" key={s.label}>
@@ -183,12 +180,10 @@ export function IndustryPage({ industry: ind }: { industry: Industry }) {
           ))}
         </div>
 
-        {/* ── Main: sidebar + article ── */}
         <div className="ind-main">
           <IndustryToc items={TOC} />
 
           <article className="ind-article">
-            {/* Pain points */}
             <section className="ind-section" id="why">
               <div className="ind-kicker">The problem</div>
               <h2>Why the calls slip through</h2>
@@ -208,7 +203,6 @@ export function IndustryPage({ industry: ind }: { industry: Industry }) {
               </div>
             </section>
 
-            {/* Call example */}
             <section className="ind-section" id="call">
               <div className="ind-kicker">A real call, handled</div>
               <h2>{ind.callExample.scenario}</h2>
@@ -244,7 +238,6 @@ export function IndustryPage({ industry: ind }: { industry: Industry }) {
               </div>
             </section>
 
-            {/* Use cases */}
             <section className="ind-section" id="what-it-does">
               <div className="ind-kicker">What it does</div>
               <h2>Built for {ind.industry.toLowerCase()}</h2>
@@ -266,7 +259,6 @@ export function IndustryPage({ industry: ind }: { industry: Industry }) {
                 <span className="ind-works-label">Works with</span>
                 {ind.integrations.map((name) => (
                   <span className="ind-works-item" key={name}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={INTEGRATION_LOGOS[name]} alt={name} loading="lazy" />
                     {name}
                   </span>
@@ -275,7 +267,6 @@ export function IndustryPage({ industry: ind }: { industry: Industry }) {
               </div>
             </section>
 
-            {/* Results */}
             <section className="ind-section" id="results">
               <div className="ind-kicker">The results</div>
               <h2>What changes when every call is answered</h2>
@@ -318,7 +309,6 @@ export function IndustryPage({ industry: ind }: { industry: Industry }) {
               </div>
             </section>
 
-            {/* ROI */}
             <section className="ind-section" id="roi">
               <div className="ind-kicker">ROI estimate</div>
               <h2>What answered calls are worth</h2>
@@ -335,7 +325,6 @@ export function IndustryPage({ industry: ind }: { industry: Industry }) {
               />
             </section>
 
-            {/* CTA mid-page */}
             <div className="ind-cta">
               <h2>Hear it answer a {ind.niche} call</h2>
               <p>
@@ -351,7 +340,6 @@ export function IndustryPage({ industry: ind }: { industry: Industry }) {
               </div>
             </div>
 
-            {/* Testimonials */}
             <section className="ind-section" id="reviews">
               <div className="ind-kicker">Reviews</div>
               <h2>Loved by busy businesses</h2>
@@ -380,7 +368,6 @@ export function IndustryPage({ industry: ind }: { industry: Industry }) {
               </div>
             </section>
 
-            {/* FAQ */}
             <section className="ind-section" id="faq">
               <div className="ind-kicker">FAQ</div>
               <h2>Questions {ind.niche} owners ask</h2>
@@ -392,7 +379,6 @@ export function IndustryPage({ industry: ind }: { industry: Industry }) {
               ))}
             </section>
 
-            {/* Related */}
             <section className="ind-section" id="more">
               <div className="ind-kicker">Explore</div>
               <h2>Other industries &amp; guides</h2>
@@ -412,13 +398,11 @@ export function IndustryPage({ industry: ind }: { industry: Industry }) {
               </div>
             </section>
 
-            {/* Verdict */}
             <div className="ind-verdict">
               <div className="ind-verdict-label">The bottom line</div>
               <p>{ind.verdict}</p>
             </div>
 
-            {/* Final CTA */}
             <div className="ind-cta">
               <h2>Never miss another {ind.niche} call</h2>
               <p>

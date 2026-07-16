@@ -1,10 +1,6 @@
-// One-off: generate premium editorial images for the blog using the same Gemini
-// image models techdrawai uses. Run: node scripts/generate-blog-images.mjs
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs"
 import { GoogleGenAI, Modality } from "@google/genai"
 
-// Read GEMINI_KEY. Prefer a local env file; fall back to the techdrawai env the
-// key was provisioned in, then the process environment.
 function readKey() {
   const files = [
     ".env.local",
@@ -34,8 +30,6 @@ const MODELS = [
   "gemini-2.0-flash-preview-image-generation",
 ]
 
-// A single, consistent editorial look so every image on the blog feels like a
-// set. Premium, calm, lots of negative space — and never any baked-in text.
 const STYLE =
   "Premium editorial photography. Soft natural directional light, shallow depth of field, calm muted neutral palette with subtle warm tones, clean minimalist composition with generous negative space, crisp high detail, cinematic but understated. Wide 16:9 landscape framing. Absolutely no visible text, no readable letters or numbers, no logos, no watermarks, no on-screen UI text."
 

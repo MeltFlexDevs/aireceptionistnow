@@ -260,7 +260,6 @@ export default function RubyComparePage() {
       <SiteHeader />
 
       <div className="compare-page">
-        {/* ── Hero ── */}
         <section className="compare-hero">
           <div className="compare-hero-inner">
             <div className="compare-hero-left">
@@ -276,7 +275,6 @@ export default function RubyComparePage() {
                   AI Receptionist Now
                 </span>
                 <span className="airn-vs-sep">vs</span>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img className="airn-vs-logo" src="/compare/logos/ruby.svg" alt="Ruby" />
               </div>
 
@@ -357,7 +355,6 @@ export default function RubyComparePage() {
           </div>
         </section>
 
-        {/* ── Why ── */}
         <section className="compare-why">
           <h2>Why consider AI over Ruby?</h2>
           <p>
@@ -448,7 +445,6 @@ export default function RubyComparePage() {
                 <span className="works-with-label">Works with</span>
                 {INTEGRATION_LOGOS.map((it) => (
                   <span className="works-with-item" key={it.name}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={it.logo} alt={it.name} loading="lazy" />
                     {it.name}
                   </span>
@@ -458,7 +454,6 @@ export default function RubyComparePage() {
             </div>
           </div>
 
-          {/* Product screenshots */}
           <div className="story-strip">
             {SCREENS.map((s) => (
               <figure className="story-fig" key={s.src}>
@@ -468,7 +463,6 @@ export default function RubyComparePage() {
             ))}
           </div>
 
-          {/* Story strip */}
           <div className="story-strip">
             {STORY.map((s) => (
               <figure className="story-fig" key={s.src}>
@@ -479,7 +473,6 @@ export default function RubyComparePage() {
           </div>
         </section>
 
-        {/* ── Main ── */}
         <div className="compare-main">
           <CompareToc items={TOC} />
 
@@ -572,7 +565,6 @@ export default function RubyComparePage() {
               </div>
             </div>
 
-            {/* Section 01: pricing */}
             <section className="compare-section" id="pricing">
               <div className="compare-section-number">Section 01</div>
               <h2>Pricing: AI minutes vs human minutes</h2>
@@ -616,7 +608,6 @@ export default function RubyComparePage() {
               </div>
             </section>
 
-            {/* Section 02: AI vs human */}
             <section className="compare-section" id="ai-vs-human">
               <div className="compare-section-number">Section 02</div>
               <h2>AI vs live humans</h2>
@@ -662,7 +653,6 @@ export default function RubyComparePage() {
               </div>
             </section>
 
-            {/* Section 03: languages */}
             <section className="compare-section" id="languages">
               <div className="compare-section-number">Section 03</div>
               <h2>Languages &amp; hours</h2>
@@ -692,7 +682,6 @@ export default function RubyComparePage() {
               </div>
             </section>
 
-            {/* Section 04: when Ruby wins */}
             <section className="compare-section" id="when-ruby">
               <div className="compare-section-number">Section 04</div>
               <h2>When Ruby is the better call</h2>
@@ -713,7 +702,6 @@ export default function RubyComparePage() {
               </div>
             </section>
 
-            {/* Other alternatives listicle */}
             <section className="compare-section" id="alternatives">
               <div className="compare-section-number">Shortlist</div>
               <h2>Other receptionist alternatives</h2>
@@ -733,7 +721,6 @@ export default function RubyComparePage() {
               </div>
             </section>
 
-            {/* Verdict */}
             <section className="compare-section" id="verdict">
               <div className="compare-section-number">Verdict</div>
               <h2>The bottom line</h2>

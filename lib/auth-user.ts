@@ -1,6 +1,3 @@
-/**
- * Display-facing user info derived from the validated Supabase JWT claims.
- */
 export interface AppUser {
   id: string;
   email: string;

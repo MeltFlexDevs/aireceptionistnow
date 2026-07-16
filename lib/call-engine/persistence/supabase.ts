@@ -51,19 +51,12 @@ export class SupabaseCallRepository implements CallRepository {
     if (error) throw error;
     if (!num) return null;
 
-    // All call config lives on the linked assistant; the number only carries its
-    // e164 + Twilio info. Business comes from the assistant, falling back to the
-    // first business when the number is unassigned.
     const cfg = (num.assistant as Record<string, unknown> | null) ?? {};
     const cfgBiz = (cfg.business as { id?: string; name?: string } | null) ?? null;
     const cfgOrg = (cfg.organization as { knowledge?: Record<string, unknown> } | null) ?? null;
     let businessId = cfgBiz?.id ? String(cfgBiz.id) : "";
     let businessName = cfgBiz?.name ?? "our business";
     if (!businessId) {
-      // The assistant has no resolvable business. Only fall back to "the" business
-      // when the deployment is unambiguously single-tenant (exactly one exists) -
-      // never silently borrow the first of several tenants, which would serve one
-      // tenant's config/integrations to another's caller. Otherwise fail closed.
       const { data: bizList } = await db()
         .from("businesses")
         .select("id, name")
@@ -82,9 +75,6 @@ export class SupabaseCallRepository implements CallRepository {
 
     const ownerId = cfg.owner_id ? String(cfg.owner_id) : "";
 
-    // Scope calendars to the assistant's owner (unowned/legacy rows allowed, same
-    // rule as the dashboard): this list is what every calendar grant resolves
-    // against, so another tenant's calendar must never enter it in the first place.
     let integrationsQuery = db()
       .from("integrations")
       .select("*")
@@ -95,8 +85,6 @@ export class SupabaseCallRepository implements CallRepository {
     }
     const { data: integrations } = await integrationsQuery;
 
-    // Knowledge precedence, all merged into one block the assistant reads:
-    //   assistant's own  +  its organization's shared  +  the owner's profile.
     let knowledge: Record<string, unknown> = cfgOrg?.knowledge
       ? mergeKnowledge(cfg.knowledge as Record<string, unknown>, cfgOrg.knowledge)
       : ((cfg.knowledge as Record<string, unknown>) ?? {});
@@ -110,8 +98,6 @@ export class SupabaseCallRepository implements CallRepository {
         .maybeSingle();
       const ownerNotes = accountKnowledgeNotes(acct as AccountSettings | null);
       if (ownerNotes) knowledge = mergeKnowledge(knowledge, { notes: ownerNotes });
-      // Owner's dashboard language for post-call summaries. Column added in
-      // migration 0002; absent on un-migrated DBs -> "" -> caller-language recap.
       ownerLocale = String((acct as Record<string, unknown> | null)?.dashboard_locale ?? "");
     }
 
@@ -125,9 +111,6 @@ export class SupabaseCallRepository implements CallRepository {
       systemPrompt: String(cfg.system_prompt ?? ""),
       voiceId: String(cfg.voice_id ?? "21m00Tcm4TlvDq8ikWAM"),
       language: String(cfg.language ?? "en"),
-      // Default true: an assistant synced before migration 0006 (column absent) is
-      // multilingual; only an explicit false (English-only fallback) suppresses the
-      // per-caller language override in /api/agent/init.
       multilingual: cfg.elevenlabs_multilingual !== false,
       ownerLocale,
       knowledge,
@@ -162,16 +145,10 @@ export class SupabaseCallRepository implements CallRepository {
       .maybeSingle();
     if (existing.error) throw existing.error;
     if (existing.data) {
-      // A conversation id is bound to one business. Reject a reused/forged id that
-      // arrives claiming a different tenant - otherwise a side effect (booking,
-      // SMS) would run against one tenant's config while being recorded against
-      // another's call row.
       if (String(existing.data.business_id) !== input.businessId) {
         throw new Error("conversation/business mismatch");
       }
       const id = String(existing.data.id);
-      // A row created mid-call by a tool webhook defaulted to "inbound" (tools
-      // don't know direction); the post-call payload does, so correct it here.
       if (input.direction && existing.data.direction !== input.direction) {
         const { error } = await db()
           .from("calls")
@@ -182,10 +159,6 @@ export class SupabaseCallRepository implements CallRepository {
       return id;
     }
 
-    // On concurrent first tool calls two inserts can race; the partial unique
-    // index on elevenlabs_conversation_id makes the loser fail, so we re-read.
-    // assistant_id/owner_id are filled by the calls_set_assignment trigger from
-    // phone_number_id (see 0001/0008), so per-assistant history needs no join.
     const insert = await db()
       .from("calls")
       .insert({
@@ -211,9 +184,6 @@ export class SupabaseCallRepository implements CallRepository {
   }
 
   async claimAgentCallCompletion(callId: string): Promise<boolean> {
-    // Transition to completed only if not already completed; the returned rows
-    // tell us whether THIS call won the race (or the retry). Backed by a plain
-    // conditional UPDATE - no extra table needed.
     const { data, error } = await db()
       .from("calls")
       .update({ status: "completed", ended_at: new Date().toISOString() })
@@ -225,8 +195,6 @@ export class SupabaseCallRepository implements CallRepository {
   }
 
   async releaseAgentCallCompletion(callId: string): Promise<void> {
-    // Inverse of claimAgentCallCompletion: reopen the call after a post-claim
-    // failure so ElevenLabs' retry can claim it again and reprocess.
     const { error } = await db()
       .from("calls")
       .update({ status: "in_progress" })
@@ -244,8 +212,6 @@ export class SupabaseCallRepository implements CallRepository {
   }
 
   async appendTurns(callId: string, turns: TranscriptTurn[]): Promise<void> {
-    // Delete-first makes a retried post-call webhook safe: a retry after a
-    // partial failure replaces the call's turns instead of duplicating them.
     const del = await db().from("call_turns").delete().eq("call_id", callId);
     if (del.error) throw del.error;
     if (turns.length === 0) return;

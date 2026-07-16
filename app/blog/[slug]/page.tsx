@@ -124,7 +124,6 @@ export default async function BlogPostPage({
 
       <div className="mx-auto max-w-[1040px] px-6 pt-16 pb-20 sm:px-10">
         <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_260px] lg:gap-14">
-          {/* main column */}
           <div className="min-w-0 lg:max-w-[720px]">
             <Link
               href="/blog"
@@ -195,7 +194,6 @@ export default async function BlogPostPage({
               )}
             </figure>
 
-            {/* inline TOC for mobile only */}
             {post.sections.length > 0 && (
               <nav
                 aria-label="Table of contents"
@@ -248,7 +246,6 @@ export default async function BlogPostPage({
             )}
           </div>
 
-          {/* sticky sidebar (desktop) */}
           <aside className="hidden lg:block">
             <div className="sticky top-24">
               <PostToc sections={post.sections} />

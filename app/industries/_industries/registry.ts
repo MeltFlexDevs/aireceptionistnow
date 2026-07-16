@@ -1,30 +1,12 @@
-/**
- * Canonical registry of the "AI Receptionist for [industry]" landing pages.
- * One entry per vertical. The hub (/industries), the dynamic route
- * (/industries/[slug]), the sitemap and the footer all read from this list, so
- * adding an industry means adding one entry here (the page and sitemap are
- * generated from it automatically).
- *
- * Each entry is pure, JSON-serializable data. All rendering lives in the shared
- * IndustryPage template, so a new vertical needs no new component. Testimonials
- * reuse the site's existing reviews (photos that exist in /public/testimonials)
- * and every headline metric is framed as illustrative, never as an audited
- * result from a named customer.
- */
 import type { AuthorKey } from "@/lib/site";
 
 export type CallTurn = { speaker: "caller" | "ai"; text: string };
 
 export type Industry = {
-  /** Route path under /industries, without a leading slash. */
   slug: string;
-  /** Plural noun for nav/cards/H1, e.g. "Dentists". */
   industry: string;
-  /** Singular noun for prose, e.g. "dental practice". */
   niche: string;
-  /** Single accent colour used sparingly (hero tint, call bubbles, bars). */
   accent: string;
-  /** Light tint of the accent for the hero card wash. */
   accentSoft: string;
 
   // Hero
@@ -37,15 +19,10 @@ export type Industry = {
   description: string;
   keywords: string[];
 
-  /** What the AI handles for this vertical (green-check list in the hero card). */
   capabilities: string[];
-  /** Why this vertical loses callers today. */
   painPoints: { title: string; body: string }[];
-  /** Illustrative headline numbers. */
   stats: { value: string; label: string }[];
-  /** A realistic, vertical-specific call, shown as a transcript. */
   callExample: { scenario: string; turns: CallTurn[]; outcome: string };
-  /** What it does for this vertical. */
   useCases: { title: string; body: string }[];
 
   // Results / proof
@@ -62,16 +39,12 @@ export type Industry = {
   verdict: string;
 
   // Assigned in-repo (kept out of content generation for image/link safety).
-  /** Reused site testimonials whose photos exist in /public/testimonials. */
   testimonials: { quote: string; name: string; role: string; photo: string }[];
-  /** Integration names; must be keys of INTEGRATION_LOGOS. */
   integrations: string[];
-  /** Cross-links to existing blog posts for this vertical. */
   relatedBlog: { label: string; href: string }[];
   author: AuthorKey;
 };
 
-/** Integration name -> logo in /public/compare/logos. */
 export const INTEGRATION_LOGOS: Record<string, string> = {
   "Google Calendar": "/compare/logos/googlecalendar.svg",
   Outlook: "/compare/logos/outlook.svg",

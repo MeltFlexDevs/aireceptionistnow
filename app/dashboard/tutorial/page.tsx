@@ -16,10 +16,6 @@ import {
 } from "../icons";
 import { QUICK_START_HREFS, SECTIONS, whereOf, type IconKey } from "./guide";
 
-// The full tutorial: what every screen is for, what you can do on it, and the
-// thing that catches people out. Reached from the profile menu. Structure lives
-// in guide.ts, copy in the `tutorial` dictionary group - this file only renders.
-
 export const dynamic = "force-dynamic";
 
 const ICONS: Record<IconKey, (p: { className?: string }) => React.ReactElement> = {
@@ -43,7 +39,6 @@ export default async function TutorialPage() {
     <div className="space-y-6 rise">
       <PageHeader title={g.title} description={g.description} />
 
-      {/* ── Start here ──────────────────────────────────────────────────── */}
       <SectionCard title={g.startHere} subtitle={g.startHereSub}>
         <ol className="space-y-3">
           {g.quickStart.map((step, i) => (
@@ -65,7 +60,6 @@ export default async function TutorialPage() {
         </ol>
       </SectionCard>
 
-      {/* ── Jump to a screen ────────────────────────────────────────────── */}
       <SectionCard title={g.everyScreen} subtitle={g.everyScreenSub}>
         <div className="flex flex-wrap gap-2">
           {SECTIONS.map((s) => {
@@ -84,7 +78,6 @@ export default async function TutorialPage() {
         </div>
       </SectionCard>
 
-      {/* ── One card per screen ─────────────────────────────────────────── */}
       {SECTIONS.map((s) => {
         const Icon = ICONS[s.icon];
         const copy = g.sections[s.id];

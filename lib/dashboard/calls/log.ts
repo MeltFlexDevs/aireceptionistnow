@@ -26,14 +26,9 @@ interface DbCallRow {
   assistant: string | null;
 }
 
-// Assistant name from the stamped calls.assistant_id snapshot (reassignment-
-// immune), NOT the number's current assistant. The !assistant_id hint embeds
-// via that FK column (robust to the generated constraint name).
 const SELECT =
   "id,twilio_call_sid,from_number,to_number,direction,status,started_at,duration_seconds,outcome,assistant:assistants!assistant_id(name)";
 
-// Numbers we provisioned, mapped to when they became ours. The same e164 may
-// have a call history from a previous owner; we only own calls on/after this.
 async function fetchAllNumbers(): Promise<Map<string, number>> {
   const { data, error } = await serviceClient()
     .from("phone_numbers")
@@ -57,11 +52,6 @@ async function fetchDbCalls(
   ownerId?: string | null,
 ): Promise<DbCallRow[]> {
   let query = serviceClient().from("calls").select(SELECT).eq("business_id", businessId);
-  // Scope by the insert-time owner_id stamp (the historical truth), NOT the
-  // number's current assistant: a recycled pooled number must not surface the
-  // previous tenant's calls in the new holder's log, nor hide them from the
-  // original owner. Unowned-allowed matches the dashboard integration rule; the
-  // downstream `r.assistant` filter drops any pooled/test noise this lets through.
   if (ownerId) query = query.or(`owner_id.eq.${ownerId},owner_id.is.null`);
   const { data, error } = await query.order("started_at", { ascending: false }).limit(limit);
   if (error) throw error;
@@ -135,23 +125,13 @@ function applyFilters(rows: CallLogRow[], f: CallFilters): CallLogRow[] {
   });
 }
 
-// Reconcile DB call rows against the live Twilio call logs by Call SID. Twilio is
-// authoritative for status/duration/direction/from/to/date; the DB row adds
-// outcome + assistant. Calls present only in one source are still surfaced.
 export async function getCallLog(
   filters: CallFilters = {},
   ownerId?: string | null,
-  // ponytail: flat 1000-row cap (one PostgREST page); the Twilio merge makes
-  // offset pagination awkward - add a real "load more" if a tenant outgrows it.
   limit = 1000,
 ): Promise<CallLog> {
   const businessId = await ensureBusinessId();
 
-  // Owned numbers (the signed-in user's, or all business numbers when auth is
-  // off) drive the Twilio-history e164 filter that drops a previous owner's calls
-  // on a recycled number. DB rows are scoped separately, by their owner_id stamp
-  // in fetchDbCalls - so the original owner keeps their history even after the
-  // number is reassigned.
   const ownerNumbers = ownerId ? await getOwnedNumbers(ownerId) : null;
   let owned: Map<string, number>;
   if (ownerNumbers) {
@@ -165,9 +145,6 @@ export async function getCallLog(
     owned = await fetchAllNumbers();
   }
 
-  // Pull a wider Twilio window since prior-owner noise gets filtered out below.
-  // Timestamps render in the user's own timezone (Settings), same as the
-  // Calendar and Analytics - not the server's.
   const [dbCalls, twilioCalls, tz] = await Promise.all([
     fetchDbCalls(businessId, limit, ownerId),
     listTwilioCalls(Math.max(limit, 500)).catch(() => [] as TwilioCallLog[]),
@@ -178,8 +155,6 @@ export async function getCallLog(
   const dbBySid = new Map<string, DbCallRow>();
   for (const c of dbCalls) if (c.sid) dbBySid.set(c.sid, c);
 
-  // Keep a Twilio call only if it's already one of ours (SID match) or it
-  // involves a number we own and happened on/after we provisioned it.
   const isOurs = (t: TwilioCallLog): boolean => {
     if (dbBySid.has(t.sid)) return true;
     const when = Date.parse(t.date) || 0;
@@ -201,14 +176,6 @@ export async function getCallLog(
     rows.push(dbOnlyRow(c, fmtDateTime));
   }
 
-  // Only surface calls handled by one of the user's assistants. An assistant name
-  // is set solely on a DB-backed row (via phone_number → assistant), so this also
-  // guarantees a dbId - the row opens to its transcript + details on click. It
-  // drops raw Twilio-log noise (no assistant, nothing to open) and, by no longer
-  // requiring a Twilio SID, lets tier-A (ElevenLabs) calls - which have none -
-  // show too. Duration/live gates out ghost/no-answer rows; live calls stay
-  // (unless stuck "live" for hours - a lost webhook, not a call), and completed
-  // calls stay even when the webhook carried no duration.
   const cleaned = rows.filter(
     (r) =>
       r.assistant &&

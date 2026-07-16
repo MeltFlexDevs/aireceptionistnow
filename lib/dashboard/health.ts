@@ -1,10 +1,5 @@
 import { getTwilioStatus } from "./twilio";
 
-// Live health of the platform's core integrations for the dashboard status
-// balls. Each check does one cheap, read-only request and never throws - a
-// missing key reads as "not configured", a bad key as "error". All run in
-// parallel with a short timeout so the page isn't held up by a slow provider.
-
 export interface ServiceStatus {
   name: string;
   configured: boolean;
@@ -65,7 +60,6 @@ async function twilioStatus(): Promise<ServiceStatus> {
   return { name: "Twilio", configured: s.configured, ok: s.ok, detail: s.error };
 }
 
-/** All core service statuses, in a stable display order. */
 export async function getServiceStatuses(): Promise<ServiceStatus[]> {
   return Promise.all([
     elevenLabsStatus(),

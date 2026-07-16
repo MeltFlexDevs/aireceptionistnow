@@ -3,7 +3,7 @@ import { currentUserId } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { authConfigured } from "@/lib/supabase/config";
 import { getAccountSettings, type AccountSettings } from "@/lib/dashboard/account";
-import { getPlanContext } from "@/lib/dashboard/plan";
+import { getPlanContextCached } from "@/lib/dashboard/plan";
 import { SectionCard } from "../components/SectionCard";
 import { PageHeader } from "../components/PageHeader";
 import { SubmitButton } from "../components/SubmitButton";
@@ -44,13 +44,12 @@ export default async function SettingsPage({
     }
   }
 
-  let account: AccountSettings | null = null;
-  if (userId) {
-    account = await getAccountSettings(userId).catch(() => null);
-  }
-  const planCtx = await getPlanContext(userId).catch(() => null);
-  // Resolved on the server so the option list is in the payload rather than
-  // rebuilt in every browser; the client only picks the default from it.
+  const [account, planCtx] = await Promise.all([
+    userId
+      ? getAccountSettings(userId).catch(() => null as AccountSettings | null)
+      : Promise.resolve(null as AccountSettings | null),
+    getPlanContextCached(userId).catch(() => null),
+  ]);
   const zones = supportedTimezones();
 
   return (
@@ -70,7 +69,6 @@ export default async function SettingsPage({
         <Hint title={s.signInTitle}>{s.signInBody}</Hint>
       )}
 
-      {/* ── Account ─────────────────────────────────────────────────────── */}
       <form action={saveAccountAction}>
         <SectionCard title={s.account} subtitle={s.accountSub}>
           <div className="space-y-4">
@@ -135,7 +133,6 @@ export default async function SettingsPage({
         </SectionCard>
       </form>
 
-      {/* ── Notifications ───────────────────────────────────────────────── */}
       <form action={saveNotificationsAction}>
         <SectionCard title={s.notifications} subtitle={s.notificationsSub}>
           <div className="space-y-4">
@@ -164,7 +161,6 @@ export default async function SettingsPage({
         </SectionCard>
       </form>
 
-      {/* ── Billing ─────────────────────────────────────────────────────── */}
       <SectionCard
         title={s.billing}
         subtitle={s.billingSub}

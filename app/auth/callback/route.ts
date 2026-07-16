@@ -2,10 +2,6 @@ import { NextResponse } from "next/server";
 
 import { createClient } from "@/lib/supabase/server";
 
-/**
- * OAuth (Google) callback. Supabase redirects here with a `code` that we
- * exchange for a session, then forward the user into the dashboard.
- */
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");

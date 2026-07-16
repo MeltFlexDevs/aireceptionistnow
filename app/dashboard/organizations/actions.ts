@@ -43,14 +43,9 @@ export async function createOrganizationAction(formData: FormData): Promise<void
   redirect(`/dashboard/organizations/${id}`);
 }
 
-/** Confirm the signed-in user owns this organization (when auth is configured). */
 async function ownedOrgOrRedirect(id: string): Promise<Organization> {
   const org = await getOrganization(id).catch(() => null);
   if (!org) redirect("/dashboard/organizations");
-  // Fail closed: when auth is on, an owned org may only be touched by its owner.
-  // Guarding on `ownerId &&` (as before) let an unauthenticated request - no
-  // session, so currentUserId() is null - skip the check and mutate any org by id.
-  // Unowned orgs (single-tenant, auth off) still pass. Mirrors requireAssistantOwner.
   if (authConfigured() && org.owner_id) {
     const ownerId = await currentUserId();
     if (org.owner_id !== ownerId) redirect("/dashboard/organizations");
@@ -62,21 +57,6 @@ function orgError(id: string, message: string): never {
   redirect(`/dashboard/organizations/${id}?error=${encodeURIComponent(message)}`);
 }
 
-/**
- * Push an org's changed knowledge to its assistants' live ElevenLabs agents.
- * The agent bakes in the org+assistant merged knowledge at sync time, so an org
- * knowledge edit is invisible on calls until each assistant re-syncs; this closes
- * that gap so changes take effect on the next call.
- *
- * Scheduled with `after()`, NOT awaited: this is several ElevenLabs round-trips
- * per assistant, and an org with a few assistants made every knowledge save sit
- * on a spinner for many seconds ("still saving..."). The save itself is the DB
- * write the caller already awaited; this only propagates it to the voice agents
- * so the next call reflects it. It was always fire-and-forget - it swallows its
- * own errors and never surfaced them - so moving it off the response changes
- * nothing the user could see, except the wait. `after` still runs after a
- * redirect() (per the Next docs), so callers schedule it then redirect at once.
- */
 function resyncOrgAgents(orgId: string): void {
   after(async () => {
     const assistants = await listOrganizationAssistants(orgId).catch(() => []);
@@ -113,18 +93,12 @@ export async function deleteOrganizationAction(formData: FormData): Promise<void
   const id = String(formData.get("id") ?? "");
   if (id) {
     await ownedOrgOrRedirect(id);
-    // Capture members BEFORE deleting - deleteOrganization unassigns them
-    // (organization_id → null), which changes the knowledge their agents bake in.
-    // Re-sync each afterward so the deleted org's shared knowledge stops appearing
-    // on their calls (same reason every other org-knowledge edit re-syncs).
     const members = await listOrganizationAssistants(id).catch(() => []);
     try {
       await deleteOrganization(id);
     } catch (err) {
       orgError(id, (err as Error).message);
     }
-    // Re-sync detached members off the response, same as every knowledge edit -
-    // deleting an org shouldn't hang on ElevenLabs. `after` runs post-redirect.
     after(async () => {
       await Promise.all(
         members.map((a) =>
@@ -185,9 +159,6 @@ export async function addOrgWebsiteKnowledgeAction(formData: FormData): Promise<
     orgError(id, (err as Error).message);
   }
 
-  // Summarize the converted markdown once, now, and store it with the source, so
-  // "What your AI knows" can show it instantly. A summary failure never fails the
-  // import - the document is what matters.
   source.summary = (await summarizeSourceMarkdown(source.title, source.markdown)) ?? undefined;
 
   const next = addSource(readKnowledge(org.knowledge), source);
@@ -226,8 +197,6 @@ export async function addOrgPdfKnowledgeAction(formData: FormData): Promise<void
     orgError(id, (err as Error).message);
   }
 
-  // Summarize the converted markdown now and store it with the source (same as
-  // the website import) so the dashboard shows it without a per-view model call.
   source.summary = (await summarizeSourceMarkdown(source.title, source.markdown)) ?? undefined;
 
   const next = addSource(readKnowledge(org.knowledge), source);
@@ -257,7 +226,6 @@ export async function removeOrgKnowledgeSourceAction(formData: FormData): Promis
 
 // ── Assistant assignment ────────────────────────────────────────────────────
 
-/** Toggle one assistant's membership in this organization. */
 export async function toggleAssistantOrganizationAction(formData: FormData): Promise<void> {
   const id = String(formData.get("id") ?? "");
   const assistantId = String(formData.get("assistant_id") ?? "");
@@ -279,10 +247,6 @@ export async function toggleAssistantOrganizationAction(formData: FormData): Pro
     orgError(id, (err as Error).message),
   );
 
-  // Assigning/unassigning changes the knowledge the assistant reads on calls
-  // (org shared knowledge is merged in at sync time), so rebuild its ElevenLabs
-  // agent now - this is the step that makes "assign to org → agent is ready with
-  // the org's knowledge" true. Best-effort: the membership change already saved.
   await syncAssistantAgent(assistantId).catch((err) =>
     console.error("[organizations] agent sync after assignment failed", assistantId, err),
   );

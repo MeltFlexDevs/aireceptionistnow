@@ -17,9 +17,6 @@ import { Phone, Plus } from "./icons";
 
 export const dynamic = "force-dynamic";
 
-// Body skeleton shown while the overview's analytics stream in. The header above
-// is already painted, so this covers just the KPI tiles + charts and keeps the
-// layout from jumping when real data lands.
 function OverviewSkeleton() {
   return (
     <div className="space-y-6">
@@ -46,9 +43,6 @@ function OverviewSkeleton() {
   );
 }
 
-// Synchronous-ish shell: the header paints immediately (the dictionary read is a
-// cookie lookup, not a query), and the analytics-heavy body streams in behind
-// OverviewSkeleton - so first paint stays instant.
 export default async function OverviewPage() {
   const t = await getDictionary();
   return (
@@ -75,8 +69,6 @@ export default async function OverviewPage() {
 
 async function OverviewBody({ t }: { t: Dictionary }) {
   const o = t.overview;
-  // Each source loads independently so one failed query degrades its own
-  // section instead of blanking the whole overview.
   const ownerId = await currentUserId();
   const data = await getOverviewCached(ownerId).catch((err: Error) => {
     console.error("[overview] load failed", err);
@@ -93,10 +85,6 @@ async function OverviewBody({ t }: { t: Dictionary }) {
     );
   }
 
-  // No calls yet - the setup guide replaces the stats, since there's nothing to
-  // chart and the user's real question is "what do I do next?". Once it's all
-  // done but no call has landed, the guide's last step explains where they'll
-  // show up, so this stays useful right up to the first call.
   if (data.recentCalls.length === 0) {
     const onboarding = await getOnboardingState().catch(() => null);
     return (
@@ -126,8 +114,6 @@ async function OverviewBody({ t }: { t: Dictionary }) {
     );
   }
 
-  // KPI labels come back from the (locale-free) analytics layer keyed in
-  // English; translate them here at render.
   const kpiLabels: Record<string, string> = {
     calls: t.data.kpiCalls,
     avg: t.data.kpiAvg,
@@ -135,12 +121,6 @@ async function OverviewBody({ t }: { t: Dictionary }) {
     booked: t.data.kpiBooked,
   };
 
-  // Deliberately short. This screen answers "how is it going?" in one look:
-  // the four numbers, then what actually happened on the phone. Everything that
-  // needs studying rather than glancing - volume chart, countries, talk split,
-  // latency, per-assistant breakdown - lives on Analytics, which can filter by
-  // organization and assistant; plan meters live on Settings. The overview used
-  // to restate all of it, so nothing here was worth looking at first.
   return (
     <div className="space-y-6 rise">
       <div className="rise-stagger grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

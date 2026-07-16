@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { useAuthDialog } from "@/app/components/AuthDialog";
 
-/** Pill CTA matching the industry design that opens the sign-up dialog. */
 export function IndustryCta({
   label = "Start free",
   outline = false,
@@ -26,7 +25,6 @@ export function IndustryCta({
 
 export type TocItem = { id: string; label: string };
 
-/** Sticky table of contents with scroll-spy highlighting the active section. */
 export function IndustryToc({ items }: { items: TocItem[] }) {
   const tocRef = useRef<HTMLElement>(null);
 
@@ -78,12 +76,6 @@ function euro(n: number): string {
   return `€${Math.round(n).toLocaleString("en-US")}`;
 }
 
-/**
- * Interactive, honest "what could a booked call be worth" estimator. The reader
- * sets how many calls they miss a week, what share would have become customers,
- * and the value of one. We show the recovered monthly revenue against the flat
- * €99 Solo plan. Purely illustrative and labelled as such - no promise is made.
- */
 export function IndustryRoiCalculator({
   jobValueLabel,
   defaultJobValue,
@@ -99,8 +91,6 @@ export function IndustryRoiCalculator({
   const [convertPct, setConvertPct] = useState(30);
   const [jobValue, setJobValue] = useState(defaultJobValue);
 
-  // Keep the coarse step from the default so every vertical's default job value
-  // lands on the slider's step grid (base is min=0), not ~20px off from its label.
   const jobStep = defaultJobValue >= 1000 ? 100 : 10;
 
   const { recoveredCalls, newCustomers, revenue, roiVsPlan } = useMemo(() => {

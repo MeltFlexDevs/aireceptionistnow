@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { getAssistant, getAssistantNumber, listIntegrations, listNumbers } from "@/lib/dashboard/db";
 import { getTwilioStatus } from "@/lib/dashboard/twilio";
 import { getOrganization } from "@/lib/dashboard/organizations";
-import { getPlanContext } from "@/lib/dashboard/plan";
+import { getPlanContextCached } from "@/lib/dashboard/plan";
 import { countryFromPhone, formatPhone } from "@/lib/call-engine/voice/phone-language";
 import { currentUserId } from "@/lib/auth";
 import { getDictionary } from "@/lib/i18n/server";
@@ -54,14 +54,22 @@ export default async function AssistantSettingsPage({
   const ownerId = await currentUserId();
   if (ownerId && assistant.owner_id && assistant.owner_id !== ownerId) notFound();
 
-  const org = assistant.organization_id
-    ? await getOrganization(assistant.organization_id).catch(() => null)
-    : null;
+  const [org, integrations, number, twilio, planCtx] = await Promise.all([
+    assistant.organization_id
+      ? getOrganization(assistant.organization_id).catch(() => null)
+      : Promise.resolve(null),
+    listIntegrations(ownerId ?? undefined).catch(
+      () => [] as Awaited<ReturnType<typeof listIntegrations>>,
+    ),
+    getAssistantNumber(assistant.id).catch(() => null),
+    getTwilioStatus(),
+    getPlanContextCached(ownerId).catch(() => null),
+  ]);
+  const calendars = integrations.filter((i) => i.type === "calendar");
+  const crms = integrations.filter((i) => i.type === "crm");
 
   const emailCfg =
     (assistant.routing as { emailTranscripts?: { enabled?: boolean; to?: string } })?.emailTranscripts ?? {};
-  // CRM endpoints are shared account-level integrations; the assistant only
-  // stores which of them it pushes to.
   const crmTargets = new Set(
     ((assistant.routing as { crm?: { targets?: Array<{ integrationId: string }> } })?.crm?.targets ?? [])
       .map((t) => t.integrationId),
@@ -75,13 +83,9 @@ export default async function AssistantSettingsPage({
     calAccess.map((a) => [a.integrationId, a.level === "busy" ? "read" : a.level]),
   );
 
-  // Advanced voice options. Speed 1.0× / stability 50% are the ElevenLabs
-  // conversational defaults, so an untouched assistant keeps its current sound.
   const voiceCfg = (assistant.routing as { voice?: { speed?: number; stability?: number } })?.voice ?? {};
   const voiceByLanguage =
     (assistant.routing as { voiceByLanguage?: Record<string, string> })?.voiceByLanguage ?? {};
-  // One row per base language we can speak (deduped across regional variants),
-  // English excluded - it uses the default voice picked in Basics.
   const seenBase = new Set<string>();
   const voiceLanguages: LangOption[] = LANGUAGES.flatMap((l) => {
     const base = l.code.split("-")[0];
@@ -92,30 +96,14 @@ export default async function AssistantSettingsPage({
     return [{ code: base, name: l.name, flag: l.flag }];
   });
 
-  let calendars: Awaited<ReturnType<typeof listIntegrations>> = [];
-  let crms: Awaited<ReturnType<typeof listIntegrations>> = [];
-  try {
-    const all = await listIntegrations(ownerId ?? undefined);
-    calendars = all.filter((i) => i.type === "calendar");
-    crms = all.filter((i) => i.type === "crm");
-  } catch {
-    calendars = [];
-    crms = [];
-  }
-
-  const number = await getAssistantNumber(assistant.id).catch(() => null);
-  // Free numbers waiting in the shared pool - same rule claimFreeNumber() uses.
-  // When any exist, "Get number" just claims one instead of buying a new line.
   let availableNumbers = 0;
   if (!number) {
     availableNumbers = await listNumbers()
       .then((all) => all.filter((n) => !n.assistant_id && n.enabled && n.twilio_sid).length)
       .catch(() => 0);
   }
-  const twilio = await getTwilioStatus();
   const twilioTone: StatusTone = twilio.ok ? "ok" : twilio.configured ? "error" : "warn";
   const country = number ? countryFromPhone(number.e164) : null;
-  const planCtx = await getPlanContext(ownerId).catch(() => null);
   const credits = planCtx?.limits.minutesIncluded ?? 1000;
 
   return (
@@ -126,12 +114,6 @@ export default async function AssistantSettingsPage({
         back={{ href: "/dashboard/assistant", label: "Assistants" }}
       />
 
-      {/* The English-only downgrade is silent, sticky, and only visible in a
-          server log at the moment it happens: ElevenLabs rejected the
-          multilingual config during a sync, so this agent now tells every caller
-          it "can only communicate in English" until someone saves it again.
-          Callers feel it on every call, so the owner should see it on the page,
-          not have to go reading logs. Saving retries the full multilingual ladder. */}
       {assistant.elevenlabs_multilingual === false && (
         <div className="shape-pill flex flex-wrap items-center justify-between gap-3 border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-700">
           <span>
@@ -158,7 +140,6 @@ export default async function AssistantSettingsPage({
         </div>
       )}
 
-      {/* ── Phone number ────────────────────────────────────────────────── */}
       <SectionCard title="Phone number" subtitle="The number callers dial to reach this assistant.">
         {number ? (
           <div className="flex items-center justify-between gap-3">
@@ -193,7 +174,6 @@ export default async function AssistantSettingsPage({
         )}
       </SectionCard>
 
-      {/* ── Organization ────────────────────────────────────────────────── */}
       <SectionCard
         title="Organization"
         subtitle="The company whose shared knowledge this assistant uses on calls."
@@ -221,12 +201,10 @@ export default async function AssistantSettingsPage({
         )}
       </SectionCard>
 
-      {/* ── Settings (single stacked form, no tabs) ─────────────────────── */}
       <form action={updateAssistantAction} className="space-y-6">
         <input type="hidden" name="id" value={assistant.id} />
 
         <Tabs labels={["Settings", "Advanced"]}>
-        {/* ── Settings tab ─────────────────────────────────────────────── */}
         <div className="space-y-6">
         <SectionCard title="Basics" subtitle="Name, greeting, voice, and language.">
           <div className="space-y-4">
@@ -241,7 +219,6 @@ export default async function AssistantSettingsPage({
             <div>
               <span className={labelCls}>Voice</span>
               <VoiceSelect name="voice_id" defaultValue={assistant.voice_id} />
-              {/* Language is always auto-detected from the caller. */}
               <input type="hidden" name="language" value="multi" />
               <p className="mt-1.5 text-xs text-neutral-400">
                 The AI auto-detects the caller&apos;s language and replies in it.
@@ -326,7 +303,6 @@ export default async function AssistantSettingsPage({
 
         </div>
 
-        {/* ── Advanced tab ─────────────────────────────────────────────── */}
         <div className="space-y-6">
         <SectionCard title="Voice options" subtitle="Speaking speed, stability, and a specific voice per language.">
           <AdvancedVoiceSettings
@@ -364,10 +340,6 @@ export default async function AssistantSettingsPage({
             </span>
           }
         >
-          {/* Preview only until this ships - matches the blurred CRM push block on
-              Integrations. `inert` keeps the toggles off the keyboard/AT tree; a
-              box that's already checked still posts, so saving the form leaves any
-              existing assignment untouched rather than silently clearing it. */}
           <div inert className="select-none blur-[3px] saturate-50">
             {crms.length === 0 ? (
               <p className="text-sm text-neutral-500">
@@ -406,7 +378,6 @@ export default async function AssistantSettingsPage({
         </SubmitButton>
       </form>
 
-      {/* ── Danger zone ─────────────────────────────────────────────────── */}
       <SectionCard title="Danger zone">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-neutral-500">{t.assistants.deleteHint}</p>

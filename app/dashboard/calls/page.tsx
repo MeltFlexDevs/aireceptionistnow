@@ -20,8 +20,6 @@ function one(v: string | string[] | undefined, fallback: string): string {
   return typeof v === "string" && v ? v : fallback;
 }
 
-// Row skeleton for the call log while it streams (matches loading.tsx, minus the
-// header/filters which are already painted).
 function CallLogSkeleton() {
   return (
     <div className="shape-card glass space-y-4 p-5">
@@ -52,9 +50,6 @@ export default async function CallsPage({ searchParams }: { searchParams: Search
       <PageHeader title={t.calls.title} description={t.calls.description} />
       <CallFilters q={filters.q} status={filters.status} />
 
-      {/* Re-key on the active filters so changing a filter swaps to the skeleton
-          instantly instead of freezing on the previous results while the new
-          query runs - the header + filters above never re-block. */}
       <Suspense key={`${filters.q}|${filters.status}`} fallback={<CallLogSkeleton />}>
         <CallLogBody filters={filters} t={t} />
       </Suspense>

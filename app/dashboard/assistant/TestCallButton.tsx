@@ -3,8 +3,6 @@
 import { useFormStatus } from "react-dom";
 import { MathLoader } from "../../components/MathLoader";
 
-// Submit button that shows a math-curve loader + "Calling…" while the test call
-// is being placed.
 export function TestCallButton({
   action,
   className,

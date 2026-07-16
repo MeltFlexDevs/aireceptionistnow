@@ -1,6 +1,3 @@
-// One-off: generate premium editorial photos for the Smith.ai comparison page,
-// same Gemini image models + house style as scripts/generate-blog-images.mjs.
-// Run: node scripts/generate-compare-images.mjs
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs"
 import { GoogleGenAI, Modality } from "@google/genai"
 
@@ -70,12 +67,6 @@ const SPECS = [
     prompt: `A warm, friendly professional receptionist wearing a slim modern headset at a bright, tidy front desk, smiling naturally while helping a caller, three-quarter angle so the face is soft and not a tight close-up, light wood and matte surfaces, a green plant and soft daylight from a large window blurred behind. Approachable, human, reassuring mood. ${STYLE}`,
   },
 
-  // ── Page-specific sets. Each competitor page gets its own distinct look so no
-  // two comparison pages share a photo. Rosie = warm European small business,
-  // Goodcall = cool bright US trades, Ruby = human-warm vs cool after-hours AI.
-
-  // Rosie: multilingual reach, EU/GDPR calm, booking on the phone, small owner.
-  // Warm oatmeal + terracotta palette, soft European morning light.
   {
     name: "rosie-call-incoming",
     prompt: `A candid dusk moment inside a warm European city apartment: a woman's hand raising a smartphone toward her ear near a tall window with soft amber streetlight glow outside, seen three-quarter from behind so the face is not prominent, a cozy blurred interior with books and a leafy plant, warm oatmeal and terracotta tones, evoking a customer phoning a small business in the early evening. ${STYLE}`,
@@ -97,8 +88,6 @@ const SPECS = [
     prompt: `An elegant minimalist conceptual still seen from just above: a smartphone lying flat on a warm cream desk beside a linen-bound open notebook and a slim brass pen, one soft warm highlight suggesting a newly confirmed appointment, generous soft negative space, muted warm palette, premium and quiet. No people, no readable text. ${STYLE}`,
   },
 
-  // Goodcall: high-volume US small business & trades, always-on, "answered"
-  // moments. Cool crisp daylight, muted slate/steel palette with warm accents.
   {
     name: "goodcall-call-incoming",
     prompt: `A candid daytime moment: a tradesperson's hand holding a smartphone to their ear in a bright, busy workshop or service garage, seen three-quarter from behind so the face is not prominent, tools and a workbench softly blurred in cool daylight, conveying a customer calling a busy small business, muted blue-grey palette with warm wood accents. ${STYLE}`,
@@ -120,8 +109,6 @@ const SPECS = [
     prompt: `An elegant minimalist conceptual still seen from just above: a smartphone lying flat on a cool pale grey desk beside a simple open planner and a pen, several soft even highlights suggesting many confirmed appointments in a row, generous negative space, crisp cool light, muted slate palette, premium and quiet. No people, no readable text. ${STYLE}`,
   },
 
-  // Ruby: the human-vs-AI contrast. Warm, premium human scenes AND cool,
-  // minimal after-hours AI concepts so the page shows both sides fairly.
   {
     name: "ruby-human",
     prompt: `A warm, genuine human receptionist at an elegant professional office front desk, a real person mid-conversation wearing a slim discreet headset, smiling softly and naturally, three-quarter angle so the face is soft and not a tight close-up, premium warm walnut desk with brass details and soft lamplight, a subtle plant blurred behind, refined law-office ambiance, authentic and human, warm golden palette. ${STYLE}`,

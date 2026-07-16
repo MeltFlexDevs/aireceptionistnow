@@ -1,12 +1,5 @@
 import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 
-// The tutorial's STRUCTURE only - every word lives in the `tutorial` dictionary
-// group so the guide translates with the rest of the app.
-//
-// Titles and the "where to find it" chip are composed from `nav` (see whereOf),
-// not stored here: the tutorial then names every screen exactly as the sidebar
-// does, in each language, and can't drift when a nav label is reworded.
-
 export type IconKey =
   | "grid"
   | "phone"
@@ -23,13 +16,10 @@ type NavKey = keyof Dictionary["nav"];
 export type SectionKey = keyof Dictionary["tutorial"]["sections"];
 
 export interface GuideSection {
-  /** Anchor + the key into t.tutorial.sections. */
   id: SectionKey;
   icon: IconKey;
   href: string;
-  /** Nav label used as this section's title. */
   navKey: NavKey;
-  /** Sidebar group it sits under; null for screens not in the nav. */
   group: "monitor" | "setup" | null;
   readOnly?: boolean;
 }
@@ -48,7 +38,6 @@ export const SECTIONS: GuideSection[] = [
   { id: "settings", icon: "gear", href: "/dashboard/settings", navKey: "settings", group: "setup" },
 ];
 
-/** The quick-start steps' targets; their copy is t.tutorial.quickStart. */
 export const QUICK_START_HREFS = [
   "/dashboard/organizations",
   "/dashboard/integrations",
@@ -56,7 +45,6 @@ export const QUICK_START_HREFS = [
   "/dashboard/calls",
 ];
 
-/** "Monitor → Calls", localized - or the spelled-out spot for screens off-nav. */
 export function whereOf(section: GuideSection, t: Dictionary): string {
   if (!section.group) return t.tutorial.knowledgeWhere;
   return `${t.nav[section.group]} → ${t.nav[section.navKey]}`;

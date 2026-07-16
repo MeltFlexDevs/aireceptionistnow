@@ -5,22 +5,10 @@ import { pickDemoCallerId } from "@/lib/call-engine/demo-caller";
 import { languageFromPhone } from "@/lib/call-engine/voice/phone-language";
 import { assignedElevenLabsNumberIds, listImportedFreeNumbers } from "@/lib/dashboard/db";
 
-// Public "Talk to our AI now" endpoint: an ElevenLabs Conversational AI agent
-// places an outbound call to the visitor's number and talks to them live.
-// ElevenLabs hosts the real-time voice pipeline, so this runs fine on Vercel
-// serverless - no standalone media server needed.
-
 export const dynamic = "force-dynamic";
 
 const E164 = /^\+[1-9]\d{6,15}$/;
 
-// The demo agent must be fully provisioned (greeting + LLM + voice + multilingual
-// presets) BEFORE a call is placed to it: a half-configured agent ACCEPTS the
-// placement - the phone rings - then drops the call the moment it's answered.
-// Self-provision once per warm instance instead of relying on anyone re-running
-// /api/agent/setup after a deploy. A failure is logged and evicted (next call
-// retries), and the call still goes out WITHOUT a language override - an English
-// greeting beats a dead line.
 let demoAgentReady: Promise<{ agentId: string; multilingual: boolean } | null> | null =
   null;
 function ensureDemoAgent(): Promise<{ agentId: string; multilingual: boolean } | null> {
@@ -39,12 +27,6 @@ function json(body: unknown, status = 200): Response {
   });
 }
 
-/**
- * Load the candidates and pick the line to dial from (see pickDemoCallerId).
- * Deliberately fails CLOSED on a DB error: without the in-use set we can't tell a
- * spare line from a customer's, and a demo that's briefly unavailable beats one
- * that dials out on a real customer's number.
- */
 async function demoCallerNumberId(to: string): Promise<string | null> {
   try {
     const [pool, inUse] = await Promise.all([
@@ -78,17 +60,10 @@ export async function POST(req: NextRequest): Promise<Response> {
   }
 
   try {
-    // Provision-guard the agent, then answer in the language of the selected
-    // country/dial code - but ONLY when the agent is actually multilingual;
-    // overriding to a language the agent lacks is what hangs up on pickup.
-    // Calls from the pool number nearest the visitor's country.
     const [demo, callerNumberId] = await Promise.all([
       ensureDemoAgent(),
       demoCallerNumberId(to),
     ]);
-    // No free line to call from. Refuse instead of letting placeAgentCall fall
-    // back to the env number unchecked - that fallback is what put demo calls on
-    // a customer's line (and in their dashboard) in the first place.
     if (!callerNumberId) {
       console.error("[test-call] no unassigned caller ID available - demo call refused");
       return json(

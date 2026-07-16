@@ -259,7 +259,6 @@ export default function RosieComparePage() {
       <SiteHeader />
 
       <div className="compare-page">
-        {/* ── Hero ── */}
         <section className="compare-hero">
           <div className="compare-hero-inner">
             <div className="compare-hero-left">
@@ -276,7 +275,6 @@ export default function RosieComparePage() {
                 </span>
                 <span className="airn-vs-sep">vs</span>
                 <span className="airn-vs-us">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img className="airn-vs-mark-img" src="/compare/logos/rosie.png" alt="Rosie" />
                   Rosie
                 </span>
@@ -359,7 +357,6 @@ export default function RosieComparePage() {
           </div>
         </section>
 
-        {/* ── Why ── */}
         <section className="compare-why">
           <h2>Why look past Rosie?</h2>
           <p>
@@ -453,7 +450,6 @@ export default function RosieComparePage() {
                 <span className="works-with-label">Works with</span>
                 {INTEGRATION_LOGOS.map((it) => (
                   <span className="works-with-item" key={it.name}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={it.logo} alt={it.name} loading="lazy" />
                     {it.name}
                   </span>
@@ -463,7 +459,6 @@ export default function RosieComparePage() {
             </div>
           </div>
 
-          {/* Product screenshots */}
           <div className="story-strip">
             {SCREENS.map((s) => (
               <figure className="story-fig" key={s.src}>
@@ -473,7 +468,6 @@ export default function RosieComparePage() {
             ))}
           </div>
 
-          {/* Story strip */}
           <div className="story-strip">
             {STORY.map((s) => (
               <figure className="story-fig" key={s.src}>
@@ -484,7 +478,6 @@ export default function RosieComparePage() {
           </div>
         </section>
 
-        {/* ── Main ── */}
         <div className="compare-main">
           <CompareToc items={TOC} />
 
@@ -577,7 +570,6 @@ export default function RosieComparePage() {
               </div>
             </div>
 
-            {/* Section 01: pricing */}
             <section className="compare-section" id="pricing">
               <div className="compare-section-number">Section 01</div>
               <h2>Pricing, side by side</h2>
@@ -621,7 +613,6 @@ export default function RosieComparePage() {
               </div>
             </section>
 
-            {/* Section 02: languages */}
             <section className="compare-section" id="languages">
               <div className="compare-section-number">Section 02</div>
               <h2>Languages &amp; reach</h2>
@@ -657,7 +648,6 @@ export default function RosieComparePage() {
               </div>
             </section>
 
-            {/* Section 03: compliance */}
             <section className="compare-section" id="compliance">
               <div className="compare-section-number">Section 03</div>
               <h2>Compliance &amp; data</h2>
@@ -685,7 +675,6 @@ export default function RosieComparePage() {
               </div>
             </section>
 
-            {/* Section 04: when Rosie wins */}
             <section className="compare-section" id="when-rosie">
               <div className="compare-section-number">Section 04</div>
               <h2>When Rosie is the better call</h2>
@@ -705,7 +694,6 @@ export default function RosieComparePage() {
               </div>
             </section>
 
-            {/* Other alternatives listicle */}
             <section className="compare-section" id="alternatives">
               <div className="compare-section-number">Shortlist</div>
               <h2>Other AI receptionist alternatives</h2>
@@ -725,7 +713,6 @@ export default function RosieComparePage() {
               </div>
             </section>
 
-            {/* Verdict */}
             <section className="compare-section" id="verdict">
               <div className="compare-section-number">Verdict</div>
               <h2>The bottom line</h2>

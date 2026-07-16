@@ -1,5 +1,3 @@
-// Status ball + label. Palette: green = ok, yellow = warning, red = error.
-// Pure presentational server component.
 
 export type StatusTone = "ok" | "warn" | "error";
 
@@ -32,7 +30,6 @@ interface StatusRowProps {
   tone?: StatusTone;
   ok?: boolean;
   label: string;
-  /** Shown when not ok. */
   detail?: string;
 }
 
