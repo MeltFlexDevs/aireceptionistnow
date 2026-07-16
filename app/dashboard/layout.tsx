@@ -6,7 +6,7 @@ import { authConfigured } from "@/lib/supabase/config";
 import { toAppUser, type AppUser } from "@/lib/auth-user";
 import { getAuthClaims } from "@/lib/auth";
 import { I18nProvider } from "@/lib/i18n/client";
-import { getLocale } from "@/lib/i18n/server";
+import { getDictionary, getLocale } from "@/lib/i18n/server";
 
 export const metadata: Metadata = {
   title: "Dashboard - AI Receptionist",
@@ -23,10 +23,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
     user = toAppUser(claims);
   }
 
-  const locale = await getLocale();
+  // cookies() is request-memoized, so these two reads share one lookup.
+  const [locale, dict] = await Promise.all([getLocale(), getDictionary()]);
 
   return (
-    <I18nProvider value={{ locale }}>
+    <I18nProvider value={{ locale, dict }}>
       <div className="dash-bg flex min-h-screen text-neutral-900">
         <Sidebar />
         <div className="flex min-w-0 flex-1 flex-col">

@@ -3,7 +3,20 @@ export function baseLanguage(code: string): string {
   return (code || "").split("-")[0].toLowerCase();
 }
 
+// Default voice: ElevenLabs "Rachel" - a professional-sounding female voice.
+// Voice policy: default to a female voice with a professional tone; the
+// auto-resolvers below rank candidates with voicePreferenceScore.
 export const DEFAULT_VOICE_ID = "21m00Tcm4TlvDq8ikWAM";
+
+const PROFESSIONAL_RE =
+  /\b(professional|business|corporate|formal|polished|news|announcer|articulate|confident|office)\b/i;
+
+// Rank auto-picked voices: professional female > female > professional > rest.
+export function voicePreferenceScore(gender?: string, descriptors?: string): number {
+  const female = (gender ?? "").trim().toLowerCase() === "female" ? 2 : 0;
+  const professional = PROFESSIONAL_RE.test(descriptors ?? "") ? 1 : 0;
+  return female + professional;
+}
 
 export const VOICE_BY_LANGUAGE: Record<string, string> = {
 };
@@ -44,21 +57,30 @@ async function accountVoicesByLanguage(): Promise<Record<string, string>> {
     });
     if (!res.ok) return {};
     const data = (await res.json()) as { voices?: RawVoice[] };
-    const native: Record<string, string> = {};
-    const verified: Record<string, string> = {};
+    // Best-scoring voice per language per tier (female/professional preferred);
+    // ties keep the first seen, so the stable API order stays deterministic.
+    const native: Record<string, { id: string; score: number }> = {};
+    const verified: Record<string, { id: string; score: number }> = {};
     for (const v of data.voices ?? []) {
       if (!v.voice_id) continue;
+      const score = voicePreferenceScore(
+        v.labels?.gender,
+        `${v.labels?.description ?? ""} ${v.labels?.use_case ?? ""}`,
+      );
       if (v.labels?.language) {
         const l = baseLanguage(v.labels.language);
-        if (!native[l]) native[l] = v.voice_id;
+        if (!native[l] || score > native[l].score) native[l] = { id: v.voice_id, score };
       }
       for (const vl of v.verified_languages ?? []) {
         if (!vl.language) continue;
         const l = baseLanguage(vl.language);
-        if (!verified[l]) verified[l] = v.voice_id;
+        if (!verified[l] || score > verified[l].score) verified[l] = { id: v.voice_id, score };
       }
     }
-    return { ...verified, ...native };
+    const out: Record<string, string> = {};
+    for (const [l, v] of Object.entries(verified)) out[l] = v.id;
+    for (const [l, v] of Object.entries(native)) out[l] = v.id;
+    return out;
   } catch {
     return {};
   }
@@ -68,14 +90,39 @@ const XI_API = "https://api.elevenlabs.io";
 
 const importedVoiceCache = new Map<string, Promise<string | null>>();
 
-async function importSharedVoiceForLanguage(base: string, key: string): Promise<string | null> {
-  const q = new URLSearchParams({ language: base, page_size: "1", sort: "trending" });
+interface SharedVoiceHit {
+  public_owner_id?: string;
+  voice_id?: string;
+  name?: string;
+  gender?: string;
+  descriptive?: string;
+  use_case?: string;
+}
+
+async function searchSharedVoices(
+  base: string,
+  key: string,
+  femaleOnly: boolean,
+): Promise<SharedVoiceHit[]> {
+  const q = new URLSearchParams({ language: base, page_size: "12", sort: "trending" });
+  if (femaleOnly) q.set("gender", "female");
   const res = await fetch(`${XI_API}/v1/shared-voices?${q}`, { headers: { "xi-api-key": key } });
-  if (!res.ok) return null;
-  const data = (await res.json()) as {
-    voices?: Array<{ public_owner_id?: string; voice_id?: string; name?: string }>;
-  };
-  const hit = (data.voices ?? [])[0];
+  if (!res.ok) return [];
+  const data = (await res.json()) as { voices?: SharedVoiceHit[] };
+  return (data.voices ?? []).filter((v) => v.public_owner_id && v.voice_id);
+}
+
+async function importSharedVoiceForLanguage(base: string, key: string): Promise<string | null> {
+  // Female voices first (professional-sounding preferred); only when the
+  // language has none, fall back to any voice so the language still works.
+  let hits = await searchSharedVoices(base, key, true);
+  if (hits.length === 0) hits = await searchSharedVoices(base, key, false);
+  if (hits.length === 0) return null;
+  const hit = [...hits].sort(
+    (a, b) =>
+      voicePreferenceScore(b.gender, `${b.descriptive ?? ""} ${b.use_case ?? ""}`) -
+      voicePreferenceScore(a.gender, `${a.descriptive ?? ""} ${a.use_case ?? ""}`),
+  )[0];
   if (!hit?.public_owner_id || !hit.voice_id) return null;
 
   const add = await fetch(`${XI_API}/v1/voices/add/${hit.public_owner_id}/${hit.voice_id}`, {

@@ -1,5 +1,6 @@
 "use server";
 
+import { voicePreferenceScore } from "@/lib/call-engine/voice/catalog";
 import type { VoiceOption } from "./voices";
 
 interface ElevenVoice {
@@ -23,23 +24,31 @@ export async function loadVoices(): Promise<VoiceOption[]> {
     });
     if (!res.ok) return [];
     const data = (await res.json()) as { voices?: ElevenVoice[] };
-    return (data.voices ?? []).map((v) => {
-      const langs = new Set<string>();
-      if (v.labels?.language) langs.add(baseLang(v.labels.language));
-      for (const vl of v.verified_languages ?? []) {
-        if (vl.language) langs.add(baseLang(vl.language));
-      }
-      return {
-        voiceId: v.voice_id,
-        name: v.name,
-        previewUrl: v.preview_url,
-        description: [v.labels?.accent, v.labels?.gender, v.labels?.description, v.category]
-          .filter(Boolean)
-          .join(" · "),
-        languages: langs.size ? [...langs] : undefined,
-        nativeLanguage: v.labels?.language ? baseLang(v.labels.language) : undefined,
-      };
-    });
+    // Female / professional voices first (stable within ties) - the default
+    // voice policy - without hiding the rest of the account list.
+    return (data.voices ?? [])
+      .map((v) => {
+        const langs = new Set<string>();
+        if (v.labels?.language) langs.add(baseLang(v.labels.language));
+        for (const vl of v.verified_languages ?? []) {
+          if (vl.language) langs.add(baseLang(vl.language));
+        }
+        return {
+          option: {
+            voiceId: v.voice_id,
+            name: v.name,
+            previewUrl: v.preview_url,
+            description: [v.labels?.accent, v.labels?.gender, v.labels?.description, v.category]
+              .filter(Boolean)
+              .join(" · "),
+            languages: langs.size ? [...langs] : undefined,
+            nativeLanguage: v.labels?.language ? baseLang(v.labels.language) : undefined,
+          } satisfies VoiceOption,
+          score: voicePreferenceScore(v.labels?.gender, `${v.labels?.description ?? ""} ${v.labels?.use_case ?? ""}`),
+        };
+      })
+      .sort((a, b) => b.score - a.score)
+      .map((v) => v.option);
   } catch {
     return [];
   }
@@ -79,12 +88,17 @@ export async function loadLibraryVoices(language: string): Promise<VoiceOption[]
       library = (data.voices ?? [])
         .filter((v) => v.public_owner_id && v.voice_id && baseLang(v.language ?? v.locale ?? "") === base)
         .map((v) => ({
-          voiceId: `lib:${v.public_owner_id}:${v.voice_id}:${encodeURIComponent(v.name ?? "Voice")}`,
-          name: v.name ?? "Voice",
-          previewUrl: v.preview_url,
-          description: [v.accent, v.gender, v.use_case, v.descriptive].filter(Boolean).join(" · "),
-          languages: [base],
-        }));
+          option: {
+            voiceId: `lib:${v.public_owner_id}:${v.voice_id}:${encodeURIComponent(v.name ?? "Voice")}`,
+            name: v.name ?? "Voice",
+            previewUrl: v.preview_url,
+            description: [v.accent, v.gender, v.use_case, v.descriptive].filter(Boolean).join(" · "),
+            languages: [base],
+          } satisfies VoiceOption,
+          score: voicePreferenceScore(v.gender, `${v.descriptive ?? ""} ${v.use_case ?? ""}`),
+        }))
+        .sort((a, b) => b.score - a.score)
+        .map((v) => v.option);
     }
   } catch {
     // Ignore: any account voices for the language still show.

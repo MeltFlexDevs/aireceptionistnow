@@ -127,20 +127,23 @@ export default async function IntegrationsPage({
   const [{ connected, error }, t] = await Promise.all([searchParams, getDictionary()]);
   const ownerId = (await currentUserId()) ?? undefined;
 
-  let integrations: Integration[] = [];
-  let loadError = "";
-  try {
-    integrations = await listIntegrations(ownerId);
-  } catch (err) {
-    loadError = (err as Error).message;
-  }
+  // Integrations + assistants (CRM usage counts) are independent - fetch together.
+  const [integrationsRes, assistants] = await Promise.all([
+    listIntegrations(ownerId).then(
+      (list) => ({ list, error: "" }),
+      (err: Error) => ({ list: [] as Integration[], error: err.message }),
+    ),
+    listAssistants(ownerId).catch(() => []),
+  ]);
+  const integrations = integrationsRes.list;
+  const loadError = integrationsRes.error;
 
   const calendars = integrations.filter((i) => i.type === "calendar");
   const byProvider = new Map(calendars.map((i) => [i.provider, i]));
   const primaryId = calendars.find((i) => i.enabled)?.id;
 
   const crms = integrations.filter((i) => i.type === "crm");
-  const crmUsage = crmUsageCounts(await listAssistants(ownerId).catch(() => []));
+  const crmUsage = crmUsageCounts(assistants);
 
   return (
     <div className="space-y-6 rise">

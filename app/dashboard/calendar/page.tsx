@@ -75,19 +75,20 @@ export default async function CalendarPage({
   const c = t.calendar;
 
   const ownerId = (await currentUserId()) ?? null;
-  const tz = await ownerTimezone(ownerId);
+  // Timezone + bookings are independent lookups - fetch together.
+  const [tz, bookingsRes] = await Promise.all([
+    ownerTimezone(ownerId),
+    listBookings(ownerId).then(
+      (list) => ({ list, error: "" }),
+      (err: Error) => ({ list: [] as Booking[], error: err.message }),
+    ),
+  ]);
+  const bookings = bookingsRes.list;
+  const loadError = bookingsRes.error;
   const toKey = dayKeyFn(tz);
   const atTime = clockFmt(tz);
   const atFull = timeFmt(tz);
   const todayKey = toKey(new Date());
-
-  let bookings: Booking[] = [];
-  let loadError = "";
-  try {
-    bookings = await listBookings(ownerId);
-  } catch (err) {
-    loadError = (err as Error).message;
-  }
 
   const cursor = parseMonth(month, todayKey);
   const weeks = buildMonthGrid(cursor, todayKey);

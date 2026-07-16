@@ -153,7 +153,10 @@ export async function POST(req: Request): Promise<Response> {
     return json({ error: "temporarily unavailable" }, 500);
   }
 
-  await runPostCall(callId, repo);
+  // Summary + email + CRM push never change this response (runPostCall catches
+  // its own errors), so run them after it - the webhook answers as soon as the
+  // transcript is persisted instead of waiting out a Gemini summarization.
+  after(() => runPostCall(callId, repo));
 
   return json({ ok: true });
 }

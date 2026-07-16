@@ -1,6 +1,6 @@
 import { isSafeHttpsUrl } from "../../net/safe-url";
 import { timedFetch } from "../net";
-import type { BookingRequest, BookingResult } from "../types";
+import type { BookingResult } from "../types";
 import type {
   AvailabilityResult,
   BusyInterval,

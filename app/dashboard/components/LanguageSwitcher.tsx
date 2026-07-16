@@ -21,7 +21,7 @@ export function LanguageSwitcher() {
 
   function choose(code: Locale) {
     setOpen(false);
-    setLocale(code); // instant client swap; cookie + server refresh happen in the background
+    setLocale(code); // persists the cookie, then refreshes so all text switches together
   }
 
   return (

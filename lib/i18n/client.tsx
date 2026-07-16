@@ -1,33 +1,45 @@
 "use client";
 
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import type { Locale } from "./config";
 import type { Dictionary } from "./dictionaries/en";
-import { dictionaries } from "./dictionaries";
 import { setLocaleAction } from "./actions";
 
 interface I18n {
   t: Dictionary;
   locale: Locale;
   setLocale: (code: Locale) => void;
+  /** True while a locale switch is refreshing the page. */
+  pending: boolean;
 }
 
 const Ctx = createContext<I18n | null>(null);
 
-export function I18nProvider({ value, children }: { value: { locale: Locale }; children: ReactNode }) {
+// The server passes ONLY the active locale's dictionary. Bundling all locales
+// client-side (the old approach) shipped ~8 unused dictionaries in the dashboard
+// bundle; a switch now persists the cookie and refreshes, so server + client
+// text update together from the new prop.
+export function I18nProvider({
+  value,
+  children,
+}: {
+  value: { locale: Locale; dict: Dictionary };
+  children: ReactNode;
+}) {
   const router = useRouter();
-  const [locale, setLocale] = useState<Locale>(value.locale);
+  const [pending, startTransition] = useTransition();
 
   function change(code: Locale) {
-    if (code === locale) return;
-    setLocale(code); // instant: every useT() consumer re-renders from the bundled dict
-    // Persist + let server-rendered page bodies catch up, without blocking the switch.
-    setLocaleAction(code).then(() => router.refresh());
+    if (code === value.locale) return;
+    startTransition(async () => {
+      await setLocaleAction(code);
+      router.refresh();
+    });
   }
 
   return (
-    <Ctx.Provider value={{ t: dictionaries[locale], locale, setLocale: change }}>
+    <Ctx.Provider value={{ t: value.dict, locale: value.locale, setLocale: change, pending }}>
       {children}
     </Ctx.Provider>
   );

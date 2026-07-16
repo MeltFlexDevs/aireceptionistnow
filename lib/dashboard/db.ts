@@ -257,7 +257,10 @@ export const listAssistants = cache(async (ownerId?: string | null): Promise<Ass
   return (data ?? []) as Assistant[];
 });
 
-export async function getAssistant(id: string): Promise<Assistant | null> {
+// Request-memoized: the owner guard and the page/action body both read the same
+// assistant, so one query serves the whole request. Writers that need a fresh
+// row post-update (getAssistantSyncContext) run their own query.
+export const getAssistant = cache(async (id: string): Promise<Assistant | null> => {
   const { data, error } = await db()
     .from("assistants")
     .select("*")
@@ -266,7 +269,7 @@ export async function getAssistant(id: string): Promise<Assistant | null> {
     .maybeSingle();
   if (error) throw error;
   return (data as Assistant) ?? null;
-}
+});
 
 export async function createAssistant(
   name: string,
