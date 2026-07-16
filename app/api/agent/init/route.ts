@@ -1,5 +1,9 @@
-import { getRepository } from "@/lib/call-engine/persistence/supabase";
+import { after } from "next/server";
+import { calendarAccessFrom } from "@/lib/call-engine/actions";
+import { cachedConfig } from "@/lib/call-engine/agent/context";
 import { verifyElevenLabsSignature, verifyToolSecret } from "@/lib/call-engine/agent/auth";
+import { prefetchAvailability } from "@/lib/call-engine/integrations/availability";
+import { resolveCalendarsForAccess } from "@/lib/call-engine/integrations/registry";
 import { localizeGreeting } from "@/lib/call-engine/llm/greeting";
 import { voiceForLanguage, baseLanguage } from "@/lib/call-engine/voice/catalog";
 import { languageFromPhone } from "@/lib/call-engine/voice/phone-language";
@@ -67,8 +71,10 @@ export async function POST(req: Request): Promise<Response> {
 
   let config = null;
   try {
+    // Shared cache with the tool routes (15s freshness so a just-saved
+    // greeting is spoken); a slow DB must not stall the greeting.
     config = calledNumber
-      ? await getRepository().resolveInboundNumber(calledNumber)
+      ? await withDeadline(cachedConfig(calledNumber, 15_000), 3000, null)
       : null;
   } catch (err) {
     // A DB hiccup must not 500 the call-start webhook - fall through to defaults.
@@ -77,6 +83,15 @@ export async function POST(req: Request): Promise<Response> {
   // No overrides ⇒ ElevenLabs keeps the agent's configured defaults. Safe fallback.
   if (!config) return json({ type: "conversation_initiation_client_data" });
 
+  // Preload after responding: warm calendar tokens + store busy windows so the
+  // first mid-call availability check answers from one indexed read.
+  const cfg = config;
+  after(() =>
+    prefetchAvailability(
+      resolveCalendarsForAccess(cfg.integrations, calendarAccessFrom(cfg)),
+    ).catch((err) => console.error("[agent/init] calendar prefetch failed", err)),
+  );
+
   const language = config.multilingual ? languageFromPhone(callerId) : null;
   console.log("[agent/init]", {
     called: calledNumber,
@@ -84,14 +99,28 @@ export async function POST(req: Request): Promise<Response> {
     language: language ?? "(agent default)",
     multilingual: config.multilingual,
   });
-  const pinnedVoices =
-    (config.routing as { voiceByLanguage?: Record<string, string> })?.voiceByLanguage ?? {};
-  const pinnedVoice = language ? (pinnedVoices[baseLanguage(language)] ?? "").trim() : "";
+  const routing = (config.routing ?? {}) as {
+    voiceByLanguage?: Record<string, string>;
+    autoVoiceByLanguage?: Record<string, string>;
+    greetingByLanguage?: Record<string, string>;
+  };
+  const base = language ? baseLanguage(language) : "";
+  const fromMap = (m?: Record<string, string>) =>
+    language && m ? ((m[language] ?? m[base]) || "").trim() : "";
+  // Sync precomputes per-language voices and greeting translations at save
+  // time; live Gemini/voice-catalog lookups are cold-path fallbacks only.
+  const storedVoice = fromMap(routing.voiceByLanguage) || fromMap(routing.autoVoiceByLanguage);
+  const storedGreeting =
+    routing.greetingByLanguage?._source === config.greeting
+      ? fromMap(routing.greetingByLanguage)
+      : "";
   const [firstMessage, voiceId] = language
     ? await Promise.all([
-        withDeadline(localizeGreeting(config.greeting, language), OVERRIDE_BUDGET_MS, config.greeting),
-        pinnedVoice
-          ? Promise.resolve(pinnedVoice)
+        storedGreeting
+          ? Promise.resolve(storedGreeting)
+          : withDeadline(localizeGreeting(config.greeting, language), OVERRIDE_BUDGET_MS, config.greeting),
+        storedVoice
+          ? Promise.resolve(storedVoice)
           : withDeadline(voiceForLanguage(language, config.voiceId, true), OVERRIDE_BUDGET_MS, config.voiceId),
       ])
     : [config.greeting, null];

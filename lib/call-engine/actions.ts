@@ -1,4 +1,6 @@
+import { after } from "next/server";
 import { checkAvailability } from "./integrations/availability";
+import { clearSnapshot } from "./integrations/snapshot-store";
 import {
   resolveCalendarById,
   resolveCalendarsForAccess,
@@ -107,7 +109,10 @@ export async function bookAppointmentAction(
 
   const readable = resolveCalendarsForAccess(ctx.config.integrations, access);
   if (readable.length > 0) {
-    const check = await checkAvailability(readable, req.startTime, req.endTime).catch(() => null);
+    // The pre-write double-book guard must see live data, never a snapshot.
+    const check = await checkAvailability(readable, req.startTime, req.endTime, {
+      fresh: true,
+    }).catch(() => null);
     if (check?.ok && !check.requestedFree) {
       return "That time was just taken. Apologize briefly and offer the caller a different time - never say what else is scheduled.";
     }
@@ -122,6 +127,11 @@ export async function bookAppointmentAction(
       `[actions] book_appointment failed for call ${ctx.callId} on ${resolved.integrationId}: ${result.error ?? "unknown"}`,
     );
   }
+  // The event changed the calendar - drop the cached busy window before
+  // replying so no later check can read the pre-booking snapshot.
+  if (result.ok) await clearSnapshot(resolved.integrationId);
+  // The dashboard (and cancel flow) reads this row - it must land before we
+  // tell the caller the booking is confirmed.
   await repo.recordAction(
     ctx.callId,
     {
@@ -150,12 +160,10 @@ export async function takeMessageAction(
     message: clip(input.message, 1000),
     urgency: clip(input.urgency, 20),
   };
-  await repo.recordAction(ctx.callId, {
-    type: "message",
-    status: "done",
-    payload,
-  });
-  await alertOwner(ctx, payload);
+  // The insert IS the saved message - it must land before we claim success.
+  // Only the best-effort SMS alert (up to 3s) runs after the response.
+  await repo.recordAction(ctx.callId, { type: "message", status: "done", payload });
+  after(() => alertOwner(ctx, payload));
   return "Got it - I've saved your message.";
 }
 

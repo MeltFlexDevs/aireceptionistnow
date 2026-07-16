@@ -1,6 +1,6 @@
 import type { BookingRequest, BookingResult } from "../types";
 import { timedFetch } from "../net";
-import { cachedAccessToken, persistAccessToken } from "./token-store";
+import { cachedAccessToken, persistAccessToken, storedTokenUsable } from "./token-store";
 import type {
   AvailabilityQuery,
   AvailabilityResult,
@@ -36,28 +36,41 @@ function zoneOffset(date: string, timeZone: string): string {
   }
 }
 
-async function refreshAccessToken(cfg: GoogleConfig): Promise<string | null> {
-  if (!cfg.refresh_token || !cfg.client_id || !cfg.client_secret) return null;
+const inflightRefresh = new Map<string, Promise<string | null>>();
+
+function refreshAccessToken(cfg: GoogleConfig): Promise<string | null> {
+  const key = cfg.refresh_token;
+  if (!key || !cfg.client_id || !cfg.client_secret) return Promise.resolve(null);
+  const pending = inflightRefresh.get(key);
+  if (pending) return pending;
+  const exchange = doRefresh(cfg).finally(() => inflightRefresh.delete(key));
+  inflightRefresh.set(key, exchange);
+  return exchange;
+}
+
+async function doRefresh(cfg: GoogleConfig): Promise<string | null> {
   const res = await timedFetch(cfg.token_uri ?? "https://oauth2.googleapis.com/token", {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
       grant_type: "refresh_token",
-      refresh_token: cfg.refresh_token,
-      client_id: cfg.client_id,
-      client_secret: cfg.client_secret,
+      refresh_token: cfg.refresh_token!,
+      client_id: cfg.client_id!,
+      client_secret: cfg.client_secret!,
     }),
   });
   if (!res.ok) return null;
-  const json = (await res.json()) as { access_token?: string };
+  const json = (await res.json()) as { access_token?: string; expires_in?: number };
   const token = json.access_token ?? null;
-  if (token) void persistAccessToken(cfg as Record<string, unknown>, token);
+  if (token) void persistAccessToken(cfg as Record<string, unknown>, token, undefined, json.expires_in);
   return token;
 }
 
 export const createGoogleCalendar: CalendarFactory = (config): CalendarProvider => {
   const cfg = config as GoogleConfig;
-  const storedToken = () => cachedAccessToken(cfg.refresh_token) ?? cfg.access_token ?? null;
+  const storedToken = () =>
+    cachedAccessToken(cfg.refresh_token) ??
+    (storedTokenUsable(config) ? (cfg.access_token ?? null) : null);
 
   const post = (token: string, req: BookingRequest) =>
     timedFetch(

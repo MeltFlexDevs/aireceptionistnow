@@ -104,7 +104,16 @@ export async function updateAssistantAction(formData: FormData): Promise<void> {
     if (formData.get(`crm_target_${c.id}`) === "on") crmTargets.push({ integrationId: c.id });
   }
 
+  // Preserve keys the sync precomputes (greeting translations, auto voices) -
+  // the form doesn't carry them, and wiping them re-pays ~25 Gemini calls per save.
+  const prevRouting = ((await getAssistant(id).catch(() => null))?.routing ?? {}) as Record<
+    string,
+    unknown
+  >;
   const routing: Record<string, unknown> = {};
+  if (prevRouting.greetingByLanguage) routing.greetingByLanguage = prevRouting.greetingByLanguage;
+  if (prevRouting.autoVoiceByLanguage)
+    routing.autoVoiceByLanguage = prevRouting.autoVoiceByLanguage;
   if (transferTo) {
     routing.transferTo = transferTo;
     routing.smsAlerts = formData.get("sms_alerts") === "on";
@@ -172,6 +181,8 @@ export async function updateAssistantAction(formData: FormData): Promise<void> {
     redirect(`/dashboard/assistant/${id}?error=${encodeURIComponent((err as Error).message)}`);
   }
 
+  // Sync stays awaited: rapid saves must serialize (last write wins on the
+  // live agent) and failures must reach the user, not a server log.
   try {
     await syncAssistantAgent(id);
   } catch (err) {
@@ -283,8 +294,8 @@ export async function toggleAssistantEnabledAction(formData: FormData): Promise<
   } catch (err) {
     redirect(`/dashboard/assistant?error=${encodeURIComponent((err as Error).message)}`);
   }
+  // No redirect: the toggle is optimistic client-side; revalidate is enough.
   revalidatePath("/dashboard/assistant");
-  redirect("/dashboard/assistant");
 }
 
 export async function testCallAction(formData: FormData): Promise<void> {

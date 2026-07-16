@@ -54,7 +54,7 @@ export default async function SettingsPage({
 
   return (
     <div className="space-y-6 rise">
-      <PageHeader title={s.title} description={s.description} />
+      <PageHeader title={s.title} />
 
       {saved && (
         <div className="shape-pill border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm text-emerald-700">

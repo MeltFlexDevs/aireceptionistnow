@@ -115,7 +115,6 @@ export default async function CalendarPage({
     <div className="space-y-6 rise">
       <PageHeader
         title={c.title}
-        description={c.description}
         action={
           <div className="flex items-center gap-2">
             <Link
@@ -210,7 +209,7 @@ export default async function CalendarPage({
         </div>
       </SectionCard>
 
-      <SectionCard title={c.detailsTitle} subtitle={c.detailsSub}>
+      <SectionCard title={c.detailsTitle}>
         {inMonth.length === 0 ? (
           <div className="flex flex-col items-center gap-2 py-8 text-center">
             <Calendar className="h-6 w-6 text-neutral-300" />

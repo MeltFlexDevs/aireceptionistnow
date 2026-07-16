@@ -17,7 +17,7 @@ export default async function AssistantsPage({
 
   return (
     <div className="rise space-y-6">
-      <PageHeader title={t.assistants.title} description={t.nav.assistantsHint} />
+      <PageHeader title={t.assistants.title} />
 
       {error && (
         <div className="shape-pill border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm text-rose-700">

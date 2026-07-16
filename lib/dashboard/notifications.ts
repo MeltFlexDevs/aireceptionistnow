@@ -1,6 +1,6 @@
 import "server-only";
 
-import { ensureBusinessId, getOwnedNumbers } from "./db";
+import { getOwnedNumbers } from "./db";
 import { serviceClient } from "./supabase";
 
 export interface NotificationItem {
@@ -38,19 +38,15 @@ export async function getNotifications(
   ownerId?: string | null,
   limit = 8,
 ): Promise<NotificationItem[]> {
-  const businessId = await ensureBusinessId();
-
   // Scope to the user's assistants' numbers. [] = owns none → no notifications.
-  let numberIds: string[] | undefined;
-  if (ownerId) {
-    numberIds = (await getOwnedNumbers(ownerId)).map((n) => n.id);
-    if (numberIds.length === 0) return [];
-  }
+  const numberIds = ownerId
+    ? (await getOwnedNumbers(ownerId)).map((n) => n.id)
+    : undefined;
+  if (numberIds && numberIds.length === 0) return [];
 
   let query = serviceClient()
     .from("calls")
     .select("id,started_at,duration_seconds,status,outcome,from_number")
-    .eq("business_id", businessId)
     .order("started_at", { ascending: false })
     .limit(limit);
   if (numberIds) query = query.in("phone_number_id", numberIds);

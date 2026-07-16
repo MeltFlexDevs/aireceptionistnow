@@ -29,7 +29,7 @@ export default async function NumbersPage({
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t.numbers.title} description={t.numbers.description} />
+      <PageHeader title={t.numbers.title} />
 
       {(error || loadError) && (
         <div className="rise rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">

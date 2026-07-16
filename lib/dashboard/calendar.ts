@@ -1,4 +1,3 @@
-import { ensureBusinessId } from "./db";
 import { serviceClient } from "./supabase";
 import { assistantName, str } from "./calls/embed";
 
@@ -31,7 +30,7 @@ export interface Booking {
 
 const SELECT =
   "id,status,external_id,payload,error,created_at," +
-  "call:calls!inner(id,from_number,business_id,owner_id,assistant:assistants!assistant_id(name))," +
+  "call:calls!inner(id,from_number,owner_id,assistant:assistants!assistant_id(name))," +
   "integration:integrations(provider)";
 
 function one(v: unknown): Record<string, unknown> | null {
@@ -64,12 +63,10 @@ export async function listBookings(
   ownerId?: string | null,
   limit = 500,
 ): Promise<Booking[]> {
-  const businessId = await ensureBusinessId();
   let query = serviceClient()
     .from("call_actions")
     .select(SELECT)
-    .eq("type", "booking")
-    .eq("call.business_id", businessId);
+    .eq("type", "booking");
   if (ownerId) {
     query = query.or(`owner_id.eq.${ownerId},owner_id.is.null`, {
       referencedTable: "call",

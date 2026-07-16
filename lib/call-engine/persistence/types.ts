@@ -7,7 +7,6 @@ import type {
 } from "../types";
 
 export interface CreateCallInput {
-  businessId: string;
   numberId: string;
   callSid: string;
   from: string;
@@ -16,7 +15,6 @@ export interface CreateCallInput {
 
 export interface AgentCallInput {
   conversationId: string;
-  businessId: string;
   numberId: string;
   from: string;
   to: string;

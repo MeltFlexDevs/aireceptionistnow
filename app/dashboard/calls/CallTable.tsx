@@ -1,33 +1,19 @@
 "use client";
 
 import type { CSSProperties } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { CallLogRow } from "@/lib/dashboard/calls";
 import { formatPhone } from "@/lib/call-engine/voice/phone-language";
-import { ArrowDown, ArrowUp } from "../icons";
 import { statusTone } from "./status";
 import { useT } from "@/lib/i18n/client";
 
-function Direction({ direction }: { direction: string }) {
-  const t = useT();
-  const outbound = direction === "outbound";
+function FromTo({ row, href }: { row: CallLogRow; href?: string | null }) {
+  const label = row.from ? formatPhone(row.from) : "Unknown";
   return (
-    <span className="inline-flex items-center gap-1.5 text-neutral-600">
-      <span
-        className={`inline-flex h-5 w-5 items-center justify-center rounded-full ${outbound ? "bg-neutral-100 text-neutral-900" : "bg-neutral-100 text-neutral-700"}`}
-      >
-        {outbound ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
-      </span>
-      {outbound ? t.calls.outbound : t.calls.inbound}
-    </span>
-  );
-}
-
-function FromTo({ row }: { row: CallLogRow }) {
-  return (
-    <div className="transition-transform duration-150 group-hover:translate-x-0.5">
-      <div className="font-medium text-neutral-900">{row.from ? formatPhone(row.from) : "Unknown"}</div>
-      <div className="text-xs text-neutral-400">→ {row.to ? formatPhone(row.to) : "-"}</div>
+    <div className="font-medium text-neutral-900 transition-transform duration-150 group-hover:translate-x-0.5">
+      {/* A real link so Next prefetches the detail route on hover/viewport. */}
+      {href ? <Link href={href} onClick={(e) => e.stopPropagation()}>{label}</Link> : label}
     </div>
   );
 }
@@ -62,7 +48,6 @@ export function CallTable({ rows }: { rows: CallLogRow[] }) {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-neutral-100 text-left text-xs font-medium uppercase tracking-wide text-neutral-400">
-              <th className="pb-3 pr-4 font-medium">{t.calls.colDirection}</th>
               <th className="pb-3 pr-4 font-medium">{t.calls.colFromTo}</th>
               <th className="pb-3 pr-4 font-medium">{t.calls.colAssistant}</th>
               <th className="pb-3 pr-4 font-medium">{t.calls.colStatus}</th>
@@ -87,10 +72,7 @@ export function CallTable({ rows }: { rows: CallLogRow[] }) {
                   }`}
                 >
                   <td className="py-3 pr-4">
-                    <Direction direction={c.direction} />
-                  </td>
-                  <td className="py-3 pr-4">
-                    <FromTo row={c} />
+                    <FromTo row={c} href={href} />
                   </td>
                   <td className="py-3 pr-4 text-neutral-500">{c.assistant ?? "-"}</td>
                   <td className="py-3 pr-4">
@@ -121,11 +103,8 @@ export function CallTable({ rows }: { rows: CallLogRow[] }) {
                 }`}
               >
                 <div className="flex items-center justify-between gap-2">
-                  <Direction direction={c.direction} />
+                  <FromTo row={c} href={href} />
                   <span className="whitespace-nowrap text-xs text-neutral-400">{c.dateLabel}</span>
-                </div>
-                <div className="mt-3">
-                  <FromTo row={c} />
                 </div>
                 <div className="mt-3 flex items-center justify-between gap-2">
                   <div className="flex flex-wrap items-center">

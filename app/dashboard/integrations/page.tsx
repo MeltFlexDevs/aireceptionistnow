@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { currentUserId } from "@/lib/auth";
 import { listAssistants, listIntegrations, type Integration } from "@/lib/dashboard/db";
-import { isOAuthConfigured, oauthMissingEnv } from "@/lib/dashboard/oauth";
+import { isOAuthConfigured } from "@/lib/dashboard/oauth";
 import { resolveCalendarById } from "@/lib/call-engine/integrations/registry";
 import type { IntegrationConfig } from "@/lib/call-engine/types";
 import { ChevronDown, Plug } from "../icons";
@@ -111,24 +111,21 @@ function CredentialForm({ def }: { def: CalendarProviderDef }) {
 }
 
 // Live credential check: exercises the same code path calls use (token + refresh
-// for Google/Outlook, event-type lookup for Cal.com). Streams in via Suspense.
-async function CredentialStatus({ integration }: { integration: Integration }) {
+// for Google/Outlook, event-type lookup for Cal.com). Renders only on failure.
+async function probeCalendar(integration: Integration) {
   const resolved = resolveCalendarById([integration as IntegrationConfig], integration.id);
   const probe = resolved?.provider.getBusy;
   if (!probe) return null;
   const now = Date.now();
-  const res = await probe({
+  return probe({
     timeMin: new Date(now).toISOString(),
     timeMax: new Date(now + 60 * 60 * 1000).toISOString(),
   }).catch((err: Error) => ({ ok: false, busy: [], error: err.message }));
-  if (res.ok) {
-    return (
-      <p className="inline-flex items-center gap-1.5 text-xs text-emerald-600">
-        <StatusDot tone="ok" />
-        API key working - live check passed.
-      </p>
-    );
-  }
+}
+
+async function CredentialStatus({ integration }: { integration: Integration }) {
+  const res = await probeCalendar(integration);
+  if (!res || res.ok) return null;
   const invalid = /not authorized|401|403|invalid/i.test(res.error ?? "");
   return (
     <p className="text-xs text-rose-600">
@@ -178,7 +175,7 @@ export default async function IntegrationsPage({
 
   return (
     <div className="space-y-6 rise">
-      <PageHeader title={t.integrations.title} description={t.integrations.description} />
+      <PageHeader title={t.integrations.title} />
 
       {connected && (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
@@ -195,7 +192,6 @@ export default async function IntegrationsPage({
         {CALENDAR_PROVIDERS.map((def) => {
           const conn = byProvider.get(def.id);
           const oauthReady = def.oauth ? isOAuthConfigured(def.id) : false;
-          const missingEnv = def.oauth && !oauthReady ? oauthMissingEnv(def.id) : [];
           const needsSetup = Boolean(def.oauth && !oauthReady && !conn);
           const isPrimary = Boolean(conn && primaryId && conn.id === primaryId);
           const summary = def.fields
@@ -249,9 +245,7 @@ export default async function IntegrationsPage({
 
               {conn ? (
                 <div className="mt-4 space-y-3">
-                  <Suspense
-                    fallback={<p className="text-xs text-neutral-400">Checking API key…</p>}
-                  >
+                  <Suspense fallback={null}>
                     <CredentialStatus integration={conn} />
                   </Suspense>
                   {summary.length > 0 && (
@@ -270,14 +264,6 @@ export default async function IntegrationsPage({
                 </div>
               ) : (
                 <div className="mt-4 space-y-3">
-                  {missingEnv.length > 0 && (
-                    <p className="text-xs text-rose-600">
-                      Missing server key{missingEnv.length === 1 ? "" : "s"}:{" "}
-                      <span className="font-mono">{missingEnv.join(", ")}</span> - add{" "}
-                      {missingEnv.length === 1 ? "it" : "them"} to the server environment and
-                      redeploy.
-                    </p>
-                  )}
                   {def.oauth && oauthReady && (
                     <a
                       href={`/api/integrations/${def.id}/connect`}

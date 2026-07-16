@@ -47,7 +47,7 @@ export default async function CallsPage({ searchParams }: { searchParams: Search
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t.calls.title} description={t.calls.description} />
+      <PageHeader title={t.calls.title} />
       <CallFilters q={filters.q} status={filters.status} />
 
       <Suspense key={`${filters.q}|${filters.status}`} fallback={<CallLogSkeleton />}>
@@ -89,9 +89,9 @@ async function CallLogBody({ filters, t }: { filters: Filters; t: Dictionary }) 
           <p className="mt-4 text-sm font-medium text-neutral-900">
             {filtered ? t.calls.emptyFilteredTitle : t.calls.emptyTitle}
           </p>
-          <p className="mt-1 max-w-sm text-sm text-neutral-500">
-            {filtered ? t.calls.emptyFilteredBody : t.calls.emptyBody}
-          </p>
+          {filtered && (
+            <p className="mt-1 max-w-sm text-sm text-neutral-500">{t.calls.emptyFilteredBody}</p>
+          )}
         </div>
       ) : (
         <CallTable rows={log.rows} />

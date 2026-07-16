@@ -4,7 +4,7 @@ import { currentUserId } from "@/lib/auth";
 import {
   connectedCalendarCount,
   getAiKnowledge,
-  summarizeOrgKnowledge,
+  summarizeOrgKnowledgeCached,
   type OrgKnowledge,
 } from "@/lib/dashboard/ai-knowledge";
 import { languageName } from "@/lib/call-engine/voice/phone-language";
@@ -37,7 +37,7 @@ function Row({ label, value, href, cta }: { label: string; value: string; href?:
 }
 
 async function OrgSummary({ entry }: { entry: OrgKnowledge }) {
-  const summary = await summarizeOrgKnowledge(entry);
+  const summary = await summarizeOrgKnowledgeCached(entry);
   if (!summary) {
     return (
       <p className="text-sm text-neutral-400">
@@ -62,7 +62,6 @@ export default async function KnowledgePage() {
     <div className="space-y-6 rise">
       <PageHeader
         title="What your AI knows about you"
-        description="Everything your assistants read before they answer. This is the whole picture - if it's not here, they don't know it."
       />
 
       <SectionCard

@@ -21,18 +21,17 @@ export async function getCallDetail(
   const ownerId = (str(c.owner_id) || null) ?? assistantOwnerId(c);
   if (viewerId && ownerId !== viewerId) return null;
 
-  const [turnsRes, actionsRes] = await Promise.all([
+  // sid and ownerId are known after the first query - fetch the rest together.
+  const sid = str(c.twilio_call_sid);
+  const [turnsRes, actionsRes, tw, tz] = await Promise.all([
     sb.from("call_turns").select("id,role,text,ts_ms").eq("call_id", id).order("id", { ascending: true }),
     sb.from("call_actions").select("id,type,status,payload,error").eq("call_id", id).order("created_at", { ascending: true }),
+    sid ? fetchTwilioCall(sid).catch(() => null) : Promise.resolve(null),
+    ownerTimezone(ownerId),
   ]);
-
-  const sid = str(c.twilio_call_sid);
-  const tw = sid ? await fetchTwilioCall(sid).catch(() => null) : null;
   const status = tw?.status || str(c.status);
   const durationSec = tw?.durationSec ?? num(c.duration_seconds);
   const date = tw?.date || str(c.started_at);
-
-  const tz = await ownerTimezone(ownerId);
   const atFmt = clockSecFmt(tz);
   const startMs = Date.parse(date);
   const turns: CallTurn[] = (turnsRes.data ?? []).map((t) => {

@@ -1,5 +1,6 @@
 "use server";
 
+import { unstable_cache } from "next/cache";
 import { voicePreferenceScore } from "@/lib/call-engine/voice/catalog";
 import type { VoiceOption } from "./voices";
 
@@ -14,15 +15,26 @@ interface ElevenVoice {
 
 const baseLang = (code: string): string => code.split("-")[0].toLowerCase();
 
+// Voice catalogs change rarely - cache across requests so mounting a voice
+// picker doesn't hit ElevenLabs every time. Failures throw inside the cached
+// function so an empty error fallback is never cached for 10 minutes.
+const loadVoicesCached = unstable_cache(loadVoicesLive, ["eleven-account-voices"], {
+  revalidate: 600,
+});
+
 export async function loadVoices(): Promise<VoiceOption[]> {
+  return loadVoicesCached().catch(() => []);
+}
+
+async function loadVoicesLive(): Promise<VoiceOption[]> {
   const key = process.env.ELEVENLABS_API_KEY;
   if (!key) return [];
-  try {
-    const res = await fetch("https://api.elevenlabs.io/v1/voices", {
-      headers: { "xi-api-key": key },
-      cache: "no-store",
-    });
-    if (!res.ok) return [];
+  const res = await fetch("https://api.elevenlabs.io/v1/voices", {
+    headers: { "xi-api-key": key },
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error(`elevenlabs voices ${res.status}`);
+  {
     const data = (await res.json()) as { voices?: ElevenVoice[] };
     // Female / professional voices first (stable within ties) - the default
     // voice policy - without hiding the rest of the account list.
@@ -49,8 +61,6 @@ export async function loadVoices(): Promise<VoiceOption[]> {
       })
       .sort((a, b) => b.score - a.score)
       .map((v) => v.option);
-  } catch {
-    return [];
   }
 }
 
@@ -68,22 +78,34 @@ interface SharedVoice {
   locale?: string;
 }
 
+const loadLibraryVoicesCached = unstable_cache(
+  loadLibraryVoicesLive,
+  ["eleven-library-voices"],
+  { revalidate: 600 },
+);
+
 export async function loadLibraryVoices(language: string): Promise<VoiceOption[]> {
+  // On a library failure fall back to (uncached-on-failure) account voices.
+  return loadLibraryVoicesCached(language).catch(() => loadVoices());
+}
+
+async function loadLibraryVoicesLive(language: string): Promise<VoiceOption[]> {
   const base = language.split("-")[0].toLowerCase();
   if (!base) return loadVoices();
   const key = process.env.ELEVENLABS_API_KEY;
   if (!key) return [];
 
-  const account = (await loadVoices()).filter((v) => v.nativeLanguage === base);
+  const account = (await loadVoicesLive()).filter((v) => v.nativeLanguage === base);
 
   let library: VoiceOption[] = [];
-  try {
+  {
     const q = new URLSearchParams({ language: base, page_size: "40", sort: "trending" });
     const res = await fetch(`https://api.elevenlabs.io/v1/shared-voices?${q}`, {
       headers: { "xi-api-key": key },
       cache: "no-store",
     });
-    if (res.ok) {
+    if (!res.ok) throw new Error(`elevenlabs shared-voices ${res.status}`);
+    {
       const data = (await res.json()) as { voices?: SharedVoice[] };
       library = (data.voices ?? [])
         .filter((v) => v.public_owner_id && v.voice_id && baseLang(v.language ?? v.locale ?? "") === base)
@@ -100,8 +122,6 @@ export async function loadLibraryVoices(language: string): Promise<VoiceOption[]
         .sort((a, b) => b.score - a.score)
         .map((v) => v.option);
     }
-  } catch {
-    // Ignore: any account voices for the language still show.
   }
 
   return [...account, ...library];

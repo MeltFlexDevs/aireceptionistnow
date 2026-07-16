@@ -1,10 +1,23 @@
 import Link from "next/link";
 import type { Summary } from "@/lib/dashboard/analytics";
 import { formatPhone } from "@/lib/call-engine/voice/phone-language";
-import { getDictionary } from "@/lib/i18n/server";
+import { translateTexts } from "@/lib/dashboard/translate";
+import { getDictionary, getLocale } from "@/lib/i18n/server";
+import { TranslatedText } from "./TranslatedText";
 
-export async function CallSummaries({ items }: { items: Summary[] }) {
+// translate=false renders instantly (Suspense fallback while the cached
+// translation streams in).
+export async function CallSummaries({
+  items,
+  translate = true,
+}: {
+  items: Summary[];
+  translate?: boolean;
+}) {
   const t = await getDictionary();
+  const texts = items.map((s) => s.text);
+  const translated = translate ? await translateTexts(texts, await getLocale()) : texts;
+  const labels = { showOriginal: t.data.showOriginal, showTranslation: t.data.showTranslation };
   return (
     <ul className="space-y-4">
       {items.map((s, i) => (
@@ -20,7 +33,14 @@ export async function CallSummaries({ items }: { items: Summary[] }) {
               {s.time}
             </span>
           </div>
-          <p className="mt-1 text-sm leading-relaxed text-neutral-600">{s.text}</p>
+          <div className="mt-1">
+            <TranslatedText
+              original={s.text}
+              translated={translated[i]}
+              labels={labels}
+              className="text-sm leading-relaxed text-neutral-600"
+            />
+          </div>
           <div className="mt-2 flex flex-wrap gap-1.5">
             {s.tags.map((tag) => (
               <span key={tag} className="rounded-md bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-500">

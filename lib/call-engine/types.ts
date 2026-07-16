@@ -35,7 +35,6 @@ export interface IntegrationConfig {
 
 export interface NumberConfig {
   numberId: string;
-  businessId: string;
   businessName: string;
   label: string; // Home | Work | Organization | Personal ...
   e164: string;

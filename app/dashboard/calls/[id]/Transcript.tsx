@@ -1,44 +1,46 @@
 import type { CallTurn } from "@/lib/dashboard/calls";
-import { getDictionary } from "@/lib/i18n/server";
+import { translateTexts } from "@/lib/dashboard/translate";
+import { getDictionary, getLocale } from "@/lib/i18n/server";
+import { TranscriptView } from "./TranscriptView";
 
 function elapsed(ms: number): string {
   const s = Math.max(0, Math.round(ms / 1000));
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 }
 
-export async function Transcript({ turns }: { turns: CallTurn[] }) {
+// translate=false renders instantly (used as the Suspense fallback while the
+// cached translation streams in).
+export async function Transcript({
+  turns,
+  translate = true,
+}: {
+  turns: CallTurn[];
+  translate?: boolean;
+}) {
   const t = await getDictionary();
   if (turns.length === 0) {
     return <p className="text-sm text-neutral-500">{t.data.noTranscript}</p>;
   }
+  const texts = turns.map((turn) => turn.text);
+  const translated = translate ? await translateTexts(texts, await getLocale()) : texts;
+  const hasTranslation = translated.some((s, i) => s.trim() !== texts[i].trim());
   return (
-    <ol className="space-y-4">
-      {turns.map((turn) => {
-        const caller = turn.role === "caller";
-        return (
-          <li key={turn.id} className={`flex ${caller ? "justify-start" : "justify-end"}`}>
-            <div className={`max-w-[80%] ${caller ? "" : "text-right"}`}>
-              <div className="mb-1 flex items-center gap-2 text-[11px] text-neutral-400">
-                <span className="font-medium uppercase tracking-wide">
-                  {caller ? t.data.talkCaller : t.data.talkAi}
-                </span>
-                {turn.atLabel && (
-                  <span className="tabular-nums" title={`${elapsed(turn.tsMs)} into the call`}>
-                    {turn.atLabel}
-                  </span>
-                )}
-              </div>
-              <div
-                className={`inline-block rounded-2xl px-3.5 py-2 text-sm leading-relaxed ${
-                  caller ? "bg-neutral-100 text-neutral-800" : "bg-neutral-900 text-white"
-                }`}
-              >
-                {turn.text}
-              </div>
-            </div>
-          </li>
-        );
-      })}
-    </ol>
+    <TranscriptView
+      turns={turns.map((turn, i) => ({
+        id: turn.id,
+        caller: turn.role === "caller",
+        text: turn.text,
+        translated: translated[i],
+        atLabel: turn.atLabel,
+        elapsedTitle: `${elapsed(turn.tsMs)} into the call`,
+      }))}
+      hasTranslation={hasTranslation}
+      labels={{
+        caller: t.data.talkCaller,
+        ai: t.data.talkAi,
+        showOriginal: t.data.showOriginal,
+        showTranslation: t.data.showTranslation,
+      }}
+    />
   );
 }

@@ -16,7 +16,7 @@ export default async function OrganizationsPage({
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t.organizations.title} description={t.organizations.description} />
+      <PageHeader title={t.organizations.title} />
 
       {error && (
         <div className="rise shape-pill border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm text-rose-700">

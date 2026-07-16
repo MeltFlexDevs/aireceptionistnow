@@ -49,7 +49,6 @@ export default async function OverviewPage() {
     <div className="space-y-6">
       <PageHeader
         title={t.overview.title}
-        description={t.overview.description}
         action={
           <Link
             href="/dashboard/assistant"
@@ -148,7 +147,9 @@ async function OverviewBody({ t }: { t: Dictionary }) {
         </SectionCard>
         <SectionCard title={o.aiSummaries} subtitle={o.aiSummariesSub}>
           {data.summaries.length > 0 ? (
-            <CallSummaries items={data.summaries} />
+            <Suspense fallback={<CallSummaries items={data.summaries} translate={false} />}>
+              <CallSummaries items={data.summaries} />
+            </Suspense>
           ) : (
             <p className="text-sm text-neutral-500">{o.noSummaries}</p>
           )}

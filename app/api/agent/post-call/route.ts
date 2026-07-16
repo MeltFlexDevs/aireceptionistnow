@@ -123,7 +123,6 @@ export async function POST(req: Request): Promise<Response> {
     if (!config) return json({ error: "unknown number" }, 404);
     callId = await repo.getOrCreateAgentCall({
       conversationId,
-      businessId: config.businessId,
       numberId: config.numberId,
       from: fromNumber,
       to: toNumber,

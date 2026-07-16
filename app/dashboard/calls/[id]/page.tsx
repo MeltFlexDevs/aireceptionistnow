@@ -1,9 +1,13 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getCallDetail } from "@/lib/dashboard/calls";
 import { formatPhone } from "@/lib/call-engine/voice/phone-language";
 import { currentUserId } from "@/lib/auth";
+import { translateText } from "@/lib/dashboard/translate";
+import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { BackLink } from "../../components/BackLink";
 import { SectionCard } from "../../components/SectionCard";
+import { TranslatedText } from "../../components/TranslatedText";
 import { ArrowDown, ArrowUp } from "../../icons";
 import { statusTone } from "../status";
 import { ActionItems } from "./ActionItems";
@@ -19,6 +23,23 @@ const SENTIMENT_TONE: Record<string, string> = {
   neutral: "bg-neutral-100 text-neutral-700",
   negative: "bg-rose-50 text-rose-700",
 };
+
+const summaryCls = "text-sm leading-relaxed text-neutral-600";
+
+async function TranslatedSummary({ text }: { text: string }) {
+  const [t, translated] = await Promise.all([
+    getDictionary(),
+    translateText(text, await getLocale()),
+  ]);
+  return (
+    <TranslatedText
+      original={text}
+      translated={translated}
+      labels={{ showOriginal: t.data.showOriginal, showTranslation: t.data.showTranslation }}
+      className={summaryCls}
+    />
+  );
+}
 
 function Meta({ label, value }: { label: string; value: string }) {
   return (
@@ -109,13 +130,22 @@ export default async function CallDetailPage({ params }: { params: Promise<{ id:
             subtitle={`${call.turns.length} turn${call.turns.length === 1 ? "" : "s"}`}
             action={<ReportIssue callId={call.id} />}
           >
-            <Transcript turns={call.turns} />
+            {/* Original renders instantly; the cached translation streams in. */}
+            <Suspense fallback={<Transcript turns={call.turns} translate={false} />}>
+              <Transcript turns={call.turns} />
+            </Suspense>
           </SectionCard>
         </div>
 
         <div className="space-y-4">
           <SectionCard title="AI summary">
-            <p className="text-sm leading-relaxed text-neutral-600">{summaryText}</p>
+            {call.summary ? (
+              <Suspense fallback={<p className={summaryCls}>{call.summary}</p>}>
+                <TranslatedSummary text={call.summary} />
+              </Suspense>
+            ) : (
+              <p className={summaryCls}>{summaryText}</p>
+            )}
           </SectionCard>
           <SectionCard title="Actions" subtitle="What the assistant did">
             <ActionItems actions={call.actions} />

@@ -51,23 +51,33 @@ async function doRefresh(cfg: CalcomConfig): Promise<string | null> {
   const json = (await res.json()) as {
     access_token?: string;
     refresh_token?: string;
+    expires_in?: number;
     data?: {
       access_token?: string;
       refresh_token?: string;
       accessToken?: string;
       refreshToken?: string;
+      expires_in?: number;
     };
   };
   const token = json.access_token ?? json.data?.access_token ?? json.data?.accessToken ?? null;
   const rotated = json.refresh_token ?? json.data?.refresh_token ?? json.data?.refreshToken;
   if (token) {
-    await persistAccessToken(
-      cfg as Record<string, unknown>,
-      token,
+    const rotatedNew =
       typeof rotated === "string" && rotated && rotated !== cfg.refresh_token
         ? rotated
-        : undefined,
+        : undefined;
+    const persist = persistAccessToken(
+      cfg as Record<string, unknown>,
+      token,
+      rotatedNew,
+      json.expires_in ?? json.data?.expires_in,
     );
+    // Cal.com rotates refresh tokens: losing the write-back would brick the
+    // integration, so a rotation must be durable before we continue. A plain
+    // re-issued access token is best-effort.
+    if (rotatedNew) await persist;
+    else void persist;
     if (typeof rotated === "string" && rotated) cfg.refresh_token = rotated;
   }
   return token;

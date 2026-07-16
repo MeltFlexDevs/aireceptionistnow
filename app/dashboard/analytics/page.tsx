@@ -1,4 +1,4 @@
-import { getAnalytics, getAssistantStats } from "@/lib/dashboard/analytics";
+import { getAnalyticsCached, getAssistantStatsCached } from "@/lib/dashboard/analytics";
 import { listAssistants } from "@/lib/dashboard/db";
 import { listOrganizations } from "@/lib/dashboard/organizations";
 import { currentUserId } from "@/lib/auth";
@@ -39,8 +39,8 @@ export default async function AnalyticsPage({
   ]);
   const a = t.analytics;
 
-  let data: Awaited<ReturnType<typeof getAnalytics>> | null = null;
-  let assistants: Awaited<ReturnType<typeof getAssistantStats>> = [];
+  let data: Awaited<ReturnType<typeof getAnalyticsCached>> | null = null;
+  let assistants: Awaited<ReturnType<typeof getAssistantStatsCached>> = [];
   let assistantList: { id: string; name: string }[] = [];
   let orgList: { id: string; name: string }[] = [];
   let loadError = "";
@@ -62,26 +62,16 @@ export default async function AnalyticsPage({
       assistantParam && inScope.some((a) => a.id === assistantParam) ? assistantParam : "";
 
     [data, assistants] = await Promise.all([
-      getAnalytics(ownerId, selectedId || undefined, selectedOrg || undefined),
-      getAssistantStats(ownerId, 30, selectedOrg || undefined),
+      getAnalyticsCached(ownerId, selectedId || undefined, selectedOrg || undefined),
+      getAssistantStatsCached(ownerId, 30, selectedOrg || undefined),
     ]);
   } catch (err) {
     loadError = (err as Error).message;
   }
 
-  const selectedName = assistantList.find((a) => a.id === selectedId)?.name;
-  const selectedOrgName = orgList.find((o) => o.id === selectedOrg)?.name;
-
-  const scopeLabel = selectedName
-    ? `${selectedName}. Last 30 days.`
-    : selectedOrgName
-      ? `${selectedOrgName}. All assistants, last 30 days.`
-      : a.allAssistants;
-
   const header = (
     <PageHeader
       title={a.title}
-      description={scopeLabel}
       action={
         <>
           {orgList.length > 0 && (

@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { getGemini } from "../call-engine/llm/gemini";
 import { getEnv } from "../call-engine/env";
 import { accountKnowledgeNotes, getAccountSettings, type AccountSettings } from "./account";
@@ -84,6 +85,28 @@ const SUMMARY_SYSTEM = [
   "No preamble, no headings, no bullet points, no markdown.",
 ].join(" ");
 
+// One Gemini call per org per knowledge revision, not per page view: keyed by
+// a content checksum so edits regenerate and repeat views hit the cache.
+// Failures throw inside the cached function (nothing cached) and resolve to
+// null only outside it.
+export function summarizeOrgKnowledgeCached(entry: OrgKnowledge): Promise<string | null> {
+  const content = JSON.stringify([
+    entry.org.name ?? "",
+    entry.org.description ?? "",
+    entry.org.knowledge ?? {},
+  ]);
+  let h = 0;
+  for (let i = 0; i < content.length; i++) h = (h * 31 + content.charCodeAt(i)) | 0;
+  return unstable_cache(
+    () => summarizeOrgKnowledge(entry),
+    ["org-knowledge-summary", entry.org.id, String(h)],
+    { revalidate: 24 * 3600 },
+  )().catch((err) => {
+    console.error(`[ai-knowledge] summary failed for org ${entry.org.id}`, err);
+    return null;
+  });
+}
+
 export async function summarizeOrgKnowledge(entry: OrgKnowledge): Promise<string | null> {
   const markdown = renderKnowledgeMarkdown(entry.org.knowledge);
   const description = entry.org.description?.trim() ?? "";
@@ -97,21 +120,17 @@ export async function summarizeOrgKnowledge(entry: OrgKnowledge): Promise<string
     .filter(Boolean)
     .join("\n\n");
 
-  try {
-    const res = await getGemini().models.generateContent({
-      model: getEnv().GEMINI_MODEL,
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      config: {
-        systemInstruction: SUMMARY_SYSTEM,
-        maxOutputTokens: 300,
-        thinkingConfig: { thinkingBudget: 0 },
-      },
-    });
-    return (res.text ?? "").trim() || null;
-  } catch (err) {
-    console.error(`[ai-knowledge] summary failed for org ${entry.org.id}`, err);
-    return null;
-  }
+  // Throws on failure so the cached wrapper never stores an error fallback.
+  const res = await getGemini().models.generateContent({
+    model: getEnv().GEMINI_MODEL,
+    contents: [{ role: "user", parts: [{ text: prompt }] }],
+    config: {
+      systemInstruction: SUMMARY_SYSTEM,
+      maxOutputTokens: 300,
+      thinkingConfig: { thinkingBudget: 0 },
+    },
+  });
+  return (res.text ?? "").trim() || null;
 }
 
 const SOURCE_SUMMARY_SYSTEM = [

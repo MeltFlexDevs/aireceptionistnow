@@ -41,9 +41,7 @@ export class SupabaseCallRepository implements CallRepository {
   async resolveInboundNumber(toE164: string): Promise<NumberConfig | null> {
     const { data: num, error } = await db()
       .from("phone_numbers")
-      .select(
-        "*, assistant:assistants(*, business:businesses(id, name), organization:organizations(knowledge))",
-      )
+      .select("*, assistant:assistants(*, organization:organizations(name, knowledge))")
       .eq("e164", toE164)
       .eq("enabled", true)
       .is("deleted_at", null)
@@ -52,58 +50,46 @@ export class SupabaseCallRepository implements CallRepository {
     if (!num) return null;
 
     const cfg = (num.assistant as Record<string, unknown> | null) ?? {};
-    const cfgBiz = (cfg.business as { id?: string; name?: string } | null) ?? null;
-    const cfgOrg = (cfg.organization as { knowledge?: Record<string, unknown> } | null) ?? null;
-    let businessId = cfgBiz?.id ? String(cfgBiz.id) : "";
-    let businessName = cfgBiz?.name ?? "our business";
-    if (!businessId) {
-      const { data: bizList } = await db()
-        .from("businesses")
-        .select("id, name")
-        .order("created_at", { ascending: true })
-        .limit(2);
-      if (!bizList || bizList.length !== 1) {
-        console.error(
-          "[resolve] number has no linked business and tenancy is ambiguous; refusing",
-          toE164,
-        );
-        return null;
-      }
-      businessId = String(bizList[0].id);
-      businessName = (bizList[0].name as string) ?? businessName;
-    }
+    const cfgOrg =
+      (cfg.organization as { name?: string; knowledge?: Record<string, unknown> } | null) ?? null;
 
     const ownerId = cfg.owner_id ? String(cfg.owner_id) : "";
 
-    let integrationsQuery = db()
-      .from("integrations")
-      .select("*")
-      .eq("business_id", businessId)
-      .eq("enabled", true);
+    let integrationsQuery = db().from("integrations").select("*").eq("enabled", true);
     if (ownerId) {
       integrationsQuery = integrationsQuery.or(`owner_id.eq.${ownerId},owner_id.is.null`);
     }
-    const { data: integrations } = await integrationsQuery;
+    // Both queries depend only on the first lookup - run them together.
+    const [{ data: integrations }, acctRes] = await Promise.all([
+      integrationsQuery,
+      ownerId
+        ? db()
+            .from("account_settings")
+            .select("share_with_assistants, full_name, role, company, about, dashboard_locale")
+            .eq("user_id", ownerId)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
+    ]);
 
     let knowledge: Record<string, unknown> = cfgOrg?.knowledge
       ? mergeKnowledge(cfg.knowledge as Record<string, unknown>, cfgOrg.knowledge)
       : ((cfg.knowledge as Record<string, unknown>) ?? {});
 
     let ownerLocale = "";
+    let ownerCompany = "";
     if (ownerId) {
-      const { data: acct } = await db()
-        .from("account_settings")
-        .select("*")
-        .eq("user_id", ownerId)
-        .maybeSingle();
+      const acct = acctRes.data;
       const ownerNotes = accountKnowledgeNotes(acct as AccountSettings | null);
       if (ownerNotes) knowledge = mergeKnowledge(knowledge, { notes: ownerNotes });
       ownerLocale = String((acct as Record<string, unknown> | null)?.dashboard_locale ?? "");
+      ownerCompany = String((acct as Record<string, unknown> | null)?.company ?? "").trim();
     }
+
+    // Business identity: the assistant's organization, else the owner's company.
+    const businessName = (cfgOrg?.name ?? "").trim() || ownerCompany || "our business";
 
     return {
       numberId: String(num.id),
-      businessId,
       businessName,
       label: String(cfg.name ?? businessName),
       e164: String(num.e164),
@@ -123,7 +109,6 @@ export class SupabaseCallRepository implements CallRepository {
     const { data, error } = await db()
       .from("calls")
       .insert({
-        business_id: input.businessId,
         phone_number_id: input.numberId,
         twilio_call_sid: input.callSid,
         from_number: input.from,
@@ -140,14 +125,11 @@ export class SupabaseCallRepository implements CallRepository {
   async getOrCreateAgentCall(input: AgentCallInput): Promise<string> {
     const existing = await db()
       .from("calls")
-      .select("id, business_id, direction")
+      .select("id, direction")
       .eq("elevenlabs_conversation_id", input.conversationId)
       .maybeSingle();
     if (existing.error) throw existing.error;
     if (existing.data) {
-      if (String(existing.data.business_id) !== input.businessId) {
-        throw new Error("conversation/business mismatch");
-      }
       const id = String(existing.data.id);
       if (input.direction && existing.data.direction !== input.direction) {
         const { error } = await db()
@@ -162,7 +144,6 @@ export class SupabaseCallRepository implements CallRepository {
     const insert = await db()
       .from("calls")
       .insert({
-        business_id: input.businessId,
         phone_number_id: input.numberId,
         elevenlabs_conversation_id: input.conversationId,
         from_number: input.from,

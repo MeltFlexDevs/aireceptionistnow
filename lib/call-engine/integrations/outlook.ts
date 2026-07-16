@@ -1,6 +1,6 @@
 import type { BookingRequest, BookingResult } from "../types";
 import { timedFetch } from "../net";
-import { cachedAccessToken, persistAccessToken } from "./token-store";
+import { cachedAccessToken, persistAccessToken, storedTokenUsable } from "./token-store";
 import type { CalendarFactory, CalendarProvider, CancelResult } from "./types";
 
 interface OutlookConfig {
@@ -12,29 +12,57 @@ interface OutlookConfig {
   calendar_id?: string;
 }
 
-async function refreshAccessToken(cfg: OutlookConfig): Promise<string | null> {
-  if (!cfg.refresh_token || !cfg.client_id || !cfg.client_secret) return null;
+const inflightRefresh = new Map<string, Promise<string | null>>();
+
+function refreshAccessToken(cfg: OutlookConfig): Promise<string | null> {
+  const key = cfg.refresh_token;
+  if (!key || !cfg.client_id || !cfg.client_secret) return Promise.resolve(null);
+  const pending = inflightRefresh.get(key);
+  if (pending) return pending;
+  const exchange = doRefresh(cfg).finally(() => inflightRefresh.delete(key));
+  inflightRefresh.set(key, exchange);
+  return exchange;
+}
+
+async function doRefresh(cfg: OutlookConfig): Promise<string | null> {
   const tenant = cfg.tenant || "common";
   const res = await timedFetch(`https://login.microsoftonline.com/${tenant}/oauth2/v2.0/token`, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
       grant_type: "refresh_token",
-      refresh_token: cfg.refresh_token,
-      client_id: cfg.client_id,
-      client_secret: cfg.client_secret,
+      refresh_token: cfg.refresh_token!,
+      client_id: cfg.client_id!,
+      client_secret: cfg.client_secret!,
       scope: "https://graph.microsoft.com/Calendars.ReadWrite offline_access",
     }),
   });
   if (!res.ok) return null;
-  const json = (await res.json()) as { access_token?: string };
+  const json = (await res.json()) as {
+    access_token?: string;
+    refresh_token?: string;
+    expires_in?: number;
+  };
   const token = json.access_token ?? null;
-  if (token) persistAccessToken(cfg as Record<string, unknown>, token);
+  // Microsoft rotates refresh tokens - persist the new one or it eventually dies.
+  const rotated =
+    json.refresh_token && json.refresh_token !== cfg.refresh_token ? json.refresh_token : undefined;
+  if (token) {
+    const persist = persistAccessToken(cfg as Record<string, unknown>, token, rotated, json.expires_in);
+    // A rotation must be durable before we continue; a re-issued access token
+    // is best-effort.
+    if (rotated) await persist;
+    else void persist;
+    if (rotated) cfg.refresh_token = rotated;
+  }
   return token;
 }
 
 export const createOutlookCalendar: CalendarFactory = (config): CalendarProvider => {
   const cfg = config as OutlookConfig;
+  const storedToken = () =>
+    cachedAccessToken(cfg.refresh_token) ??
+    (storedTokenUsable(config) ? (cfg.access_token ?? null) : null);
 
   const post = (token: string, req: BookingRequest) => {
     const calendarId = req.calendarId || cfg.calendar_id;
@@ -58,7 +86,7 @@ export const createOutlookCalendar: CalendarFactory = (config): CalendarProvider
       if (!Number.isFinite(Date.parse(req.startTime)) || !Number.isFinite(Date.parse(req.endTime))) {
         return { ok: false, error: "invalid start/end time" };
       }
-      let token = cachedAccessToken(cfg.refresh_token) ?? cfg.access_token ?? null;
+      let token = storedToken();
       let res = token ? await post(token, req) : null;
       if (!res || res.status === 401) {
         token = await refreshAccessToken(cfg);
@@ -77,7 +105,7 @@ export const createOutlookCalendar: CalendarFactory = (config): CalendarProvider
           method: "DELETE",
           headers: { authorization: `Bearer ${token}` },
         });
-      let token = cachedAccessToken(cfg.refresh_token) ?? cfg.access_token ?? null;
+      let token = storedToken();
       let res = token ? await del(token) : null;
       if (!res || res.status === 401) {
         token = await refreshAccessToken(cfg);

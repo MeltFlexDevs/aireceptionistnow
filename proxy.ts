@@ -7,7 +7,7 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|webmanifest)$).*)",
-  ],
+  // Auth is only enforced (and consumed) under /dashboard - marketing pages
+  // shouldn't pay a Supabase session check per request.
+  matcher: ["/dashboard/:path*"],
 };

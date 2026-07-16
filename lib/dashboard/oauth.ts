@@ -89,17 +89,6 @@ export function isOAuthConfigured(id: string): boolean {
   return Boolean(PROVIDERS[id] && creds(id) && baseUrl());
 }
 
-export function oauthMissingEnv(id: string): string[] {
-  const def = PROVIDERS[id];
-  if (!def) return [];
-  const missing: string[] = [];
-  if (!process.env[`${def.envPrefix}_OAUTH_CLIENT_ID`]) missing.push(`${def.envPrefix}_OAUTH_CLIENT_ID`);
-  if (!process.env[`${def.envPrefix}_OAUTH_CLIENT_SECRET`])
-    missing.push(`${def.envPrefix}_OAUTH_CLIENT_SECRET`);
-  if (!baseUrl()) missing.push("APP_BASE_URL");
-  return missing;
-}
-
 export function redirectUri(id: string): string {
   return `${baseUrl()}/api/integrations/${id}/callback`;
 }

@@ -11,7 +11,6 @@ type NavKey = keyof Dictionary["nav"];
 interface NavItem {
   href: string;
   label: string;
-  hint: string;
   Icon: (props: { className?: string }) => React.ReactElement;
 }
 
@@ -20,29 +19,29 @@ interface NavGroup {
   items: NavItem[];
 }
 
-const NAV: { titleKey: NavKey; items: { href: string; label: NavKey; hint: NavKey; Icon: NavItem["Icon"] }[] }[] = [
+const NAV: { titleKey: NavKey; items: { href: string; label: NavKey; Icon: NavItem["Icon"] }[] }[] = [
   {
     titleKey: "monitor",
     items: [
-      { href: "/dashboard", label: "overview", hint: "overviewHint", Icon: Grid },
-      { href: "/dashboard/calls", label: "calls", hint: "callsHint", Icon: Phone },
-      { href: "/dashboard/calendar", label: "calendar", hint: "calendarHint", Icon: Calendar },
-      { href: "/dashboard/analytics", label: "analytics", hint: "analyticsHint", Icon: ChartBar },
+      { href: "/dashboard", label: "overview", Icon: Grid },
+      { href: "/dashboard/calls", label: "calls", Icon: Phone },
+      { href: "/dashboard/calendar", label: "calendar", Icon: Calendar },
+      { href: "/dashboard/analytics", label: "analytics", Icon: ChartBar },
     ],
   },
   {
     titleKey: "setup",
     items: [
-      { href: "/dashboard/organizations", label: "organizations", hint: "organizationsHint", Icon: Building },
-      { href: "/dashboard/assistant", label: "assistants", hint: "assistantsHint", Icon: Bot },
-      { href: "/dashboard/numbers", label: "numbers", hint: "numbersHint", Icon: Hash },
-      { href: "/dashboard/integrations", label: "integrations", hint: "integrationsHint", Icon: Plug },
+      { href: "/dashboard/organizations", label: "organizations", Icon: Building },
+      { href: "/dashboard/assistant", label: "assistants", Icon: Bot },
+      { href: "/dashboard/numbers", label: "numbers", Icon: Hash },
+      { href: "/dashboard/integrations", label: "integrations", Icon: Plug },
     ],
   },
 ];
 
-const FOOTER: { href: string; label: NavKey; hint: NavKey; Icon: NavItem["Icon"] }[] = [
-  { href: "/dashboard/settings", label: "settings", hint: "settingsHint", Icon: Gear },
+const FOOTER: { href: string; label: NavKey; Icon: NavItem["Icon"] }[] = [
+  { href: "/dashboard/settings", label: "settings", Icon: Gear },
 ];
 
 function isActive(pathname: string, href: string): boolean {
@@ -63,16 +62,7 @@ function NavLink({ item, active }: { item: NavItem; active: boolean }) {
         <span className="absolute -left-4 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-neutral-800" />
       )}
       <item.Icon className="h-[18px] w-[18px] shrink-0" />
-      <span className="min-w-0">
-        <span className="block text-sm font-medium leading-tight">{item.label}</span>
-        <span
-          className={`block truncate text-[11px] leading-tight ${
-            active ? "text-neutral-300" : "text-neutral-400"
-          }`}
-        >
-          {item.hint}
-        </span>
-      </span>
+      <span className="min-w-0 truncate text-sm font-medium leading-tight">{item.label}</span>
     </Link>
   );
 }
@@ -94,12 +84,11 @@ export function DashboardNav() {
 
   const groups: NavGroup[] = NAV.map((g) => ({
     title: nav[g.titleKey],
-    items: g.items.map((i) => ({ href: i.href, label: nav[i.label], hint: nav[i.hint], Icon: i.Icon })),
+    items: g.items.map((i) => ({ href: i.href, label: nav[i.label], Icon: i.Icon })),
   }));
   const footer: NavItem[] = FOOTER.map((i) => ({
     href: i.href,
     label: nav[i.label],
-    hint: nav[i.hint],
     Icon: i.Icon,
   }));
 

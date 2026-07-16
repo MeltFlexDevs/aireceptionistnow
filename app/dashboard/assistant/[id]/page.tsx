@@ -54,7 +54,7 @@ export default async function AssistantSettingsPage({
   const ownerId = await currentUserId();
   if (ownerId && assistant.owner_id && assistant.owner_id !== ownerId) notFound();
 
-  const [org, integrations, number, twilio, planCtx] = await Promise.all([
+  const [org, integrations, number, twilio, planCtx, allNumbers] = await Promise.all([
     assistant.organization_id
       ? getOrganization(assistant.organization_id).catch(() => null)
       : Promise.resolve(null),
@@ -64,6 +64,7 @@ export default async function AssistantSettingsPage({
     getAssistantNumber(assistant.id).catch(() => null),
     getTwilioStatus(),
     getPlanContextCached(ownerId).catch(() => null),
+    listNumbers().catch(() => [] as Awaited<ReturnType<typeof listNumbers>>),
   ]);
   const calendars = integrations.filter((i) => i.type === "calendar");
   const crms = integrations.filter((i) => i.type === "crm");
@@ -96,12 +97,9 @@ export default async function AssistantSettingsPage({
     return [{ code: base, name: l.name, flag: l.flag }];
   });
 
-  let availableNumbers = 0;
-  if (!number) {
-    availableNumbers = await listNumbers()
-      .then((all) => all.filter((n) => !n.assistant_id && n.enabled && n.twilio_sid).length)
-      .catch(() => 0);
-  }
+  const availableNumbers = number
+    ? 0
+    : allNumbers.filter((n) => !n.assistant_id && n.enabled && n.twilio_sid).length;
   const twilioTone: StatusTone = twilio.ok ? "ok" : twilio.configured ? "error" : "warn";
   const country = number ? countryFromPhone(number.e164) : null;
   const credits = planCtx?.limits.minutesIncluded ?? 1000;
@@ -110,7 +108,6 @@ export default async function AssistantSettingsPage({
     <div className="rise space-y-6">
       <PageHeader
         title={assistant.name}
-        description="Its number, organization, role, and how it sounds on calls."
         back={{ href: "/dashboard/assistant", label: "Assistants" }}
       />
 
@@ -140,7 +137,7 @@ export default async function AssistantSettingsPage({
         </div>
       )}
 
-      <SectionCard title="Phone number" subtitle="The number callers dial to reach this assistant.">
+      <SectionCard title="Phone number">
         {number ? (
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">
@@ -176,7 +173,6 @@ export default async function AssistantSettingsPage({
 
       <SectionCard
         title="Organization"
-        subtitle="The company whose shared knowledge this assistant uses on calls."
       >
         {org ? (
           <div className="flex items-center justify-between gap-3">
@@ -206,7 +202,7 @@ export default async function AssistantSettingsPage({
 
         <Tabs labels={["Settings", "Advanced"]}>
         <div className="space-y-6">
-        <SectionCard title="Basics" subtitle="Name, greeting, voice, and language.">
+        <SectionCard title="Basics">
           <div className="space-y-4">
             <div>
               <label htmlFor="name" className={labelCls}>Name</label>
@@ -229,7 +225,6 @@ export default async function AssistantSettingsPage({
 
         <SectionCard
           title="Role"
-          subtitle={org ? `Its job within ${org.name}, and how it handles calls.` : "Its job, and how it handles calls."}
         >
           <textarea
             id="system_prompt"
@@ -245,7 +240,7 @@ export default async function AssistantSettingsPage({
           </p>
         </SectionCard>
 
-        <SectionCard title="Calls and alerts" subtitle="Forward important calls and get message texts.">
+        <SectionCard title="Calls and alerts">
           <div className="space-y-4">
             <div>
               <label htmlFor="transfer_to" className={labelCls}>{t.assistants.personalNumber}</label>
@@ -270,7 +265,7 @@ export default async function AssistantSettingsPage({
           </div>
         </SectionCard>
 
-        <SectionCard title="Calendar access" subtitle="Read = check availability only. Write = also book here.">
+        <SectionCard title="Calendar access">
           {calendars.length === 0 ? (
             <p className="text-sm text-neutral-500">
               No calendars connected yet.{" "}
@@ -304,7 +299,7 @@ export default async function AssistantSettingsPage({
         </div>
 
         <div className="space-y-6">
-        <SectionCard title="Voice options" subtitle="Speaking speed, stability, and a specific voice per language.">
+        <SectionCard title="Voice options">
           <AdvancedVoiceSettings
             defaultSpeed={typeof voiceCfg.speed === "number" ? voiceCfg.speed : 1}
             defaultStability={typeof voiceCfg.stability === "number" ? voiceCfg.stability : 0.5}
@@ -313,7 +308,7 @@ export default async function AssistantSettingsPage({
           />
         </SectionCard>
 
-        <SectionCard title="Email transcripts" subtitle="Email a recap and full transcript after each call.">
+        <SectionCard title="Email transcripts">
           <div className="space-y-3">
             <label className={toggleRow}>
               <span>

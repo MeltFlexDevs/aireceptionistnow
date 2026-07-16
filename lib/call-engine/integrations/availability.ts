@@ -1,11 +1,18 @@
 import { INTEGRATION_TIMEOUT_MS, withDeadline } from "../net";
 import type { ResolvedCalendar } from "./registry";
+import {
+  SNAPSHOT_FRESH_MS,
+  readSnapshots,
+  writeSnapshot,
+  type BusySnapshot,
+} from "./snapshot-store";
 import type { BusyInterval } from "./types";
 
 const DAY_START_HOUR = 8;
 const DAY_END_HOUR = 20;
 const SLOT_STEP_MIN = 30;
 const SEARCH_DAYS = 3;
+const PREFETCH_DAYS = 7;
 const MAX_ALTERNATIVES = 3;
 
 export interface AvailabilityAnswer {
@@ -66,6 +73,7 @@ export async function checkAvailability(
   calendars: ResolvedCalendar[],
   startIso: string,
   endIso: string,
+  opts: { fresh?: boolean } = {},
 ): Promise<AvailabilityAnswer> {
   const startMs = Date.parse(startIso);
   const endMs = Date.parse(endIso);
@@ -87,8 +95,26 @@ export async function checkAvailability(
   const timeMin = new Date(Math.min(startMs, Date.now())).toISOString();
   const timeMax = new Date(startMs + SEARCH_DAYS * 24 * 60 * 60 * 1000).toISOString();
 
+  // Snapshots prefetched at call start (or written by a check seconds ago)
+  // answer without a live provider round trip; anything uncovered reads live.
+  // opts.fresh (the booking double-book guard) always reads live.
+  const snapshots = opts.fresh
+    ? new Map<string, BusySnapshot>()
+    : await withDeadline(
+        readSnapshots(readable.map((c) => c.integrationId)),
+        1500,
+        new Map<string, BusySnapshot>(),
+      );
+  const now = Date.now();
+  const covers = (s: BusySnapshot) =>
+    now - s.fetchedAt < SNAPSHOT_FRESH_MS &&
+    Date.parse(s.timeMin) <= Date.parse(timeMin) &&
+    Date.parse(s.timeMax) >= Date.parse(timeMax);
+
   const results = await Promise.all(
-    readable.map((c) => {
+    readable.map(async (c) => {
+      const snap = snapshots.get(c.integrationId);
+      if (snap && covers(snap)) return { ok: true, busy: snap.busy };
       const read = c.provider
         .getBusy!({ timeMin, timeMax })
         .catch((err: Error) => ({
@@ -96,11 +122,17 @@ export async function checkAvailability(
           busy: [] as BusyInterval[],
           error: err?.message ?? "threw",
         }));
-      return withDeadline(read, INTEGRATION_TIMEOUT_MS, {
+      const res = await withDeadline(read, INTEGRATION_TIMEOUT_MS, {
         ok: false,
         busy: [] as BusyInterval[],
         error: "timeout",
       });
+      // Keep the shared snapshot warm for later checks - but never from the
+      // booking guard, whose write could land after the post-booking clear.
+      if (res.ok && !opts.fresh) {
+        void writeSnapshot(c.integrationId, { timeMin, timeMax, busy: res.busy });
+      }
+      return res;
     }),
   );
   if (results.every((r) => !r.ok)) {
@@ -134,4 +166,27 @@ export async function checkAvailability(
   }
 
   return { ok: true, requestedFree, alternatives };
+}
+
+// Fired from /api/agent/init via after(): warms OAuth tokens and stores each
+// calendar's busy window so mid-call checks answer from one indexed read.
+export async function prefetchAvailability(calendars: ResolvedCalendar[]): Promise<void> {
+  const readable = calendars.filter((c) => typeof c.provider.getBusy === "function");
+  if (readable.length === 0) return;
+  const timeMin = new Date().toISOString();
+  const timeMax = new Date(Date.now() + PREFETCH_DAYS * 24 * 60 * 60 * 1000).toISOString();
+  await Promise.all(
+    readable.map(async (c) => {
+      const read = await withDeadline(
+        c.provider.getBusy!({ timeMin, timeMax }).catch((err: Error) => ({
+          ok: false,
+          busy: [] as BusyInterval[],
+          error: err?.message ?? "threw",
+        })),
+        INTEGRATION_TIMEOUT_MS,
+        { ok: false, busy: [] as BusyInterval[], error: "timeout" },
+      );
+      if (read.ok) await writeSnapshot(c.integrationId, { timeMin, timeMax, busy: read.busy });
+    }),
+  );
 }

@@ -4,10 +4,12 @@ import {
   getAssistantNumber,
   getAssistantSyncContext,
   setAssistantAgent,
+  updateAssistantRouting,
   type AgentKbDoc,
   type AgentTool,
   type Assistant,
 } from "../../dashboard/db";
+import { localizeGreeting } from "../llm/greeting";
 import { MAX_SOURCE_CHARS, type AssistantKnowledge } from "../../knowledge/sources";
 import { ELEVENLABS_LANGUAGES, SUPPORTED_LANGUAGES } from "../voice/phone-language";
 import { DEFAULT_VOICE_ID, voiceForLanguage } from "../voice/catalog";
@@ -178,6 +180,8 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
   const voiceOpts = (assistant.routing ?? {}) as {
     voice?: { speed?: number; stability?: number };
     voiceByLanguage?: Record<string, string>;
+    autoVoiceByLanguage?: Record<string, string>;
+    greetingByLanguage?: Record<string, string>;
   };
   const userVoiceByLang = voiceOpts.voiceByLanguage ?? {};
   const baseTts: ElevenLabs.TtsConversationalConfigOutput = {
@@ -192,14 +196,26 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
   );
   const languagePresets: Record<string, ElevenLabs.LanguagePresetOutput> = {};
   const languagePresetsPlain: Record<string, ElevenLabs.LanguagePresetOutput> = {};
+  // Precompute what /api/agent/init needs at call start, so no live LLM or
+  // voice-catalog work ever blocks a caller's greeting: per-language voices and
+  // greeting translations, persisted on routing below. Translations are reused
+  // as long as the greeting text is unchanged.
+  const prevGreetings = voiceOpts.greetingByLanguage ?? {};
+  const greetingUnchanged = prevGreetings._source === firstMessage;
+  const greetingByLanguage: Record<string, string> = { _source: firstMessage };
+  const autoVoiceByLanguage: Record<string, string> = {};
   await Promise.all(
     extraLanguages.map(async (l) => {
       // Operator's pinned voice for this language wins; otherwise auto-resolve one.
       const override = (userVoiceByLang[l] ?? "").trim();
       const presetVoice = override || (await voiceForLanguage(l, voiceId));
+      if (!override && presetVoice !== voiceId) autoVoiceByLanguage[l] = presetVoice;
       languagePresets[l] =
         presetVoice === voiceId ? { overrides: {} } : { overrides: { tts: { voiceId: presetVoice } } };
       languagePresetsPlain[l] = { overrides: {} };
+      const prev = greetingUnchanged ? (prevGreetings[l] ?? "").trim() : "";
+      const translated = prev || (await localizeGreeting(firstMessage, l).catch(() => ""));
+      if (translated && translated !== firstMessage) greetingByLanguage[l] = translated;
     }),
   );
 
@@ -323,6 +339,18 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
   }
 
   await setAssistantAgent(assistantId, agentId, docs, tools, multilingual);
+
+  const routingPatchChanged =
+    JSON.stringify(voiceOpts.greetingByLanguage ?? {}) !== JSON.stringify(greetingByLanguage) ||
+    JSON.stringify(voiceOpts.autoVoiceByLanguage ?? {}) !== JSON.stringify(autoVoiceByLanguage);
+  if (routingPatchChanged) {
+    await updateAssistantRouting(assistantId, {
+      greetingByLanguage,
+      autoVoiceByLanguage,
+    }).catch((err) =>
+      console.error("[agent-sync] persisting precomputed greetings/voices failed", err),
+    );
+  }
 
   await ensureInitWebhook();
 

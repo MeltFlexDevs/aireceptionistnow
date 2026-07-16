@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { unstable_cache } from "next/cache";
-import { ensureBusinessId, getOwnedNumbers } from "./db";
+import { getOwnedNumbers } from "./db";
 import { serviceClient } from "./supabase";
 import { dayKeyFn, ownerTimezone, timeFmt } from "./timezone";
 import { countryFromPhone, flagEmoji } from "../call-engine/voice/phone-language";
@@ -204,16 +204,16 @@ interface CallScope {
 
 const ownerScope = cache(async (ownerId?: string | null): Promise<CallScope | undefined> => {
   if (!ownerId) return undefined;
-  const { data: assistants, error } = await serviceClient()
-    .from("assistants")
-    .select("id")
-    .eq("owner_id", ownerId);
-  if (error) throw error;
-  const assistantIds = (assistants ?? []).map((a) => String((a as { id: string }).id));
+  const [assistantsRes, numbers] = await Promise.all([
+    serviceClient().from("assistants").select("id").eq("owner_id", ownerId),
+    getOwnedNumbers(ownerId),
+  ]);
+  if (assistantsRes.error) throw assistantsRes.error;
+  const assistantIds = (assistantsRes.data ?? []).map((a) => String((a as { id: string }).id));
   return {
     ownerId,
     assistantIds,
-    numberIds: (await getOwnedNumbers(ownerId)).map((n) => n.id),
+    numberIds: numbers.map((n) => n.id),
   };
 });
 
@@ -228,8 +228,19 @@ function scopeFilter(scope: CallScope): string {
   return parts.join(",");
 }
 
-async function fetchCalls(
-  businessId: string,
+// Overview, analytics, and per-assistant stats all scan the same window; the
+// minute-floor makes their `since` values identical so the react cache() below
+// dedupes the paged scan within one request.
+function minuteFloor(iso: string): string {
+  const ms = Date.parse(iso);
+  return Number.isFinite(ms) ? new Date(Math.floor(ms / 60_000) * 60_000).toISOString() : iso;
+}
+
+function fetchCalls(sinceIso: string, scope?: CallScope): Promise<CallRow[]> {
+  return fetchCallsMemo(minuteFloor(sinceIso), scope);
+}
+
+const fetchCallsMemo = cache(async function fetchCallsPaged(
   sinceIso: string,
   scope?: CallScope,
 ): Promise<CallRow[]> {
@@ -242,7 +253,6 @@ async function fetchCalls(
       .select(
         "id,started_at,duration_seconds,status,outcome,sentiment,from_number,to_number,median_latency_ms,summary,phone_number_id,assistant_id",
       )
-      .eq("business_id", businessId)
       .gte("started_at", sinceIso);
     if (scope) query = query.or(scopeFilter(scope));
     const { data, error } = await query
@@ -258,7 +268,7 @@ async function fetchCalls(
     }
   }
   return rows;
-}
+});
 
 let regionNames: Intl.DisplayNames | null = null;
 function regionName(iso: string): string {
@@ -333,11 +343,7 @@ async function bookedCallIds(callIds: string[]): Promise<Set<string>> {
 }
 
 export async function getOverview(ownerId?: string | null): Promise<Overview> {
-  const [businessId, scope, tz] = await Promise.all([
-    ensureBusinessId(),
-    ownerScope(ownerId),
-    ownerTimezone(ownerId),
-  ]);
+  const [scope, tz] = await Promise.all([ownerScope(ownerId), ownerTimezone(ownerId)]);
   const toKey = dayKeyFn(tz);
   const atFmt = timeFmt(tz);
   const now = new Date();
@@ -347,7 +353,7 @@ export async function getOverview(ownerId?: string | null): Promise<Overview> {
   const monthFetch = new Date(`${monthStartKey}T00:00:00Z`);
   monthFetch.setUTCDate(monthFetch.getUTCDate() - 1);
   const fetchSince = monthFetch < since ? monthFetch : since;
-  const calls = await fetchCalls(businessId, fetchSince.toISOString(), scope);
+  const calls = await fetchCalls(fetchSince.toISOString(), scope);
 
   const [y, m, d] = toKey(now).split("-").map(Number);
   const keyAt = (back: number) => new Date(Date.UTC(y, m - 1, d - back)).toISOString().slice(0, 10);
@@ -493,8 +499,7 @@ export async function getAssistantStats(
   days = 30,
   organizationId?: string | null,
 ): Promise<AssistantStat[]> {
-  const [businessId, scope, org] = await Promise.all([
-    ensureBusinessId(),
+  const [scope, org] = await Promise.all([
     ownerScope(ownerId),
     organizationId ? organizationScope(organizationId) : null,
   ]);
@@ -502,7 +507,7 @@ export async function getAssistantStats(
   since.setDate(since.getDate() - days);
 
   const [fetched, meta] = await Promise.all([
-    fetchCalls(businessId, since.toISOString(), scope),
+    fetchCalls(since.toISOString(), scope),
     numberMeta(scope?.numberIds),
   ]);
   const calls = org ? fetched.filter(inOrganization(org)) : fetched;
@@ -614,8 +619,7 @@ export async function getAnalytics(
   assistantId?: string | null,
   organizationId?: string | null,
 ): Promise<Analytics> {
-  const [businessId, scope, org, tz] = await Promise.all([
-    ensureBusinessId(),
+  const [scope, org, tz] = await Promise.all([
     ownerScope(ownerId),
     organizationId ? organizationScope(organizationId) : null,
     ownerTimezone(ownerId),
@@ -624,7 +628,7 @@ export async function getAnalytics(
   const now = new Date();
   const since = new Date(now);
   since.setDate(now.getDate() - 30);
-  let calls = await fetchCalls(businessId, since.toISOString(), scope);
+  let calls = await fetchCalls(since.toISOString(), scope);
   if (org) calls = calls.filter(inOrganization(org));
   const [y, m, d] = toKey(now).split("-").map(Number);
   const firstKey = new Date(Date.UTC(y, m - 1, d - 29)).toISOString().slice(0, 10);
@@ -685,9 +689,21 @@ export const getOverviewCached = (ownerId?: string | null): Promise<Overview> =>
 export const getAssistantStatsCached = (
   ownerId?: string | null,
   days = 30,
+  organizationId?: string | null,
 ): Promise<AssistantStat[]> =>
   unstable_cache(
-    () => getAssistantStats(ownerId, days),
-    ["dash-assistant-stats", ownerId ?? "anon", String(days)],
+    () => getAssistantStats(ownerId, days, organizationId),
+    ["dash-assistant-stats", ownerId ?? "anon", String(days), organizationId ?? ""],
+    { revalidate: DASH_TTL, tags: ["dashboard-data"] },
+  )();
+
+export const getAnalyticsCached = (
+  ownerId?: string | null,
+  assistantId?: string | null,
+  organizationId?: string | null,
+): Promise<Analytics> =>
+  unstable_cache(
+    () => getAnalytics(ownerId, assistantId, organizationId),
+    ["dash-analytics", ownerId ?? "anon", assistantId ?? "", organizationId ?? ""],
     { revalidate: DASH_TTL, tags: ["dashboard-data"] },
   )();

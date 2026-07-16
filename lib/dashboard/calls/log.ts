@@ -1,6 +1,6 @@
-import { ensureBusinessId, getOwnedNumbers } from "../db";
+import { getOwnedNumbers } from "../db";
 import { serviceClient } from "../supabase";
-import { listTwilioCalls, type TwilioCallLog } from "../twilio";
+import { listTwilioCallsCached, type TwilioCallLog } from "../twilio";
 import { ownerTimezone } from "../timezone";
 import { assistantName, num, str } from "./embed";
 import {
@@ -46,12 +46,8 @@ async function fetchAllNumbers(): Promise<Map<string, number>> {
   return owned;
 }
 
-async function fetchDbCalls(
-  businessId: string,
-  limit: number,
-  ownerId?: string | null,
-): Promise<DbCallRow[]> {
-  let query = serviceClient().from("calls").select(SELECT).eq("business_id", businessId);
+async function fetchDbCalls(limit: number, ownerId?: string | null): Promise<DbCallRow[]> {
+  let query = serviceClient().from("calls").select(SELECT);
   if (ownerId) query = query.or(`owner_id.eq.${ownerId},owner_id.is.null`);
   const { data, error } = await query.order("started_at", { ascending: false }).limit(limit);
   if (error) throw error;
@@ -125,29 +121,31 @@ function applyFilters(rows: CallLogRow[], f: CallFilters): CallLogRow[] {
   });
 }
 
+async function ownedNumberMap(ownerId?: string | null): Promise<Map<string, number>> {
+  if (!ownerId) return fetchAllNumbers();
+  const numbers = await getOwnedNumbers(ownerId);
+  const owned = new Map<string, number>();
+  for (const n of numbers) {
+    const ms = Date.parse(n.created_at) || 0;
+    const prev = owned.get(n.e164);
+    if (prev === undefined || ms < prev) owned.set(n.e164, ms);
+  }
+  return owned;
+}
+
 export async function getCallLog(
   filters: CallFilters = {},
   ownerId?: string | null,
-  limit = 1000,
+  limit?: number,
 ): Promise<CallLog> {
-  const businessId = await ensureBusinessId();
-
-  const ownerNumbers = ownerId ? await getOwnedNumbers(ownerId) : null;
-  let owned: Map<string, number>;
-  if (ownerNumbers) {
-    owned = new Map();
-    for (const n of ownerNumbers) {
-      const ms = Date.parse(n.created_at) || 0;
-      const prev = owned.get(n.e164);
-      if (prev === undefined || ms < prev) owned.set(n.e164, ms);
-    }
-  } else {
-    owned = await fetchAllNumbers();
-  }
-
-  const [dbCalls, twilioCalls, tz] = await Promise.all([
-    fetchDbCalls(businessId, limit, ownerId),
-    listTwilioCalls(Math.max(limit, 500)).catch(() => [] as TwilioCallLog[]),
+  // Search/status filters run in memory, so a filtered view must scan deep
+  // enough that older calls stay findable; the plain view stays light.
+  const filtered = Boolean((filters.q ?? "").trim()) || (filters.status ?? "all") !== "all";
+  const scan = limit ?? (filtered ? 1000 : 200);
+  const [dbCalls, owned, twilioCalls, tz] = await Promise.all([
+    fetchDbCalls(scan, ownerId),
+    ownedNumberMap(ownerId),
+    listTwilioCallsCached(Math.max(scan, 500)).catch(() => [] as TwilioCallLog[]),
     ownerTimezone(ownerId),
   ]);
   const fmtDateTime = dateTimeFmt(tz);

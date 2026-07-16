@@ -4,6 +4,7 @@ import { ownerTimezone } from "./timezone";
 import { dateTimeFmt } from "./calls/format";
 import { getRepository } from "../call-engine/persistence/supabase";
 import { resolveCalendarById } from "../call-engine/integrations/registry";
+import { clearSnapshot } from "../call-engine/integrations/snapshot-store";
 import { composeCancellationSms } from "../call-engine/cancellation";
 import { sendSms } from "../call-engine/telephony";
 import { languageFromPhone } from "../call-engine/voice/phone-language";
@@ -111,6 +112,8 @@ export async function cancelCalendarEvent(
     ok: false,
     error: err?.message ?? "cancel threw",
   }));
+  // The freed slot must not keep reading as busy from the snapshot cache.
+  if (res.ok) await clearSnapshot(booking.integrationId).catch(() => {});
   return res;
 }
 

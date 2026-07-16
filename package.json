@@ -15,12 +15,10 @@
     "@google/genai": "^2.10.0",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.108.2",
-    "dotenv": "^17.4.2",
     "next": "16.2.9",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "stripe": "^22.3.0",
-    "supabase": "^2.109.0",
     "twilio": "^6.0.2",
     "unpdf": "^1.6.2",
     "ws": "^8.21.0",
@@ -36,6 +34,8 @@
     "eslint-config-next": "16.2.9",
     "tailwindcss": "^4",
     "tsx": "^4.22.4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "supabase": "^2.109.0",
+    "dotenv": "^17.4.2"
   }
 }

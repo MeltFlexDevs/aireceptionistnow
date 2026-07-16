@@ -49,24 +49,6 @@ export interface UpdateNumberInput {
   enabled: boolean;
 }
 
-export const ensureBusinessId = cache(async (): Promise<string> => {
-  const existing = await db()
-    .from("businesses")
-    .select("id")
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-  if (existing.data?.id) return String(existing.data.id);
-
-  const created = await db()
-    .from("businesses")
-    .insert({ name: "My business" })
-    .select("id")
-    .single();
-  if (created.error) throw created.error;
-  return String(created.data.id);
-});
-
 export async function listNumbers(): Promise<PhoneNumber[]> {
   const { data, error } = await db()
     .from("phone_numbers")
@@ -126,7 +108,6 @@ export async function deleteNumber(id: string): Promise<void> {
 
 export interface Integration {
   id: string;
-  business_id: string;
   type: string;
   provider: string;
   config: Record<string, unknown>;
@@ -149,11 +130,9 @@ export async function upsertCalendarIntegration(
   ownerId?: string | null,
 ): Promise<void> {
   if (authConfigured() && !ownerId) throw new Error("Not signed in.");
-  const businessId = await ensureBusinessId();
   let match = db()
     .from("integrations")
     .select("id")
-    .eq("business_id", businessId)
     .eq("type", "calendar")
     .eq("provider", provider);
   if (ownerId) match = match.or(`owner_id.eq.${ownerId},owner_id.is.null`);
@@ -172,7 +151,6 @@ export async function upsertCalendarIntegration(
   }
 
   const { error } = await db().from("integrations").insert({
-    business_id: businessId,
     type: "calendar",
     provider,
     config,
@@ -187,9 +165,7 @@ export async function createCrmIntegration(
   ownerId?: string | null,
 ): Promise<void> {
   if (authConfigured() && !ownerId) throw new Error("Not signed in.");
-  const businessId = await ensureBusinessId();
   const { error } = await db().from("integrations").insert({
-    business_id: businessId,
     type: "crm",
     provider: "webhook",
     config,
@@ -275,11 +251,9 @@ export async function createAssistant(
   name: string,
   ownerId?: string,
 ): Promise<string> {
-  const businessId = await ensureBusinessId();
   const { data, error } = await db()
     .from("assistants")
     .insert({
-      business_id: businessId,
       owner_id: ownerId ?? null,
       name: name || "My assistant",
       voice_id: DEFAULT_VOICE_ID,
@@ -371,33 +345,60 @@ export interface AssistantSyncContext {
   knowledge: AssistantKnowledge;
 }
 
+// Merge computed keys into assistants.routing (fresh read to avoid clobbering
+// concurrent edits to other routing keys).
+export async function updateAssistantRouting(
+  id: string,
+  patch: Record<string, unknown>,
+): Promise<void> {
+  const { data, error } = await db()
+    .from("assistants")
+    .select("routing")
+    .eq("id", id)
+    .maybeSingle();
+  if (error || !data) return;
+  const routing = { ...((data.routing as Record<string, unknown>) ?? {}), ...patch };
+  const { error: upErr } = await db().from("assistants").update({ routing }).eq("id", id);
+  if (upErr) throw upErr;
+}
+
 export async function getAssistantSyncContext(
   id: string,
 ): Promise<AssistantSyncContext | null> {
   const { data, error } = await db()
     .from("assistants")
-    .select("*, business:businesses(name), organization:organizations(knowledge)")
+    .select("*, organization:organizations(name, knowledge)")
     .eq("id", id)
     .is("deleted_at", null)
     .maybeSingle();
   if (error) throw error;
   if (!data) return null;
 
-  const biz = (data.business as { name?: string } | null) ?? null;
-  const org = (data.organization as { knowledge?: Record<string, unknown> } | null) ?? null;
+  const org =
+    (data.organization as { name?: string; knowledge?: Record<string, unknown> } | null) ?? null;
   const knowledge = mergeKnowledge(
     data.knowledge as Record<string, unknown>,
     org?.knowledge ?? {},
   );
 
-  // Strip the joined relations so the returned assistant matches the flat type.
-  const { business: _b, organization: _o, ...assistant } = data as Record<string, unknown>;
-  void _b;
+  // Business identity: the assistant's organization, else the owner's company.
+  let businessName = (org?.name ?? "").trim();
+  if (!businessName && data.owner_id) {
+    const { data: acct } = await db()
+      .from("account_settings")
+      .select("company")
+      .eq("user_id", data.owner_id)
+      .maybeSingle();
+    businessName = String(acct?.company ?? "").trim();
+  }
+
+  // Strip the joined relation so the returned assistant matches the flat type.
+  const { organization: _o, ...assistant } = data as Record<string, unknown>;
   void _o;
 
   return {
     assistant: assistant as unknown as Assistant,
-    businessName: biz?.name ?? "our business",
+    businessName: businessName || "our business",
     knowledge,
   };
 }
@@ -591,18 +592,10 @@ export interface OwnedNumber {
 }
 
 export const getOwnedNumbers = cache(async (ownerId: string): Promise<OwnedNumber[]> => {
-  const { data: assistants, error: aErr } = await db()
-    .from("assistants")
-    .select("id")
-    .eq("owner_id", ownerId);
-  if (aErr) throw aErr;
-  const assistantIds = (assistants ?? []).map((a) => String(a.id));
-  if (assistantIds.length === 0) return [];
-
   const { data, error } = await db()
     .from("phone_numbers")
-    .select("id,e164,created_at")
-    .in("assistant_id", assistantIds);
+    .select("id,e164,created_at,assistant:assistants!assistant_id!inner(owner_id)")
+    .eq("assistant.owner_id", ownerId);
   if (error) throw error;
   return (data ?? []).map((n) => ({
     id: String(n.id),
@@ -614,7 +607,6 @@ export const getOwnedNumbers = cache(async (ownerId: string): Promise<OwnedNumbe
 export async function getDefaultCallableNumber(): Promise<{
   id: string;
   e164: string;
-  businessId: string;
 } | null> {
   const sel = () =>
     db()
@@ -628,5 +620,5 @@ export async function getDefaultCallableNumber(): Promise<{
   const linked = await sel().not("assistant_id", "is", null).limit(1).maybeSingle();
   const row = linked.data ?? (await sel().limit(1).maybeSingle()).data;
   if (!row) return null;
-  return { id: String(row.id), e164: String(row.e164), businessId: await ensureBusinessId() };
+  return { id: String(row.id), e164: String(row.e164) };
 }

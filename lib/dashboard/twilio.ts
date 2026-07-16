@@ -260,6 +260,14 @@ export async function listTwilioCalls(limit = 100): Promise<TwilioCallLog[]> {
   return calls.map(toLog);
 }
 
+// The call log only uses this to freshen status/duration on rows the DB
+// already has - 20s staleness is invisible and saves a large REST list per view.
+export const listTwilioCallsCached = unstable_cache(
+  async (limit: number): Promise<TwilioCallLog[]> => listTwilioCalls(limit),
+  ["twilio-call-list"],
+  { revalidate: 20 },
+);
+
 export async function fetchTwilioCall(sid: string): Promise<TwilioCallLog | null> {
   if (!twilioConfigured() || !sid) return null;
   try {
