@@ -50,10 +50,13 @@ async function enrichCalcom(config: Record<string, unknown>): Promise<void> {
   const me = await fetch("https://api.cal.com/v2/me", { headers: auth });
   if (!me.ok) throw new Error("Could not read your Cal.com profile. Please try again.");
   const profile = (await me.json()) as {
-    data?: { username?: string; timeZone?: string };
+    data?: { username?: string; timeZone?: string; email?: string };
   };
   if (profile.data?.username) config.username = profile.data.username;
   if (profile.data?.timeZone) config.time_zone = profile.data.timeZone;
+  // Phone callers have no email; Cal.com requires a deliverable attendee
+  // address, so bookings go under the account's own email.
+  if (profile.data?.email) config.attendee_email = profile.data.email;
 
   const username = typeof config.username === "string" ? config.username : "";
   const res = await fetch(
