@@ -38,6 +38,22 @@ export function timeFmt(tz: string): (iso: string) => string {
   return (iso) => fmt.format(new Date(iso));
 }
 
+/** Wall-clock time with seconds ("23:26:05"), in the user's timezone - for
+ *  transcript turns, which sit seconds apart within one call. */
+export function clockSecFmt(tz: string): (iso: string) => string {
+  const opts = { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false } as const;
+  let fmt: Intl.DateTimeFormat;
+  try {
+    fmt = new Intl.DateTimeFormat("en-GB", { timeZone: tz || "UTC", ...opts });
+  } catch {
+    fmt = new Intl.DateTimeFormat("en-GB", { timeZone: "UTC", ...opts });
+  }
+  return (iso) => {
+    const d = new Date(iso);
+    return Number.isNaN(d.getTime()) ? "" : fmt.format(d);
+  };
+}
+
 /** Clock time only ("14:30"), in the user's timezone - for calendar cells. */
 export function clockFmt(tz: string): (iso: string) => string {
   const opts = { hour: "2-digit", minute: "2-digit", hour12: false } as const;

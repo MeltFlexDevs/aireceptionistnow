@@ -1,5 +1,5 @@
 import { serviceClient } from "../supabase";
-import { ownerTimezone } from "../timezone";
+import { clockSecFmt, ownerTimezone } from "../timezone";
 import { fetchTwilioCall } from "../twilio";
 import { assistantName, assistantOwnerId, num, str } from "./embed";
 import { dateTimeFmt, fmtDuration, isLiveStatus, normalizeDirection, statusLabel } from "./format";
@@ -47,9 +47,21 @@ export async function getCallDetail(
   const durationSec = tw?.durationSec ?? num(c.duration_seconds);
   const date = tw?.date || str(c.started_at);
 
+  // Transcript turns are stored as offsets from the call start (tsMs). The old UI
+  // rendered those raw as "0:05", which reads as a broken time-of-day next to the
+  // (now timezone-correct) call date. Resolve each to an actual wall-clock time in
+  // the owner's timezone: start + offset. startMs is NaN only if the start time is
+  // unparseable, in which case atLabel stays "" and the turn just shows no time.
+  const tz = await ownerTimezone(ownerId);
+  const atFmt = clockSecFmt(tz);
+  const startMs = Date.parse(date);
   const turns: CallTurn[] = (turnsRes.data ?? []).map((t) => {
     const row = t as Record<string, unknown>;
-    return { id: num(row.id), role: str(row.role), text: str(row.text), tsMs: num(row.ts_ms) };
+    const tsMs = num(row.ts_ms);
+    const atLabel = Number.isFinite(startMs)
+      ? atFmt(new Date(startMs + tsMs).toISOString())
+      : "";
+    return { id: num(row.id), role: str(row.role), text: str(row.text), tsMs, atLabel };
   });
   const actions: CallActionItem[] = (actionsRes.data ?? []).map((a) => {
     const row = a as Record<string, unknown>;
@@ -66,8 +78,8 @@ export async function getCallDetail(
     id: str(c.id),
     sid,
     date,
-    // Owner's timezone, matching the call log and Calendar.
-    dateLabel: dateTimeFmt(await ownerTimezone(ownerId))(date),
+    // Owner's timezone, matching the call log and Calendar (tz resolved above).
+    dateLabel: dateTimeFmt(tz)(date),
     status,
     statusLabel: statusLabel(status),
     direction: normalizeDirection(str(c.direction)),
