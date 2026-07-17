@@ -6,7 +6,7 @@ import {
   resolveCalendarsForAccess,
   type CalendarAccessEntry,
 } from "./integrations/registry";
-import { INTEGRATION_TIMEOUT_MS, withDeadline } from "./net";
+import { BOOKING_TIMEOUT_MS, withDeadline } from "./net";
 import type { CallRepository } from "./persistence/types";
 import { sendSms } from "./telephony";
 import type { BookingRequest, NumberConfig } from "./types";
@@ -30,10 +30,6 @@ export function calendarAccessFrom(config: NumberConfig): CalendarAccessEntry[] 
     (config.routing.calendar as { access?: CalendarAccessEntry[] } | undefined)
       ?.access ?? []
   );
-}
-
-export function canCheckAvailability(config: NumberConfig): boolean {
-  return calendarAccessFrom(config).length > 0;
 }
 
 export async function checkAvailabilityAction(
@@ -104,7 +100,7 @@ export async function bookAppointmentAction(
       status: "pending",
       payload: input,
     });
-    return "Saved the appointment request; our team will confirm shortly.";
+    return "Saved the appointment request; our team will confirm shortly. Tell the caller that, then ask if there's anything else you can help with.";
   }
 
   const readable = resolveCalendarsForAccess(ctx.config.integrations, access);
@@ -118,7 +114,7 @@ export async function bookAppointmentAction(
     }
   }
 
-  const result = await withDeadline(resolved.provider.createEvent(req), INTEGRATION_TIMEOUT_MS, {
+  const result = await withDeadline(resolved.provider.createEvent(req), BOOKING_TIMEOUT_MS, {
     ok: false as const,
     error: "timeout",
   });
@@ -127,25 +123,37 @@ export async function bookAppointmentAction(
       `[actions] book_appointment failed for call ${ctx.callId} on ${resolved.integrationId}: ${result.error ?? "unknown"}`,
     );
   }
-  // The event changed the calendar - drop the cached busy window before
-  // replying so no later check can read the pre-booking snapshot.
-  if (result.ok) await clearSnapshot(resolved.integrationId);
-  // The dashboard (and cancel flow) reads this row - it must land before we
-  // tell the caller the booking is confirmed.
-  await repo.recordAction(
-    ctx.callId,
-    {
-      type: "booking",
-      status: result.ok ? "done" : "failed",
-      externalId: result.externalId,
-      payload: input,
-      error: result.error,
-    },
-    resolved.integrationId,
-  );
-  return result.ok
-    ? "The appointment is booked and confirmed."
-    : "I couldn't reach the calendar, so I've saved it as a request to confirm.";
+  // A timed-out create keeps running and may still land on the calendar, so
+  // record it as pending (the team confirms) instead of failed.
+  const unconfirmed = !result.ok && result.error === "timeout";
+  // Both must land before we tell the caller the booking is confirmed: the
+  // dashboard (and cancel flow) reads the action row, and the stale busy-window
+  // snapshot must be gone so no later check reads pre-booking data. They are
+  // independent, so run them in parallel to shave a round trip off the reply.
+  await Promise.all([
+    result.ok || unconfirmed ? clearSnapshot(resolved.integrationId) : Promise.resolve(),
+    repo.recordAction(
+      ctx.callId,
+      {
+        type: "booking",
+        status: result.ok ? "done" : unconfirmed ? "pending" : "failed",
+        externalId: result.externalId,
+        payload: input,
+        // Give the dashboard enough context to reconcile a timed-out create,
+        // which may or may not have landed on the calendar.
+        error: unconfirmed
+          ? "timeout - the event may still exist on the calendar; confirm manually"
+          : result.error,
+      },
+      resolved.integrationId,
+    ),
+  ]);
+  if (result.ok) {
+    return "Booked and confirmed. Tell the caller it's all set (repeat the day and time naturally), then ask if there's anything else you can help with. If not, wish them well and end the call.";
+  }
+  return unconfirmed
+    ? "The calendar is responding slowly, so the booking isn't confirmed yet. Tell the caller the team will double-check and confirm it shortly - never claim it is booked."
+    : "I couldn't reach the calendar, so I've saved it as a request to confirm. Tell the caller the team will confirm it shortly.";
 }
 
 export async function takeMessageAction(
@@ -164,7 +172,7 @@ export async function takeMessageAction(
   // Only the best-effort SMS alert (up to 3s) runs after the response.
   await repo.recordAction(ctx.callId, { type: "message", status: "done", payload });
   after(() => alertOwner(ctx, payload));
-  return "Got it - I've saved your message.";
+  return "Message saved. Reassure the caller it's been passed on, then ask if there's anything else you can help with.";
 }
 
 async function alertOwner(
@@ -176,9 +184,10 @@ async function alertOwner(
   const who = input.caller_name || ctx.from;
   const cb = input.callback_number ? ` (${input.callback_number})` : "";
   const body = `New message for ${ctx.config.businessName}: ${input.message} - from ${who}${cb}`;
-  try {
-    await withDeadline(sendSms(r.transferTo, ctx.to, body, ctx.config.businessName), 3000, undefined);
-  } catch (err) {
-    console.error("[actions] sms alert", err);
-  }
+  // Log on the promise itself: withDeadline swallows rejections into its
+  // fallback, so a try/catch around it would never see the Twilio error.
+  const send = sendSms(r.transferTo, ctx.to, body, ctx.config.businessName).catch((err) =>
+    console.error("[actions] sms alert failed", err),
+  );
+  await withDeadline(send, 3000, undefined);
 }

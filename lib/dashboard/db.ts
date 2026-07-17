@@ -339,27 +339,27 @@ export async function setAssistantAgent(
   tools: AgentTool[] = [],
   multilingual: boolean = true,
 ): Promise<void> {
+  // One write for everything; degrade column by column only when the schema
+  // is behind (pre-0005 installs), instead of always paying two round trips.
   const { error } = await db()
     .from("assistants")
-    .update({ elevenlabs_agent_id: agentId, elevenlabs_kb: kb, elevenlabs_tools: tools })
+    .update({
+      elevenlabs_agent_id: agentId,
+      elevenlabs_kb: kb,
+      elevenlabs_tools: tools,
+      elevenlabs_multilingual: multilingual,
+    })
     .eq("id", id);
-  if (error) {
-    if (!isMissingColumnError(error)) throw error;
-    console.warn(
-      "[db] assistants is missing elevenlabs_kb/elevenlabs_tools - apply migration 0005 for full tool/KB cleanup. Persisting agent id only for now.",
-    );
-    const { error: agentOnly } = await db()
-      .from("assistants")
-      .update({ elevenlabs_agent_id: agentId })
-      .eq("id", id);
-    if (agentOnly && !isMissingColumnError(agentOnly)) throw agentOnly;
-  }
-
-  const { error: mlErr } = await db()
+  if (!error) return;
+  if (!isMissingColumnError(error)) throw error;
+  console.warn(
+    "[db] assistants is missing elevenlabs_kb/elevenlabs_tools/elevenlabs_multilingual - apply the latest migrations for full tool/KB cleanup. Persisting agent id only for now.",
+  );
+  const { error: agentOnly } = await db()
     .from("assistants")
-    .update({ elevenlabs_multilingual: multilingual })
+    .update({ elevenlabs_agent_id: agentId })
     .eq("id", id);
-  if (mlErr && !isMissingColumnError(mlErr)) throw mlErr;
+  if (agentOnly && !isMissingColumnError(agentOnly)) throw agentOnly;
 }
 
 export interface AssistantSyncContext {
@@ -379,10 +379,29 @@ export async function updateAssistantRouting(
     .select("routing")
     .eq("id", id)
     .maybeSingle();
-  if (error || !data) return;
+  if (error || !data) {
+    // Callers treat this as persisted - if it silently no-ops, call starts
+    // fall back to live greeting translation with nobody the wiser. Say why.
+    console.error("[db] updateAssistantRouting read failed - patch dropped", id, error ?? "row missing");
+    return;
+  }
   const routing = { ...((data.routing as Record<string, unknown>) ?? {}), ...patch };
   const { error: upErr } = await db().from("assistants").update({ routing }).eq("id", id);
   if (upErr) throw upErr;
+}
+
+// Providers of the (enabled) calendar integrations behind the given ids -
+// used at sync time to only promise the agent capabilities that can work.
+export async function getCalendarProviders(ids: string[]): Promise<Map<string, string>> {
+  if (ids.length === 0) return new Map();
+  const { data, error } = await db()
+    .from("integrations")
+    .select("id, provider")
+    .in("id", ids)
+    .eq("type", "calendar")
+    .eq("enabled", true);
+  if (error) throw error;
+  return new Map((data ?? []).map((r) => [String(r.id), String(r.provider)]));
 }
 
 export async function getAssistantSyncContext(
@@ -571,43 +590,6 @@ export async function getAssistantNumbers(
   }));
 }
 
-export async function softDeleteNumber(id: string): Promise<void> {
-  const { error } = await db()
-    .from("phone_numbers")
-    .update({ deleted_at: new Date().toISOString(), assistant_id: null })
-    .eq("id", id);
-  if (error) throw error;
-}
-
-export async function createTestCall(input: {
-  businessId: string;
-  numberId: string;
-  e164: string;
-}): Promise<string> {
-  const { data, error } = await db()
-    .from("calls")
-    .insert({
-      business_id: input.businessId,
-      phone_number_id: input.numberId,
-      from_number: input.e164,
-      to_number: input.e164,
-      direction: "outbound",
-      status: "initiated",
-    })
-    .select("id")
-    .single();
-  if (error) throw error;
-  return String(data.id);
-}
-
-export async function setCallTwilioSid(callId: string, sid: string): Promise<void> {
-  const { error } = await db()
-    .from("calls")
-    .update({ twilio_call_sid: sid })
-    .eq("id", callId);
-  if (error) throw error;
-}
-
 export interface OwnedNumber {
   id: string;
   e164: string;
@@ -627,21 +609,3 @@ export const getOwnedNumbers = cache(async (ownerId: string): Promise<OwnedNumbe
   }));
 });
 
-export async function getDefaultCallableNumber(): Promise<{
-  id: string;
-  e164: string;
-} | null> {
-  const sel = () =>
-    db()
-      .from("phone_numbers")
-      .select("id,e164")
-      .is("deleted_at", null)
-      .eq("enabled", true)
-      .not("twilio_sid", "is", null)
-      .order("created_at", { ascending: true });
-
-  const linked = await sel().not("assistant_id", "is", null).limit(1).maybeSingle();
-  const row = linked.data ?? (await sel().limit(1).maybeSingle()).data;
-  if (!row) return null;
-  return { id: String(row.id), e164: String(row.e164) };
-}

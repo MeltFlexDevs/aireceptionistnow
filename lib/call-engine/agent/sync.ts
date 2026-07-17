@@ -3,26 +3,52 @@ import { elevenClient } from "./eleven-client";
 import {
   getAssistantNumber,
   getAssistantSyncContext,
+  getCalendarProviders,
   setAssistantAgent,
   updateAssistantRouting,
   type AgentKbDoc,
   type AgentTool,
   type Assistant,
 } from "../../dashboard/db";
+import { providerSupportsBusy } from "../integrations/registry";
 import { localizeGreeting } from "../llm/greeting";
 import { MAX_SOURCE_CHARS, type AssistantKnowledge } from "../../knowledge/sources";
 import { ELEVENLABS_LANGUAGES, SUPPORTED_LANGUAGES } from "../voice/phone-language";
 import { DEFAULT_VOICE_ID, voiceForLanguage } from "../voice/catalog";
 import { routeNumberToAgent } from "../elevenlabs";
 import { ensureInitWebhook } from "./workspace";
-import { buildBuiltInTools, createAgentTools, deleteAgentTools } from "./tools";
+import {
+  buildBuiltInTools,
+  createAgentTools,
+  deleteAgentTools,
+  type AgentCapabilities,
+} from "./tools";
 
 const AGENT_LLM = "gemini-2.5-flash";
 
 const TURN_CONFIG: ElevenLabs.TurnConfig = {
   speculativeTurn: true,
   turnEagerness: "eager",
+  // Caller backchannels ("mhm", "okay") shouldn't cut the agent off mid-sentence.
+  // Covers the supported languages; exact, case-insensitive matches only.
+  interruptionIgnoreTerms: [
+    "okay", "ok", "mhm", "mm-hmm", "uh-huh", "yeah", "right", "sure", "gotcha",
+    "áno", "dobre", "jasné", "ja", "genau", "oui", "d'accord", "sí", "vale",
+    "certo", "sim", "va bene",
+  ],
+  // If the LLM ever stalls past 2s, speak a short generated filler (in the
+  // caller's language) instead of leaving dead air.
+  softTimeoutConfig: {
+    timeoutSeconds: 2,
+    useLlmGeneratedMessage: true,
+    maxSoftTimeoutsPerGeneration: 2,
+  },
 };
+
+// Total knowledge-base size up to which every doc is injected straight into the
+// prompt (usageMode "prompt"): skips the per-turn RAG retrieval hop entirely.
+// Bigger KBs fall back to "auto" so the prompt doesn't balloon and slow the LLM.
+const KB_PROMPT_INJECT_MAX_CHARS = 15_000;
 
 const TTS_MODEL_MULTILINGUAL = "eleven_flash_v2_5";
 const TTS_MODEL_ENGLISH = "eleven_flash_v2";
@@ -38,14 +64,41 @@ function baseLanguage(code: string): string {
   return c.split("-")[0];
 }
 
+// Run fn over items with at most `limit` in flight - a greeting change would
+// otherwise fan out ~30 concurrent Gemini translations in one burst.
+async function mapLimit<T>(items: T[], limit: number, fn: (item: T) => Promise<void>): Promise<void> {
+  let next = 0;
+  await Promise.all(
+    Array.from({ length: Math.min(limit, items.length) }, async () => {
+      while (next < items.length) await fn(items[next++]);
+    }),
+  );
+}
+
+// Key-order-insensitive comparison: these maps are built from concurrent
+// completions (insertion order varies run to run) and Postgres jsonb reorders
+// keys anyway, so a plain JSON.stringify equality misfires on every sync.
+function sameRecord(a: Record<string, string>, b: Record<string, string>): boolean {
+  const ka = Object.keys(a);
+  return ka.length === Object.keys(b).length && ka.every((k) => a[k] === b[k]);
+}
+
+// The prompt only promises what was actually provisioned: which webhook tools
+// exist on ElevenLabs (a partial create failure must not leave the agent
+// calling tools that don't exist) is passed in as `toolNames`.
 function composeSystemPrompt(
   assistant: Assistant,
   businessName: string,
-  hasServerTools: boolean,
+  toolNames: ReadonlySet<string>,
   multilingual = true,
 ): string {
   const parts: string[] = [
-    `You are the receptionist answering the phone for ${businessName}. Speak AS the business, in the first person plural: say "we", "our", and "us" when talking about ${businessName}, its services, and what it does - "we open at nine", "our team can help with that". Never introduce yourself as an AI, an assistant, or a bot, and never talk about ${businessName} in the third person. Be warm, concise, and natural, like a great front-desk person. Keep answers to a sentence or two and let the caller guide you on where to go deeper.`,
+    `You are the receptionist answering the phone for ${businessName}. Speak AS the business, in the first person plural: say "we", "our", and "us" when talking about ${businessName}, its services, and what it does - "we open at nine", "our team can help with that". Never introduce yourself as an AI, an assistant, or a bot, and never talk about ${businessName} in the third person.`,
+    [
+      "Sound like a great front-desk person, not a script. Use contractions and everyday words, keep each reply to a sentence or two, and ask at most one question per turn.",
+      'Briefly acknowledge before you answer ("Of course", "Sure thing", "Let me see") and vary your wording - never repeat the same canned phrase twice in a call.',
+      "Never read out lists or menus; mention at most two options at a time, conversationally. If the caller gives several details at once, don't re-ask for what they already told you.",
+    ].join(" "),
     'The current date and time is {{system__time_utc}} (UTC). Resolve relative dates the caller gives ("tomorrow", "next Tuesday") against it, interpret times in the business\'s local timezone when it is known from your instructions, and always pass tools full ISO 8601 timestamps with an explicit UTC offset. Say times back to the caller naturally ("three o\'clock on Tuesday"), never as raw timestamps.',
   ];
   if (multilingual) {
@@ -59,21 +112,30 @@ function composeSystemPrompt(
   const own = (assistant.system_prompt ?? "").trim();
   if (own) parts.push(own);
 
-  const routing = (assistant.routing ?? {}) as {
-    transferTo?: unknown;
-    calendar?: { access?: unknown[] };
-  };
+  const routing = (assistant.routing ?? {}) as { transferTo?: unknown };
   const transferTo = typeof routing.transferTo === "string" ? routing.transferTo : "";
-  const access = Array.isArray(routing.calendar?.access) ? routing.calendar.access : [];
-  const canRead = access.length > 0;
-  const canBook = access.some((a) => (a as { level?: unknown })?.level === "write");
+  const canCheck = toolNames.has("check_availability");
+  const canBook = toolNames.has("book_appointment");
+  const canTakeMessage = toolNames.has("take_message");
 
-  if (hasServerTools && canRead) {
+  if (toolNames.size > 0) {
+    parts.push(
+      'When an action takes a moment - booking an appointment, recording a message - say one short natural line about what you\'re doing ("Alright, I\'ll get that booked now…") right before you use the tool, so the caller never hears dead air. A quick availability check needs no announcement - just answer once you know. Never read a tool result verbatim to the caller; relay it in your own words.',
+    );
+  }
+
+  if (canCheck) {
     parts.push(
       canBook
-        ? "You can schedule appointments. Use check_availability to confirm a time is free before offering or booking it, then use book_appointment once the caller agrees. Never reveal what else is on the calendar or why a slot is taken - only whether it's free."
-        : "You can check the calendar but you cannot book. Use check_availability to tell the caller whether a time is free. If they want to take it, never claim it is booked - take a message so the team can confirm it. Never reveal what else is on the calendar or why a slot is taken - only whether it's free.",
+        ? "You can schedule appointments. Use check_availability to confirm a time is free before offering or booking it. Before you book, confirm the day and time back to the caller and get a clear yes, then use book_appointment. Never reveal what else is on the calendar or why a slot is taken - only whether it's free."
+        : `You can check the calendar but you cannot book. Use check_availability to tell the caller whether a time is free. If they want to take it, never claim it is booked - ${canTakeMessage ? "take a message so the team can confirm it" : "let them know our team will confirm it"}. Never reveal what else is on the calendar or why a slot is taken - only whether it's free.`,
     );
+  } else if (canBook) {
+    parts.push(
+      "You can book appointments with book_appointment, but you cannot see the calendar, so never claim to know whether a time is free. Once the caller settles on a time, book it; if it conflicts, our team will follow up with them.",
+    );
+  }
+  if (canBook) {
     parts.push(
       [
         "Before you book, get the details this particular business would need to prepare for the appointment.",
@@ -82,20 +144,25 @@ function composeSystemPrompt(
         "Always get the caller's name. Pass the reason and anything else you learned to book_appointment in `notes`, so whoever runs the appointment sees it.",
       ].join(" "),
     );
+    parts.push(
+      `Once a booking succeeds, confirm it back naturally with the day and time ("You're all set for Tuesday at three"), then ask if there's anything else you can help with. If the booking couldn't be completed, be upfront about it and ${canTakeMessage ? "offer to take a message instead" : "tell them our team will sort it out and follow up"} - never claim something is booked when it isn't.`,
+    );
   }
   if (transferTo) {
     parts.push(
       "If the caller needs a human, asks to be transferred, or has a request beyond what you can handle, use transfer_to_number to hand off.",
     );
   }
-  if (hasServerTools) {
+  if (canTakeMessage) {
     parts.push(
       "When you can't resolve a request, when the caller wants a callback, or when no other tool fits, use take_message to record it.",
     );
   }
-  parts.push("End the call with end_call once the caller is done and satisfied.");
+  parts.push(
+    `When the caller has what they need or says they're all set, close warmly: thank them for calling ${businessName}, wish them a good day, and then use end_call. Don't restart the conversation after they've said goodbye.`,
+  );
 
-  const fallback = hasServerTools
+  const fallback = canTakeMessage
     ? "offer to take a message"
     : "offer to have someone from our team follow up";
   parts.push(
@@ -107,7 +174,7 @@ function composeSystemPrompt(
 async function uploadKnowledge(
   assistant: Assistant,
   knowledge: AssistantKnowledge,
-): Promise<{ docs: AgentKbDoc[]; locators: ElevenLabs.KnowledgeBaseLocator[] }> {
+): Promise<{ docs: AgentKbDoc[]; locators: ElevenLabs.KnowledgeBaseLocator[]; useRag: boolean }> {
   const client = elevenClient();
   const docs: AgentKbDoc[] = [];
   const locators: ElevenLabs.KnowledgeBaseLocator[] = [];
@@ -121,8 +188,14 @@ async function uploadKnowledge(
     items.push({ name: src.title || "Source", text: text.slice(0, MAX_SOURCE_CHARS) });
   }
 
+  const kept = items.slice(0, MAX_KB_DOCS);
+  // Small KBs ride along in the prompt (no per-turn RAG lookup); big ones use
+  // retrieval so the prompt stays lean. Latency beats recall at this size.
+  const totalChars = kept.reduce((n, item) => n + item.text.length, 0);
+  const usageMode = totalChars <= KB_PROMPT_INJECT_MAX_CHARS ? "prompt" : "auto";
+
   const uploaded = await Promise.all(
-    items.slice(0, MAX_KB_DOCS).map(async (item) => {
+    kept.map(async (item) => {
       try {
         const doc = await client.conversationalAi.knowledgeBase.documents.createFromText({
           text: item.text,
@@ -138,10 +211,12 @@ async function uploadKnowledge(
   for (const doc of uploaded) {
     if (!doc) continue;
     docs.push(doc);
-    locators.push({ type: "text", id: doc.id, name: doc.name, usageMode: "auto" });
+    locators.push({ type: "text", id: doc.id, name: doc.name, usageMode });
   }
 
-  return { docs, locators };
+  // "auto" docs are only retrievable when RAG is actually on - without it a
+  // big KB silently degrades to whatever fits nowhere.
+  return { docs, locators, useRag: usageMode === "auto" && locators.length > 0 };
 }
 
 async function deleteKnowledge(docs: AgentKbDoc[]): Promise<void> {
@@ -158,15 +233,45 @@ async function deleteKnowledge(docs: AgentKbDoc[]): Promise<void> {
   );
 }
 
+// What the calendar grants can actually deliver, based on the real providers
+// behind them: an Outlook grant can book but has no busy-window read, so it
+// must not produce a check_availability tool (every call would fail on air).
+async function resolveAgentCapabilities(assistant: Assistant): Promise<AgentCapabilities> {
+  const r = (assistant.routing ?? {}) as { calendar?: { access?: unknown[] } };
+  const entries = (Array.isArray(r.calendar?.access) ? r.calendar.access : []) as {
+    integrationId?: unknown;
+    level?: unknown;
+  }[];
+  const ids = [...new Set(entries.map((a) => String(a?.integrationId ?? "")).filter(Boolean))];
+  // On a lookup failure fall back to granting by access level (previous
+  // behavior) rather than silently stripping tools from a working assistant.
+  const providers = await getCalendarProviders(ids).catch((err) => {
+    console.error("[agent-sync] calendar provider lookup failed - granting by access level", err);
+    return null;
+  });
+  const canRead = entries.some((a) => {
+    if (!providers) return true;
+    const provider = providers.get(String(a?.integrationId ?? ""));
+    return !!provider && providerSupportsBusy(provider);
+  });
+  const canBook = entries.some(
+    (a) =>
+      a?.level === "write" &&
+      (!providers || providers.has(String(a?.integrationId ?? ""))),
+  );
+  return { canRead, canBook };
+}
+
 export async function syncAssistantAgent(assistantId: string): Promise<string | null> {
   const ctx = await getAssistantSyncContext(assistantId);
   if (!ctx) return null;
   const { assistant, businessName, knowledge } = ctx;
   const client = elevenClient();
 
-  const [{ docs, locators }, { toolIds, tools }] = await Promise.all([
+  const capabilities = await resolveAgentCapabilities(assistant);
+  const [{ docs, locators, useRag }, { toolIds, tools }] = await Promise.all([
     uploadKnowledge(assistant, knowledge),
-    createAgentTools(assistant),
+    createAgentTools(capabilities),
   ]);
   const builtInTools = buildBuiltInTools(assistant);
 
@@ -174,7 +279,8 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
   const rawLanguage = baseLanguage(assistant.language);
   const language = ELEVENLABS_LANGUAGES.has(rawLanguage) ? rawLanguage : "en";
   const firstMessage = (assistant.greeting ?? "").trim() || DEFAULT_GREETING;
-  const systemPrompt = composeSystemPrompt(assistant, businessName, toolIds.length > 0);
+  const toolNames = new Set(tools.map((t) => t.name));
+  const systemPrompt = composeSystemPrompt(assistant, businessName, toolNames);
   const voiceId = (assistant.voice_id ?? "").trim() || DEFAULT_VOICE_ID;
 
   const voiceOpts = (assistant.routing ?? {}) as {
@@ -204,20 +310,18 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
   const greetingUnchanged = prevGreetings._source === firstMessage;
   const greetingByLanguage: Record<string, string> = { _source: firstMessage };
   const autoVoiceByLanguage: Record<string, string> = {};
-  await Promise.all(
-    extraLanguages.map(async (l) => {
-      // Operator's pinned voice for this language wins; otherwise auto-resolve one.
-      const override = (userVoiceByLang[l] ?? "").trim();
-      const presetVoice = override || (await voiceForLanguage(l, voiceId));
-      if (!override && presetVoice !== voiceId) autoVoiceByLanguage[l] = presetVoice;
-      languagePresets[l] =
-        presetVoice === voiceId ? { overrides: {} } : { overrides: { tts: { voiceId: presetVoice } } };
-      languagePresetsPlain[l] = { overrides: {} };
-      const prev = greetingUnchanged ? (prevGreetings[l] ?? "").trim() : "";
-      const translated = prev || (await localizeGreeting(firstMessage, l).catch(() => ""));
-      if (translated && translated !== firstMessage) greetingByLanguage[l] = translated;
-    }),
-  );
+  await mapLimit(extraLanguages, 6, async (l) => {
+    // Operator's pinned voice for this language wins; otherwise auto-resolve one.
+    const override = (userVoiceByLang[l] ?? "").trim();
+    const presetVoice = override || (await voiceForLanguage(l, voiceId));
+    if (!override && presetVoice !== voiceId) autoVoiceByLanguage[l] = presetVoice;
+    languagePresets[l] =
+      presetVoice === voiceId ? { overrides: {} } : { overrides: { tts: { voiceId: presetVoice } } };
+    languagePresetsPlain[l] = { overrides: {} };
+    const prev = greetingUnchanged ? (prevGreetings[l] ?? "").trim() : "";
+    const translated = prev || (await localizeGreeting(firstMessage, l).catch(() => ""));
+    if (translated && translated !== firstMessage) greetingByLanguage[l] = translated;
+  });
 
   const promptConfig: ElevenLabs.PromptAgentApiModelOutput = {
     prompt: systemPrompt,
@@ -225,6 +329,7 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
     thinkingBudget: 0,
     enableReasoningSummary: false,
     knowledgeBase: locators,
+    ...(useRag ? { rag: { enabled: true } } : {}),
     toolIds,
     builtInTools,
   };
@@ -247,7 +352,7 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
 
   const englishPromptConfig: ElevenLabs.PromptAgentApiModelOutput = {
     ...promptConfig,
-    prompt: composeSystemPrompt(assistant, businessName, toolIds.length > 0, false),
+    prompt: composeSystemPrompt(assistant, businessName, toolNames, false),
     builtInTools: buildBuiltInTools(assistant, false),
   };
   const englishConfig: ElevenLabs.ConversationalConfig = {
@@ -341,8 +446,8 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
   await setAssistantAgent(assistantId, agentId, docs, tools, multilingual);
 
   const routingPatchChanged =
-    JSON.stringify(voiceOpts.greetingByLanguage ?? {}) !== JSON.stringify(greetingByLanguage) ||
-    JSON.stringify(voiceOpts.autoVoiceByLanguage ?? {}) !== JSON.stringify(autoVoiceByLanguage);
+    !sameRecord(voiceOpts.greetingByLanguage ?? {}, greetingByLanguage) ||
+    !sameRecord(voiceOpts.autoVoiceByLanguage ?? {}, autoVoiceByLanguage);
   if (routingPatchChanged) {
     await updateAssistantRouting(assistantId, {
       greetingByLanguage,

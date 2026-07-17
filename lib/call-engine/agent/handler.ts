@@ -49,9 +49,12 @@ export async function handleTool(
     return json({ result });
   } catch (err) {
     console.error("[agent] tool run failed", err);
+    // Instruct, don't claim: nothing was recorded yet, so the agent must
+    // actually call take_message rather than tell the caller it already did.
+    // Phrased conditionally in case the take_message tool wasn't provisioned.
     return json({
       result:
-        "I ran into a problem doing that. I'll take a message so our team can follow up.",
+        "That didn't go through on my end. Apologize briefly, and if you can take a message, record the caller's request with take_message so our team can follow up.",
     });
   }
 }

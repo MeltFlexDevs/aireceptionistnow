@@ -232,8 +232,8 @@ export default async function IntegrationsPage({
                         Setup required
                       </span>
                     ) : !def.live && !def.oauth ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-0.5 text-[11px] font-medium text-rose-600">
-                        <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
+                      <span className="inline-flex items-center gap-1 rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-600">
+                        <span className="h-1.5 w-1.5 rounded-full bg-neutral-400" />
                         {t.common.comingSoon}
                       </span>
                     ) : (
@@ -326,8 +326,8 @@ export default async function IntegrationsPage({
         <div className="border-t border-neutral-200/70 px-5 py-5">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="text-sm font-medium text-neutral-900">CRM push</h3>
-            <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-0.5 text-[11px] font-medium text-rose-600">
-              <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
+            <span className="inline-flex items-center gap-1 rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-600">
+              <span className="h-1.5 w-1.5 rounded-full bg-neutral-400" />
               {t.common.comingSoon}
             </span>
           </div>

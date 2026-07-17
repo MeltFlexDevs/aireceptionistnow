@@ -29,7 +29,10 @@ export async function localizeGreeting(
   try {
     const text = await translateWithGemini(system, prompt);
     const cleaned = text.trim().replace(/^["']|["']$/g, "");
-    if (cleaned) translationCache.set(cacheKey, cleaned);
+    if (cleaned) {
+      translationCache.set(cacheKey, cleaned);
+      if (translationCache.size > 500) translationCache.clear(); // crude bound; repopulates on demand
+    }
     return cleaned || greeting;
   } catch (err) {
     console.error("[greeting] localize failed", err);
@@ -69,7 +72,7 @@ export async function localizeSms(body: string, languageCode: string): Promise<s
 }
 
 async function translateWithGemini(system: string, prompt: string): Promise<string> {
-  const res = await getGemini().models.generateContent({
+  const res = await (await getGemini()).models.generateContent({
     model: getEnv().GEMINI_MODEL,
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     config: {

@@ -49,15 +49,6 @@ export interface NumberConfig {
   integrations: IntegrationConfig[];
 }
 
-export interface CallContext {
-  callId: string;
-  callSid: string;
-  streamSid: string;
-  from: string;
-  to: string;
-  config: NumberConfig;
-}
-
 // ── Tool / action payloads ──────────────────────────────────────────────────
 
 export interface BookingRequest {
@@ -74,13 +65,6 @@ export interface BookingResult {
   ok: boolean;
   externalId?: string;
   error?: string;
-}
-
-export interface MessageRequest {
-  callerName?: string;
-  callbackNumber?: string;
-  message: string;
-  urgency?: "low" | "normal" | "high";
 }
 
 export type CallActionType = "booking" | "message" | "transfer";

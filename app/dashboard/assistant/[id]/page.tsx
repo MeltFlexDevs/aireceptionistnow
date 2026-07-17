@@ -329,8 +329,8 @@ export default async function AssistantSettingsPage({
           title="CRM push"
           subtitle={t.assistants.pushCrmSub}
           action={
-            <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-rose-50 px-2 py-0.5 text-[11px] font-medium text-rose-600">
-              <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
+            <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-600">
+              <span className="h-1.5 w-1.5 rounded-full bg-neutral-400" />
               {t.common.comingSoon}
             </span>
           }
@@ -368,9 +368,15 @@ export default async function AssistantSettingsPage({
         </div>
         </Tabs>
 
-        <SubmitButton pendingText="Saving…" className="press h-10 w-full px-5 sm:w-auto">
-          Save settings
-        </SubmitButton>
+        {/* Sticky: the form spans two tall tabs, so keep Save reachable
+            without scrolling to the bottom. */}
+        <div className="sticky bottom-4 z-10">
+          <div className="glass flex justify-end rounded-2xl p-3">
+            <SubmitButton pendingText="Saving…" className="press h-10 w-full px-5 sm:w-auto">
+              Save settings
+            </SubmitButton>
+          </div>
+        </div>
       </form>
 
       <SectionCard title="Danger zone">

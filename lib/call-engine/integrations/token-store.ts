@@ -39,8 +39,10 @@ export async function persistAccessToken(
   fresh.set(refreshToken, { token: accessToken, expiresAt });
   if (rotatedRefreshToken) {
     fresh.set(rotatedRefreshToken, { token: accessToken, expiresAt });
-    if (fresh.size > 500) fresh.clear(); // crude bound; repopulates on demand
   }
+  // Bound on every write, not only rotations - non-rotating providers
+  // (Google) would otherwise grow the map without limit.
+  if (fresh.size > 500) fresh.clear(); // crude bound; repopulates on demand
   try {
     const { data, error } = await createAdminClient()
       .from("integrations")

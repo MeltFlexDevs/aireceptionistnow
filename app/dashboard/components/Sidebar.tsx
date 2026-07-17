@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Logo, Grid, Phone, Bot, Building, Plug, ChartBar, Gear, Sparkle, Hash, Calendar } from "../icons";
+import { Logo, Grid, Phone, Bot, Book, Building, Plug, ChartBar, Gear, Sparkle, Hash, Calendar } from "../icons";
 import { useT } from "@/lib/i18n/client";
 import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 
@@ -36,11 +36,13 @@ const NAV: { titleKey: NavKey; items: { href: string; label: NavKey; Icon: NavIt
       { href: "/dashboard/assistant", label: "assistants", Icon: Bot },
       { href: "/dashboard/numbers", label: "numbers", Icon: Hash },
       { href: "/dashboard/integrations", label: "integrations", Icon: Plug },
+      { href: "/dashboard/knowledge", label: "knowledge", Icon: Sparkle },
     ],
   },
 ];
 
 const FOOTER: { href: string; label: NavKey; Icon: NavItem["Icon"] }[] = [
+  { href: "/dashboard/tutorial", label: "tutorial", Icon: Book },
   { href: "/dashboard/settings", label: "settings", Icon: Gear },
 ];
 
@@ -120,38 +122,12 @@ export function DashboardNav() {
   );
 }
 
-function AiKnowsCard() {
-  const pathname = usePathname();
-  const t = useT();
-  const active = pathname.startsWith("/dashboard/knowledge");
-
-  return (
-    <Link
-      href="/dashboard/knowledge"
-      aria-current={active ? "page" : undefined}
-      className={`press mt-4 block rounded-xl bg-gradient-to-br from-neutral-900 to-neutral-800 p-4 text-white shadow-sm transition-shadow hover:shadow-card ${
-        active ? "ring-2 ring-neutral-900 ring-offset-2" : ""
-      }`}
-    >
-      <div className="flex items-center gap-2 text-sm font-medium">
-        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-white/10">
-          <Sparkle className="h-3.5 w-3.5" />
-        </span>
-        {t.nav.aiKnows}
-      </div>
-      <p className="mt-2 text-xs leading-relaxed text-neutral-200">{t.nav.aiKnowsHint}</p>
-    </Link>
-  );
-}
-
 export function Sidebar() {
   return (
     <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-neutral-200 bg-white px-4 py-5 md:flex">
       <Brand />
 
       <DashboardNav />
-
-      <AiKnowsCard />
     </aside>
   );
 }

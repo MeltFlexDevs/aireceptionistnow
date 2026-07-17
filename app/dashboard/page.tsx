@@ -69,10 +69,15 @@ export default async function OverviewPage() {
 async function OverviewBody({ t }: { t: Dictionary }) {
   const o = t.overview;
   const ownerId = await currentUserId();
-  const data = await getOverviewCached(ownerId).catch((err: Error) => {
-    console.error("[overview] load failed", err);
-    return null;
-  });
+  // Onboarding state rides along in parallel: the checklist stays up until
+  // every step is done, not merely until the first call lands.
+  const [data, onboarding] = await Promise.all([
+    getOverviewCached(ownerId).catch((err: Error) => {
+      console.error("[overview] load failed", err);
+      return null;
+    }),
+    getOnboardingState().catch(() => null),
+  ]);
 
   if (!data) {
     return (
@@ -85,7 +90,6 @@ async function OverviewBody({ t }: { t: Dictionary }) {
   }
 
   if (data.recentCalls.length === 0) {
-    const onboarding = await getOnboardingState().catch(() => null);
     return (
       <div className="space-y-6 rise">
         {onboarding ? (
@@ -122,6 +126,7 @@ async function OverviewBody({ t }: { t: Dictionary }) {
 
   return (
     <div className="space-y-6 rise">
+      {onboarding && !onboarding.complete && <Onboarding state={onboarding} />}
       <div className="rise-stagger grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {data.kpis.map((kpi, i) => (
           <div key={kpi.key} style={{ "--i": i } as CSSProperties}>

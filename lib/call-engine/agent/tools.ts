@@ -18,26 +18,28 @@ interface WebhookToolSpec {
   description: string;
   params: Record<string, ElevenLabs.LiteralJsonSchemaProperty>;
   required: string[];
+  /** "force" = always announce the action out loud; the webhook then runs while the agent is speaking. */
+  preToolSpeech?: ElevenLabs.PreToolSpeechMode;
+  /** Ambient sound played while the tool executes, so the wait never reads as dead air. */
+  toolCallSound?: ElevenLabs.ToolCallSoundType;
+  /** Override the default 15s webhook budget (e.g. booking: 6s guard + 13s create). */
+  responseTimeoutSecs?: number;
 }
 
-function capabilities(assistant: Assistant): {
-  transferTo: string;
+// What the assistant's calendar grants can actually do. Computed at sync time
+// from the real integration providers (see resolveAgentCapabilities) - an
+// access entry alone doesn't prove the provider can answer availability.
+export interface AgentCapabilities {
   canRead: boolean;
   canBook: boolean;
-} {
-  const r = (assistant.routing ?? {}) as {
-    transferTo?: unknown;
-    calendar?: { access?: unknown[] };
-  };
-  const transferTo = typeof r.transferTo === "string" ? r.transferTo.trim() : "";
-  const access = Array.isArray(r.calendar?.access) ? r.calendar.access : [];
-  const canRead = access.length > 0;
-  const canBook = access.some((a) => (a as { level?: unknown })?.level === "write");
-  return { transferTo, canRead, canBook };
 }
 
-function webhookToolSpecs(assistant: Assistant): WebhookToolSpec[] {
-  const { canRead, canBook } = capabilities(assistant);
+function transferNumber(assistant: Assistant): string {
+  const r = (assistant.routing ?? {}) as { transferTo?: unknown };
+  return typeof r.transferTo === "string" ? r.transferTo.trim() : "";
+}
+
+function webhookToolSpecs({ canRead, canBook }: AgentCapabilities): WebhookToolSpec[] {
   const specs: WebhookToolSpec[] = [];
 
   if (canRead) {
@@ -59,6 +61,11 @@ function webhookToolSpecs(assistant: Assistant): WebhookToolSpec[] {
         },
       },
       required: ["start_time", "end_time"],
+      // "auto" self-tunes: snapshot-backed checks answer fast enough that a
+      // spoken acknowledgement would only slow the turn down; cold live reads
+      // still get one.
+      preToolSpeech: "auto",
+      toolCallSound: "typing",
     });
   }
 
@@ -67,7 +74,9 @@ function webhookToolSpecs(assistant: Assistant): WebhookToolSpec[] {
       name: "book_appointment",
       path: "/api/agent/book-appointment",
       description:
-        "Book an appointment on the business calendar once the caller has agreed to a specific time. Only call after confirming the time is free. Collect the caller's name, and whatever this business needs to know about the appointment (see `notes`), before calling this.",
+        "Book an appointment on the business calendar once the caller has agreed to a specific time. " +
+        (canRead ? "Only call after confirming the time is free. " : "") +
+        "Collect the caller's name, and whatever this business needs to know about the appointment (see `notes`), before calling this.",
       params: {
         title: {
           type: "string",
@@ -85,6 +94,13 @@ function webhookToolSpecs(assistant: Assistant): WebhookToolSpec[] {
         },
       },
       required: ["title", "start_time", "end_time"],
+      // Always announce ("Alright, booking that now…") - the create runs in
+      // parallel with the speech, so the caller never waits in silence.
+      preToolSpeech: "force",
+      toolCallSound: "typing",
+      // Worst case inside: 6s double-book guard + 13s create (see net.ts),
+      // plus the post-create DB writes and request transit - leave headroom.
+      responseTimeoutSecs: 25,
     });
   }
 
@@ -142,7 +158,15 @@ function toToolRequest(
       type: "webhook",
       name: spec.name,
       description: spec.description,
-      responseTimeoutSecs: 15,
+      responseTimeoutSecs: spec.responseTimeoutSecs ?? 15,
+      // The agent announces the action ("Alright, booking that now…") and the
+      // webhook fires immediately, so the call and the speech run in parallel.
+      preToolSpeech: spec.preToolSpeech ?? "auto",
+      // Spread, don't assign undefined: the SDK serializer turns explicit
+      // undefined into "tool_call_sound": null on the wire instead of omitting.
+      ...(spec.toolCallSound
+        ? { toolCallSound: spec.toolCallSound, toolCallSoundBehavior: "auto" as const }
+        : {}),
       apiSchema: {
         url: `${baseUrl}${spec.path}`,
         method: "POST",
@@ -161,7 +185,7 @@ export function buildBuiltInTools(
   assistant: Assistant,
   includeLanguageDetection = true,
 ): ElevenLabs.BuiltInToolsOutput {
-  const { transferTo } = capabilities(assistant);
+  const transferTo = transferNumber(assistant);
 
   const tools: ElevenLabs.BuiltInToolsOutput = {
     endCall: { name: "end_call", params: { systemToolType: "end_call" } },
@@ -200,7 +224,7 @@ export function buildBuiltInTools(
 }
 
 export async function createAgentTools(
-  assistant: Assistant,
+  capabilities: AgentCapabilities,
 ): Promise<{ toolIds: string[]; tools: AgentTool[] }> {
   const baseUrl = (process.env.APP_BASE_URL ?? "").replace(/\/$/, "");
   const secret = process.env.AGENT_WEBHOOK_SECRET ?? "";
@@ -216,7 +240,7 @@ export async function createAgentTools(
   const headerValue = (await workspaceSecretLocator(secret)) ?? secret;
 
   const created = await Promise.all(
-    webhookToolSpecs(assistant).map(async (spec) => {
+    webhookToolSpecs(capabilities).map(async (spec) => {
       try {
         const t = await client.conversationalAi.tools.create(
           toToolRequest(spec, baseUrl, headerValue),

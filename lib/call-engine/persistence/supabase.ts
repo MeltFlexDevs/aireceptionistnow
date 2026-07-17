@@ -11,7 +11,6 @@ import type {
 import type {
   AgentCallInput,
   CallRepository,
-  CreateCallInput,
   FinalizeCallInput,
 } from "./types";
 
@@ -39,9 +38,13 @@ function mapIntegration(row: Record<string, unknown>): IntegrationConfig {
 
 export class SupabaseCallRepository implements CallRepository {
   async resolveInboundNumber(toE164: string): Promise<NumberConfig | null> {
+    // Narrow select: this runs on the greeting-blocking call-start path, so
+    // don't ship columns nobody reads (elevenlabs_kb/_tools blobs, timestamps).
     const { data: num, error } = await db()
       .from("phone_numbers")
-      .select("*, assistant:assistants(*, organization:organizations(name, knowledge))")
+      .select(
+        "id, e164, assistant:assistants(owner_id, name, greeting, system_prompt, voice_id, language, elevenlabs_multilingual, knowledge, routing, organization:organizations(name, knowledge))",
+      )
       .eq("e164", toE164)
       .eq("enabled", true)
       .is("deleted_at", null)
@@ -49,16 +52,20 @@ export class SupabaseCallRepository implements CallRepository {
     if (error) throw error;
     if (!num) return null;
 
-    const cfg = (num.assistant as Record<string, unknown> | null) ?? {};
+    const cfg = (num.assistant as unknown as Record<string, unknown> | null) ?? {};
     const cfgOrg =
       (cfg.organization as { name?: string; knowledge?: Record<string, unknown> } | null) ?? null;
 
     const ownerId = cfg.owner_id ? String(cfg.owner_id) : "";
 
-    let integrationsQuery = db().from("integrations").select("*").eq("enabled", true);
-    if (ownerId) {
-      integrationsQuery = integrationsQuery.or(`owner_id.eq.${ownerId},owner_id.is.null`);
-    }
+    // Fail closed on a missing owner: only global (owner-less) integrations
+    // apply. Skipping the filter entirely would attach every tenant's
+    // integrations to this number.
+    const integrationsQuery = db()
+      .from("integrations")
+      .select("*")
+      .eq("enabled", true)
+      .or(ownerId ? `owner_id.eq.${ownerId},owner_id.is.null` : "owner_id.is.null");
     // Both queries depend only on the first lookup - run them together.
     const [{ data: integrations }, acctRes] = await Promise.all([
       integrationsQuery,
@@ -105,42 +112,21 @@ export class SupabaseCallRepository implements CallRepository {
     };
   }
 
-  async createCall(input: CreateCallInput): Promise<string> {
+  // Lookup half of getOrCreateAgentCall - lets the tool path run it in
+  // parallel with the config resolve instead of serializing the two.
+  async findAgentCallId(conversationId: string): Promise<string | null> {
     const { data, error } = await db()
       .from("calls")
-      .insert({
-        phone_number_id: input.numberId,
-        twilio_call_sid: input.callSid,
-        from_number: input.from,
-        to_number: input.to,
-        direction: "inbound",
-        status: "initiated",
-      })
       .select("id")
-      .single();
+      .eq("elevenlabs_conversation_id", conversationId)
+      .maybeSingle();
     if (error) throw error;
-    return String(data.id);
+    return data ? String(data.id) : null;
   }
 
-  async getOrCreateAgentCall(input: AgentCallInput): Promise<string> {
-    const existing = await db()
-      .from("calls")
-      .select("id, direction")
-      .eq("elevenlabs_conversation_id", input.conversationId)
-      .maybeSingle();
-    if (existing.error) throw existing.error;
-    if (existing.data) {
-      const id = String(existing.data.id);
-      if (input.direction && existing.data.direction !== input.direction) {
-        const { error } = await db()
-          .from("calls")
-          .update({ direction: input.direction })
-          .eq("id", id);
-        if (error) throw error;
-      }
-      return id;
-    }
-
+  // Insert half: the partial unique index on elevenlabs_conversation_id makes
+  // the insert race-safe; a conflict falls back to selecting the winner's row.
+  async createAgentCall(input: AgentCallInput): Promise<string> {
     const insert = await db()
       .from("calls")
       .insert({
@@ -164,6 +150,27 @@ export class SupabaseCallRepository implements CallRepository {
     throw insert.error;
   }
 
+  async getOrCreateAgentCall(input: AgentCallInput): Promise<string> {
+    const existing = await db()
+      .from("calls")
+      .select("id, direction")
+      .eq("elevenlabs_conversation_id", input.conversationId)
+      .maybeSingle();
+    if (existing.error) throw existing.error;
+    if (existing.data) {
+      const id = String(existing.data.id);
+      if (input.direction && existing.data.direction !== input.direction) {
+        const { error } = await db()
+          .from("calls")
+          .update({ direction: input.direction })
+          .eq("id", id);
+        if (error) throw error;
+      }
+      return id;
+    }
+    return this.createAgentCall(input);
+  }
+
   async claimAgentCallCompletion(callId: string): Promise<boolean> {
     const { data, error } = await db()
       .from("calls")
@@ -181,15 +188,6 @@ export class SupabaseCallRepository implements CallRepository {
       .update({ status: "in_progress" })
       .eq("id", callId);
     if (error) throw error;
-  }
-
-  async markInProgress(callId: string, streamSid: string): Promise<void> {
-    const { error } = await db()
-      .from("calls")
-      .update({ status: "in_progress", recording_url: null })
-      .eq("id", callId);
-    if (error) throw error;
-    void streamSid; // stream id is transient; not persisted
   }
 
   async appendTurns(callId: string, turns: TranscriptTurn[]): Promise<void> {
@@ -263,21 +261,6 @@ export class SupabaseCallRepository implements CallRepository {
     return String(data.id);
   }
 
-  async updateAction(
-    actionId: string,
-    patch: Partial<Pick<CallAction, "status" | "externalId" | "error">>,
-  ): Promise<void> {
-    const { error } = await db()
-      .from("call_actions")
-      .update({
-        status: patch.status,
-        external_id: patch.externalId,
-        error: patch.error,
-      })
-      .eq("id", actionId);
-    if (error) throw error;
-  }
-
   async getCallForSummary(callId: string): Promise<{
     config: NumberConfig;
     turns: TranscriptTurn[];
@@ -292,20 +275,26 @@ export class SupabaseCallRepository implements CallRepository {
     if (error) throw error;
     if (!call) return null;
 
-    const config = await this.resolveInboundNumber(String(call.to_number));
+    // Independent reads - run together. Errors must abort: an empty turns
+    // list from a transient failure would be summarized as an abandoned call.
+    const [config, turnsRes, actionsRes] = await Promise.all([
+      this.resolveInboundNumber(String(call.to_number)),
+      db()
+        .from("call_turns")
+        .select("role, text, ts_ms")
+        .eq("call_id", callId)
+        .order("id", { ascending: true }),
+      db()
+        .from("call_actions")
+        .select("type, status, external_id, payload, error")
+        .eq("call_id", callId)
+        .order("id", { ascending: true }),
+    ]);
     if (!config) return null;
-
-    const { data: turns } = await db()
-      .from("call_turns")
-      .select("role, text, ts_ms")
-      .eq("call_id", callId)
-      .order("id", { ascending: true });
-
-    const { data: actions } = await db()
-      .from("call_actions")
-      .select("type, status, external_id, payload, error")
-      .eq("call_id", callId)
-      .order("id", { ascending: true });
+    if (turnsRes.error) throw turnsRes.error;
+    if (actionsRes.error) throw actionsRes.error;
+    const { data: turns } = turnsRes;
+    const { data: actions } = actionsRes;
 
     return {
       config,

@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { getAnalyticsCached, getAssistantStatsCached } from "@/lib/dashboard/analytics";
 import { listAssistants } from "@/lib/dashboard/db";
 import { listOrganizations } from "@/lib/dashboard/organizations";
@@ -113,11 +114,15 @@ export default async function AnalyticsPage({
     <div className="space-y-6 rise">
       {header}
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {tiles.map((t) => (
-          <div key={t.label} className="rounded-2xl border border-neutral-200 bg-white p-5">
-            <div className="text-xs font-medium uppercase tracking-wide text-neutral-500">{t.label}</div>
-            <div className="mt-2 text-[28px] font-medium leading-none tracking-tight text-neutral-900">{t.value}</div>
+      <div className="rise-stagger grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {tiles.map((tile, i) => (
+          <div
+            key={tile.label}
+            style={{ "--i": i } as CSSProperties}
+            className="shape-card glass p-5"
+          >
+            <div className="text-xs font-medium uppercase tracking-wide text-neutral-500">{tile.label}</div>
+            <div className="mt-2 text-[28px] font-medium leading-none tracking-tight text-neutral-900">{tile.value}</div>
           </div>
         ))}
       </div>

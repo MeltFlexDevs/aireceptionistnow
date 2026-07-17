@@ -1,15 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { useT } from "@/lib/i18n/client";
-import { Plus } from "../icons";
+import { Plus, Spinner } from "../icons";
 import { createAssistantAction } from "./actions";
 
 const field =
   "w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition-colors focus:border-neutral-900";
-
-const STEPS = ["Creating your assistant", "Almost ready"];
 
 function Progress() {
   const { pending } = useFormStatus();
@@ -17,51 +14,18 @@ function Progress() {
   return <ProgressOverlay />;
 }
 
+// Honest indeterminate progress: the real work (DB row + ElevenLabs agent
+// sync) reports nothing back mid-flight, so don't fake step percentages.
 function ProgressOverlay() {
   const t = useT();
-  const [step, setStep] = useState(0);
-
-  useEffect(() => {
-    const id = setInterval(
-      () => setStep((s) => Math.min(s + 1, STEPS.length - 1)),
-      1400,
-    );
-    return () => clearInterval(id);
-  }, []);
-
-  const pct = Math.min(((step + 1) / STEPS.length) * 100, 95);
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="status">
       <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-        <h3 className="text-base font-medium text-neutral-900">{t.assistants.creating}</h3>
-        <p className="mt-1 text-sm text-neutral-500">{STEPS[step]}…</p>
-
-        <div className="mt-4 h-2 overflow-hidden rounded-full bg-neutral-100">
-          <div
-            className="h-full rounded-full bg-neutral-900 transition-all duration-700 ease-out"
-            style={{ width: `${pct}%` }}
-          />
+        <div className="flex items-center gap-3">
+          <Spinner className="h-5 w-5 animate-spin text-neutral-900" />
+          <h3 className="text-base font-medium text-neutral-900">{t.assistants.creating}…</h3>
         </div>
-
-        <ul className="mt-4 space-y-2">
-          {STEPS.map((s, i) => (
-            <li key={s} className="flex items-center gap-2 text-sm">
-              <span
-                className={`flex h-5 w-5 items-center justify-center rounded-full text-[11px] ${
-                  i < step
-                    ? "bg-neutral-900 text-white"
-                    : i === step
-                      ? "bg-neutral-700 text-white"
-                      : "bg-neutral-100 text-neutral-400"
-                }`}
-              >
-                {i < step ? "✓" : i + 1}
-              </span>
-              <span className={i <= step ? "text-neutral-800" : "text-neutral-400"}>{s}</span>
-            </li>
-          ))}
-        </ul>
+        <p className="mt-2 text-sm text-neutral-500">{t.assistants.creatingBody}</p>
       </div>
     </div>
   );

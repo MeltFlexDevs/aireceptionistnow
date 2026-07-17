@@ -159,14 +159,20 @@ async function recentCallStarts(): Promise<number[]> {
   if (!apiKey || !agentId) return [];
 
   const url = `${CONVERSATIONS_URL}?agent_id=${encodeURIComponent(agentId)}&page_size=100`;
+  // Failures fail OPEN (caps stop protecting) so demo calls keep working
+  // through an ElevenLabs blip - but say so, or the cap silently vanishes.
   try {
     const res = await fetch(url, { headers: { "xi-api-key": apiKey } });
-    if (!res.ok) return [];
+    if (!res.ok) {
+      console.error(`[call-caps] conversation list failed (${res.status}) - caps not enforced this call`);
+      return [];
+    }
     const data = (await res.json()) as {
       conversations?: { start_time_unix_secs?: number }[];
     };
     return (data.conversations ?? []).map((c) => c.start_time_unix_secs ?? 0);
-  } catch {
+  } catch (err) {
+    console.error("[call-caps] conversation list threw - caps not enforced this call", err);
     return [];
   }
 }

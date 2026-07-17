@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import Link from "next/link";
-import { listNumbers, type PhoneNumber } from "@/lib/dashboard/db";
+import { listAssistants, listNumbers, type PhoneNumber } from "@/lib/dashboard/db";
 import { countryForE164 } from "@/lib/number-pricing";
 import { formatPhone } from "@/lib/call-engine/voice/phone-language";
 import { PageHeader } from "../components/PageHeader";
@@ -17,19 +17,24 @@ export default async function NumbersPage({
   const [{ error }, t] = await Promise.all([searchParams, getDictionary()]);
 
   let numbers: PhoneNumber[] = [];
+  let assistantNames = new Map<string, string>();
   let loadError = "";
   try {
-    numbers = await listNumbers();
+    const [nums, assistants] = await Promise.all([listNumbers(), listAssistants()]);
+    numbers = nums;
+    assistantNames = new Map(assistants.map((a) => [a.id, a.name]));
   } catch (err) {
     loadError = (err as Error).message;
   }
 
-  // Available to assign = same rule claimFreeNumber() uses to hand a number to an assistant.
-  const available = numbers.filter((n) => !n.assistant_id && n.enabled && n.twilio_sid);
+  // Available to assign = same rule claimFreeNumber() uses to hand a number to
+  // an assistant. Everything else with an assistant is live and answering.
+  const isAvailable = (n: PhoneNumber) => !n.assistant_id && n.enabled && !!n.twilio_sid;
+  const shown = numbers.filter((n) => n.assistant_id || isAvailable(n));
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t.numbers.title} />
+      <PageHeader title={t.numbers.title} description={t.numbers.description} />
 
       {(error || loadError) && (
         <div className="rise rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
@@ -37,7 +42,7 @@ export default async function NumbersPage({
         </div>
       )}
 
-      {available.length === 0 && !loadError ? (
+      {shown.length === 0 && !loadError ? (
         <div className="rise flex flex-col items-center justify-center rounded-2xl border border-dashed border-neutral-300 bg-white px-6 py-16 text-center">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-neutral-100 text-neutral-900">
             <Hash className="h-6 w-6" />
@@ -47,8 +52,9 @@ export default async function NumbersPage({
         </div>
       ) : (
         <div className="rise-stagger grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {available.map((n, i) => {
+          {shown.map((n, i) => {
             const { flag, name } = countryForE164(n.e164);
+            const assistantName = n.assistant_id ? assistantNames.get(n.assistant_id) : undefined;
             return (
               <Link
                 key={n.id}
@@ -61,15 +67,30 @@ export default async function NumbersPage({
                     <span className="text-lg leading-none" aria-hidden>{flag}</span>
                     {formatPhone(n.e164)}
                   </span>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-600">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                    {t.common.available}
-                  </span>
+                  {n.assistant_id && n.enabled && n.twilio_sid ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-600">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                      {t.numbers.live}
+                    </span>
+                  ) : n.assistant_id ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-600">
+                      <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                      {t.common.notConnected}
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-600">
+                      <span className="h-1.5 w-1.5 rounded-full bg-neutral-400" />
+                      {t.common.available}
+                    </span>
+                  )}
                 </div>
                 <div className="mt-3 flex items-center justify-between">
-                  <span className="text-xs text-neutral-400">{name}</span>
+                  <span className="truncate text-xs text-neutral-400">
+                    {name}
+                    {assistantName ? ` · ${assistantName}` : ""}
+                  </span>
                   <ChevronDown
-                    className="h-4 w-4 -rotate-90 text-neutral-300 transition-[transform,color] duration-200 group-hover:translate-x-0.5 group-hover:text-neutral-600"
+                    className="h-4 w-4 shrink-0 -rotate-90 text-neutral-300 transition-[transform,color] duration-200 group-hover:translate-x-0.5 group-hover:text-neutral-600"
                     aria-hidden
                   />
                 </div>

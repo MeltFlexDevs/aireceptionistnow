@@ -10,7 +10,7 @@ export default function Loading() {
       </div>
 
       {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="space-y-4 rounded-2xl border border-neutral-200 bg-white p-5">
+        <div key={i} className="space-y-4 shape-card glass p-5">
           <Skeleton className="h-4 w-40" />
           <div className="grid gap-4 sm:grid-cols-2">
             <Skeleton className="h-10 w-full" />

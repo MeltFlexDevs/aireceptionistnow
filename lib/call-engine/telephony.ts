@@ -1,7 +1,10 @@
-import twilio from "twilio";
 import { getEnv } from "./env";
 
-function client() {
+// The Twilio SDK is heavy and only the SMS paths need it - load it lazily so
+// the agent tool routes (which import this module transitively) don't parse it
+// on cold start.
+async function client() {
+  const { default: twilio } = await import("twilio");
   const env = getEnv();
   // Prefer a scoped API Key; fall back to the account auth token.
   if (env.TWILIO_API_KEY_SID && env.TWILIO_API_KEY_SECRET) {
@@ -31,9 +34,10 @@ export async function sendSms(
   body: string,
   senderName?: string,
 ): Promise<void> {
+  const twilio = await client();
   const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID;
   if (messagingServiceSid) {
-    await client().messages.create({ to, body, messagingServiceSid });
+    await twilio.messages.create({ to, body, messagingServiceSid });
     return;
   }
   // Preferred sender: the business's own name (alphanumeric ID, works in most
@@ -43,10 +47,10 @@ export async function sendSms(
   const fallback = process.env.TWILIO_SMS_FROM || from;
   const sender = (senderName ? alphaSender(senderName) : "") || fallback;
   try {
-    await client().messages.create({ to, from: sender, body });
+    await twilio.messages.create({ to, from: sender, body });
   } catch (err) {
     if (sender === fallback) throw err;
     console.warn(`[sms] branded sender "${sender}" rejected, retrying with fallback`, err);
-    await client().messages.create({ to, from: fallback, body });
+    await twilio.messages.create({ to, from: fallback, body });
   }
 }

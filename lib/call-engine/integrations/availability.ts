@@ -153,16 +153,18 @@ export async function checkAvailability(
 
   const requestedFree = !overlaps(startMs, endMs, busy);
 
-  const offsetMin = requestOffsetMin(startIso.trim(), startMs);
+  // Alternatives only matter when the requested slot is taken.
   const alternatives: string[] = [];
-  const stepMs = SLOT_STEP_MIN * 60 * 1000;
-  const searchEnd = startMs + SEARCH_DAYS * 24 * 60 * 60 * 1000;
-  for (let s = startMs; s < searchEnd && alternatives.length < MAX_ALTERNATIVES; s += stepMs) {
-    const e = s + durationMs;
-    if (s === startMs && requestedFree) continue; // don't offer the slot they asked for
-    if (!withinHours(s, e, offsetMin)) continue;
-    if (overlaps(s, e, busy)) continue;
-    alternatives.push(formatSlot(s, offsetMin));
+  if (!requestedFree) {
+    const offsetMin = requestOffsetMin(startIso.trim(), startMs);
+    const stepMs = SLOT_STEP_MIN * 60 * 1000;
+    const searchEnd = startMs + SEARCH_DAYS * 24 * 60 * 60 * 1000;
+    for (let s = startMs; s < searchEnd && alternatives.length < MAX_ALTERNATIVES; s += stepMs) {
+      const e = s + durationMs;
+      if (!withinHours(s, e, offsetMin)) continue;
+      if (overlaps(s, e, busy)) continue;
+      alternatives.push(formatSlot(s, offsetMin));
+    }
   }
 
   return { ok: true, requestedFree, alternatives };
