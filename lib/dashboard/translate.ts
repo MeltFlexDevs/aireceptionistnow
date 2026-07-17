@@ -59,8 +59,9 @@ export function translateText(text: string, locale: string): Promise<string> {
 }
 
 // Batch variant for transcripts: one model call for the whole conversation.
-// Any shape mismatch falls back to the originals.
-export function translateTexts(texts: string[], locale: string): Promise<string[]> {
+// Throws on model failure so callers can tell "failed" from "already in the
+// target language"; any shape mismatch falls back to the originals.
+export function translateTextsOrThrow(texts: string[], locale: string): Promise<string[]> {
   const target = LOCALE_NAMES[locale];
   if (!target || texts.length === 0) return Promise.resolve(texts);
   const joined = JSON.stringify(texts);
@@ -79,7 +80,11 @@ export function translateTexts(texts: string[], locale: string): Promise<string[
     },
     ["ui-translation-batch", locale, checksum(joined)],
     { revalidate: 30 * 24 * 3600 },
-  )().catch((err) => {
+  )();
+}
+
+export function translateTexts(texts: string[], locale: string): Promise<string[]> {
+  return translateTextsOrThrow(texts, locale).catch((err) => {
     console.error("[translate] transcript translation failed", err);
     return texts;
   });

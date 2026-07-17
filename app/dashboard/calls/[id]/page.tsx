@@ -1,10 +1,7 @@
-import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getCallDetail } from "@/lib/dashboard/calls";
 import { formatPhone } from "@/lib/call-engine/voice/phone-language";
 import { currentUserId } from "@/lib/auth";
-import { translateText } from "@/lib/dashboard/translate";
-import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { BackLink } from "../../components/BackLink";
 import { SectionCard } from "../../components/SectionCard";
 import { TranslatedText } from "../../components/TranslatedText";
@@ -25,21 +22,6 @@ const SENTIMENT_TONE: Record<string, string> = {
 };
 
 const summaryCls = "text-sm leading-relaxed text-neutral-600";
-
-async function TranslatedSummary({ text }: { text: string }) {
-  const [t, translated] = await Promise.all([
-    getDictionary(),
-    translateText(text, await getLocale()),
-  ]);
-  return (
-    <TranslatedText
-      original={text}
-      translated={translated}
-      labels={{ showOriginal: t.data.showOriginal, showTranslation: t.data.showTranslation }}
-      className={summaryCls}
-    />
-  );
-}
 
 function Meta({ label, value }: { label: string; value: string }) {
   return (
@@ -130,19 +112,15 @@ export default async function CallDetailPage({ params }: { params: Promise<{ id:
             subtitle={`${call.turns.length} turn${call.turns.length === 1 ? "" : "s"}`}
             action={<ReportIssue callId={call.id} />}
           >
-            {/* Original renders instantly; the cached translation streams in. */}
-            <Suspense fallback={<Transcript turns={call.turns} translate={false} />}>
-              <Transcript turns={call.turns} />
-            </Suspense>
+            {/* Originals render instantly; TranscriptView translates client-side. */}
+            <Transcript turns={call.turns} />
           </SectionCard>
         </div>
 
         <div className="space-y-4">
           <SectionCard title="AI summary">
             {call.summary ? (
-              <Suspense fallback={<p className={summaryCls}>{call.summary}</p>}>
-                <TranslatedSummary text={call.summary} />
-              </Suspense>
+              <TranslatedText text={call.summary} className={summaryCls} />
             ) : (
               <p className={summaryCls}>{summaryText}</p>
             )}

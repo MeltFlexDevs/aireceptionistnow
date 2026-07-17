@@ -1,27 +1,56 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useT } from "@/lib/i18n/client";
+import { useTranslated } from "@/lib/i18n/use-translated";
 
-interface Props {
+// Presentational half: shows the translation with a "show original" toggle,
+// or just the text when there is nothing to toggle. Labels come from context
+// so they flip instantly on a locale switch.
+export function ToggleText({
+  original,
+  translated,
+  hasTranslation,
+  translating = false,
+  className,
+}: {
   original: string;
   translated: string;
-  labels: { showOriginal: string; showTranslation: string };
+  hasTranslation: boolean;
+  translating?: boolean;
   className?: string;
-}
-
-export function TranslatedText({ original, translated, labels, className }: Props) {
+}) {
+  const t = useT();
   const [showOriginal, setShowOriginal] = useState(false);
-  if (translated.trim() === original.trim()) return <p className={className}>{original}</p>;
+  const textCls = `${className ?? ""} transition-opacity duration-300 ${translating ? "opacity-70" : "opacity-100"}`;
+  if (!hasTranslation) return <p className={textCls}>{translated}</p>;
   return (
     <div>
-      <p className={className}>{showOriginal ? original : translated}</p>
+      <p className={textCls}>{showOriginal ? original : translated}</p>
       <button
         type="button"
         onClick={() => setShowOriginal((v) => !v)}
         className="press mt-1.5 text-[11px] font-medium text-neutral-400 transition-colors hover:text-neutral-900"
       >
-        {showOriginal ? labels.showTranslation : labels.showOriginal}
+        {showOriginal ? t.data.showTranslation : t.data.showOriginal}
       </button>
     </div>
+  );
+}
+
+// Self-translating text: renders the original immediately, swaps in the
+// client-fetched translation the moment it's ready, and re-translates
+// whenever the dashboard locale changes.
+export function TranslatedText({ text, className }: { text: string; className?: string }) {
+  const texts = useMemo(() => [text], [text]);
+  const { texts: display, translating, hasTranslation } = useTranslated(texts);
+  return (
+    <ToggleText
+      original={text}
+      translated={display[0]}
+      hasTranslation={hasTranslation}
+      translating={translating}
+      className={className}
+    />
   );
 }
