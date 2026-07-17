@@ -14,6 +14,7 @@ interface NotificationItem {
 }
 
 const SEEN_KEY = "notifications:lastSeenAt";
+const CLEARED_KEY = "notifications:clearedAt";
 
 function relTime(iso: string): string {
   const m = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
@@ -27,6 +28,7 @@ function relTime(iso: string): string {
 export function NotificationsBell() {
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [lastSeen, setLastSeen] = useState<string>("");
+  const [clearedAt, setClearedAt] = useState<string>("");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const t = useT();
@@ -38,6 +40,7 @@ export function NotificationsBell() {
       .then((d: { items?: NotificationItem[] }) => {
         setItems(d.items ?? []);
         setLastSeen(localStorage.getItem(SEEN_KEY) ?? "");
+        setClearedAt(localStorage.getItem(CLEARED_KEY) ?? "");
       })
       .catch(() => {});
     return () => controller.abort();
@@ -60,12 +63,21 @@ export function NotificationsBell() {
     };
   }, [open]);
 
-  const unread = items.filter((i) => i.at > lastSeen).length;
+  // Cleared items disappear from the panel (per browser); newer ones return.
+  const visible = items.filter((i) => i.at > clearedAt);
+  const unread = visible.filter((i) => i.at > lastSeen).length;
 
   function markAllRead() {
     const newest = items[0]?.at ?? new Date().toISOString();
     localStorage.setItem(SEEN_KEY, newest);
     setLastSeen(newest);
+  }
+
+  function clearAll() {
+    const newest = items[0]?.at ?? new Date().toISOString();
+    localStorage.setItem(CLEARED_KEY, newest);
+    setClearedAt(newest);
+    markAllRead(); // clearing implies everything was seen
   }
 
   function toggle() {
@@ -92,26 +104,37 @@ export function NotificationsBell() {
 
       {open && (
         <div className="absolute right-0 mt-2 w-80 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-lg shadow-neutral-200/60">
-          <div className="flex items-center justify-between border-b border-neutral-100 px-4 py-3">
+          <div className="flex items-center justify-between gap-3 border-b border-neutral-100 px-4 py-3">
             <span className="text-sm font-medium text-neutral-900">{t.common.notifications}</span>
-            {unread > 0 && (
-              <button
-                type="button"
-                onClick={markAllRead}
-                className="text-xs font-medium text-neutral-500 transition-colors hover:text-neutral-900"
-              >
-                Mark all read
-              </button>
-            )}
+            <span className="flex items-center gap-3">
+              {unread > 0 && (
+                <button
+                  type="button"
+                  onClick={markAllRead}
+                  className="text-xs font-medium text-neutral-500 transition-colors hover:text-neutral-900"
+                >
+                  Mark all read
+                </button>
+              )}
+              {visible.length > 0 && (
+                <button
+                  type="button"
+                  onClick={clearAll}
+                  className="text-xs font-medium text-neutral-500 transition-colors hover:text-neutral-900"
+                >
+                  Clear all
+                </button>
+              )}
+            </span>
           </div>
 
-          {items.length === 0 ? (
+          {visible.length === 0 ? (
             <div className="px-4 py-10 text-center text-sm text-neutral-400">
               No recent calls.
             </div>
           ) : (
             <ul className="max-h-96 overflow-y-auto">
-              {items.map((i) => {
+              {visible.map((i) => {
                 const isUnread = i.at > lastSeen;
                 return (
                   <li key={i.id}>

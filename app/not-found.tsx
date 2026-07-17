@@ -1,5 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import SiteHeader from "./components/SiteHeader";
+import SiteFooter from "./components/SiteFooter";
+import { NotFoundSuggestions, type SuggestionLink } from "./components/NotFoundSuggestions";
+import { posts } from "./blog/_posts";
+import { answers } from "./answers/_answers";
+import { COMPETITORS } from "./compare/_compare/competitors";
+import { INDUSTRIES } from "./industries/_industries/registry";
 
 export const metadata: Metadata = {
   title: "Page not found",
@@ -7,59 +14,109 @@ export const metadata: Metadata = {
   alternates: { canonical: null },
 };
 
-const LINKS = [
-  { href: "/", label: "Home" },
+// Every real page a mistyped URL could have meant - built server-side, only
+// these {href, label} strings ever reach the client.
+const SUGGESTION_LINKS: SuggestionLink[] = [
   { href: "/pricing", label: "Pricing" },
   { href: "/industries", label: "Industries" },
-  { href: "/compare/smith-ai-alternative", label: "Compare" },
   { href: "/blog", label: "Blog" },
   { href: "/answers", label: "Answers" },
+  ...INDUSTRIES.map((i) => ({
+    href: `/industries/${i.slug}`,
+    label: `AI Receptionist for ${i.industry}`,
+  })),
+  ...COMPETITORS.map((c) => ({
+    href: `/compare/${c.slug}`,
+    label: `${c.competitor} alternative`,
+  })),
+  ...posts.map((p) => ({ href: `/blog/${p.slug}`, label: p.title })),
+  ...answers.map((a) => ({ href: `/answers/${a.slug}`, label: a.question })),
 ];
 
-// A dead end costs the visitor and the crawler alike - route both back to the
-// hubs instead of serving the framework's bare 404.
+// One joke, one exit - the site chrome around it carries the navigation, and
+// the did-you-mean matcher rescues mistyped URLs.
 export default function NotFound() {
   return (
-    <main
+    <div
       style={{
         minHeight: "100svh",
         display: "flex",
         flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: "20px",
-        padding: "24px",
         background: "#fff",
         color: "#1D1D1D",
         fontFamily: "var(--font-inter), Inter, -apple-system, BlinkMacSystemFont, sans-serif",
-        textAlign: "center",
       }}
     >
-      <p style={{ fontSize: "13px", letterSpacing: "0.08em", color: "#888", margin: 0 }}>404</p>
-      <h1 style={{ fontSize: "28px", fontWeight: 400, letterSpacing: "-0.02em", margin: 0 }}>
-        This page doesn&apos;t exist
-      </h1>
-      <p style={{ fontSize: "15px", color: "#555", maxWidth: "420px", margin: 0 }}>
-        The link may be outdated. Here&apos;s where everything lives:
-      </p>
-      <nav style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "10px" }}>
-        {LINKS.map((l) => (
-          <Link
-            key={l.href}
-            href={l.href}
-            style={{
-              padding: "8px 16px",
-              borderRadius: "10px",
-              border: "1px solid #e5e5e5",
-              color: "#1D1D1D",
-              fontSize: "14px",
-              textDecoration: "none",
-            }}
-          >
-            {l.label}
-          </Link>
-        ))}
-      </nav>
-    </main>
+      <SiteHeader />
+      <main
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "8px",
+          padding: "140px 24px 96px",
+          textAlign: "center",
+        }}
+      >
+        <p
+          aria-hidden
+          style={{
+            fontSize: "clamp(88px, 18vw, 160px)",
+            fontWeight: 200,
+            letterSpacing: "-0.06em",
+            lineHeight: 1,
+            margin: 0,
+            color: "#1D1D1D",
+          }}
+        >
+          +404
+        </p>
+        <h1
+          style={{
+            fontSize: "clamp(18px, 3vw, 24px)",
+            fontWeight: 400,
+            letterSpacing: "-0.01em",
+            margin: "8px 0 0",
+          }}
+        >
+          The page you dialed is not in service.
+        </h1>
+        <p
+          style={{
+            fontSize: "15px",
+            fontWeight: 300,
+            color: "#888",
+            maxWidth: "380px",
+            margin: 0,
+            lineHeight: 1.6,
+          }}
+        >
+          Wrong extension, probably. Our receptionist answers everything. This one&apos;s on us.
+        </p>
+        <NotFoundSuggestions links={SUGGESTION_LINKS} />
+        <Link
+          href="/"
+          className="press"
+          style={{
+            marginTop: "24px",
+            display: "inline-flex",
+            alignItems: "center",
+            height: "42px",
+            padding: "0 22px",
+            borderRadius: "12px",
+            background: "#1D1D1D",
+            color: "#fff",
+            fontSize: "14px",
+            fontWeight: 500,
+            textDecoration: "none",
+          }}
+        >
+          Back to the front desk
+        </Link>
+      </main>
+      <SiteFooter />
+    </div>
   );
 }

@@ -126,7 +126,14 @@ export const createCalcom: CalendarFactory = (config): CalendarProvider => {
         start: req.startTime,
         attendee: {
           name: req.attendeeName ?? "Phone caller",
-          email: cfg.attendee_email ?? "noreply@aireceptionistnow.com",
+          // cal.com verifies the mailbox actually receives mail, so the
+          // fallback must be a real inbox: the operator's configured one, then
+          // a deployment-wide env override. The noreply@ last resort only works
+          // while cal.com's verification lets it through.
+          email:
+            cfg.attendee_email ??
+            process.env.CALCOM_ATTENDEE_EMAIL ??
+            "noreply@aireceptionistnow.com",
           timeZone: cfg.time_zone ?? "UTC",
           ...(req.attendeePhone ? { phoneNumber: req.attendeePhone } : {}),
         },
@@ -164,7 +171,16 @@ export const createCalcom: CalendarFactory = (config): CalendarProvider => {
         }
       }
 
-      if (!res.ok) return { ok: false, error: await failure(res) };
+      if (!res.ok) {
+        const msg = await failure(res);
+        // Make the fix obvious in the dashboard when cal.com rejects the
+        // attendee mailbox (it verifies deliverability since 2026).
+        const hint =
+          res.status === 400 && /email/i.test(msg)
+            ? "attendee email rejected - reconnect Cal.com or set CALCOM_ATTENDEE_EMAIL to a real inbox. "
+            : "";
+        return { ok: false, error: hint + msg };
+      }
       const json = (await res.json()) as {
         data?: { id?: number; uid?: string };
         id?: number;

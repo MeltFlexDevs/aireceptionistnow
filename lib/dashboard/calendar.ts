@@ -26,6 +26,8 @@ export interface Booking {
   assistant: string | null;
   provider: string | null;
   cancellation: BookingCancellation | null;
+  // Automatic calendar-sync retries recorded so far (see booking-retry.ts).
+  syncAttempts: number;
 }
 
 const SELECT =
@@ -99,6 +101,10 @@ export async function listBookings(
       assistant: assistantName(call),
       provider: integration ? nullableStr(integration.provider) : null,
       cancellation: toCancellation(payload),
+      syncAttempts:
+        typeof (payload.sync as { attempts?: unknown } | undefined)?.attempts === "number"
+          ? ((payload.sync as { attempts: number }).attempts)
+          : 0,
     };
   });
 }

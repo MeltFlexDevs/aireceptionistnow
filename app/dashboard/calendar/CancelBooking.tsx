@@ -1,34 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import type { BookingCancellation } from "@/lib/dashboard/calendar";
 import { cancelBookingAction } from "./actions";
 import { SubmitButton } from "../components/SubmitButton";
 
-const NOTIFY_LABEL: Record<BookingCancellation["notifyStatus"], string> = {
-  pending: "Contacting the customer…",
-  calling: "Calling the customer…",
-  answered: "Customer reached by call",
-  sms_sent: "Customer texted (no answer)",
-  failed: "Couldn't reach the customer",
-};
-
-export function CancelBooking({
-  actionId,
-  cancellation,
-}: {
-  actionId: string;
-  cancellation: BookingCancellation | null;
-}) {
+// The cancel affordance only - once a booking IS cancelled, the page renders
+// the localized cancellation strip (reason + customer-notification outcome).
+export function CancelBooking({ actionId }: { actionId: string }) {
   const [open, setOpen] = useState(false);
-
-  if (cancellation) {
-    return (
-      <span className="shrink-0 rounded-lg bg-neutral-100 px-2.5 py-1 text-xs font-medium text-neutral-500">
-        {NOTIFY_LABEL[cancellation.notifyStatus]}
-      </span>
-    );
-  }
 
   if (!open) {
     return (
@@ -45,7 +24,7 @@ export function CancelBooking({
   return (
     <form
       action={cancelBookingAction}
-      className="w-full rounded-xl border border-neutral-200 bg-neutral-50/60 p-3"
+      className="w-72 max-w-full rounded-xl border border-neutral-200 bg-neutral-50/60 p-3"
     >
       <input type="hidden" name="action_id" value={actionId} />
       <p className="mb-2 text-xs font-medium text-neutral-700">

@@ -11,6 +11,7 @@ import {
   saveCancellationState,
   type BookingForCancel,
 } from "@/lib/dashboard/booking-cancel";
+import { retryBookingSync } from "@/lib/dashboard/booking-retry";
 import { ownerTimezone } from "@/lib/dashboard/timezone";
 import { dateTimeFmt } from "@/lib/dashboard/calls/format";
 import { composeCancellationScript, composeCancellationSms } from "@/lib/call-engine/cancellation";
@@ -22,6 +23,19 @@ import { languageFromPhone } from "@/lib/call-engine/voice/phone-language";
 function back(msg: string, kind: "saved" | "error" = "saved"): never {
   revalidatePath("/dashboard/calendar");
   redirect(`/dashboard/calendar?${kind}=${encodeURIComponent(msg)}`);
+}
+
+export async function retryBookingSyncAction(formData: FormData): Promise<void> {
+  const actionId = String(formData.get("action_id") ?? "");
+  if (!actionId) back("Missing booking.", "error");
+
+  const ownerId = (await currentUserId()) ?? null;
+  const res = await retryBookingSync(actionId, ownerId).catch((err: Error) => ({
+    ok: false as const,
+    message: err.message,
+  }));
+  if (res.ok) back("Appointment synced to the calendar.");
+  back(`Sync failed again: ${res.message}`, "error");
 }
 
 export async function cancelBookingAction(formData: FormData): Promise<void> {

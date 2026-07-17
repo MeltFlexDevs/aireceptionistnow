@@ -32,6 +32,22 @@ export function calendarAccessFrom(config: NumberConfig): CalendarAccessEntry[] 
   );
 }
 
+// Shared by the live booking path and the retry sweep: both rebuild the
+// provider request from the same (untrusted) tool-call payload shape.
+export function bookingRequestFromPayload(
+  input: Record<string, unknown>,
+  fallbackPhone = "",
+): BookingRequest {
+  return {
+    title: clip(input.title, 200) || "Appointment",
+    startTime: clip(input.start_time, 64),
+    endTime: clip(input.end_time, 64),
+    attendeeName: input.attendee_name ? clip(input.attendee_name, 120) : undefined,
+    attendeePhone: input.attendee_phone ? clip(input.attendee_phone, 40) : fallbackPhone,
+    notes: input.notes ? clip(input.notes, 1000) : undefined,
+  };
+}
+
 export async function checkAvailabilityAction(
   ctx: ActionContext,
   input: Record<string, unknown>,
@@ -76,14 +92,7 @@ export async function bookAppointmentAction(
   const access = calendarAccessFrom(ctx.config);
   const writeEntry = access.find((a) => a.level === "write");
 
-  const req: BookingRequest = {
-    title: clip(input.title, 200) || "Appointment",
-    startTime: clip(input.start_time, 64),
-    endTime: clip(input.end_time, 64),
-    attendeeName: input.attendee_name ? clip(input.attendee_name, 120) : undefined,
-    attendeePhone: input.attendee_phone ? clip(input.attendee_phone, 40) : ctx.from,
-    notes: input.notes ? clip(input.notes, 1000) : undefined,
-  };
+  const req = bookingRequestFromPayload(input, ctx.from);
 
   const startMs = Date.parse(req.startTime);
   const endMs = Date.parse(req.endTime);
