@@ -4,6 +4,8 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Sign-in problem - AI Receptionist",
   robots: { index: false },
+  // Don't inherit the root layout's homepage canonical on a noindex page.
+  alternates: { canonical: null },
 };
 
 export default function AuthErrorPage() {

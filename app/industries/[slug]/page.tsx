@@ -5,6 +5,9 @@ import { siteUrl, siteName, getAuthor } from "@/lib/site";
 import { INDUSTRIES, getIndustry } from "../_industries/registry";
 import { IndustryPage } from "../_industries/IndustryPage";
 
+// Only the listed slugs exist - unknown ones 404 statically, no function invocation.
+export const dynamicParams = false;
+
 export function generateStaticParams() {
   return INDUSTRIES.map((i) => ({ slug: i.slug }));
 }

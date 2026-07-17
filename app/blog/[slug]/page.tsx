@@ -8,6 +8,9 @@ import { posts, getPost, formatDate } from "../_posts";
 import { PostToc } from "../_components/post-toc";
 import { BlogCtaCard } from "../_components/blog-cta";
 
+// Only the listed slugs exist - unknown ones 404 statically, no function invocation.
+export const dynamicParams = false;
+
 export function generateStaticParams() {
   return posts.map((post) => ({ slug: post.slug }));
 }

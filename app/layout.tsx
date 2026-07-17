@@ -65,12 +65,14 @@ export const viewport: Viewport = {
   themeColor: "#1D1D1D",
 };
 
-// Site-wide structured data: who we are + a sitelinks search box hint.
+// Site-wide structured data: who runs the site (Organization + WebSite graph).
 const orgJsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
   "@id": `${siteUrl}/#organization`,
   name: siteName,
+  // Matches the footer's legal imprint so the entity is unambiguous.
+  legalName: "MeltFlex s. r. o.",
   url: siteUrl,
   logo: { "@type": "ImageObject", url: logoUrl, width: 512, height: 512 },
   image: logoUrl,

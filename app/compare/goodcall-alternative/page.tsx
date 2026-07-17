@@ -21,7 +21,8 @@ const description =
   "A multilingual, GDPR-first Goodcall alternative. AI Receptionist Now answers 24/7 in 25+ languages, is EU-hosted, flat-priced with no per-seat caps, and free to start.";
 
 export const metadata: Metadata = {
-  title,
+  // absolute: the root template would append the brand and push these past ~60 chars
+  title: { absolute: title },
   description,
   keywords: [
     "Goodcall alternative",
@@ -434,7 +435,7 @@ export default function GoodcallComparePage() {
                 <span className="works-with-label">Works with</span>
                 {INTEGRATION_LOGOS.map((it) => (
                   <span className="works-with-item" key={it.name}>
-                    <img src={it.logo} alt={it.name} loading="lazy" />
+                    <img src={it.logo} alt={`${it.name} logo`} width={24} height={24} loading="lazy" />
                     {it.name}
                   </span>
                 ))}

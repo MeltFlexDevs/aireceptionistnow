@@ -44,7 +44,7 @@ export function BlogCtaCard() {
       >
         <Image
           src="/sign-in-call.webp"
-          alt=""
+          alt="A live phone call answered on an iPhone"
           fill
           sizes="320px"
           className="object-contain"

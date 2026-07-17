@@ -9,7 +9,8 @@ const description =
   "Honest notes on AI phone receptionists, call handling, and appointment booking: what the technology genuinely does for a small business, and where it still falls short.";
 
 export const metadata: Metadata = {
-  title: "Blog",
+  // Descriptive title link (the bare "Blog | brand" said nothing about the topic).
+  title: { absolute: "AI Receptionist Blog & Guides | AI Receptionist Now" },
   description,
   alternates: { canonical: `${siteUrl}/blog` },
   openGraph: {
@@ -104,6 +105,8 @@ export default function BlogPage() {
           <img
             src="https://img.turbo0.com/badge-listed-light.svg"
             alt="Listed on Turbo0"
+            width={482}
+            height={161}
             style={{ height: "54px", width: "auto" }}
           />
         </a>

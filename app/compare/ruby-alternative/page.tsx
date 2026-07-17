@@ -27,7 +27,8 @@ const description =
   "A flat-priced, 24/7 AI alternative to Ruby's live-human receptionists. Answer every call in 25+ languages, book appointments, and pay a fraction per minute. Free to start.";
 
 export const metadata: Metadata = {
-  title,
+  // absolute: the root template would append the brand and push these past ~60 chars
+  title: { absolute: title },
   description,
   keywords: [
     "Ruby alternative",
@@ -445,7 +446,7 @@ export default function RubyComparePage() {
                 <span className="works-with-label">Works with</span>
                 {INTEGRATION_LOGOS.map((it) => (
                   <span className="works-with-item" key={it.name}>
-                    <img src={it.logo} alt={it.name} loading="lazy" />
+                    <img src={it.logo} alt={`${it.name} logo`} width={24} height={24} loading="lazy" />
                     {it.name}
                   </span>
                 ))}

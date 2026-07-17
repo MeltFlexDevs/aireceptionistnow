@@ -6,27 +6,28 @@ import { COMPETITORS } from "./compare/_compare/competitors";
 import { INDUSTRIES } from "./industries/_industries/registry";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const now = new Date();
-
+  // No lastModified on pages without a real content date: stamping build time
+  // on unchanged pages teaches crawlers to distrust the field, which then
+  // devalues the genuine dates on posts and answers.
   const staticPages: MetadataRoute.Sitemap = [
-    { url: siteUrl, lastModified: now, changeFrequency: "weekly", priority: 1 },
-    { url: `${siteUrl}/pricing`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
-    { url: `${siteUrl}/industries`, lastModified: now, changeFrequency: "weekly", priority: 0.8 },
-    { url: `${siteUrl}/blog`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
-    { url: `${siteUrl}/answers`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
-    { url: `${siteUrl}/privacy-policy`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
+    { url: siteUrl, changeFrequency: "weekly", priority: 1 },
+    { url: `${siteUrl}/pricing`, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${siteUrl}/industries`, changeFrequency: "weekly", priority: 0.8 },
+    { url: `${siteUrl}/blog`, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${siteUrl}/answers`, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${siteUrl}/privacy-policy`, changeFrequency: "yearly", priority: 0.3 },
   ];
 
   const comparePages: MetadataRoute.Sitemap = COMPETITORS.map((c) => ({
     url: `${siteUrl}/compare/${c.slug}`,
-    lastModified: now,
+    lastModified: new Date(`${c.updated}T00:00:00Z`),
     changeFrequency: "monthly",
     priority: 0.8,
   }));
 
   const industryPages: MetadataRoute.Sitemap = INDUSTRIES.map((i) => ({
     url: `${siteUrl}/industries/${i.slug}`,
-    lastModified: now,
+    lastModified: new Date(`${i.updated}T00:00:00Z`),
     changeFrequency: "monthly",
     priority: 0.9,
   }));
