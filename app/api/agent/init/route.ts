@@ -5,17 +5,11 @@ import { verifyElevenLabsSignature, verifyToolSecret } from "@/lib/call-engine/a
 import { prefetchAvailability } from "@/lib/call-engine/integrations/availability";
 import { resolveCalendarsForAccess } from "@/lib/call-engine/integrations/registry";
 import { localizeGreeting } from "@/lib/call-engine/llm/greeting";
+import { withDeadline } from "@/lib/call-engine/net";
 import { voiceForLanguage, baseLanguage } from "@/lib/call-engine/voice/catalog";
 import { languageFromPhone } from "@/lib/call-engine/voice/phone-language";
 
 const OVERRIDE_BUDGET_MS = 1500;
-
-function withDeadline<T>(p: Promise<T>, ms: number, fallback: T): Promise<T> {
-  return Promise.race([
-    p.catch(() => fallback),
-    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms)),
-  ]);
-}
 
 export const dynamic = "force-dynamic";
 

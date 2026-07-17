@@ -6,13 +6,6 @@ import type {
   TranscriptTurn,
 } from "../types";
 
-export interface CreateCallInput {
-  numberId: string;
-  callSid: string;
-  from: string;
-  to: string;
-}
-
 export interface AgentCallInput {
   conversationId: string;
   numberId: string;
@@ -30,15 +23,15 @@ export interface FinalizeCallInput {
 export interface CallRepository {
   resolveInboundNumber(toE164: string): Promise<NumberConfig | null>;
 
-  createCall(input: CreateCallInput): Promise<string>;
+  findAgentCallId(conversationId: string): Promise<string | null>;
+
+  createAgentCall(input: AgentCallInput): Promise<string>;
 
   getOrCreateAgentCall(input: AgentCallInput): Promise<string>;
 
   claimAgentCallCompletion(callId: string): Promise<boolean>;
 
   releaseAgentCallCompletion(callId: string): Promise<void>;
-
-  markInProgress(callId: string, streamSid: string): Promise<void>;
 
   appendTurns(callId: string, turns: TranscriptTurn[]): Promise<void>;
   finalizeCall(callId: string, input: FinalizeCallInput): Promise<void>;
@@ -49,10 +42,6 @@ export interface CallRepository {
     action: CallAction,
     integrationId?: string,
   ): Promise<string>;
-  updateAction(
-    actionId: string,
-    patch: Partial<Pick<CallAction, "status" | "externalId" | "error">>,
-  ): Promise<void>;
 
   getCallForSummary(callId: string): Promise<{
     config: NumberConfig;

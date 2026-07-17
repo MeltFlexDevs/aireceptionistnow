@@ -4,7 +4,7 @@ export default function Loading() {
   return (
     <div className="space-y-6">
       <Skeleton className="h-4 w-20" />
-      <div className="space-y-4 rounded-2xl border border-neutral-200 bg-white p-5">
+      <div className="space-y-4 shape-card glass p-5">
         <div className="flex justify-between">
           <Skeleton className="h-6 w-64" />
           <Skeleton className="h-5 w-24" />
@@ -16,7 +16,7 @@ export default function Loading() {
         </div>
       </div>
       <div className="grid gap-4 lg:grid-cols-3">
-        <div className="space-y-3 rounded-2xl border border-neutral-200 bg-white p-5 lg:col-span-2">
+        <div className="space-y-3 shape-card glass p-5 lg:col-span-2">
           <Skeleton className="h-4 w-24" />
           {Array.from({ length: 5 }).map((_, i) => (
             <Skeleton key={i} className="h-12 w-3/4" />

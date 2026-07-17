@@ -18,9 +18,6 @@ export function voicePreferenceScore(gender?: string, descriptors?: string): num
   return female + professional;
 }
 
-export const VOICE_BY_LANGUAGE: Record<string, string> = {
-};
-
 let envOverrides: Record<string, string> | null = null;
 function envVoiceOverrides(): Record<string, string> {
   if (envOverrides) return envOverrides;
@@ -40,7 +37,7 @@ function envVoiceOverrides(): Record<string, string> {
   return envOverrides;
 }
 
-let voiceMapPromise: Promise<Record<string, string>> | null = null;
+let voiceMapPromise: Promise<Record<string, string> | null> | null = null;
 
 interface RawVoice {
   voice_id: string;
@@ -48,14 +45,15 @@ interface RawVoice {
   verified_languages?: Array<{ language?: string }>;
 }
 
-async function accountVoicesByLanguage(): Promise<Record<string, string>> {
+// null = fetch failed (retryable); {} = the account genuinely has no voices.
+async function accountVoicesByLanguage(): Promise<Record<string, string> | null> {
   const key = process.env.ELEVENLABS_API_KEY;
   if (!key) return {};
   try {
     const res = await fetch("https://api.elevenlabs.io/v1/voices", {
       headers: { "xi-api-key": key },
     });
-    if (!res.ok) return {};
+    if (!res.ok) return null;
     const data = (await res.json()) as { voices?: RawVoice[] };
     // Best-scoring voice per language per tier (female/professional preferred);
     // ties keep the first seen, so the stable API order stays deterministic.
@@ -82,7 +80,7 @@ async function accountVoicesByLanguage(): Promise<Record<string, string>> {
     for (const [l, v] of Object.entries(native)) out[l] = v.id;
     return out;
   } catch {
-    return {};
+    return null;
   }
 }
 
@@ -164,15 +162,20 @@ export async function voiceForLanguage(
   importFromLibrary = false,
 ): Promise<string> {
   const base = baseLanguage(code);
-  const explicit = envVoiceOverrides()[base] ?? VOICE_BY_LANGUAGE[base];
+  const explicit = envVoiceOverrides()[base];
   if (explicit) return explicit;
 
   const key = process.env.ELEVENLABS_API_KEY;
   // English uses the assistant's own configured voice; no key → nothing to query.
   if (!key || base === "en") return fallbackVoiceId;
 
-  voiceMapPromise ??= accountVoicesByLanguage();
-  const onAccount = (await voiceMapPromise)[base];
+  // A failed scan (null) must not be cached for the life of the instance -
+  // reset so the next lookup retries instead of losing account voices forever.
+  voiceMapPromise ??= accountVoicesByLanguage().then((map) => {
+    if (!map) voiceMapPromise = null;
+    return map;
+  });
+  const onAccount = ((await voiceMapPromise) ?? {})[base];
   if (onAccount) return onAccount;
 
   if (!importFromLibrary) return fallbackVoiceId;
@@ -180,9 +183,4 @@ export async function voiceForLanguage(
     importedVoiceCache.set(base, importSharedVoiceForLanguage(base, key).catch(() => null));
   }
   return (await importedVoiceCache.get(base)!) ?? fallbackVoiceId;
-}
-
-export function isAutoLanguage(code: string): boolean {
-  const c = (code || "").toLowerCase();
-  return c === "multi" || c === "auto" || c === "";
 }

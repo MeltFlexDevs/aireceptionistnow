@@ -8,7 +8,7 @@ export default function Loading() {
         <Skeleton className="h-4 w-72" />
       </div>
       {Array.from({ length: 3 }).map((_, i) => (
-        <div key={i} className="space-y-4 rounded-2xl border border-neutral-200 bg-white p-5">
+        <div key={i} className="space-y-4 shape-card glass p-5">
           <Skeleton className="h-4 w-32" />
           <Skeleton className="h-10 w-full" />
           <Skeleton className="h-10 w-2/3" />

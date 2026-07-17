@@ -121,7 +121,7 @@ export async function summarizeOrgKnowledge(entry: OrgKnowledge): Promise<string
     .join("\n\n");
 
   // Throws on failure so the cached wrapper never stores an error fallback.
-  const res = await getGemini().models.generateContent({
+  const res = await (await getGemini()).models.generateContent({
     model: getEnv().GEMINI_MODEL,
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     config: {
@@ -149,7 +149,7 @@ export async function summarizeSourceMarkdown(
 
   const prompt = `Document title: ${title}\n\nContent:\n${text.slice(0, SUMMARY_INPUT_CHARS)}`;
   try {
-    const res = await getGemini().models.generateContent({
+    const res = await (await getGemini()).models.generateContent({
       model: getEnv().GEMINI_MODEL,
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       config: {

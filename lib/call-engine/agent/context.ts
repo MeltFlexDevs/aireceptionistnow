@@ -24,8 +24,11 @@ export function cachedConfig(to: string, maxAgeMs: number = CONFIG_TTL_MS): Prom
   if (hit && Date.now() - hit.at < Math.min(maxAgeMs, CONFIG_TTL_MS)) return hit.p;
   const repo = getRepository();
   const p = repo.resolveInboundNumber(to);
-  // A failed lookup must not poison the cache - drop it so the next call retries.
-  p.catch(() => configCache.delete(to));
+  // A failed lookup must not poison the cache - drop it so the next call
+  // retries. Only evict our own entry: a newer refresh may already sit there.
+  p.catch(() => {
+    if (configCache.get(to)?.p === p) configCache.delete(to);
+  });
   configCache.set(to, { at: Date.now(), p });
   if (configCache.size > 500) {
     configCache.delete(configCache.keys().next().value as string);
@@ -36,18 +39,30 @@ export function cachedConfig(to: string, maxAgeMs: number = CONFIG_TTL_MS): Prom
 export async function resolveAgentContext(
   fields: AgentCallFields,
 ): Promise<ActionContext | null> {
-  const config = await cachedConfig(fields.to_number);
+  const cacheKey = fields.conversation_id;
+  const cachedId = callIdCache.get(cacheKey);
+  // The call-row lookup needs nothing from the config - run the two together.
+  // The caller is on the line, so every serial round trip here is audible.
+  const [config, foundId] = await Promise.all([
+    cachedConfig(fields.to_number),
+    cachedId
+      ? Promise.resolve(cachedId)
+      : getRepository()
+          .findAgentCallId(fields.conversation_id)
+          .catch(() => null),
+  ]);
   if (!config) return null;
 
-  const cacheKey = fields.conversation_id;
-  let callId = callIdCache.get(cacheKey);
+  let callId = foundId;
   if (!callId) {
-    callId = await getRepository().getOrCreateAgentCall({
+    callId = await getRepository().createAgentCall({
       conversationId: fields.conversation_id,
       numberId: config.numberId,
       from: fields.from_number,
       to: fields.to_number,
     });
+  }
+  if (!cachedId) {
     callIdCache.set(cacheKey, callId);
     if (callIdCache.size > 1000) {
       callIdCache.delete(callIdCache.keys().next().value as string);

@@ -127,13 +127,16 @@ function formatActions(actions: CallAction[]): string {
 function parseSummary(text: string): RawSummary {
   try {
     return JSON.parse(text || "{}") as RawSummary;
-  } catch {
-    return {} as RawSummary;
+  } catch (err) {
+    // Persisting {} here would show the business an empty summary marked
+    // "resolved" - fail instead so runPostCall records a real error.
+    console.error("[summary] model returned unparseable JSON:", text.slice(0, 300), err);
+    throw new Error("summary output was not valid JSON");
   }
 }
 
 async function summarizeWithGemini(system: string, prompt: string): Promise<RawSummary> {
-  const res = await getGemini().models.generateContent({
+  const res = await (await getGemini()).models.generateContent({
     model: getEnv().GEMINI_MODEL,
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     config: {

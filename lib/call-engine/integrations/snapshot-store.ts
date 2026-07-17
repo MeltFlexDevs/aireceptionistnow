@@ -1,9 +1,14 @@
 import { createAdminClient } from "../../supabase/admin";
 import type { BusyInterval } from "./types";
 
-// How long a stored snapshot may serve availability answers. Booking re-checks
-// read it seconds after check_availability wrote it; keep the window tight.
-export const SNAPSHOT_FRESH_MS = 90_000;
+// How long a stored snapshot may serve availability answers. Longer than a
+// typical call, so mid-call checks stay on the call-start prefetch instead of
+// paying a live provider round trip. The safety net is the pre-booking guard,
+// which always reads live (fresh: true) and whose snapshot gets cleared after
+// every booking write - but note the guard fails OPEN when its live read
+// errors, so staleness here still widens the (small) window in which an
+// externally-booked slot can be offered and then double-booked.
+export const SNAPSHOT_FRESH_MS = 10 * 60_000;
 
 export interface BusySnapshot {
   busy: BusyInterval[];

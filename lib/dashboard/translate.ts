@@ -23,7 +23,7 @@ function checksum(s: string): string {
 }
 
 async function gemini(system: string, prompt: string, maxTokens: number): Promise<string> {
-  const res = await getGemini().models.generateContent({
+  const res = await (await getGemini()).models.generateContent({
     model: getEnv().GEMINI_MODEL,
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     config: {

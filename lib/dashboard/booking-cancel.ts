@@ -7,6 +7,7 @@ import { resolveCalendarById } from "../call-engine/integrations/registry";
 import { clearSnapshot } from "../call-engine/integrations/snapshot-store";
 import { composeCancellationSms } from "../call-engine/cancellation";
 import { localizeSms } from "../call-engine/llm/greeting";
+import { withDeadline } from "../call-engine/net";
 import { sendSms } from "../call-engine/telephony";
 import { languageFromPhone } from "../call-engine/voice/phone-language";
 import type { NumberConfig } from "../call-engine/types";
@@ -14,9 +15,10 @@ import type { NumberConfig } from "../call-engine/types";
 export interface CancellationState {
   reason: string;
   offerRebook: boolean;
-  notifyStatus: "pending" | "calling" | "answered" | "sms_sent" | "failed";
+  notifyStatus: "pending" | "calling" | "sms_sending" | "answered" | "sms_sent" | "failed";
   notifyConversationId?: string;
   notifyAt?: string; // when the outbound call was placed (sweep staleness)
+  claimedAt?: string; // when a resolver claimed the SMS send (crash recovery)
   calendarCancelled: boolean;
   calendarError?: string;
   at: string;
@@ -124,7 +126,14 @@ export async function saveCancellationState(
   state: CancellationState,
 ): Promise<void> {
   const sb = serviceClient();
-  const { data } = await sb.from("call_actions").select("payload").eq("id", actionId).maybeSingle();
+  const { data, error: readErr } = await sb
+    .from("call_actions")
+    .select("payload")
+    .eq("id", actionId)
+    .maybeSingle();
+  // A failed read must abort: merging into {} would overwrite the whole
+  // payload (booking title, times, attendee) with just the cancellation state.
+  if (readErr) throw readErr;
   const payload = ((data?.payload as Record<string, unknown>) ?? {}) as Record<string, unknown>;
   const { error } = await sb
     .from("call_actions")
@@ -154,7 +163,14 @@ export async function patchCancellationState(
   patch: Partial<CancellationState>,
 ): Promise<void> {
   const sb = serviceClient();
-  const { data } = await sb.from("call_actions").select("payload").eq("id", actionId).maybeSingle();
+  const { data, error: readErr } = await sb
+    .from("call_actions")
+    .select("payload")
+    .eq("id", actionId)
+    .maybeSingle();
+  // See saveCancellationState: never merge a patch into a payload we failed
+  // to read - that would destroy the rest of the booking payload.
+  if (readErr) throw readErr;
   const payload = ((data?.payload as Record<string, unknown>) ?? {}) as Record<string, unknown>;
   const current = (payload.cancellation as CancellationState) ?? {};
   const { error } = await sb
@@ -164,41 +180,124 @@ export async function patchCancellationState(
   if (error) throw error;
 }
 
+// A claim younger than this is assumed in flight; older ones are retried
+// (the claimer crashed between claiming and sending).
+const CLAIM_STALE_MS = 2 * 60_000;
+
+// Atomically claim the right to send the follow-up SMS. The post-call webhook
+// and the cron sweep race here; the conditional update (a CAS on the previous
+// status/claim time) guarantees exactly one of them proceeds, instead of the
+// customer receiving two cancellation texts.
+async function claimCancellationNotify(actionId: string): Promise<CancellationState | null> {
+  const sb = serviceClient();
+  const { data } = await sb.from("call_actions").select("payload").eq("id", actionId).maybeSingle();
+  const payload = ((data?.payload as Record<string, unknown>) ?? {}) as Record<string, unknown>;
+  const current = payload.cancellation as CancellationState | undefined;
+  if (!current) return null;
+
+  let guard: { column: string; value: string };
+  if (current.notifyStatus === "calling" || current.notifyStatus === "pending") {
+    // "pending" reaches here via the sweep when the outbound-call step died
+    // before ever placing the call - the SMS is the only notification left.
+    guard = { column: "payload->cancellation->>notifyStatus", value: current.notifyStatus };
+  } else if (
+    current.notifyStatus === "sms_sending" &&
+    !(Date.now() - Date.parse(current.claimedAt ?? "") < CLAIM_STALE_MS)
+  ) {
+    // A stale claim means the previous resolver died mid-send - CAS on its
+    // claim timestamp so only one retrier takes over.
+    guard = { column: "payload->cancellation->>claimedAt", value: current.claimedAt ?? "" };
+  } else {
+    return null; // resolved, or someone else's claim is still fresh
+  }
+
+  const claimed: CancellationState = {
+    ...current,
+    notifyStatus: "sms_sending",
+    claimedAt: new Date().toISOString(),
+  };
+  const { data: rows, error } = await sb
+    .from("call_actions")
+    .update({ payload: { ...payload, cancellation: claimed } })
+    .eq("id", actionId)
+    .eq(guard.column, guard.value)
+    .select("id");
+  if (error) throw error;
+  return rows?.length ? claimed : null;
+}
+
+// Persist an outcome status with retries: this write is the only thing that
+// stops the sweep from re-claiming and re-texting the customer, so a single
+// transient DB error here must not be swallowed silently.
+async function recordNotifyOutcome(
+  actionId: string,
+  notifyStatus: CancellationState["notifyStatus"],
+): Promise<void> {
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      await patchCancellationState(actionId, { notifyStatus });
+      return;
+    } catch (err) {
+      if (attempt === 3) {
+        console.error(
+          `[cancel] recording notifyStatus=${notifyStatus} failed for ${actionId} - the sweep may resend`,
+          err,
+        );
+        return;
+      }
+      await new Promise((r) => setTimeout(r, 500 * attempt));
+    }
+  }
+}
+
 export async function resolveCancellationNotify(
   actionId: string,
   state: CancellationState,
   answered: boolean,
 ): Promise<void> {
-  if (state.notifyStatus !== "calling") return; // already resolved
+  if (
+    state.notifyStatus !== "calling" &&
+    state.notifyStatus !== "sms_sending" &&
+    state.notifyStatus !== "pending"
+  ) {
+    return;
+  }
+  const claimed = await claimCancellationNotify(actionId);
+  if (!claimed) return; // another resolver won the race
 
   // Always follow up with an SMS: voicemail pickups look "answered" to the
   // duration/turn heuristic, and even a real answer deserves written
   // confirmation. `answered` only decides the status when the SMS fails.
-  const booking = await loadBookingForCancel(actionId, null).catch(() => null);
+  // Every step below is deadline-bounded so the whole claim-to-send path stays
+  // well inside CLAIM_STALE_MS - a hung upstream call must not outlive the
+  // claim and race a sweep re-claimer.
+  const booking = await withDeadline(
+    loadBookingForCancel(actionId, null).catch(() => null),
+    20_000,
+    null,
+  );
   if (!booking) {
-    await patchCancellationState(actionId, { notifyStatus: "failed" }).catch(() => {});
+    await recordNotifyOutcome(actionId, "failed");
     return;
   }
-  const tz = await ownerTimezone(booking.ownerId).catch(() => "UTC");
+  const tz = await withDeadline(ownerTimezone(booking.ownerId).catch(() => "UTC"), 5_000, "UTC");
   const whenLabel = booking.startTime ? dateTimeFmt(tz)(booking.startTime) : "your appointment";
   try {
     const body = composeCancellationSms({
       businessName: booking.config.businessName,
       whenLabel,
-      reason: state.reason,
-      offerRebook: state.offerRebook,
+      reason: claimed.reason,
+      offerRebook: claimed.offerRebook,
       callbackNumber: booking.fromNumber,
     });
     // Speak the caller's language (from their phone country) and send under
     // the business's name.
     const lang = languageFromPhone(booking.attendeePhone);
-    const localized = lang ? await localizeSms(body, lang) : body;
+    const localized = lang ? await withDeadline(localizeSms(body, lang), 10_000, body) : body;
     await sendSms(booking.attendeePhone, booking.fromNumber, localized, booking.config.businessName);
-    await patchCancellationState(actionId, { notifyStatus: "sms_sent" }).catch(() => {});
+    await recordNotifyOutcome(actionId, "sms_sent");
   } catch (err) {
     console.error(`[cancel] follow-up SMS failed for ${actionId}`, err);
-    await patchCancellationState(actionId, {
-      notifyStatus: answered ? "answered" : "failed",
-    }).catch(() => {});
+    await recordNotifyOutcome(actionId, answered ? "answered" : "failed");
   }
 }

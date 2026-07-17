@@ -34,6 +34,21 @@ export function resolveCalendarsForAccess(
   return resolved;
 }
 
+// Whether a provider's calendars can answer availability (implements getBusy).
+// Derived from the factory output so it can't drift from the implementations
+// (e.g. Outlook can create events but exposes no busy-window read).
+const busySupport = new Map<string, boolean>();
+
+export function providerSupportsBusy(provider: string): boolean {
+  let hit = busySupport.get(provider);
+  if (hit === undefined) {
+    const factory = FACTORIES[provider] ?? createWebhookCalendar;
+    hit = typeof factory({}).getBusy === "function";
+    busySupport.set(provider, hit);
+  }
+  return hit;
+}
+
 export function resolveCalendarById(
   integrations: IntegrationConfig[],
   integrationId: string,

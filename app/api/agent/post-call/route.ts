@@ -1,5 +1,6 @@
 import { after } from "next/server";
 import { verifyElevenLabsSignature } from "@/lib/call-engine/agent/auth";
+import { cachedConfig } from "@/lib/call-engine/agent/context";
 import { getRepository } from "@/lib/call-engine/persistence/supabase";
 import { runPostCall } from "@/lib/call-engine/summary/dispatch";
 import { wasAnswered } from "@/lib/call-engine/cancellation";
@@ -119,7 +120,8 @@ export async function POST(req: Request): Promise<Response> {
   let callId: string;
   let claimed: boolean;
   try {
-    const config = toNumber ? await repo.resolveInboundNumber(toNumber) : null;
+    // Shares the tool routes' cache - on a warm instance this is free.
+    const config = toNumber ? await cachedConfig(toNumber) : null;
     if (!config) return json({ error: "unknown number" }, 404);
     callId = await repo.getOrCreateAgentCall({
       conversationId,
