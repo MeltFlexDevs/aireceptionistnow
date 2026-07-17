@@ -199,11 +199,11 @@ export default function SiteFooter() {
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <img src="https://cdn.prod.website-files.com/66cdd640b6eaf9b4ea2f21c8/6848312f044b2bc8aef51e5d_leaves.svg" loading="lazy" alt="" style={{ height: "20px", width: "auto", filter: "brightness(0) invert(1)" }} />
+            <img src="/badges/leaf-left.svg" loading="lazy" alt="Laurel branch, left" width={7} height={20} style={{ height: "20px", width: "auto", filter: "brightness(0) invert(1)" }} />
             <span style={{ color: "#fff", fontSize: "11px", fontWeight: 300 }}>
               <strong style={{ color: "#fff", fontWeight: 500 }}>GDPR</strong> compliant
             </span>
-            <img src="https://cdn.prod.website-files.com/66cdd640b6eaf9b4ea2f21c8/684831cb9a3271ea234575e9_leaves-2.svg" loading="lazy" alt="" style={{ height: "20px", width: "auto", filter: "brightness(0) invert(1)" }} />
+            <img src="/badges/leaf-right.svg" loading="lazy" alt="Laurel branch, right" width={7} height={20} style={{ height: "20px", width: "auto", filter: "brightness(0) invert(1)" }} />
           </div>
         </div>
       </div>

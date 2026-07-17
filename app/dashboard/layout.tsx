@@ -11,6 +11,11 @@ import { getDictionary, getLocale } from "@/lib/i18n/server";
 export const metadata: Metadata = {
   title: "Dashboard - AI Receptionist",
   description: "Manage phone numbers, AI behavior, integrations, and call analytics.",
+  // Private app area: robots.txt already blocks crawling, but without noindex
+  // a linked URL can still be indexed - and without this override every
+  // dashboard route would inherit the root layout's homepage canonical.
+  robots: { index: false, follow: false },
+  alternates: { canonical: null },
 };
 
 const GUEST_USER: AppUser = { id: "", email: "", name: "Workspace", initials: "WS" };

@@ -15,6 +15,9 @@ function formatDate(date: string): string {
   });
 }
 
+// Only the listed slugs exist - unknown ones 404 statically, no function invocation.
+export const dynamicParams = false;
+
 export function generateStaticParams() {
   return answers.map((a) => ({ slug: a.slug }));
 }
@@ -44,9 +47,11 @@ export async function generateMetadata({
       modifiedTime: a.updated,
     },
     twitter: {
-      card: "summary",
+      // Consistent with every other template - large card with the site OG image.
+      card: "summary_large_image",
       title: a.question,
       description: a.description,
+      images: [`${siteUrl}/opengraph-image.png`],
     },
   };
 }

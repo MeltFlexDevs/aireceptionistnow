@@ -4,6 +4,8 @@ export type CallTurn = { speaker: "caller" | "ai"; text: string };
 
 export type Industry = {
   slug: string;
+  // Last substantive content change (YYYY-MM-DD) - drives sitemap lastModified.
+  updated: string;
   industry: string;
   niche: string;
   accent: string;
@@ -57,6 +59,7 @@ export const INTEGRATION_LOGOS: Record<string, string> = {
 export const INDUSTRIES: Industry[] = [
   {
     slug: "dentists",
+    updated: "2026-07-11",
     industry: "Dentists",
     niche: "dental practice",
     accent: "#0e9aa7",
@@ -173,6 +176,7 @@ export const INDUSTRIES: Industry[] = [
   },
   {
     slug: "restaurants",
+    updated: "2026-07-11",
     industry: "Restaurants",
     niche: "restaurant",
     accent: "#d9663a",
@@ -276,6 +280,7 @@ export const INDUSTRIES: Industry[] = [
   },
   {
     slug: "law-firms",
+    updated: "2026-07-11",
     industry: "Law Firms",
     niche: "law firm",
     accent: "#41508a",
@@ -380,6 +385,7 @@ export const INDUSTRIES: Industry[] = [
   },
   {
     slug: "home-services",
+    updated: "2026-07-11",
     industry: "Home Services",
     niche: "home services business",
     accent: "#2f6fb0",
@@ -483,6 +489,7 @@ export const INDUSTRIES: Industry[] = [
   },
   {
     slug: "property-management",
+    updated: "2026-07-11",
     industry: "Property Management",
     niche: "property management company",
     accent: "#2f9e6f",

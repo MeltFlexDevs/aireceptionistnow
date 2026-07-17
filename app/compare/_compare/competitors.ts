@@ -1,5 +1,7 @@
 export type CompetitorEntry = {
   slug: string;
+  // Last substantive content change (YYYY-MM-DD) - drives sitemap lastModified.
+  updated: string;
   competitor: string;
   title: string;
   blurb: string;
@@ -9,6 +11,7 @@ export type CompetitorEntry = {
 export const COMPETITORS: CompetitorEntry[] = [
   {
     slug: "smith-ai-alternative",
+    updated: "2026-07-16",
     competitor: "Smith.ai",
     title: "AI Receptionist Now vs Smith.ai",
     blurb:
@@ -17,6 +20,7 @@ export const COMPETITORS: CompetitorEntry[] = [
   },
   {
     slug: "ruby-alternative",
+    updated: "2026-07-16",
     competitor: "Ruby",
     title: "AI Receptionist Now vs Ruby",
     blurb:
@@ -25,6 +29,7 @@ export const COMPETITORS: CompetitorEntry[] = [
   },
   {
     slug: "rosie-alternative",
+    updated: "2026-07-16",
     competitor: "Rosie",
     title: "AI Receptionist Now vs Rosie",
     blurb:
@@ -33,6 +38,7 @@ export const COMPETITORS: CompetitorEntry[] = [
   },
   {
     slug: "goodcall-alternative",
+    updated: "2026-07-16",
     competitor: "Goodcall",
     title: "AI Receptionist Now vs Goodcall",
     blurb:
@@ -41,6 +47,7 @@ export const COMPETITORS: CompetitorEntry[] = [
   },
   {
     slug: "my-ai-front-desk-alternative",
+    updated: "2026-07-16",
     competitor: "My AI Front Desk",
     title: "AI Receptionist Now vs My AI Front Desk",
     blurb:

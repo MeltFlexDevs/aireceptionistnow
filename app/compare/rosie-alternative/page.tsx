@@ -27,7 +27,8 @@ const description =
   "A multilingual, GDPR-first Rosie alternative. AI Receptionist Now answers 24/7 in 25+ languages, includes booking on every plan, and is EU-hosted. Free to start.";
 
 export const metadata: Metadata = {
-  title,
+  // absolute: the root template would append the brand and push these past ~60 chars
+  title: { absolute: title },
   description,
   keywords: [
     "Rosie alternative",
@@ -450,7 +451,7 @@ export default function RosieComparePage() {
                 <span className="works-with-label">Works with</span>
                 {INTEGRATION_LOGOS.map((it) => (
                   <span className="works-with-item" key={it.name}>
-                    <img src={it.logo} alt={it.name} loading="lazy" />
+                    <img src={it.logo} alt={`${it.name} logo`} width={24} height={24} loading="lazy" />
                     {it.name}
                   </span>
                 ))}

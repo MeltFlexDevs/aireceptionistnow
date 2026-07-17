@@ -259,7 +259,7 @@ export function IndustryPage({ industry: ind }: { industry: Industry }) {
                 <span className="ind-works-label">Works with</span>
                 {ind.integrations.map((name) => (
                   <span className="ind-works-item" key={name}>
-                    <img src={INTEGRATION_LOGOS[name]} alt={name} loading="lazy" />
+                    <img src={INTEGRATION_LOGOS[name]} alt={`${name} logo`} width={20} height={20} loading="lazy" />
                     {name}
                   </span>
                 ))}

@@ -9,7 +9,8 @@ const description =
   "Short, straight answers to the questions people actually ask about AI receptionists: call transfer, your existing number, booking, languages, and more. No fluff.";
 
 export const metadata: Metadata = {
-  title: "AI Receptionist Answers",
+  // Absolute: the template suffix would double the brand ("AI Receptionist ... | AI Receptionist Now").
+  title: { absolute: "AI Receptionist Questions, Answered | AI Receptionist Now" },
   description,
   alternates: { canonical: `${siteUrl}/answers` },
   openGraph: {

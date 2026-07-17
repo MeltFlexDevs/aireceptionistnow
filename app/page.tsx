@@ -158,7 +158,7 @@ const faqs = [
   },
   {
     q: "What languages does the AI receptionist support?",
-    a: "The AI handles calls in 30+ languages and can switch languages mid-conversation based on the caller - ideal for businesses that serve multilingual customers and want every caller to feel understood.",
+    a: "The AI handles calls in 25+ languages and can switch languages mid-conversation based on the caller - ideal for businesses that serve multilingual customers and want every caller to feel understood.",
   },
   {
     q: "What happens if the AI can't handle a call?",
@@ -403,7 +403,7 @@ export default function Home() {
         }
         .hiw-vars .bg-image-frame {
           background-color: var(--hiw-secondary-bg);
-          background-image: url(https://cdn.prod.website-files.com/66cdd640b6eaf9b4ea2f21c8/6989e6db045752228c165493_Half-Circle_BG.webp);
+          background-image: url(/how-it-works/half-circle-bg.webp);
           background-position: 50% 100%;
           background-repeat: no-repeat;
           background-size: 100% 120%;
