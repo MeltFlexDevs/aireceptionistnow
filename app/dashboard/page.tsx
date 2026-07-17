@@ -152,9 +152,7 @@ async function OverviewBody({ t }: { t: Dictionary }) {
         </SectionCard>
         <SectionCard title={o.aiSummaries} subtitle={o.aiSummariesSub}>
           {data.summaries.length > 0 ? (
-            <Suspense fallback={<CallSummaries items={data.summaries} translate={false} />}>
-              <CallSummaries items={data.summaries} />
-            </Suspense>
+            <CallSummaries items={data.summaries} />
           ) : (
             <p className="text-sm text-neutral-500">{o.noSummaries}</p>
           )}

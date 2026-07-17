@@ -1,24 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useT } from "@/lib/i18n/client";
+import { useTranslated } from "@/lib/i18n/use-translated";
 
 export interface TranscriptTurnView {
   id: number;
   caller: boolean;
   text: string;
-  translated: string;
   atLabel: string;
   elapsedTitle: string;
 }
 
-interface Props {
-  turns: TranscriptTurnView[];
-  hasTranslation: boolean;
-  labels: { caller: string; ai: string; showOriginal: string; showTranslation: string };
-}
-
-export function TranscriptView({ turns, hasTranslation, labels }: Props) {
+// Originals render instantly; the whole transcript translates client-side in
+// one batched request and re-translates the moment the locale changes.
+export function TranscriptView({ turns }: { turns: TranscriptTurnView[] }) {
+  const t = useT();
   const [showOriginal, setShowOriginal] = useState(false);
+  const texts = useMemo(() => turns.map((turn) => turn.text), [turns]);
+  const { texts: display, translating, hasTranslation } = useTranslated(texts);
+
+  if (turns.length === 0) {
+    return <p className="text-sm text-neutral-500">{t.data.noTranscript}</p>;
+  }
+
   return (
     <div>
       {hasTranslation && (
@@ -28,17 +33,17 @@ export function TranscriptView({ turns, hasTranslation, labels }: Props) {
             onClick={() => setShowOriginal((v) => !v)}
             className="press text-[11px] font-medium text-neutral-400 transition-colors hover:text-neutral-900"
           >
-            {showOriginal ? labels.showTranslation : labels.showOriginal}
+            {showOriginal ? t.data.showTranslation : t.data.showOriginal}
           </button>
         </div>
       )}
-      <ol className="space-y-4">
-        {turns.map((turn) => (
+      <ol className={`space-y-4 transition-opacity duration-300 ${translating ? "opacity-70" : "opacity-100"}`}>
+        {turns.map((turn, i) => (
           <li key={turn.id} className={`flex ${turn.caller ? "justify-start" : "justify-end"}`}>
             <div className={`max-w-[80%] ${turn.caller ? "" : "text-right"}`}>
               <div className="mb-1 flex items-center gap-2 text-[11px] text-neutral-400">
                 <span className="font-medium uppercase tracking-wide">
-                  {turn.caller ? labels.caller : labels.ai}
+                  {turn.caller ? t.data.talkCaller : t.data.talkAi}
                 </span>
                 {turn.atLabel && (
                   <span className="tabular-nums" title={turn.elapsedTitle}>
@@ -51,7 +56,7 @@ export function TranscriptView({ turns, hasTranslation, labels }: Props) {
                   turn.caller ? "bg-neutral-100 text-neutral-800" : "bg-neutral-900 text-white"
                 }`}
               >
-                {showOriginal ? turn.text : turn.translated}
+                {showOriginal ? turn.text : display[i]}
               </div>
             </div>
           </li>

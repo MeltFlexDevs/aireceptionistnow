@@ -3,9 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import { LOCALES, type Locale } from "@/lib/i18n/config";
 import { useI18n } from "@/lib/i18n/client";
+import { Spinner } from "../icons";
 
 export function LanguageSwitcher() {
-  const { t, locale, setLocale } = useI18n();
+  const { t, locale, setLocale, preloadLocale, pending } = useI18n();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const current = LOCALES.find((l) => l.code === locale) ?? LOCALES[0];
@@ -15,20 +16,37 @@ export function LanguageSwitcher() {
     function onDown(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
     document.addEventListener("mousedown", onDown);
-    return () => document.removeEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
   }, [open]);
+
+  // Warm every dictionary chunk (a few KB each) so the switch itself is instant.
+  function preloadAll() {
+    for (const l of LOCALES) preloadLocale(l.code);
+  }
 
   function choose(code: Locale) {
     setOpen(false);
-    setLocale(code); // persists the cookie, then refreshes so all text switches together
+    setLocale(code); // applies instantly on the client; the server syncs in the background
   }
 
   return (
     <div className="relative" ref={ref} data-el-dropdown={open ? "open" : "closed"}>
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => {
+          setOpen((o) => !o);
+          preloadAll();
+        }}
+        onMouseEnter={preloadAll}
+        onFocus={preloadAll}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={t.topbar.language}
@@ -39,9 +57,13 @@ export function LanguageSwitcher() {
           {current.flag}
         </span>
         <span className="hidden font-medium uppercase sm:inline">{current.code}</span>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-400" aria-hidden>
-          <path d="m6 9 6 6 6-6" />
-        </svg>
+        {pending ? (
+          <Spinner className="h-3 w-3 animate-spin text-neutral-400" />
+        ) : (
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-400" aria-hidden>
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        )}
       </button>
 
       {open && (
