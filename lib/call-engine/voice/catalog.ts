@@ -156,6 +156,55 @@ export async function addSharedVoice(
   }
 }
 
+// Resolve a voice-picker value to a usable ElevenLabs voice id. Library picks
+// arrive as "lib:owner:voiceId:encodedName" and must be imported into the
+// account first (the funnel provisioner can't store them raw); plain ids pass
+// through. Returns null when a library import fails so callers keep their
+// existing voice instead of persisting a broken id.
+export async function resolvePickedVoiceId(raw: string): Promise<string | null> {
+  const value = (raw || "").trim();
+  if (!value) return null;
+  if (!value.startsWith("lib:")) return value;
+  const [, owner, voiceId, encName] = value.split(":");
+  if (!owner || !voiceId) return null;
+  let name = "Voice";
+  try {
+    name = decodeURIComponent(encName || "Voice");
+  } catch {
+    name = encName || "Voice";
+  }
+  return addSharedVoice(owner, voiceId, name);
+}
+
+// Preview-URL lookups for specific voice ids (the static pinned funnel voices
+// ship without one). Cached per id for the instance; a failed lookup is dropped
+// so the next call retries instead of hiding the preview forever.
+const previewCache = new Map<string, Promise<string | null>>();
+
+export async function voicePreviewUrls(ids: string[]): Promise<Record<string, string>> {
+  const key = process.env.ELEVENLABS_API_KEY;
+  if (!key || ids.length === 0) return {};
+  const out: Record<string, string> = {};
+  await Promise.all(
+    ids.map(async (id) => {
+      if (!previewCache.has(id)) {
+        const pending = fetch(`${XI_API}/v1/voices/${id}`, { headers: { "xi-api-key": key } })
+          .then(async (res) =>
+            res.ok ? (((await res.json()) as { preview_url?: string }).preview_url ?? null) : null,
+          )
+          .catch(() => null);
+        previewCache.set(id, pending);
+        void pending.then((url) => {
+          if (!url) previewCache.delete(id);
+        });
+      }
+      const url = await previewCache.get(id)!;
+      if (url) out[id] = url;
+    }),
+  );
+  return out;
+}
+
 export async function voiceForLanguage(
   code: string,
   fallbackVoiceId: string,

@@ -6,10 +6,36 @@ import { upsertCalendarIntegration } from "@/lib/dashboard/db";
 
 export const dynamic = "force-dynamic";
 
+// Where to land after the OAuth round-trip: the validated oauth_next cookie
+// (set by the connect route, e.g. /onboarding?step=3) or the integrations page.
+// Backslashes are rejected because the URL parser treats "/\" like "//"
+// (protocol-relative), which would make this an open redirect.
+function returnBase(req: NextRequest): string {
+  const next = req.cookies.get("oauth_next")?.value;
+  if (
+    next &&
+    next.startsWith("/") &&
+    !next.startsWith("//") &&
+    !next.includes("\\") &&
+    !/[\r\n]/.test(next)
+  ) {
+    return next;
+  }
+  return "/dashboard/integrations";
+}
+
+function redirectTo(req: NextRequest, params: Record<string, string>): Response {
+  const base = returnBase(req);
+  const sep = base.includes("?") ? "&" : "?";
+  const query = new URLSearchParams(params).toString();
+  const res = NextResponse.redirect(new URL(`${base}${sep}${query}`, req.url));
+  res.cookies.delete("oauth_state");
+  res.cookies.delete("oauth_next");
+  return res;
+}
+
 function fail(req: NextRequest, message: string): Response {
-  return NextResponse.redirect(
-    new URL(`/dashboard/integrations?error=${encodeURIComponent(message)}`, req.url),
-  );
+  return redirectTo(req, { error: message });
 }
 
 export async function GET(
@@ -48,7 +74,5 @@ export async function GET(
     return fail(req, (err as Error).message);
   }
 
-  const res = NextResponse.redirect(new URL("/dashboard/integrations?connected=1", req.url));
-  res.cookies.delete("oauth_state");
-  return res;
+  return redirectTo(req, { connected: "1" });
 }

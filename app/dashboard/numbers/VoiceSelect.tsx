@@ -9,6 +9,40 @@ interface Props {
   defaultValue?: string;
   placeholder?: string;
   language?: string;
+  /** Voices pinned to the top of the list, regardless of the language filter. */
+  pinnedVoices?: VoiceOption[];
+  /**
+   * Fires whenever the selected voice changes, with the resolved voice metadata
+   * when it's known (null for a pasted/library id we haven't loaded yet). Lets a
+   * parent mirror the pick - e.g. the onboarding live preview's personality.
+   */
+  onChange?: (voiceId: string, voice: VoiceOption | null) => void;
+}
+
+const GENDER_RE = /^(fe)?male$|^neutral$|^non[- ]?binary$/i;
+
+// Render a voice's " · "-joined descriptors (accent, gender, tone, tier) as
+// individual badges. The gender badge is emphasized; the rest stay subtle.
+function VoiceTags({ description, className = "" }: { description?: string; className?: string }) {
+  const tags = (description ?? "")
+    .split(/[·,]/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (tags.length === 0) return null;
+  return (
+    <span className={`flex min-w-0 flex-wrap items-center gap-1 ${className}`}>
+      {tags.map((tag, i) => (
+        <span
+          key={`${tag}-${i}`}
+          className={`inline-flex shrink-0 items-center rounded px-1.5 py-0.5 text-[10px] font-medium capitalize leading-none ${
+            GENDER_RE.test(tag) ? "bg-neutral-900 text-white" : "bg-neutral-100 text-neutral-500"
+          }`}
+        >
+          {tag}
+        </span>
+      ))}
+    </span>
+  );
 }
 
 export function VoiceSelect({
@@ -16,6 +50,8 @@ export function VoiceSelect({
   defaultValue = "",
   placeholder = "Select a voice",
   language = "",
+  pinnedVoices = [],
+  onChange,
 }: Props) {
   const [selected, setSelected] = useState(defaultValue);
   const [open, setOpen] = useState(false);
@@ -26,6 +62,12 @@ export function VoiceSelect({
 
   const ref = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  // Keep the latest callback in a ref (synced in an effect, not during render)
+  // so the "mirror the pick" effect below never re-fires on callback identity.
+  const onChangeRef = useRef(onChange);
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  });
 
   useEffect(() => {
     function onDown(e: MouseEvent) {
@@ -49,20 +91,35 @@ export function VoiceSelect({
   }, [open, voices, selected, language]);
 
   const voiceList = voices ?? [];
-  const current = voiceList.find((v) => v.voiceId === selected);
   const langBase = language.split("-")[0].toLowerCase();
   const inLanguage = langBase
     ? voiceList.filter((v) => v.languages?.includes(langBase))
     : voiceList;
+  // Pinned voices always lead, deduped against the language list. They render
+  // immediately (static), so the picker is never empty while voices load.
+  const pinnedIds = new Set(pinnedVoices.map((v) => v.voiceId));
+  const combined = [...pinnedVoices, ...inLanguage.filter((v) => !pinnedIds.has(v.voiceId))];
+  const current =
+    pinnedVoices.find((v) => v.voiceId === selected) ??
+    voiceList.find((v) => v.voiceId === selected);
+
+  // Mirror the current pick (and its metadata, once resolved) to any listener.
+  // Keyed on primitives so it fires on a real change, not every render, and
+  // via a ref so a fresh callback identity never re-triggers it.
+  useEffect(() => {
+    onChangeRef.current?.(selected, current ?? null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected, current?.voiceId, current?.name, current?.description]);
+
   const q = query.trim().toLowerCase();
   const filtered = q
-    ? inLanguage.filter(
+    ? combined.filter(
         (v) =>
           v.name.toLowerCase().includes(q) ||
           (v.description ?? "").toLowerCase().includes(q) ||
           v.voiceId.toLowerCase().includes(q),
       )
-    : inLanguage;
+    : combined;
 
   function stopAudio() {
     audioRef.current?.pause();
@@ -105,7 +162,6 @@ export function VoiceSelect({
       >
         <span className="truncate">
           {current ? current.name : loading ? "Loading…" : selected ? "Custom voice" : placeholder}
-          {current?.description ? <span className="ml-2 text-xs text-neutral-400">{current.description}</span> : null}
         </span>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-neutral-400">
           <path d="m6 9 6 6 6-6" />
@@ -132,7 +188,7 @@ export function VoiceSelect({
           </div>
 
           <ul className="max-h-64 overflow-y-auto py-1" role="listbox">
-            {loading ? (
+            {loading && filtered.length === 0 ? (
               <li className="px-3 py-3 text-sm text-neutral-400">Loading voices…</li>
             ) : filtered.length === 0 ? (
               <li className="px-3 py-3 text-sm text-neutral-400">
@@ -167,7 +223,7 @@ export function VoiceSelect({
                       className="flex min-w-0 flex-1 flex-col text-left"
                     >
                       <span className={`truncate text-sm ${v.voiceId === selected ? "text-neutral-900" : "text-neutral-800"}`}>{v.name}</span>
-                      {v.description ? <span className="truncate text-xs text-neutral-400">{v.description}</span> : null}
+                      <VoiceTags description={v.description} className="mt-1" />
                     </button>
                   </div>
                 </li>

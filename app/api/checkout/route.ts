@@ -27,12 +27,16 @@ export async function POST(req: Request) {
 
   let planId: string | undefined;
   let cycle: BillingCycle = "monthly";
+  let onboarding = false;
   try {
     const body = await req.json();
     planId = typeof body?.plan === "string" ? body.plan : undefined;
     if (body?.cycle === "annual" || body?.cycle === "monthly") {
       cycle = body.cycle;
     }
+    // The onboarding funnel returns to its provisioning screen and tags the
+    // session so the Stripe webhook kicks off background provisioning.
+    onboarding = body?.context === "onboarding";
   } catch {
   }
 
@@ -64,6 +68,13 @@ export async function POST(req: Request) {
       return customer.id;
     };
 
+    const successUrl = onboarding
+      ? `${origin}/onboarding?step=go&checkout=success`
+      : `${origin}/dashboard?checkout=success`;
+    const cancelUrl = onboarding
+      ? `${origin}/onboarding?step=plan&checkout=cancel`
+      : `${origin}/pricing?checkout=cancel`;
+
     const createSession = (customerId: string) =>
       stripe.checkout.sessions.create({
         mode: "subscription",
@@ -78,9 +89,14 @@ export async function POST(req: Request) {
             cycle,
           },
         },
-        metadata: { supabase_user_id: userId, plan: plan.id, cycle },
-        success_url: `${origin}/dashboard?checkout=success`,
-        cancel_url: `${origin}/pricing?checkout=cancel`,
+        metadata: {
+          supabase_user_id: userId,
+          plan: plan.id,
+          cycle,
+          ...(onboarding ? { onboarding: "1" } : {}),
+        },
+        success_url: successUrl,
+        cancel_url: cancelUrl,
       });
 
     let customerId = (await getCustomerId(userId)) || (await newCustomer());
