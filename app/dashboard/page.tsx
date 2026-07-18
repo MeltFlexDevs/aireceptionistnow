@@ -1,14 +1,19 @@
 import type { CSSProperties } from "react";
 import { Suspense } from "react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getOverviewCached } from "@/lib/dashboard/analytics";
 import { currentUserId } from "@/lib/auth";
+import { authConfigured } from "@/lib/supabase/config";
+import { listAssistants } from "@/lib/dashboard/db";
+import { getOnboardingProfile } from "@/lib/dashboard/onboarding-profile";
 import { getDictionary } from "@/lib/i18n/server";
 import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 import { StatCard } from "./components/StatCard";
 import { SectionCard } from "./components/SectionCard";
 import { RecentCalls } from "./components/RecentCalls";
 import { CallSummaries } from "./components/CallSummaries";
+import { LiveBanner } from "./components/LiveBanner";
 import { Onboarding } from "./components/Onboarding";
 import { getOnboardingState } from "@/lib/dashboard/onboarding";
 import { PageHeader } from "./components/PageHeader";
@@ -44,6 +49,17 @@ function OverviewSkeleton() {
 }
 
 export default async function OverviewPage() {
+  // First-time users go through the /onboarding funnel instead of piecing the
+  // setup together manually across dashboard pages.
+  const ownerId = await currentUserId();
+  if (authConfigured() && ownerId) {
+    const [assistants, profile] = await Promise.all([
+      listAssistants(ownerId).catch(() => []),
+      getOnboardingProfile(ownerId),
+    ]);
+    if (assistants.length === 0 && profile?.status !== "done") redirect("/onboarding");
+  }
+
   const t = await getDictionary();
   return (
     <div className="space-y-6">
@@ -92,6 +108,7 @@ async function OverviewBody({ t }: { t: Dictionary }) {
   if (data.recentCalls.length === 0) {
     return (
       <div className="space-y-6 rise">
+        <LiveBanner ownerId={ownerId} />
         {onboarding ? (
           <Onboarding state={onboarding} />
         ) : (

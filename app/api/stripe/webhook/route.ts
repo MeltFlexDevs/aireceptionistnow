@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
+import { after } from "next/server";
 import type Stripe from "stripe";
 
 import { getStripe } from "@/lib/stripe";
+import { provisionOnboarding } from "@/lib/dashboard/provision";
 import {
   claimEvent,
   releaseEvent,
@@ -116,6 +118,21 @@ export async function POST(req: Request) {
         if (subscriptionId) {
           const sub = await stripe.subscriptions.retrieve(subscriptionId);
           await applySubscription(sub);
+        }
+        // Onboarding purchase: kick off background provisioning after the
+        // response so the webhook stays fast. Errors land in the onboarding
+        // profile (status=error) and never trigger Stripe retries; the
+        // provisioning screen also retries as a fallback.
+        const onboardingUserId =
+          session.metadata?.onboarding === "1"
+            ? session.metadata?.supabase_user_id || session.client_reference_id
+            : null;
+        if (onboardingUserId) {
+          after(() =>
+            provisionOnboarding(onboardingUserId).catch((err) =>
+              console.error(`[webhook] onboarding provision failed: ${err}`),
+            ),
+          );
         }
         break;
       }

@@ -45,6 +45,25 @@ export const NUMBER_COUNTRIES: CountryPricing[] = COUNTRY_RATES.map((c) => ({
 
 export const DEFAULT_COUNTRY = NUMBER_COUNTRIES[0].code;
 
+// Which number country to preselect for a given UI locale. Every target here
+// exists in COUNTRY_RATES; unknown locales fall back to DEFAULT_COUNTRY.
+const LOCALE_COUNTRY: Record<string, string> = {
+  en: "US",
+  es: "ES",
+  de: "DE",
+  fr: "FR",
+  sk: "SK",
+  it: "IT",
+  pt: "PT",
+  nl: "NL",
+};
+
+export function countryForLocale(locale: string): string {
+  const base = (locale || "").split("-")[0].toLowerCase();
+  const code = LOCALE_COUNTRY[base];
+  return code && NUMBER_COUNTRIES.some((c) => c.code === code) ? code : DEFAULT_COUNTRY;
+}
+
 export function getCountryPricing(code: string): CountryPricing {
   return (
     NUMBER_COUNTRIES.find((c) => c.code === code.toUpperCase()) ??
@@ -59,6 +78,7 @@ export function minutesForCredits(credits: number, perMinute: number): number {
 
 const DIAL_PREFIXES: { dial: string; code: string }[] = [
   { dial: "+1", code: "US" },
+  { dial: "+1", code: "CA" },
   { dial: "+44", code: "GB" },
   { dial: "+353", code: "IE" },
   { dial: "+31", code: "NL" },
@@ -83,4 +103,45 @@ export function countryForE164(e164: string): { flag: string; name: string } {
   if (!match) return { flag: "🌐", name: "Unknown" };
   const c = getCountryPricing(match.code);
   return { flag: c.flag, name: c.name };
+}
+
+export interface DialOption {
+  code: string;
+  name: string;
+  flag: string;
+  dial: string;
+}
+
+// Country + international dialling prefix, for the phone field's prefix picker.
+// Order follows NUMBER_COUNTRIES; entries without a known dial code are dropped.
+export const DIAL_OPTIONS: DialOption[] = NUMBER_COUNTRIES.map((c) => ({
+  code: c.code,
+  name: c.name,
+  flag: c.flag,
+  dial: DIAL_PREFIXES.find((d) => d.code === c.code)?.dial ?? "",
+})).filter((d) => d.dial);
+
+// Longest dial first, so "+421" wins over a shorter overlapping prefix.
+const DIAL_OPTIONS_BY_LENGTH = [...DIAL_OPTIONS].sort((a, b) => b.dial.length - a.dial.length);
+
+// Split a stored E.164 number into a country selection + local remainder for the
+// prefix picker. Blank or unrecognized numbers fall back to the given country.
+export function splitPhone(value: string, fallbackCode: string): { code: string; local: string } {
+  const v = (value || "").replace(/[\s().-]/g, "");
+  if (v.startsWith("+")) {
+    const opt = DIAL_OPTIONS_BY_LENGTH.find((d) => v.startsWith(d.dial));
+    if (opt) return { code: opt.code, local: v.slice(opt.dial.length) };
+  }
+  return { code: fallbackCode, local: v.replace(/^\+/, "") };
+}
+
+// Combine a selected dial prefix with a typed number. A number typed in full
+// (leading "+" or "00") wins; otherwise the prefix is prepended and a single
+// national trunk "0" is dropped. Returns "" when nothing was entered.
+export function joinPhone(dial: string, local: string): string {
+  const raw = (local || "").replace(/[\s().-]/g, "");
+  if (!raw) return "";
+  if (raw.startsWith("+")) return raw;
+  if (raw.startsWith("00")) return "+" + raw.slice(2);
+  return dial + raw.replace(/^0/, "");
 }
