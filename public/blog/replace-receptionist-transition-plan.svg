@@ -1,0 +1,52 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" role="img" aria-label="A three-phase transition plan: first the AI answers only overflow and after-hours calls, then it becomes the first answerer with humans as fallback, then it runs the phones with weekly transcript reviews">
+  <rect width="1200" height="630" fill="#faf8ff"/>
+  <rect x="0.5" y="0.5" width="1199" height="629" fill="none" stroke="#ece7f6"/>
+
+  <text x="60" y="66" font-size="26" font-weight="600" fill="#1a1a1a">The safe rollout order</text>
+  <text x="60" y="100" font-size="16" fill="#8a8398">The AI earns trust on calls you were already missing before it touches the ones you weren&apos;t.</text>
+
+  <!-- connecting line -->
+  <path d="M 230 190 h 740" stroke="#e7dffb" stroke-width="4"/>
+  <circle cx="230" cy="190" r="10" fill="#5b3ef0"/>
+  <circle cx="600" cy="190" r="10" fill="#5b3ef0"/>
+  <circle cx="970" cy="190" r="10" fill="#5b3ef0"/>
+
+  <!-- phase 1 -->
+  <g transform="translate(70 240)">
+    <rect x="0" y="0" width="320" height="300" rx="16" fill="#ffffff" stroke="#e4def1" stroke-width="2"/>
+    <text x="24" y="42" font-size="13" font-weight="700" fill="#5b3ef0" letter-spacing="0.06em">WEEK 1-2 · PARALLEL RUN</text>
+    <text x="24" y="76" font-size="17" font-weight="600" fill="#1a1a1a">Overflow + after-hours only</text>
+    <text x="24" y="110" font-size="14" fill="#3a3350">• Forward missed and closed-hours</text>
+    <text x="36" y="134" font-size="14" fill="#3a3350">calls to the AI</text>
+    <text x="24" y="164" font-size="14" fill="#3a3350">• Humans keep answering first</text>
+    <text x="24" y="194" font-size="14" fill="#3a3350">• Worst case = the old status quo</text>
+    <text x="24" y="236" font-size="13" font-weight="600" fill="#8a8398">RISK: NONE - THESE CALLS WERE</text>
+    <text x="24" y="256" font-size="13" font-weight="600" fill="#8a8398">GOING TO VOICEMAIL</text>
+  </g>
+
+  <!-- phase 2 -->
+  <g transform="translate(440 240)">
+    <rect x="0" y="0" width="320" height="300" rx="16" fill="#ffffff" stroke="#e4def1" stroke-width="2"/>
+    <text x="24" y="42" font-size="13" font-weight="700" fill="#5b3ef0" letter-spacing="0.06em">WEEK 2-3 · PROMOTION</text>
+    <text x="24" y="76" font-size="17" font-weight="600" fill="#1a1a1a">AI answers first</text>
+    <text x="24" y="110" font-size="14" fill="#3a3350">• Transcripts reviewed, answers</text>
+    <text x="36" y="134" font-size="14" fill="#3a3350">patched, rules tightened</text>
+    <text x="24" y="164" font-size="14" fill="#3a3350">• Forwarding flipped: AI is the</text>
+    <text x="36" y="188" font-size="14" fill="#3a3350">first ring, humans the fallback</text>
+    <text x="24" y="236" font-size="13" font-weight="600" fill="#8a8398">SAFETY NET: LIVE TRANSFER ON</text>
+    <text x="24" y="256" font-size="13" font-weight="600" fill="#8a8398">RULES YOU DEFINE</text>
+  </g>
+
+  <!-- phase 3 -->
+  <g transform="translate(810 240)">
+    <rect x="0" y="0" width="320" height="300" rx="16" fill="#ffffff" stroke="#e4def1" stroke-width="2"/>
+    <text x="24" y="42" font-size="13" font-weight="700" fill="#5b3ef0" letter-spacing="0.06em">ONGOING · STEADY STATE</text>
+    <text x="24" y="76" font-size="17" font-weight="600" fill="#1a1a1a">AI runs the phones</text>
+    <text x="24" y="110" font-size="14" fill="#3a3350">• Human hours redeployed to</text>
+    <text x="36" y="134" font-size="14" fill="#3a3350">walk-ins, billing, growth</text>
+    <text x="24" y="164" font-size="14" fill="#3a3350">• Ten-minute transcript review</text>
+    <text x="36" y="188" font-size="14" fill="#3a3350">every week</text>
+    <text x="24" y="236" font-size="13" font-weight="600" fill="#8a8398">MAINTENANCE: PATCH ANSWERS AS</text>
+    <text x="24" y="256" font-size="13" font-weight="600" fill="#8a8398">THE BUSINESS CHANGES</text>
+  </g>
+</svg>

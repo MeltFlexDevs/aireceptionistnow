@@ -1,0 +1,61 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" role="img" aria-label="A medical cross chip and a calendar chip beside an AI receptionist chip with a voice waveform - round-the-clock patient call coverage for clinics">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1600" y2="900" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#b9d6f0"/>
+      <stop offset="0.5" stop-color="#dcebf2"/>
+      <stop offset="1" stop-color="#c3ecd9"/>
+    </linearGradient>
+    <filter id="soft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="40"/>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#bg)"/>
+
+  <!-- soft depth circles -->
+  <circle cx="310" cy="240" r="150" fill="#ffffff" opacity="0.30" filter="url(#soft)"/>
+  <circle cx="1310" cy="650" r="180" fill="#ffffff" opacity="0.25" filter="url(#soft)"/>
+
+  <!-- glass panel -->
+  <rect x="280" y="220" width="1040" height="460" rx="40" fill="#ffffff" opacity="0.45"/>
+  <rect x="280.5" y="220.5" width="1039" height="459" rx="40" stroke="#ffffff" opacity="0.7"/>
+
+  <!-- medical cross chip -->
+  <g transform="translate(500 450)">
+    <rect x="-110" y="-110" width="220" height="220" rx="40" fill="#ffffff" opacity="0.55"/>
+    <rect x="-109.5" y="-109.5" width="219" height="219" rx="40" stroke="#ffffff" opacity="0.8"/>
+    <path d="M -22 -62 h 44 v 40 h 40 v 44 h -40 v 40 h -44 v -40 h -40 v -44 h 40 z" stroke="#1a1a1a" stroke-width="6" fill="none" stroke-linejoin="round"/>
+  </g>
+
+  <!-- AI chip (centre) -->
+  <g transform="translate(800 450)">
+    <rect x="-115" y="-115" width="230" height="230" rx="40" fill="#111111"/>
+    <g stroke="#ffffff" stroke-width="12" stroke-linecap="round">
+      <path d="M -56 -16 v 32"/>
+      <path d="M -28 -36 v 72"/>
+      <path d="M 0 -54 v 108"/>
+      <path d="M 28 -36 v 72"/>
+      <path d="M 56 -16 v 32"/>
+    </g>
+    <path d="M 74 -88 l 6 16 16 6 -16 6 -6 16 -6 -16 -16 -6 16 -6 z" fill="#ffffff"/>
+  </g>
+
+  <!-- calendar chip (booking) -->
+  <g transform="translate(1100 450)">
+    <rect x="-110" y="-110" width="220" height="220" rx="40" fill="#ffffff" opacity="0.55"/>
+    <rect x="-109.5" y="-109.5" width="219" height="219" rx="40" stroke="#ffffff" opacity="0.8"/>
+    <g stroke="#1a1a1a" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="-58" y="-46" width="116" height="104" rx="14"/>
+      <path d="M -58 -14 h 116"/>
+      <path d="M -30 -66 v 24"/>
+      <path d="M 30 -66 v 24"/>
+      <path d="M -22 22 l 14 14 30 -30"/>
+    </g>
+  </g>
+
+  <!-- badge -->
+  <g transform="translate(800 760)">
+    <rect x="-230" y="-34" width="460" height="68" rx="34" fill="#111111"/>
+    <text x="0" y="9" text-anchor="middle" font-size="26" font-weight="600" fill="#ffffff" letter-spacing="0.06em">EVERY PATIENT CALL, ANSWERED</text>
+  </g>
+</svg>

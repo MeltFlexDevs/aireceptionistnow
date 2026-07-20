@@ -44,6 +44,15 @@ import AfterHoursAnsweringService, {
 import BilingualAiReceptionist, {
   meta as bilingualAiReceptionistMeta,
 } from "./bilingual-ai-receptionist";
+import TwentyFourSevenAiReceptionist, {
+  meta as twentyFourSevenAiReceptionistMeta,
+} from "./24-7-ai-receptionist";
+import HowToReplaceFrontDeskReceptionist, {
+  meta as howToReplaceFrontDeskReceptionistMeta,
+} from "./how-to-replace-front-desk-receptionist-with-ai";
+import MedicalAnsweringService, {
+  meta as medicalAnsweringServiceMeta,
+} from "./medical-answering-service";
 
 export type PostMeta = {
   slug: string;
@@ -81,6 +90,9 @@ const postAuthors: Record<string, AuthorKey> = {
   "cost-of-a-missed-call": "brano",
   "after-hours-answering-service": "matus",
   "bilingual-ai-receptionist": "brano",
+  "24-7-ai-receptionist": "matus",
+  "how-to-replace-front-desk-receptionist-with-ai": "brano",
+  "medical-answering-service": "matus",
 };
 
 export const posts: Post[] = [
@@ -98,6 +110,15 @@ export const posts: Post[] = [
   { ...costOfAMissedCallMeta, Body: CostOfAMissedCall },
   { ...afterHoursAnsweringServiceMeta, Body: AfterHoursAnsweringService },
   { ...bilingualAiReceptionistMeta, Body: BilingualAiReceptionist },
+  {
+    ...twentyFourSevenAiReceptionistMeta,
+    Body: TwentyFourSevenAiReceptionist,
+  },
+  {
+    ...howToReplaceFrontDeskReceptionistMeta,
+    Body: HowToReplaceFrontDeskReceptionist,
+  },
+  { ...medicalAnsweringServiceMeta, Body: MedicalAnsweringService },
 ]
   .map((p) => ({ ...p, author: postAuthors[p.slug] ?? defaultAuthorKey }))
   .sort((a, b) => (a.date < b.date ? 1 : -1));

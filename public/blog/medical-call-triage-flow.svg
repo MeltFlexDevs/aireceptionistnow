@@ -1,0 +1,48 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" role="img" aria-label="A triage flow for patient calls: every call is answered by the AI, then emergencies are routed to 911 instantly, urgent calls ring the on-call provider, and routine calls are booked or logged for the morning">
+  <rect width="1200" height="630" fill="#faf8ff"/>
+  <rect x="0.5" y="0.5" width="1199" height="629" fill="none" stroke="#ece7f6"/>
+
+  <text x="60" y="66" font-size="26" font-weight="600" fill="#1a1a1a">Three streams, three destinations</text>
+  <text x="60" y="100" font-size="16" fill="#8a8398">The AI applies routing rules a clinician approved. Clinical judgment never leaves the clinicians.</text>
+
+  <!-- incoming call node -->
+  <g transform="translate(60 280)">
+    <rect x="0" y="0" width="240" height="110" rx="16" fill="#5b3ef0"/>
+    <text x="120" y="48" font-size="16" font-weight="600" fill="#ffffff" text-anchor="middle">Every patient call</text>
+    <text x="120" y="76" font-size="14" fill="#dcd4fb" text-anchor="middle">answered instantly, 24/7</text>
+  </g>
+
+  <!-- arrows -->
+  <g stroke="#c9befa" stroke-width="3" fill="none">
+    <path d="M 300 320 C 380 320 380 195 450 195"/>
+    <path d="M 300 335 h 150"/>
+    <path d="M 300 350 C 380 350 380 475 450 475"/>
+  </g>
+
+  <!-- emergency -->
+  <g transform="translate(450 140)">
+    <rect x="0" y="0" width="640" height="110" rx="16" fill="#ffffff" stroke="#e4def1" stroke-width="2"/>
+    <rect x="0" y="0" width="6" height="110" rx="3" fill="#1a1a1a"/>
+    <text x="30" y="40" font-size="13" font-weight="700" fill="#1a1a1a" letter-spacing="0.06em">EMERGENCY LANGUAGE</text>
+    <text x="30" y="70" font-size="15" fill="#3a3350">&quot;Hang up and dial 911&quot; - immediately, identically, on every such call.</text>
+    <text x="30" y="94" font-size="13" fill="#8a8398">No advice, no triage conversation, no delay.</text>
+  </g>
+
+  <!-- urgent -->
+  <g transform="translate(450 280)">
+    <rect x="0" y="0" width="640" height="110" rx="16" fill="#ffffff" stroke="#e4def1" stroke-width="2"/>
+    <rect x="0" y="0" width="6" height="110" rx="3" fill="#5b3ef0"/>
+    <text x="30" y="40" font-size="13" font-weight="700" fill="#5b3ef0" letter-spacing="0.06em">URGENT, NOT 911</text>
+    <text x="30" y="70" font-size="15" fill="#3a3350">Worsening symptoms, post-op concerns → transfer or page the on-call provider.</text>
+    <text x="30" y="94" font-size="13" fill="#8a8398">Ambiguous calls fail toward escalation - a false alarm costs minutes, the opposite costs more.</text>
+  </g>
+
+  <!-- routine -->
+  <g transform="translate(450 420)">
+    <rect x="0" y="0" width="640" height="110" rx="16" fill="#ffffff" stroke="#e4def1" stroke-width="2"/>
+    <rect x="0" y="0" width="6" height="110" rx="3" fill="#8f7bf5"/>
+    <text x="30" y="40" font-size="13" font-weight="700" fill="#8f7bf5" letter-spacing="0.06em">ROUTINE - THE BULK OF VOLUME</text>
+    <text x="30" y="70" font-size="15" fill="#3a3350">Booked onto the calendar, answered from the knowledge base, or logged for the morning.</text>
+    <text x="30" y="94" font-size="13" fill="#8a8398">Scheduling, hours, prep questions, refill requests - finished without waking anyone.</text>
+  </g>
+</svg>
