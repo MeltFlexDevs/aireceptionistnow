@@ -1,9 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { currentUserId } from "@/lib/auth";
+import { deleteIntegration, setPrimaryCalendar } from "@/lib/dashboard/db";
+import { getDictionary } from "@/lib/i18n/server";
+import { ok, fail, type ActionState } from "@/lib/dashboard/action-state";
 import {
   cancelCalendarEvent,
   loadBookingForCancel,
@@ -20,33 +22,45 @@ import { localizeSms } from "@/lib/call-engine/llm/greeting";
 import { sendSms } from "@/lib/call-engine/telephony";
 import { languageFromPhone } from "@/lib/call-engine/voice/phone-language";
 
-function back(msg: string, kind: "saved" | "error" = "saved"): never {
-  revalidatePath("/dashboard/calendar");
-  redirect(`/dashboard/calendar?${kind}=${encodeURIComponent(msg)}`);
-}
+/**
+ * All four actions below report back through the shared ActionState contract
+ * and an inline pill, rather than the old ?saved=/?error= redirect - which
+ * reloaded the page, lost the reader's place in the agenda, and put raw
+ * provider error text in the URL bar.
+ */
 
-export async function retryBookingSyncAction(formData: FormData): Promise<void> {
+export async function retryBookingSyncAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const c = (await getDictionary()).calendar;
   const actionId = String(formData.get("action_id") ?? "");
-  if (!actionId) back("Missing booking.", "error");
+  if (!actionId) return fail(c.bookingMissing);
 
   const ownerId = (await currentUserId()) ?? null;
   const res = await retryBookingSync(actionId, ownerId).catch((err: Error) => ({
     ok: false as const,
     message: err.message,
   }));
-  if (res.ok) back("Appointment synced to the calendar.");
-  back(`Sync failed again: ${res.message}`, "error");
+  revalidatePath("/dashboard/calendar");
+  // The provider's own error text never reaches the user - it is operator
+  // diagnostics, and there is nothing they could do with it.
+  return res.ok ? ok(c.retrySucceeded) : fail(c.retryFailed);
 }
 
-export async function cancelBookingAction(formData: FormData): Promise<void> {
+export async function cancelBookingAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const c = (await getDictionary()).calendar;
   const actionId = String(formData.get("action_id") ?? "");
-  if (!actionId) back("Missing booking.", "error");
+  if (!actionId) return fail(c.bookingMissing);
   const reason = String(formData.get("reason") ?? "").trim().slice(0, 500);
   const offerRebook = formData.get("offer_rebook") === "on";
 
   const ownerId = (await currentUserId()) ?? null;
   const booking = await loadBookingForCancel(actionId, ownerId).catch(() => null);
-  if (!booking) back("That booking couldn't be found.", "error");
+  if (!booking) return fail(c.bookingNotFound);
 
   const cal = await cancelCalendarEvent(booking, reason);
 
@@ -61,12 +75,43 @@ export async function cancelBookingAction(formData: FormData): Promise<void> {
 
   after(() => notifyCustomer(actionId, booking, reason, offerRebook, ownerId));
 
-  const calNote = cal.ok
-    ? ""
-    : cal.notSupported
-      ? " The calendar event couldn't be cancelled automatically - please remove it yourself."
-      : ` The calendar event may still be there (${cal.error ?? "cancel failed"}).`;
-  back(`Booking cancelled. We're contacting the customer now.${calNote}`);
+  revalidatePath("/dashboard/calendar");
+  // When the calendar entry could not be removed automatically, say so plainly
+  // and tell them what to do - never surface the provider's message.
+  return ok(cal.ok ? c.cancelledNotifying : `${c.cancelledNotifying} ${c.cancelledRemoveYourself}`);
+}
+
+export async function setPrimaryCalendarAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const c = (await getDictionary()).calendar;
+  const id = String(formData.get("id") ?? "");
+  if (!id) return fail(c.calendarMissing);
+  try {
+    await setPrimaryCalendar(id, (await currentUserId()) ?? undefined);
+  } catch {
+    return fail(c.calendarActionFailed);
+  }
+  revalidatePath("/dashboard/calendar");
+  return ok(c.primarySet);
+}
+
+export async function disconnectCalendarAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const c = (await getDictionary()).calendar;
+  const id = String(formData.get("id") ?? "");
+  if (!id) return fail(c.calendarMissing);
+  try {
+    await deleteIntegration(id, (await currentUserId()) ?? undefined);
+  } catch {
+    // Already gone is the outcome the user wanted; don't report a failure.
+  }
+  revalidatePath("/dashboard/calendar");
+  revalidatePath("/dashboard/assistant", "layout");
+  return ok(c.disconnected);
 }
 
 async function notifyCustomer(

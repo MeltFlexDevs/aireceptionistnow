@@ -126,6 +126,14 @@ export const Book = ({ className = base }: IconProps) => (
   <Stroke className={className}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z" /></Stroke>
 );
 
+export const Globe = ({ className = base }: IconProps) => (
+  <Stroke className={className}><circle cx="12" cy="12" r="9" /><path d="M3 12h18" /><path d="M12 3c2.5 2.4 3.9 5.6 3.9 9S14.5 18.6 12 21c-2.5-2.4-3.9-5.6-3.9-9S9.5 5.4 12 3Z" /></Stroke>
+);
+
+export const FileText = ({ className = base }: IconProps) => (
+  <Stroke className={className}><path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7Z" /><path d="M14 2v5h5" /><path d="M9 13h6" /><path d="M9 17h6" /></Stroke>
+);
+
 export const Spinner = ({ className = base }: IconProps) => (
   <Stroke className={className}><path d="M21 12a9 9 0 1 1-9-9" /></Stroke>
 );

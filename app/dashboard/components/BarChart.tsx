@@ -1,6 +1,7 @@
 import type { Bar } from "@/lib/dashboard/analytics";
 
-export function BarChart({ data }: { data: Bar[] }) {
+/** `countTemplate` is the localized hover title, e.g. "{count} calls". */
+export function BarChart({ data, countTemplate = "{count}" }: { data: Bar[]; countTemplate?: string }) {
   // Floor of 1 keeps all-zero data from dividing by zero (NaN% heights).
   const max = Math.max(1, ...data.map((d) => d.value));
 
@@ -13,7 +14,7 @@ export function BarChart({ data }: { data: Bar[] }) {
           return (
             <div key={i} className="group flex flex-1 items-end justify-center">
               <div
-                title={`${d.value} calls`}
+                title={countTemplate.replace("{count}", String(d.value))}
                 style={{ height: `${Math.max(heightPct, 3)}%` }}
                 className={`w-full max-w-[16px] rounded-md transition-colors ${isLast ? "bg-neutral-900" : "bg-neutral-300 group-hover:bg-neutral-900"}`}
               />

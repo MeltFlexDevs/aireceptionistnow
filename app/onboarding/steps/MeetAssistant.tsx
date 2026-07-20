@@ -71,6 +71,9 @@ export function MeetAssistant({
   // Always start blank so a stale saved value never shows pre-typed; the caller
   // types their business name fresh (they can't advance without it anyway).
   const [business, setBusiness] = useState("");
+  // Optional company website - persists across back/forward since it isn't the
+  // gating field. Scraped into the assistant's knowledge on submit.
+  const [website, setWebsite] = useState(config.companyWebsite ?? "");
   const [name, setName] = useState(config.assistantName ?? "");
   const [countryCode, setCountryCode] = useState(countryDefault);
   const [phoneCode, setPhoneCode] = useState(initialPhone.code);
@@ -180,8 +183,8 @@ export function MeetAssistant({
               cluster - the avatar sits near the top, the tabs and question
               follow tightly, and the slack collects above the docked button. */}
           <div className="flex flex-1 flex-col items-center justify-start">
-            <div className="onb-aura">
-              <div className="onb-avatar-disc">
+            <div className="ava-aura">
+              <div className="ava-disc">
                 <LiveAvatar mood={mood} nudge={nudge} rewind={rewind} celebrate={done} className="h-[74%] w-[74%]" />
               </div>
             </div>
@@ -242,6 +245,33 @@ export function MeetAssistant({
                         placeholder={o.companyPlaceholder}
                         className={field}
                       />
+                      {/* Optional website - the assistant learns from it, so
+                          step 2 only needs PDFs/notes on top. */}
+                      <div className="mt-3">
+                        <label
+                          htmlFor={`ws-${uid}`}
+                          className="mb-1.5 flex items-center justify-center gap-1.5 text-xs font-medium text-neutral-400"
+                        >
+                          <Globe className="h-3.5 w-3.5" />
+                          {o.websiteUrl}
+                        </label>
+                        <input
+                          id={`ws-${uid}`}
+                          name={`ws-${uid}`}
+                          type="url"
+                          inputMode="url"
+                          autoComplete="off"
+                          spellCheck={false}
+                          data-1p-ignore
+                          data-lpignore="true"
+                          data-form-type="other"
+                          value={website}
+                          onChange={(e) => setWebsite(e.target.value)}
+                          onKeyDown={onEnter}
+                          placeholder={o.websitePlaceholder}
+                          className={field}
+                        />
+                      </div>
                     </Question>
                   )}
 
@@ -376,6 +406,7 @@ export function MeetAssistant({
         {/* Hidden form: the funnel's real payload, submitted once at the end. */}
         <form ref={formRef} action={saveBasicsAction} className="hidden">
           <input type="hidden" name="company_name" value={business} readOnly />
+          <input type="hidden" name="company_website" value={website} readOnly />
           <input type="hidden" name="assistant_name" value={name} readOnly />
           <input type="hidden" name="voice_id" value={voiceId} readOnly />
           <input type="hidden" name="voice_gender" value={gender} readOnly />
@@ -500,6 +531,15 @@ function BackArrow() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <path d="M19 12H5M11 18l-6-6 6-6" />
+    </svg>
+  );
+}
+
+function Globe({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
     </svg>
   );
 }

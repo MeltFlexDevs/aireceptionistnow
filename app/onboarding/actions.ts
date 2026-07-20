@@ -3,6 +3,7 @@
 import { randomUUID } from "node:crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { currentUserId } from "@/lib/auth";
 import { getBilling } from "@/lib/billing";
 import {
@@ -70,6 +71,7 @@ async function t() {
 
 export async function saveBasicsAction(formData: FormData): Promise<void> {
   const companyName = str(formData.get("company_name"));
+  const companyWebsite = str(formData.get("company_website"));
   const assistantName = str(formData.get("assistant_name"));
   const voiceId = str(formData.get("voice_id"));
   const voiceGender: "f" | "m" = str(formData.get("voice_gender")) === "m" ? "m" : "f";
@@ -97,12 +99,20 @@ export async function saveBasicsAction(formData: FormData): Promise<void> {
           country,
           alertsEmail,
           alertPhone,
+          ...(companyWebsite ? { companyWebsite } : {}),
         },
         1,
       );
     } catch (err) {
       if (isStaleSessionError(err)) await reauth();
       toStep(1, (err as Error).message);
+    }
+    // Learn from the company website in the background: after() runs the scrape
+    // once the redirect response is sent, so a slow or failed fetch never holds
+    // up the funnel. The new source appears in step 2's list when it lands.
+    if (companyWebsite) {
+      const uid = userId;
+      after(() => importWebsiteSource(uid, companyWebsite).catch(() => {}));
     }
   }
 
@@ -120,29 +130,28 @@ async function appendSource(userId: string, source: KnowledgeSource): Promise<vo
   await saveOnboardingConfig(userId, { sources }, 2);
 }
 
-export async function importUrlAction(formData: FormData): Promise<void> {
-  const url = str(formData.get("url"));
-  if (!url) toStep(2);
-  const userId = await currentUserId();
-  if (!userId) toStep(2);
-
-  try {
-    const site = await fetchWebsiteMarkdown(url);
-    const summary = await summarizeSourceMarkdown(site.title, site.markdown).catch(() => null);
-    await appendSource(userId, {
-      id: randomUUID(),
-      kind: "website",
-      title: site.title,
-      url,
-      markdown: site.markdown,
-      charCount: site.charCount,
-      addedAt: new Date().toISOString(),
-      ...(summary ? { summary } : {}),
-    });
-  } catch (err) {
-    toStep(2, (err as Error).message);
-  }
-  toStep(2);
+// Scrape a website into the knowledge base as a source. Deduped by URL so a
+// caller who edits step 1 and resubmits doesn't learn the same site twice.
+// Called from saveBasicsAction via after(), so it must swallow its own errors
+// (the caller can't surface them once the response is already sent).
+async function importWebsiteSource(userId: string, url: string): Promise<void> {
+  const profile = await getOnboardingProfile(userId);
+  const already = (profile?.config.sources ?? []).some(
+    (s) => s.kind === "website" && s.url === url,
+  );
+  if (already) return;
+  const site = await fetchWebsiteMarkdown(url);
+  const summary = await summarizeSourceMarkdown(site.title, site.markdown).catch(() => null);
+  await appendSource(userId, {
+    id: randomUUID(),
+    kind: "website",
+    title: site.title,
+    url,
+    markdown: site.markdown,
+    charCount: site.charCount,
+    addedAt: new Date().toISOString(),
+    ...(summary ? { summary } : {}),
+  });
 }
 
 export async function importPdfAction(formData: FormData): Promise<void> {

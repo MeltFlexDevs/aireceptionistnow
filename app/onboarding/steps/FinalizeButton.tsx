@@ -66,8 +66,8 @@ export function FinalizeButton({ assistantName = "" }: { assistantName?: string 
           aria-live="polite"
         >
           <div className="rise flex flex-col items-center">
-            <div className="onb-aura">
-              <div className="onb-avatar-disc">
+            <div className="ava-aura">
+              <div className="ava-disc">
                 <AiAvatar mood="friendly" className="h-[74%] w-[74%]" />
               </div>
             </div>

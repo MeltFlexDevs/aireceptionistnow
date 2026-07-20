@@ -1,7 +1,14 @@
 @import "tailwindcss";
 
+/* One font for the whole product. Setting --font-sans here makes Tailwind's
+   default family (and every `font-sans` utility) resolve to Inter, so the
+   dashboard and onboarding match the marketing pages without each surface
+   restating the stack. */
+@theme {
+  --font-sans: var(--font-inter), "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
 :root {
-  --font-geist: "Geist", sans-serif;
 
   /* Site "black" = Jet black. Tailwind v4 utilities resolve to var(--color-*),
      so overriding these here makes every `black` and `neutral-900` utility
@@ -122,6 +129,133 @@ html {
 /* Monochrome accent gradient (near-black → grey) for small shape accents. */
 .brand-grad {
   background-image: linear-gradient(135deg, #1D1D1D, #525252);
+}
+
+/* ── ASSISTANT AVATAR ───────────────────────────────────────────────────────
+   The illustrated AI-receptionist character (AiAvatar/LiveAvatar) and the two
+   holders it sits in: the large breathing aura for hero moments and the
+   compact ring that works as the assistant's profile picture in lists and
+   headers. Shared by the onboarding funnel and the dashboard so the assistant
+   the caller "hired" looks the same everywhere. */
+.ai-avatar {
+  overflow: visible;
+  line-height: 1;
+  user-select: none;
+  animation: ava-pop 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.ai-avatar[data-wave="true"] {
+  transform-origin: 70% 80%;
+  animation: ava-pop 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) both,
+    ava-wave 1.6s ease-in-out 0.4s 2;
+}
+.ai-float {
+  animation: ai-float 5s ease-in-out infinite;
+}
+.ai-eyes {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ai-blink 5.4s ease-in-out infinite;
+}
+.ai-spark {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ai-twinkle 1.7s ease-in-out infinite;
+}
+/* Subtle "talking" mouth: a slight vertical flutter, played in short bursts. */
+.ai-mouth {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.ai-mouth[data-talk="true"] {
+  animation: ai-talk 0.85s ease-in-out;
+}
+
+/* Breathing aura ring that holds the avatar on hero moments. */
+.ava-aura {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 138px;
+  height: 138px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1D1D1D, #525252);
+  padding: 6px;
+  box-shadow: 0 18px 42px -12px rgb(24 24 27 / 0.44);
+  animation: ava-breathe 4.5s ease-in-out infinite;
+}
+/* Compact aura for screens that carry more content below the avatar. */
+.ava-aura.ava-aura-sm {
+  width: 104px;
+  height: 104px;
+  padding: 5px;
+  box-shadow: 0 14px 32px -12px rgb(24 24 27 / 0.4);
+}
+.ava-aura > .ava-disc {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #fff;
+}
+
+/* Idle "breathing" for rings that should feel alive even untouched. */
+.ava-breathe {
+  animation: ava-breathe 4.5s ease-in-out infinite;
+}
+
+/* Compact ring - size it per spot with `--ava-size` (default 44px). */
+.ava-ring {
+  display: grid;
+  place-items: center;
+  width: var(--ava-size, 44px);
+  height: var(--ava-size, 44px);
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1D1D1D, #525252);
+  padding: 3px;
+  box-shadow: 0 6px 16px -8px rgb(24 24 27 / 0.4);
+}
+.ava-ring > span {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #fff;
+  font-size: 20px;
+  line-height: 1;
+}
+
+@keyframes ai-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+@keyframes ai-blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.12); }
+}
+@keyframes ai-twinkle {
+  0%, 100% { opacity: 0.15; transform: scale(0.7); }
+  50% { opacity: 1; transform: scale(1); }
+}
+@keyframes ai-talk {
+  0%, 100% { transform: scaleY(1); }
+  25% { transform: scaleY(0.82); }
+  50% { transform: scaleY(1.08); }
+  75% { transform: scaleY(0.9); }
+}
+@keyframes ava-pop {
+  0% { opacity: 0; transform: scale(0.55); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes ava-wave {
+  0%, 60%, 100% { transform: rotate(0deg); }
+  15%, 45% { transform: rotate(14deg); }
+  30% { transform: rotate(-8deg); }
+}
+@keyframes ava-breathe {
+  0%, 100% { transform: scale(1); box-shadow: 0 12px 30px -10px rgb(24 24 27 / 0.4); }
+  50% { transform: scale(1.035); box-shadow: 0 18px 40px -10px rgb(24 24 27 / 0.5); }
 }
 
 /* Frosted-glass surface: translucent white + blur + a top inner highlight, so
@@ -302,7 +436,15 @@ html {
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .rise,
-  .rise-stagger > * {
+  .rise-stagger > *,
+  .ai-avatar,
+  .ai-avatar[data-wave="true"],
+  .ai-float,
+  .ai-eyes,
+  .ai-spark,
+  .ai-mouth[data-talk="true"],
+  .ava-aura,
+  .ava-breathe {
     animation: none;
   }
   .press,

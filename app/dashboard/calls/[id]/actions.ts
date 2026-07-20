@@ -4,30 +4,31 @@ import { currentUserId } from "@/lib/auth";
 import { authConfigured } from "@/lib/supabase/config";
 import { getCallDetail } from "@/lib/dashboard/calls";
 import { serviceClient } from "@/lib/dashboard/supabase";
+import { getDictionary } from "@/lib/i18n/server";
+import { MAX_MESSAGE_CHARS } from "./report-limits";
 
 export interface ReportState {
   ok: boolean;
   error: string;
 }
 
-const MAX_MESSAGE_CHARS = 2000;
-
 export async function reportCallIssue(
   _prev: ReportState,
   formData: FormData,
 ): Promise<ReportState> {
+  const d = (await getDictionary()).calls.detail;
   const callId = String(formData.get("callId") ?? "");
   const message = String(formData.get("message") ?? "").trim();
-  if (!message) return { ok: false, error: "Describe the issue first." };
+  if (!message) return { ok: false, error: d.reportErrorEmpty };
   if (message.length > MAX_MESSAGE_CHARS) {
-    return { ok: false, error: `Keep the report under ${MAX_MESSAGE_CHARS} characters.` };
+    return { ok: false, error: d.reportErrorTooLong.replace("{max}", String(MAX_MESSAGE_CHARS)) };
   }
 
   const reporterId = await currentUserId();
-  if (authConfigured() && !reporterId) return { ok: false, error: "Not signed in." };
+  if (authConfigured() && !reporterId) return { ok: false, error: d.reportErrorNotSignedIn };
 
   const call = await getCallDetail(callId, reporterId).catch(() => null);
-  if (!call) return { ok: false, error: "Call not found." };
+  if (!call) return { ok: false, error: d.reportErrorNotFound };
 
   // Latency isn't part of CallDetail; snapshot it straight off the call row.
   const { data: row } = await serviceClient()
@@ -57,7 +58,7 @@ export async function reportCallIssue(
   if (error) {
     // Schema drift: call_reports doesn't exist until migration 0010 is applied.
     console.warn("[call-report] insert failed:", error.message);
-    return { ok: false, error: "Couldn't send the report. Please try again." };
+    return { ok: false, error: d.reportErrorGeneric };
   }
   return { ok: true, error: "" };
 }

@@ -1,135 +1,38 @@
 import { notFound } from "next/navigation";
 import { getCallDetail } from "@/lib/dashboard/calls";
-import { formatPhone } from "@/lib/call-engine/voice/phone-language";
 import { currentUserId } from "@/lib/auth";
+import { listAssistants } from "@/lib/dashboard/db";
+import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { BackLink } from "../../components/BackLink";
-import { SectionCard } from "../../components/SectionCard";
-import { TranslatedText } from "../../components/TranslatedText";
-import { ArrowDown, ArrowUp } from "../../icons";
-import { statusTone } from "../status";
-import { ActionItems } from "./ActionItems";
+import { CallDetailBody } from "../CallDetailBody";
 import { LiveRefresh } from "./LiveRefresh";
-import { Recording } from "./Recording";
-import { ReportIssue } from "./ReportIssue";
-import { Transcript } from "./Transcript";
 
 export const dynamic = "force-dynamic";
 
-const SENTIMENT_TONE: Record<string, string> = {
-  positive: "bg-emerald-50 text-emerald-700",
-  neutral: "bg-neutral-100 text-neutral-700",
-  negative: "bg-rose-50 text-rose-700",
-};
-
-const summaryCls = "text-sm leading-relaxed text-neutral-600";
-
-function Meta({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <div className="text-[11px] uppercase tracking-wide text-neutral-400">{label}</div>
-      <div className="mt-0.5 text-sm text-neutral-800">{value}</div>
-    </div>
-  );
-}
-
+/**
+ * The standalone call route. It survives the split-view rebuild because deep
+ * links point at it (the notifications bell, calendar View-call links) and
+ * because it is the mobile detail surface - below md the list has no pane.
+ */
 export default async function CallDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+  const [{ id }, t, locale] = await Promise.all([params, getDictionary(), getLocale()]);
+  const ownerId = await currentUserId();
 
   let call: Awaited<ReturnType<typeof getCallDetail>> | null = null;
   try {
-    call = await getCallDetail(id, await currentUserId());
+    call = await getCallDetail(id, ownerId, locale);
   } catch {
     call = null;
   }
   if (!call) notFound();
 
-  const outbound = call.direction === "outbound";
-  const summaryText = call.summary
-    ? call.summary
-    : call.isLive
-      ? "The AI summary is generated after the call ends."
-      : "No summary for this call.";
+  const assistants = await listAssistants(ownerId ?? undefined).catch(() => []);
 
   return (
-    <div className="space-y-6 rise">
+    <div className="rise space-y-6">
       {call.isLive && <LiveRefresh />}
-
-      <BackLink href="/dashboard/calls" label="Calls" />
-
-      <SectionCard>
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <span
-                className={`inline-flex h-6 w-6 items-center justify-center rounded-full ${outbound ? "bg-neutral-100 text-neutral-900" : "bg-neutral-100 text-neutral-700"}`}
-              >
-                {outbound ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />}
-              </span>
-              <h1 className="text-xl font-medium tracking-tight text-neutral-900">
-                {call.from ? formatPhone(call.from) : "Unknown"} <span className="text-neutral-400">→</span> {call.to ? formatPhone(call.to) : "-"}
-              </h1>
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {call.isLive && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
-                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
-                Live
-              </span>
-            )}
-            <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${statusTone(call.status)}`}>
-              {call.statusLabel}
-            </span>
-            {call.outcome && call.outcome.toLowerCase() !== "abandoned" && (
-              <span className="inline-flex rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-900">
-                {call.outcome}
-              </span>
-            )}
-            {call.sentiment && (
-              <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium capitalize ${SENTIMENT_TONE[call.sentiment] ?? "bg-neutral-100 text-neutral-500"}`}>
-                {call.sentiment}
-              </span>
-            )}
-          </div>
-        </div>
-
-        <div className="mt-5 grid grid-cols-2 gap-4 border-t border-neutral-100 pt-4 sm:grid-cols-3">
-          <Meta label="Date" value={call.dateLabel} />
-          <Meta label="Duration" value={call.durationLabel} />
-          <Meta label="Assistant" value={call.assistant ?? "-"} />
-        </div>
-      </SectionCard>
-
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="space-y-4 lg:col-span-2">
-          {call.recordingUrl && (
-            <SectionCard title="Recording" subtitle="Play or download the call audio">
-              <Recording url={call.recordingUrl} />
-            </SectionCard>
-          )}
-          <SectionCard
-            title="Transcript"
-            subtitle={`${call.turns.length} turn${call.turns.length === 1 ? "" : "s"}`}
-            action={<ReportIssue callId={call.id} />}
-          >
-            {/* Originals render instantly; TranscriptView translates client-side. */}
-            <Transcript turns={call.turns} />
-          </SectionCard>
-        </div>
-
-        <div className="space-y-4">
-          <SectionCard title="AI summary">
-            {call.summary ? (
-              <TranslatedText text={call.summary} className={summaryCls} />
-            ) : (
-              <p className={summaryCls}>{summaryText}</p>
-            )}
-          </SectionCard>
-          <SectionCard title="Actions" subtitle="What the assistant did">
-            <ActionItems actions={call.actions} />
-          </SectionCard>
-        </div>
-      </div>
+      <BackLink href="/dashboard/calls" label={t.calls.title} />
+      <CallDetailBody call={call} variant="page" assistantCount={assistants.length} />
     </div>
   );
 }

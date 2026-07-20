@@ -40,7 +40,13 @@ export function CallFilters({ q, status }: Props) {
       skipDebounce.current = true;
       setText("");
     }
-    startTransition(() => router.replace(pathname, { scroll: false }));
+    // Clear only the filters. Replacing with the bare pathname would also drop
+    // ?selected=, yanking the detail pane out from under the user.
+    const next = new URLSearchParams(params.toString());
+    next.delete("q");
+    next.delete("status");
+    const qs = next.toString();
+    startTransition(() => router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false }));
   }
 
   // Debounce the free-text search so each keystroke doesn't navigate.

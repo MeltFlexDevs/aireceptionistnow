@@ -238,15 +238,30 @@ export interface AgentTool {
   name: string;
 }
 
+/**
+ * Every field is optional: saves are patches, so a form that did not carry a
+ * field must leave that column alone rather than overwrite it. An omitted key
+ * is never written - see lib/dashboard/assistant-patch.ts.
+ */
 export interface UpdateAssistantInput {
-  name: string;
-  greeting: string;
-  system_prompt: string;
-  voice_id: string;
-  language: string;
-  knowledge: Record<string, unknown>;
-  routing: Record<string, unknown>;
+  name?: string;
+  greeting?: string;
+  system_prompt?: string;
+  voice_id?: string;
+  language?: string;
+  knowledge?: Record<string, unknown>;
+  routing?: Record<string, unknown>;
 }
+
+const ASSISTANT_UPDATE_KEYS = [
+  "name",
+  "greeting",
+  "system_prompt",
+  "voice_id",
+  "language",
+  "knowledge",
+  "routing",
+] as const;
 
 export const listAssistants = cache(async (ownerId?: string | null): Promise<Assistant[]> => {
   let query = db().from("assistants").select("*").is("deleted_at", null);
@@ -293,18 +308,13 @@ export async function updateAssistant(
   id: string,
   patch: UpdateAssistantInput,
 ): Promise<void> {
-  const { error } = await db()
-    .from("assistants")
-    .update({
-      name: patch.name,
-      greeting: patch.greeting,
-      system_prompt: patch.system_prompt,
-      voice_id: patch.voice_id,
-      language: patch.language,
-      knowledge: patch.knowledge,
-      routing: patch.routing,
-    })
-    .eq("id", id);
+  const update: Record<string, unknown> = {};
+  for (const key of ASSISTANT_UPDATE_KEYS) {
+    if (patch[key] !== undefined) update[key] = patch[key];
+  }
+  if (Object.keys(update).length === 0) return;
+
+  const { error } = await db().from("assistants").update(update).eq("id", id);
   if (error) throw error;
 }
 
@@ -443,6 +453,17 @@ export async function getAssistantSyncContext(
     businessName: businessName || "our business",
     knowledge,
   };
+}
+
+// Lifetime call total for one assistant - a head-only count, no rows fetched.
+// Used by the company page's stat tiles and assistant list.
+export async function countAssistantCalls(assistantId: string): Promise<number> {
+  const { count, error } = await db()
+    .from("calls")
+    .select("id", { count: "exact", head: true })
+    .eq("assistant_id", assistantId);
+  if (error) throw error;
+  return count ?? 0;
 }
 
 export async function getAssistantNumber(

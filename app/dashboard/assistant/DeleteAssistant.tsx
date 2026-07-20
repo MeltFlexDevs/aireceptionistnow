@@ -32,11 +32,9 @@ export function DeleteAssistant({ id, name }: { id: string; name: string }) {
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-base font-medium text-neutral-900">{t.assistants.deleteAssistant}</h3>
-            <p className="mt-1 text-sm text-neutral-500">
-              This permanently deletes{" "}
-              <span className="font-medium text-neutral-800">{name}</span> and unlinks its
-              number. Type <span className="font-medium text-neutral-800">{name}</span> or{" "}
-              <span className="font-medium text-neutral-800">delete</span> to confirm.
+            <p className="mt-1 text-sm text-neutral-500">{t.assistants.deleteBody}</p>
+            <p className="mt-2 text-sm text-neutral-500">
+              {t.assistants.deleteConfirmLabel.replace("{name}", name)}
             </p>
             <input
               autoFocus
@@ -51,12 +49,17 @@ export function DeleteAssistant({ id, name }: { id: string; name: string }) {
                 onClick={() => setOpen(false)}
                 className="press inline-flex h-9 items-center rounded-lg border border-neutral-200 bg-white px-4 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50"
               >
-                Cancel
+                {t.common.cancel}
               </button>
               <form action={deleteAssistantAction}>
                 <input type="hidden" name="id" value={id} />
-                <SubmitButton variant="danger" pendingText="Deleting…" disabled={!confirmed} className="press">
-                  Delete
+                <SubmitButton
+                  variant="danger"
+                  pendingText={t.assistants.deleting}
+                  disabled={!confirmed}
+                  className="press"
+                >
+                  {t.common.delete}
                 </SubmitButton>
               </form>
             </div>

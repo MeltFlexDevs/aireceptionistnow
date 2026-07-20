@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { Suspense } from "react";
+import Link from "next/link";
 import { currentUserId } from "@/lib/auth";
 import {
   connectedCalendarCount,
@@ -7,274 +7,148 @@ import {
   summarizeOrgKnowledgeCached,
   type OrgKnowledge,
 } from "@/lib/dashboard/ai-knowledge";
-import { languageName } from "@/lib/call-engine/voice/phone-language";
+import { readKnowledge } from "@/lib/knowledge/sources";
+import { relTimeOf } from "@/lib/dashboard/rel-time";
+import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { PageHeader } from "../components/PageHeader";
-import { SectionCard } from "../components/SectionCard";
 import { Skeleton } from "../components/Skeleton";
-import { StatusDot } from "../components/StatusBadge";
-import { Bot, Building, Calendar, ChevronDown, Sparkle } from "../icons";
+import { Calendar, Sparkle } from "../icons";
+import { TeachBar } from "./TeachBar";
+import { SourceList, type SourceRow } from "./SourceList";
+import { AiAvatar } from "@/app/onboarding/AiAvatar";
 
 export const dynamic = "force-dynamic";
 
-function Row({ label, value, href, cta }: { label: string; value: string; href?: string; cta?: string }) {
-  const empty = !value.trim();
+const CAP = "md:h-[calc(100dvh-7rem)] md:overflow-hidden lg:h-[calc(100dvh-8rem)]";
+
+// The digest is an LLM call behind a content-keyed cache, so it streams in
+// rather than blocking the page.
+async function Digest({ entry }: { entry: OrgKnowledge }) {
+  const [t, summary] = await Promise.all([getDictionary(), summarizeOrgKnowledgeCached(entry)]);
   return (
-    <div className="flex items-start justify-between gap-4 border-b border-neutral-200/60 py-2.5 last:border-0">
-      <span className="w-32 shrink-0 text-xs font-medium text-neutral-500">{label}</span>
-      <span className={`min-w-0 flex-1 text-sm ${empty ? "text-neutral-400" : "text-neutral-900"}`}>
-        {empty ? "Not set" : value}
-      </span>
-      {href && (
-        <Link
-          href={href}
-          className="shrink-0 text-xs font-medium text-neutral-900 underline underline-offset-2 hover:text-neutral-600"
-        >
-          {cta ?? "Edit"}
-        </Link>
-      )}
-    </div>
+    <p className="text-sm leading-relaxed text-neutral-700">{summary || t.knowledge.digestEmpty}</p>
   );
 }
 
-async function OrgSummary({ entry }: { entry: OrgKnowledge }) {
-  const summary = await summarizeOrgKnowledgeCached(entry);
-  if (!summary) {
-    return (
-      <p className="text-sm text-neutral-400">
-        {entry.charCount > 0
-          ? "Couldn't generate a summary right now - the sources below are still what the AI reads."
-          : "Nothing to summarize yet. Add knowledge below and the AI can answer from it."}
-      </p>
-    );
-  }
-  return <p className="text-sm leading-relaxed text-neutral-700">{summary}</p>;
-}
+export default async function KnowledgePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ business?: string }>;
+}) {
+  const [{ business }, t, locale] = await Promise.all([searchParams, getDictionary(), getLocale()]);
+  const k = t.knowledge;
 
-export default async function KnowledgePage() {
   const ownerId = await currentUserId();
-  const [k, calendars] = await Promise.all([
+  const [knowledge, calendars] = await Promise.all([
     getAiKnowledge(ownerId ?? null),
     connectedCalendarCount(ownerId ?? null),
   ]);
-  const acct = k.account;
+
+  const orgs = knowledge.organizations;
+  const active = orgs.find((o) => o.org.id === business) ?? orgs[0] ?? null;
+  // "" is a legitimate value: a brand-new account has no business row, and the
+  // first teach action creates one rather than asking the user to.
+  const orgId = active?.org.id ?? "";
+  const stored = readKnowledge(active?.org.knowledge);
+  const notes = stored.notes ?? "";
+  const rows: SourceRow[] = (stored.sources ?? []).map((s) => ({
+    id: s.id,
+    kind: s.kind,
+    title: s.title,
+    added: s.addedAt ? k.sourceAdded.replace("{when}", relTimeOf(s.addedAt, locale)) : "",
+    summary: s.summary ?? "",
+  }));
+
+  const isEmpty = rows.length === 0 && !notes;
 
   return (
-    <div className="space-y-6 rise">
-      <PageHeader
-        title="What your AI knows about you"
-      />
-
-      <SectionCard
-        title="About you"
-        subtitle="From your account profile. Shared with your assistants so callers can be told who they've reached."
-        action={
-          <span
-            className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${
-              k.ownerNotes ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600"
-            }`}
-          >
-            <StatusDot tone={k.ownerNotes ? "ok" : "warn"} />
-            {k.ownerNotes ? "Shared with assistants" : "Not shared"}
-          </span>
-        }
-      >
-        <Row label="Name" value={acct?.full_name ?? ""} href="/dashboard/settings" />
-        <Row label="Company" value={acct?.company ?? ""} href="/dashboard/settings" />
-        <Row label="Role" value={acct?.role ?? ""} href="/dashboard/settings" />
-        <Row label="About" value={acct?.about ?? ""} href="/dashboard/settings" />
-        {!k.ownerNotes && (
-          <p className="mt-3 text-xs text-neutral-400">
-            Sharing is off, so none of this reaches your callers.{" "}
-            <Link href="/dashboard/settings" className="font-medium text-neutral-900 underline underline-offset-2">
-              Turn it on in Settings
-            </Link>
-            .
-          </p>
-        )}
-      </SectionCard>
-
-      {k.organizations.length === 0 ? (
-        <SectionCard title="Your business knowledge">
-          <div className="flex flex-col items-center gap-3 py-8 text-center">
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-neutral-900 text-white">
-              <Building className="h-5 w-5" />
-            </span>
-            <div>
-              <h2 className="text-base font-medium text-neutral-900">No organization yet</h2>
-              <p className="mx-auto mt-1 max-w-md text-sm text-neutral-500">
-                An organization holds the knowledge your assistants answer from - your services, hours,
-                pricing, and any documents or pages you upload.
-              </p>
-            </div>
-            <Link
-              href="/dashboard/organizations"
-              className="press mt-1 inline-flex h-9 items-center rounded-lg bg-neutral-900 px-4 text-sm font-medium text-white hover:bg-neutral-800"
-            >
-              Create an organization
-            </Link>
-          </div>
-        </SectionCard>
-      ) : (
-        k.organizations.map((entry) => (
-          <SectionCard
-            key={entry.org.id}
-            title={entry.org.name}
-            subtitle={entry.org.description || "No description yet."}
-            action={
+    <div className={`rise flex flex-col gap-3 ${CAP}`}>
+      {/* A: heading, plus the business switcher only when there is more than one */}
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
+        <PageHeader title={k.title} />
+        {orgs.length > 1 && (
+          <div className="flex flex-wrap items-center gap-1.5" aria-label={k.businessSwitch}>
+            {orgs.map((o) => (
               <Link
-                href={`/dashboard/organizations/${entry.org.id}`}
-                className="shrink-0 text-xs font-medium text-neutral-900 underline underline-offset-2 hover:text-neutral-600"
+                key={o.org.id}
+                href={`/dashboard/knowledge?business=${o.org.id}`}
+                aria-current={o.org.id === orgId ? "true" : undefined}
+                className={`press shape-pill border px-3 py-1 text-xs font-medium transition-colors ${
+                  o.org.id === orgId
+                    ? "border-neutral-900 bg-neutral-900 text-white"
+                    : "border-neutral-200 bg-white text-neutral-600 hover:text-neutral-900"
+                }`}
               >
-                Manage
-              </Link>
-            }
-          >
-            <div className="space-y-5">
-              <div className="rounded-xl border border-neutral-200/70 bg-neutral-50/60 p-4">
-                <div className="mb-2 flex items-center gap-2">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-md bg-neutral-900 text-white">
-                    <Sparkle className="h-3 w-3" />
-                  </span>
-                  <h3 className="text-xs font-medium text-neutral-900">What it can answer</h3>
-                </div>
-                <Suspense fallback={<Skeleton className="h-12 w-full" />}>
-                  <OrgSummary entry={entry} />
-                </Suspense>
-              </div>
-
-              <div>
-                <h3 className="mb-2 text-xs font-medium text-neutral-500">
-                  Knowledge it reads ({entry.charCount.toLocaleString()} characters)
-                </h3>
-                {entry.sources.length === 0 && !entry.notes ? (
-                  <p className="text-sm text-neutral-400">
-                    Nothing uploaded yet.{" "}
-                    <Link
-                      href={`/dashboard/organizations/${entry.org.id}`}
-                      className="font-medium text-neutral-900 underline underline-offset-2"
-                    >
-                      Add a website or PDF
-                    </Link>
-                    .
-                  </p>
-                ) : (
-                  <ul className="space-y-2">
-                    {entry.notes && (
-                      <li className="rounded-lg border border-neutral-200/70 bg-white/60 px-3 py-2.5">
-                        <div className="text-sm font-medium text-neutral-800">Notes</div>
-                        <p className="mt-0.5 line-clamp-2 text-xs text-neutral-500">{entry.notes}</p>
-                      </li>
-                    )}
-                    {entry.sources.map((s) => (
-                      <li
-                        key={s.id}
-                        className="rounded-lg border border-neutral-200/70 bg-white/60"
-                      >
-                        <details className="group">
-                          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2.5 [&::-webkit-details-marker]:hidden">
-                            <span className="min-w-0">
-                              <span className="block truncate text-sm font-medium text-neutral-800">
-                                {s.title}
-                              </span>
-                              <span className="block truncate text-xs text-neutral-500">
-                                {s.url ?? `${s.kind} · ${(s.charCount || 0).toLocaleString()} characters`}
-                              </span>
-                            </span>
-                            <span className="flex shrink-0 items-center gap-2">
-                              <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-500">
-                                {s.kind}
-                              </span>
-                              <ChevronDown className="h-4 w-4 text-neutral-400 transition-transform group-open:rotate-180" />
-                            </span>
-                          </summary>
-                          <div className="border-t border-neutral-200/70 px-3 py-2.5">
-                            <div className="mb-1 flex items-center gap-1.5 text-[11px] font-medium text-neutral-500">
-                              <Sparkle className="h-3 w-3" />
-                              AI summary
-                            </div>
-                            {s.summary ? (
-                              <p className="text-sm leading-relaxed text-neutral-700">{s.summary}</p>
-                            ) : (
-                              <p className="text-xs text-neutral-400">
-                                No summary yet - re-upload this document to generate one.
-                              </p>
-                            )}
-                          </div>
-                        </details>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-
-              <div>
-                <h3 className="mb-2 text-xs font-medium text-neutral-500">
-                  Assistants answering from this
-                </h3>
-                {entry.assistants.length === 0 ? (
-                  <p className="text-sm text-neutral-400">
-                    None yet - this knowledge isn&apos;t reaching any caller.
-                  </p>
-                ) : (
-                  <div className="flex flex-wrap gap-2">
-                    {entry.assistants.map((a) => (
-                      <Link
-                        key={a.id}
-                        href={`/dashboard/assistant/${a.id}`}
-                        className="press inline-flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-sm text-neutral-700 hover:bg-neutral-50"
-                      >
-                        <Bot className="h-3.5 w-3.5 text-neutral-400" />
-                        {a.name}
-                        <span className="text-xs text-neutral-400">{languageName(a.language)}</span>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </SectionCard>
-        ))
-      )}
-
-      {k.unaffiliated.length > 0 && (
-        <SectionCard
-          title="Assistants without an organization"
-          subtitle="These answer only from their own knowledge - they can't see any shared business knowledge."
-        >
-          <div className="flex flex-wrap gap-2">
-            {k.unaffiliated.map((a) => (
-              <Link
-                key={a.id}
-                href={`/dashboard/assistant/${a.id}`}
-                className="press inline-flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-sm text-neutral-700 hover:bg-neutral-50"
-              >
-                <Bot className="h-3.5 w-3.5 text-neutral-400" />
-                {a.name}
+                {o.org.name}
               </Link>
             ))}
           </div>
-        </SectionCard>
+        )}
+      </div>
+
+      {/* B: what it can answer */}
+      <div className="shape-card glass shrink-0 p-4">
+        <div className="flex items-start gap-3">
+          <AiAvatar mood="studying" className="h-10 w-10 shrink-0" />
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-neutral-900">{k.digestTitle}</p>
+            <div className="mt-1">
+              {active ? (
+                <Suspense fallback={<Skeleton className="h-10 w-full" />}>
+                  <Digest entry={active} />
+                </Suspense>
+              ) : (
+                <p className="text-sm leading-relaxed text-neutral-700">{k.digestEmpty}</p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* C: teach bar */}
+      <TeachBar orgId={orgId} notes={notes} />
+
+      {/* D: the page's only scroll region */}
+      {isEmpty ? (
+        <div className="shape-card glass flex min-h-0 flex-1 flex-col items-center justify-center p-10 text-center">
+          <AiAvatar mood="studying" className="h-20 w-20" />
+          <h2 className="mt-4 text-base font-semibold text-neutral-900">{k.emptyTitle}</h2>
+          <p className="mt-1.5 max-w-sm text-sm leading-relaxed text-neutral-500">{k.emptyBody}</p>
+        </div>
+      ) : (
+        <section className="shape-card glass flex min-h-0 flex-1 flex-col">
+          <header className="shrink-0 border-b border-neutral-200/70 px-5 py-3">
+            <h2 className="text-sm font-medium text-neutral-900">{k.sources}</h2>
+          </header>
+          <div className="min-h-0 flex-1 overflow-y-auto px-5">
+            <SourceList orgId={orgId} notes={notes} rows={rows} />
+          </div>
+        </section>
       )}
 
-      <SectionCard
-        title="What it can do on a call"
-        subtitle="Beyond answering questions, this is what your assistants are wired up to do."
-      >
-        <div className="flex items-center gap-2 py-1">
-          <Calendar className="h-4 w-4 text-neutral-400" />
-          <span className="text-sm text-neutral-700">
-            {calendars > 0
-              ? `Book appointments - ${calendars} calendar${calendars === 1 ? "" : "s"} connected.`
-              : "Booking is off - no calendar connected yet."}
-          </span>
+      {/* E: one-line footer strip */}
+      <div className="flex shrink-0 flex-wrap items-center gap-x-6 gap-y-2 px-1 text-xs text-neutral-500">
+        <span className="flex items-center gap-2">
+          <Sparkle className="h-3.5 w-3.5 text-neutral-400" />
+          {knowledge.ownerNotes ? k.aboutYouShared : k.aboutYouNotShared}
           <Link
-            href="/dashboard/integrations"
-            className="ml-auto shrink-0 text-xs font-medium text-neutral-900 underline underline-offset-2"
+            href="/dashboard/settings"
+            className="font-medium text-neutral-900 underline underline-offset-2"
           >
-            {calendars > 0 ? "Manage" : "Connect one"}
+            {t.common.edit}
           </Link>
-        </div>
-      </SectionCard>
+        </span>
+        <span className="flex items-center gap-2">
+          <Calendar className="h-3.5 w-3.5 text-neutral-400" />
+          {calendars > 0 ? k.bookingOn : k.bookingOff}
+          <Link
+            href="/dashboard/calendar"
+            className="font-medium text-neutral-900 underline underline-offset-2"
+          >
+            {calendars > 0 ? t.common.manage : t.common.connect}
+          </Link>
+        </span>
+      </div>
     </div>
   );
 }

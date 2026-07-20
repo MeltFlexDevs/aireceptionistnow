@@ -1,12 +1,7 @@
 import type { CallActionItem } from "@/lib/dashboard/calls";
 import { formatPhone } from "@/lib/call-engine/voice/phone-language";
-import { getDictionary } from "@/lib/i18n/server";
-
-const TYPE_LABEL: Record<string, string> = {
-  booking: "Appointment booked",
-  message: "Message taken",
-  transfer: "Call transferred",
-};
+import { getDictionary, getLocale } from "@/lib/i18n/server";
+import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 
 const STATUS_TONE: Record<string, string> = {
   done: "bg-emerald-50 text-emerald-700",
@@ -15,6 +10,31 @@ const STATUS_TONE: Record<string, string> = {
 };
 
 const str = (v: unknown): string => (typeof v === "string" ? v.trim() : "");
+
+function typeLabel(type: string, d: Dictionary["calls"]["detail"]): string {
+  switch (type) {
+    case "booking":
+      return d.actionBooking;
+    case "message":
+      return d.actionMessage;
+    case "transfer":
+      return d.actionTransfer;
+    default:
+      // Never fall back to the raw DB type - that is internal vocabulary.
+      return d.actions;
+  }
+}
+
+function statusLabel(status: string, d: Dictionary["calls"]["detail"]): string {
+  switch (status) {
+    case "done":
+      return d.actionDone;
+    case "failed":
+      return d.actionFailed;
+    default:
+      return d.actionPending;
+  }
+}
 
 // Render the timestamp on the wall clock its offset encodes (the business's
 // local time), not the server's timezone.
@@ -26,34 +46,26 @@ function wallClock(iso: string): Date | null {
   return new Date(ms + offsetMin * 60_000);
 }
 
-function fmtWhen(startIso: string, endIso: string): string {
+function fmtWhen(startIso: string, endIso: string, locale: string): string {
   const start = wallClock(startIso);
   if (!start) return "";
-  const day = start.toLocaleDateString("en-US", {
+  // timeZone stays UTC: wallClock already shifted the instant so that reading
+  // it in UTC yields the business's local time.
+  const day = start.toLocaleDateString(locale, {
     timeZone: "UTC",
     weekday: "short",
     month: "short",
     day: "numeric",
   });
   const time = (d: Date) =>
-    d.toLocaleTimeString("en-US", { timeZone: "UTC", hour: "2-digit", minute: "2-digit", hour12: false });
+    d.toLocaleTimeString(locale, { timeZone: "UTC", hour: "2-digit", minute: "2-digit" });
   const end = wallClock(endIso);
-  return `${day} · ${time(start)}${end ? ` – ${time(end)}` : ""}`;
+  return `${day} · ${time(start)}${end ? ` - ${time(end)}` : ""}`;
 }
 
-function summarize(payload: Record<string, unknown>): string {
-  const parts: string[] = [];
-  for (const [k, v] of Object.entries(payload)) {
-    if (v == null || typeof v === "object") continue;
-    parts.push(`${k}: ${String(v)}`);
-    if (parts.length >= 3) break;
-  }
-  return parts.join(" · ");
-}
-
-function BookingDetail({ payload }: { payload: Record<string, unknown> }) {
+function BookingDetail({ payload, locale }: { payload: Record<string, unknown>; locale: string }) {
   const title = str(payload.title);
-  const when = fmtWhen(str(payload.start_time), str(payload.end_time));
+  const when = fmtWhen(str(payload.start_time), str(payload.end_time), locale);
   const notes = str(payload.notes);
   const who = str(payload.attendee_name);
   const phone = str(payload.attendee_phone);
@@ -74,7 +86,13 @@ function BookingDetail({ payload }: { payload: Record<string, unknown> }) {
   );
 }
 
-function MessageDetail({ payload }: { payload: Record<string, unknown> }) {
+function MessageDetail({
+  payload,
+  urgentLabel,
+}: {
+  payload: Record<string, unknown>;
+  urgentLabel: string;
+}) {
   const message = str(payload.message);
   const who = str(payload.caller_name);
   const callback = str(payload.callback_number);
@@ -88,7 +106,7 @@ function MessageDetail({ payload }: { payload: Record<string, unknown> }) {
           {[who, callback ? formatPhone(callback) : ""].filter(Boolean).join(" · ")}
           {urgent && (
             <span className="ml-1.5 rounded-full bg-rose-50 px-1.5 py-0.5 text-[11px] font-medium text-rose-600">
-              urgent
+              {urgentLabel}
             </span>
           )}
         </p>
@@ -98,34 +116,31 @@ function MessageDetail({ payload }: { payload: Record<string, unknown> }) {
 }
 
 export async function ActionItems({ actions }: { actions: CallActionItem[] }) {
-  const t = await getDictionary();
+  const [t, locale] = await Promise.all([getDictionary(), getLocale()]);
+  const d = t.calls.detail;
   if (actions.length === 0) {
     return <p className="text-sm text-neutral-500">{t.data.noActions}</p>;
   }
   return (
     <ul className="space-y-3">
-      {actions.map((a) => {
-        const fallback =
-          a.type === "booking" || a.type === "message" ? "" : summarize(a.payload);
-        return (
-          <li key={a.id} className="rounded-lg border border-neutral-100 bg-neutral-50 px-3 py-2.5">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-sm font-medium text-neutral-900">
-                {TYPE_LABEL[a.type] ?? a.type}
-              </span>
-              <span
-                className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium capitalize ${STATUS_TONE[a.status] ?? "bg-neutral-100 text-neutral-500"}`}
-              >
-                {a.status}
-              </span>
-            </div>
-            {a.type === "booking" && <BookingDetail payload={a.payload} />}
-            {a.type === "message" && <MessageDetail payload={a.payload} />}
-            {fallback && <p className="mt-1 text-xs text-neutral-500">{fallback}</p>}
-            {a.error && <p className="mt-1 text-xs text-rose-600">{a.error}</p>}
-          </li>
-        );
-      })}
+      {actions.map((a) => (
+        <li key={a.id} className="rounded-lg border border-neutral-100 bg-neutral-50 px-3 py-2.5">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-sm font-medium text-neutral-900">{typeLabel(a.type, d)}</span>
+            <span
+              className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_TONE[a.status] ?? "bg-neutral-100 text-neutral-500"}`}
+            >
+              {statusLabel(a.status, d)}
+            </span>
+          </div>
+          {a.type === "booking" && <BookingDetail payload={a.payload} locale={locale} />}
+          {a.type === "message" && <MessageDetail payload={a.payload} urgentLabel={d.urgent} />}
+          {/* Deliberately no generic payload dump for other types: raw DB keys
+              are not something a business owner can act on. A failure still
+              shows, but as plain language rather than the upstream error. */}
+          {a.error && <p className="mt-1 text-xs text-rose-600">{d.actionFailed}</p>}
+        </li>
+      ))}
     </ul>
   );
 }

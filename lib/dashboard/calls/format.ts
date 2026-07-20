@@ -4,7 +4,13 @@ export function fmtDuration(sec: number): string {
   return `${Math.floor(s / 60)}m ${String(s % 60).padStart(2, "0")}s`;
 }
 
-export function dateTimeFmt(tz: string): (iso: string) => string {
+/**
+ * `locale` defaults to en-US so existing callers are unaffected; the dashboard
+ * threads the viewer's locale in. The customer-facing SMS path deliberately
+ * does NOT - there the date must follow the caller's language, not the owner's
+ * UI (see lib/dashboard/booking-cancel.ts).
+ */
+export function dateTimeFmt(tz: string, locale = "en-US"): (iso: string) => string {
   const opts = {
     month: "short",
     day: "numeric",
@@ -13,8 +19,9 @@ export function dateTimeFmt(tz: string): (iso: string) => string {
   } as const;
   let fmt: Intl.DateTimeFormat;
   try {
-    fmt = new Intl.DateTimeFormat("en-US", { timeZone: tz || "UTC", ...opts });
+    fmt = new Intl.DateTimeFormat(locale, { timeZone: tz || "UTC", ...opts });
   } catch {
+    // Bad time zone, or a locale tag Intl rejects - fall back to both defaults.
     fmt = new Intl.DateTimeFormat("en-US", { timeZone: "UTC", ...opts });
   }
   return (iso) => {

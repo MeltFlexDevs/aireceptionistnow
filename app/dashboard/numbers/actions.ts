@@ -28,6 +28,8 @@ import { syncAssistantAgent } from "@/lib/call-engine/agent/sync";
 import { currentUserId } from "@/lib/auth";
 import { authConfigured } from "@/lib/supabase/config";
 import { canAssignNumber } from "@/lib/dashboard/plan";
+import { getDictionary } from "@/lib/i18n/server";
+import { ok, fail, type ActionState } from "@/lib/dashboard/action-state";
 
 const E164 = z
   .string()
@@ -45,7 +47,7 @@ async function requireNumberOwner(id: string): Promise<void> {
     assistant === undefined ||
     (assistant?.owner_id && assistant.owner_id !== userId)
   ) {
-    redirect(`/dashboard/numbers?error=${encodeURIComponent("Not authorized.")}`);
+    redirect(`/dashboard/assistant?error=${encodeURIComponent("Not authorized.")}`);
   }
 }
 
@@ -54,13 +56,13 @@ export async function addNumberAction(formData: FormData): Promise<void> {
   const parsed = E164.safeParse(e164);
   if (!parsed.success) {
     redirect(
-      `/dashboard/numbers?error=${encodeURIComponent(parsed.error.issues[0].message)}`,
+      `/dashboard/assistant?error=${encodeURIComponent(parsed.error.issues[0].message)}`,
     );
   }
 
   const allowance = await canAssignNumber(await currentUserId(), { countPending: true });
   if (!allowance.ok) {
-    redirect(`/dashboard/numbers?error=${encodeURIComponent(allowance.reason ?? "")}`);
+    redirect(`/dashboard/assistant?error=${encodeURIComponent(allowance.reason ?? "")}`);
   }
 
   let sid: string | null = null;
@@ -68,19 +70,18 @@ export async function addNumberAction(formData: FormData): Promise<void> {
     sid = (await ensureTwilioNumber(parsed.data)).sid;
   } catch (err) {
     redirect(
-      `/dashboard/numbers?error=${encodeURIComponent(`Couldn't set up ${parsed.data} in Twilio: ${(err as Error).message}. Use "Buy a new number" to get an available one.`)}`,
+      `/dashboard/assistant?error=${encodeURIComponent(`Couldn't set up ${parsed.data} in Twilio: ${(err as Error).message}. Use "Buy a new number" to get an available one.`)}`,
     );
   }
 
-  let id: string;
   try {
-    id = await createNumber({ e164: parsed.data, twilioSid: sid ?? undefined });
+    await createNumber({ e164: parsed.data, twilioSid: sid ?? undefined });
   } catch (err) {
-    redirect(`/dashboard/numbers?error=${encodeURIComponent((err as Error).message)}`);
+    redirect(`/dashboard/assistant?error=${encodeURIComponent((err as Error).message)}`);
   }
 
-  revalidatePath("/dashboard/numbers");
-  redirect(`/dashboard/numbers/${id}`);
+  revalidatePath("/dashboard/assistant");
+  redirect("/dashboard/assistant");
 }
 
 export async function buyNumberAction(formData: FormData): Promise<void> {
@@ -89,7 +90,7 @@ export async function buyNumberAction(formData: FormData): Promise<void> {
 
   const allowance = await canAssignNumber(await currentUserId(), { countPending: true });
   if (!allowance.ok) {
-    redirect(`/dashboard/numbers?error=${encodeURIComponent(allowance.reason ?? "")}`);
+    redirect(`/dashboard/assistant?error=${encodeURIComponent(allowance.reason ?? "")}`);
   }
 
   let bought: BoughtNumber;
@@ -99,14 +100,14 @@ export async function buyNumberAction(formData: FormData): Promise<void> {
       { configureWebhook: false },
     );
   } catch (err) {
-    redirect(`/dashboard/numbers?error=${encodeURIComponent((err as Error).message)}`);
+    redirect(`/dashboard/assistant?error=${encodeURIComponent((err as Error).message)}`);
   }
 
   let id: string;
   try {
     id = await createNumber({ e164: bought.e164, twilioSid: bought.sid });
   } catch (err) {
-    redirect(`/dashboard/numbers?error=${encodeURIComponent((err as Error).message)}`);
+    redirect(`/dashboard/assistant?error=${encodeURIComponent((err as Error).message)}`);
   }
 
   try {
@@ -116,73 +117,73 @@ export async function buyNumberAction(formData: FormData): Promise<void> {
     console.error("[numbers] ElevenLabs import on buy failed", err);
   }
 
-  revalidatePath("/dashboard/numbers");
-  redirect(`/dashboard/numbers/${id}`);
+  revalidatePath("/dashboard/assistant");
+  redirect("/dashboard/assistant");
 }
 
-export async function setAssistantAction(formData: FormData): Promise<void> {
+/**
+ * Reassign a number to a different receptionist. Returns state for an inline
+ * pill rather than redirecting - the old version bounced through
+ * ?saved=1 and, worse, built its redirect from the NUMBER's id.
+ */
+export async function setAssistantAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const a = (await getDictionary()).assistants;
   const id = String(formData.get("id") ?? "");
   const assistantId = String(formData.get("assistant_id") ?? "");
-  if (id) {
-    await requireNumberOwner(id);
+  if (!id) return fail(a.saveFailed);
+
+  await requireNumberOwner(id);
+
+  if (assistantId) {
+    const target = await getAssistant(assistantId).catch(() => null);
+    if (!target) return fail(a.saveFailed);
+    if (authConfigured() && target.owner_id && target.owner_id !== (await currentUserId())) {
+      return fail(a.notYours);
+    }
+    const current = await getNumber(id).catch(() => null);
+    if (!current?.assistant_id) {
+      const allowance = await canAssignNumber(await currentUserId(), { reassign: true });
+      if (!allowance.ok) return fail(allowance.reason || a.saveFailed);
+    }
+  }
+
+  try {
+    await setNumberAssistant(id, assistantId || null);
     if (assistantId) {
-      const target = await getAssistant(assistantId).catch(() => null);
-      if (!target) {
-        redirect(`/dashboard/numbers/${id}?error=${encodeURIComponent("Assistant not found.")}`);
+      const [number, assistant] = await Promise.all([getNumber(id), getAssistant(assistantId)]);
+      const agentId = assistant?.elevenlabs_agent_id ?? (await syncAssistantAgent(assistantId));
+      if (number?.e164) {
+        const elevenLabsPhoneNumberId = await routeNumberToAgent(
+          number.e164,
+          agentId ?? undefined,
+          id,
+        );
+        await setNumberElevenLabsId(id, elevenLabsPhoneNumberId);
       }
-      if (authConfigured() && target.owner_id && target.owner_id !== (await currentUserId())) {
-        redirect(
-          `/dashboard/numbers/${id}?error=${encodeURIComponent("You don't own that assistant.")}`,
+    } else {
+      const number = await getNumber(id).catch(() => null);
+      if (number?.e164) {
+        await releaseNumberFromAgent(number.e164, number.elevenlabs_phone_number_id).catch((e) =>
+          console.error("[numbers] ElevenLabs release on unassign failed", e),
         );
       }
-      const current = await getNumber(id).catch(() => null);
-      if (!current?.assistant_id) {
-        const allowance = await canAssignNumber(await currentUserId(), { reassign: true });
-        if (!allowance.ok) {
-          redirect(`/dashboard/numbers/${id}?error=${encodeURIComponent(allowance.reason ?? "")}`);
-        }
-      }
     }
-    try {
-      await setNumberAssistant(id, assistantId || null);
-      if (assistantId) {
-        const [number, assistant] = await Promise.all([
-          getNumber(id),
-          getAssistant(assistantId),
-        ]);
-        const agentId =
-          assistant?.elevenlabs_agent_id ?? (await syncAssistantAgent(assistantId));
-        if (number?.e164) {
-          const elevenLabsPhoneNumberId = await routeNumberToAgent(
-            number.e164,
-            agentId ?? undefined,
-            id,
-          );
-          await setNumberElevenLabsId(id, elevenLabsPhoneNumberId);
-        }
-      } else {
-        const number = await getNumber(id).catch(() => null);
-        if (number?.e164) {
-          await releaseNumberFromAgent(
-            number.e164,
-            number.elevenlabs_phone_number_id,
-          ).catch((e) => console.error("[numbers] ElevenLabs release on unassign failed", e));
-        }
-      }
-    } catch (err) {
-      console.error("[numbers] assign assistant/agent failed", err);
-      redirect(
-        `/dashboard/numbers/${id}?error=${encodeURIComponent(`Couldn't connect the number to the assistant: ${(err as Error).message}`)}`,
-      );
-    }
-    revalidatePath(`/dashboard/numbers/${id}`);
+  } catch (err) {
+    console.error("[numbers] assign assistant/agent failed", err);
+    return fail(a.numberConnectFailed);
   }
-  redirect(`/dashboard/numbers/${id}?saved=1`);
+
+  revalidatePath("/dashboard/assistant", "layout");
+  revalidatePath("/dashboard");
+  return ok(assistantId ? a.numberReassigned : a.numberUnlinked);
 }
 
 export async function updateNumberAction(formData: FormData): Promise<void> {
   const id = String(formData.get("id") ?? "");
-  if (!id) redirect("/dashboard/numbers");
+  if (!id) redirect("/dashboard/assistant");
   await requireNumberOwner(id);
 
   const enabled = formData.get("enabled") === "on";
@@ -205,13 +206,13 @@ export async function updateNumberAction(formData: FormData): Promise<void> {
     }
   } catch (err) {
     redirect(
-      `/dashboard/numbers/${id}?error=${encodeURIComponent((err as Error).message)}`,
+      `/dashboard/assistant?error=${encodeURIComponent((err as Error).message)}`,
     );
   }
 
-  revalidatePath(`/dashboard/numbers/${id}`);
-  revalidatePath("/dashboard/numbers");
-  redirect(`/dashboard/numbers/${id}?saved=1`);
+  revalidatePath("/dashboard/assistant");
+  revalidatePath("/dashboard/assistant");
+  redirect("/dashboard/assistant");
 }
 
 export async function deleteNumberAction(formData: FormData): Promise<void> {
@@ -234,7 +235,7 @@ export async function deleteNumberAction(formData: FormData): Promise<void> {
     } catch {
       // ignore - number may already be gone
     }
-    revalidatePath("/dashboard/numbers");
+    revalidatePath("/dashboard/assistant");
   }
-  redirect("/dashboard/numbers");
+  redirect("/dashboard/assistant");
 }

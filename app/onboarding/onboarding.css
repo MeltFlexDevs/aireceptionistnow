@@ -1,15 +1,9 @@
 /* ── ONBOARDING: "HIRE YOUR AI RECEPTIONIST" ────────────────────────────────
-   A live, playful onboarding scoped entirely under `.onb` so nothing leaks into
+   A live, playful onboarding scoped to `onb-*` classes so nothing leaks into
    the rest of the app. Strictly monochrome - black, white, and greys - to match
    the funnel's existing shape/glass system. The life comes from motion and the
-   emoji face, not from colour. */
-
-.onb {
-  --onb-ink: #1d1d1d;
-  --onb-grey: #525252;
-  /* Near-black to grey, for the avatar ring - depth without colour. */
-  --onb-ring: linear-gradient(135deg, #1d1d1d, #525252);
-}
+   avatar's face, not from colour. The avatar itself (`.ai-*`, `.ava-*`) lives
+   in globals.css - the dashboard renders the same character. */
 
 /* ── Live assistant preview ────────────────────────────────────────────────*/
 .onb-preview {
@@ -50,27 +44,6 @@
   animation: onb-drift 11s ease-in-out infinite reverse;
 }
 
-/* Breathing aura ring that holds the avatar. */
-.onb-aura {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 138px;
-  height: 138px;
-  border-radius: 50%;
-  background: var(--onb-ring);
-  padding: 6px;
-  box-shadow: 0 18px 42px -12px rgb(24 24 27 / 0.44);
-  animation: onb-breathe 4.5s ease-in-out infinite;
-}
-/* Compact aura for steps that carry more content below the avatar. */
-.onb-aura.onb-aura-sm {
-  width: 104px;
-  height: 104px;
-  padding: 5px;
-  box-shadow: 0 14px 32px -12px rgb(24 24 27 / 0.4);
-}
-
 /* Soft radial halo behind the studying avatar on the step-2 hero panel. */
 .onb-study-glow {
   position: absolute;
@@ -88,27 +61,6 @@
   0%, 100% { opacity: 0.7; transform: translate(-50%, -50%) scale(1); }
   50% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
 }
-.onb-aura > .onb-avatar-disc {
-  display: grid;
-  place-items: center;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: #fff;
-}
-
-/* The emoji face. `key`-swapping in React retriggers the pop. */
-.onb-avatar {
-  line-height: 1;
-  user-select: none;
-  animation: onb-pop 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-}
-.onb-avatar[data-wave="true"] {
-  transform-origin: 70% 80%;
-  animation: onb-pop 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) both,
-    onb-wave 1.6s ease-in-out 0.4s 2;
-}
-
 /* Celebratory badge that pops in once the required fields are filled. */
 .onb-ready-badge {
   position: absolute;
@@ -124,7 +76,7 @@
   background: #fff;
   border: 1px solid rgb(15 23 42 / 0.08);
   box-shadow: 0 6px 16px -4px rgb(24 24 27 / 0.3);
-  animation: onb-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation: ava-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
 /* Speech bubble with a little tail on the top-left. */
@@ -228,26 +180,6 @@
 }
 
 /* ── Persistent companion header on steps 2-4 ──────────────────────────────*/
-.onb-companion-avatar {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: var(--onb-ring);
-  padding: 3px;
-  box-shadow: 0 6px 16px -8px rgb(24 24 27 / 0.4);
-}
-.onb-companion-avatar > span {
-  display: grid;
-  place-items: center;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: #fff;
-  font-size: 20px;
-  line-height: 1;
-}
 .onb-name-chip {
   display: inline-flex;
   align-items: center;
@@ -352,71 +284,7 @@
   box-shadow: 0 0 0 3px #ffffff, 0 6px 16px -8px rgb(24 24 27 / 0.45);
 }
 
-/* ── Illustrated AI avatar (SVG character) ─────────────────────────────────*/
-.ai-avatar {
-  overflow: visible;
-}
-.ai-float {
-  animation: ai-float 5s ease-in-out infinite;
-}
-.ai-eyes {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: ai-blink 5.4s ease-in-out infinite;
-}
-.ai-status {
-  animation: ai-pulse 2s ease-in-out infinite;
-}
-.ai-spark {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: ai-twinkle 1.7s ease-in-out infinite;
-}
-/* Subtle "talking" mouth: a slight vertical flutter, played in short bursts. */
-.ai-mouth {
-  transform-box: fill-box;
-  transform-origin: center;
-}
-.ai-mouth[data-talk="true"] {
-  animation: ai-talk 0.85s ease-in-out;
-}
-
 /* ── Keyframes ─────────────────────────────────────────────────────────────*/
-@keyframes ai-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-2px); }
-}
-@keyframes ai-blink {
-  0%, 92%, 100% { transform: scaleY(1); }
-  95% { transform: scaleY(0.12); }
-}
-@keyframes ai-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.35; }
-}
-@keyframes ai-twinkle {
-  0%, 100% { opacity: 0.15; transform: scale(0.7); }
-  50% { opacity: 1; transform: scale(1); }
-}
-@keyframes ai-talk {
-  0%, 100% { transform: scaleY(1); }
-  25% { transform: scaleY(0.82); }
-  50% { transform: scaleY(1.08); }
-  75% { transform: scaleY(0.9); }
-}
-@keyframes onb-pop {
-  0% { opacity: 0; transform: scale(0.55); }
-  100% { opacity: 1; transform: scale(1); }
-}
-@keyframes onb-wave {
-  0%, 60%, 100% { transform: rotate(0deg); }
-  15%, 45% { transform: rotate(14deg); }
-  30% { transform: rotate(-8deg); }
-}
-@keyframes onb-breathe {
-  0%, 100% { transform: scale(1); box-shadow: 0 12px 30px -10px rgb(24 24 27 / 0.4); }
-  50% { transform: scale(1.035); box-shadow: 0 18px 40px -10px rgb(24 24 27 / 0.5); }
-}
 @keyframes onb-drift {
   0%, 100% { transform: translate(0, 0); }
   50% { transform: translate(14px, 18px); }
@@ -478,17 +346,73 @@
   30% { opacity: 1; transform: translateY(-2px); }
 }
 
+/* ── Finale: the brand mark parts to reveal the assistant ──────────────────*/
+/* The app icon is two vertical bars. On the "you're live" screen they fade in
+   as that mark, then slide apart like a gate while the assistant inflates into
+   the gap and waves hello. Timed in AssistantReveal.tsx. */
+.onb-reveal {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 138px;
+  height: 138px;
+}
+/* The two bars, proportioned to echo the 512px app icon. */
+.onb-reveal-bar {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 14px;
+  height: 84px;
+  border-radius: 7px;
+  background: linear-gradient(180deg, #303030, #141414);
+  box-shadow: 0 12px 26px -10px rgb(24 24 27 / 0.5);
+  will-change: transform, opacity;
+}
+.onb-reveal-bar--l {
+  animation: onb-bar-part-l 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.onb-reveal-bar--r {
+  animation: onb-bar-part-r 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+/* The assistant capsule stays hidden until the bars begin to part (`is-in`),
+   then pops in and settles into its idle breathing. Descendant selector so it
+   overrides the base `.ava-aura` animation from globals.css. */
+.onb-reveal .ava-aura {
+  transform: scale(0);
+  opacity: 0;
+  animation: none;
+}
+.onb-reveal .ava-aura.is-in {
+  animation: onb-reveal-pop 0.62s cubic-bezier(0.34, 1.56, 0.64, 1) both,
+    ava-breathe 4.5s ease-in-out 0.8s infinite;
+}
+/* The copy below rises in once the assistant has landed. */
+.onb-reveal-copy {
+  animation: rise 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.62s both;
+}
+
+@keyframes onb-bar-part-l {
+  0% { opacity: 0; transform: translate(calc(-50% - 11px), -50%) scaleY(0.7); }
+  20% { opacity: 1; transform: translate(calc(-50% - 11px), -50%) scaleY(1); }
+  46% { opacity: 1; transform: translate(calc(-50% - 11px), -50%) scaleY(1); }
+  100% { opacity: 0; transform: translate(calc(-50% - 66px), -50%) scaleY(1.14); }
+}
+@keyframes onb-bar-part-r {
+  0% { opacity: 0; transform: translate(calc(-50% + 11px), -50%) scaleY(0.7); }
+  20% { opacity: 1; transform: translate(calc(-50% + 11px), -50%) scaleY(1); }
+  46% { opacity: 1; transform: translate(calc(-50% + 11px), -50%) scaleY(1); }
+  100% { opacity: 0; transform: translate(calc(-50% + 66px), -50%) scaleY(1.14); }
+}
+@keyframes onb-reveal-pop {
+  0% { transform: scale(0.2); opacity: 0; }
+  55% { opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .onb-preview::before,
   .onb-preview::after,
-  .onb-aura,
-  .onb-avatar,
-  .onb-avatar[data-wave="true"],
-  .ai-float,
-  .ai-eyes,
-  .ai-status,
-  .ai-spark,
-  .ai-mouth[data-talk="true"],
   .onb-study-glow,
   .onb-cal-day--today::before,
   .onb-typing i,
@@ -496,8 +420,20 @@
   .onb-line,
   .onb-chip,
   .onb-ready-note,
-  .onb-cta[data-ready="true"] {
+  .onb-cta[data-ready="true"],
+  .onb-reveal-copy {
     animation: none;
+  }
+  /* Skip the gate: hide the bars, show the assistant at rest. */
+  .onb-reveal-bar {
+    animation: none;
+    opacity: 0;
+  }
+  .onb-reveal .ava-aura,
+  .onb-reveal .ava-aura.is-in {
+    animation: none;
+    transform: none;
+    opacity: 1;
   }
   .onb-cta {
     transition: none;

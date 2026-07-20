@@ -21,7 +21,13 @@ export interface Bar {
   value: number;
 }
 export interface Segment {
+  /** English fallback. Never render this where a dictionary key exists. */
   label: string;
+  /**
+   * Stable, non-localized identity (e.g. the raw sentiment value) for callers
+   * that map to dictionary copy. Set where a mapping exists, absent otherwise.
+   */
+  key?: string;
   value: number;
   color: string;
 }
@@ -36,6 +42,12 @@ export interface MonthUsage {
   minutes: number;
   bookings: number;
 }
+export interface TodayUsage {
+  calls: number;
+  answered: number;
+  missed: number;
+  booked: number;
+}
 export type Sentiment = "positive" | "neutral" | "negative" | "frustrated" | "angry";
 export interface Call {
   id: string;
@@ -43,9 +55,16 @@ export interface Call {
   number: string;
   flag: string; // caller's country flag emoji, "" when unknown
   duration: string;
-  outcome: string;
+  /**
+   * Raw DB outcome (booked / message / transferred / resolved / abandoned), or
+   * null when the call had none. Deliberately NOT capitalized or localized
+   * here: these results are cached without a locale in the key, so localizing
+   * would serve one user's language to the next. Map at render.
+   */
+  outcome: string | null;
   sentiment: Sentiment;
-  time: string;
+  /** Minutes since the call started. Formatted at render, for the same reason. */
+  agoMinutes: number;
   at: string;
 }
 export interface Summary {
@@ -64,6 +83,7 @@ export interface Overview {
   countries: Segment[];
   latency: Latency;
   monthUsage: MonthUsage;
+  today: TodayUsage;
   recentCalls: Call[];
   summaries: Summary[];
 }
@@ -426,15 +446,29 @@ export async function getOverview(ownerId?: string | null): Promise<Overview> {
     bookings: booked(monthCalls),
   };
 
-  const recentCalls: Call[] = calls.slice(0, 6).map((c) => ({
+  // Today, in the owner's timezone. "answered" mirrors the answer-rate rule
+  // (status === "completed"); everything else counts as missed.
+  const todayKey = toKey(now);
+  const todayCalls = calls.filter((c) => dayKey(c) === todayKey);
+  const answeredToday = todayCalls.filter((c) => c.status === "completed").length;
+  const today: TodayUsage = {
+    calls: todayCalls.length,
+    answered: answeredToday,
+    missed: todayCalls.length - answeredToday,
+    booked: booked(todayCalls),
+  };
+
+  // 20, not 6: the Home activity feed is a scroll region now, so it needs
+  // enough rows to be worth scrolling.
+  const recentCalls: Call[] = calls.slice(0, 20).map((c) => ({
     id: c.id,
     name: c.from_number || "",
     number: c.from_number || "",
     flag: countryFromPhone(c.from_number ?? "")?.flag ?? "",
     duration: fmtDuration(c.duration_seconds),
-    outcome: c.outcome ? capitalize(c.outcome) : "-",
+    outcome: c.outcome ?? null,
     sentiment: (c.sentiment as Sentiment) || "neutral",
-    time: relTime(c.started_at),
+    agoMinutes: Math.max(0, Math.floor((Date.now() - new Date(c.started_at).getTime()) / 60000)),
     at: atFmt(c.started_at),
   }));
 
@@ -460,6 +494,7 @@ export async function getOverview(ownerId?: string | null): Promise<Overview> {
     countries: countriesFrom(recent),
     latency: latencyFrom(recent),
     monthUsage,
+    today,
     recentCalls,
     summaries,
   };
@@ -654,6 +689,7 @@ export async function getAnalytics(
   }
   const sentTotal = calls.length || 1;
   const sentiment: Segment[] = [...sentimentCounts.entries()].map(([key, n]) => ({
+    key,
     label: capitalize(key),
     value: Math.round((n / sentTotal) * 100),
     color: SENTIMENT_COLORS[key] ?? "#a3a3a3",

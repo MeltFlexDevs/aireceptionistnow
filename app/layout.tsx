@@ -12,10 +12,14 @@ import {
   authors,
 } from "@/lib/site";
 
+// Variable font: covers the whole 100-900 axis in one file. Pinning the old
+// ["300","400","500"] list meant `font-semibold` (600) - used throughout the
+// dashboard and onboarding - had no real weight to use, so the browser
+// synthesized a faux-bold from 500 and those screens looked like a different
+// typeface to the marketing pages.
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
-  weight: ["300", "400", "500"],
 });
 
 const defaultTitle = "AI Receptionist - Answer Every Call 24/7";

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState, useState } from "react";
 import {
   DEFAULT_COUNTRY,
   NUMBER_COUNTRIES,
@@ -8,6 +8,8 @@ import {
   minutesForCredits,
 } from "@/lib/number-pricing";
 import { SubmitButton } from "../components/SubmitButton";
+import { SavePill } from "../components/SavePill";
+import { IDLE, type ActionState } from "@/lib/dashboard/action-state";
 import { getAgentNumberAction } from "./actions";
 import { useT } from "@/lib/i18n/client";
 
@@ -23,6 +25,7 @@ interface Props {
 export function GetNumberForm({ assistantId, credits, availableCount = 0 }: Props) {
   const t = useT();
   const [code, setCode] = useState(DEFAULT_COUNTRY);
+  const [state, formAction] = useActionState<ActionState, FormData>(getAgentNumberAction, IDLE);
   const country = getCountryPricing(code);
   const cpm = country.creditsPerMinute;
   const minutes = minutesForCredits(credits, cpm);
@@ -30,7 +33,7 @@ export function GetNumberForm({ assistantId, credits, availableCount = 0 }: Prop
   if (availableCount > 0) {
     return (
       <form
-        action={getAgentNumberAction}
+        action={formAction}
         className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
       >
         <input type="hidden" name="assistant_id" value={assistantId} />
@@ -41,16 +44,19 @@ export function GetNumberForm({ assistantId, credits, availableCount = 0 }: Prop
           </span>
           <span>{t.numbers.poolNote}</span>
         </div>
-        <SubmitButton pendingText={t.numbers.assigning} className="press h-9 shrink-0 px-4">
-          {t.numbers.assignNumber}
-        </SubmitButton>
+        <span className="flex shrink-0 items-center gap-2">
+          <SavePill state={state} />
+          <SubmitButton pendingText={t.numbers.assigning} className="press h-9 px-4">
+            {t.numbers.assignNumber}
+          </SubmitButton>
+        </span>
       </form>
     );
   }
 
   return (
     <div className="space-y-3">
-      <form action={getAgentNumberAction} className="flex flex-col gap-3 sm:flex-row sm:items-end">
+      <form action={formAction} className="flex flex-col gap-3 sm:flex-row sm:items-end">
         <input type="hidden" name="assistant_id" value={assistantId} />
         <div className="flex-1">
           <label htmlFor="country" className="mb-1.5 block text-sm font-medium text-neutral-700">
@@ -88,6 +94,8 @@ export function GetNumberForm({ assistantId, credits, availableCount = 0 }: Prop
           {t.numbers.getNumber}
         </SubmitButton>
       </form>
+
+      <SavePill state={state} />
 
       <div className="grid grid-cols-3 divide-x divide-neutral-200/70 overflow-hidden rounded-lg border border-neutral-200/70 bg-white/60">
         <Stat label={t.numbers.country} value={`${country.flag} ${country.name}`} />

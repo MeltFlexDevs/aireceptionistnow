@@ -29,12 +29,20 @@ export function readKnowledge(raw: Record<string, unknown> | null | undefined): 
   };
 }
 
-export function addSource(
-  knowledge: AssistantKnowledge,
-  source: KnowledgeSource,
-): AssistantKnowledge {
-  const sources = [...(knowledge.sources ?? []), source].slice(-MAX_SOURCES);
-  return { ...knowledge, sources };
+export type AddSourceResult =
+  | { ok: true; knowledge: AssistantKnowledge }
+  | { ok: false; reason: "limit" };
+
+/**
+ * Refuses at the cap rather than truncating. It used to `slice(-MAX_SOURCES)`,
+ * which silently dropped the OLDEST source the moment you added a 26th - the
+ * user was never told, and a fact the receptionist had been answering from just
+ * stopped being true. Callers surface the refusal as a plain-language error.
+ */
+export function addSource(knowledge: AssistantKnowledge, source: KnowledgeSource): AddSourceResult {
+  const sources = knowledge.sources ?? [];
+  if (sources.length >= MAX_SOURCES) return { ok: false, reason: "limit" };
+  return { ok: true, knowledge: { ...knowledge, sources: [...sources, source] } };
 }
 
 export function removeSource(knowledge: AssistantKnowledge, id: string): AssistantKnowledge {
@@ -59,6 +67,9 @@ export function mergeKnowledge(
     sources.push(src);
   }
 
+  // Provisioning-time merge, with no user present to tell - so this one does
+  // truncate. It keeps the FIRST MAX_SOURCES rather than the last; the
+  // asymmetry with addSource is deliberate, not an oversight.
   return { notes, sources: sources.slice(0, MAX_SOURCES) };
 }
 

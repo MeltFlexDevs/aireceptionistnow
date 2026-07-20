@@ -3,41 +3,18 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { currentUserId } from "@/lib/auth";
-import {
-  createCrmIntegration,
-  deleteIntegration,
-  setPrimaryCalendar,
-  upsertCalendarIntegration,
-} from "@/lib/dashboard/db";
+import { createCrmIntegration, deleteIntegration } from "@/lib/dashboard/db";
 import { isSafeHttpsUrl } from "@/lib/net/safe-url";
-import { CALENDAR_PROVIDERS } from "./providers";
 
-export async function connectCalendarAction(formData: FormData): Promise<void> {
-  const provider = String(formData.get("provider") ?? "");
-  const def = CALENDAR_PROVIDERS.find((p) => p.id === provider);
-  if (!def || !def.live) redirect("/dashboard/integrations");
-
-  const config: Record<string, unknown> = {};
-  for (const f of def.fields) {
-    const value = String(formData.get(f.name) ?? "").trim();
-    if (value) config[f.name] = value;
-  }
-
-  if (typeof config.url === "string" && !isSafeHttpsUrl(config.url)) {
-    redirect(
-      `/dashboard/integrations?error=${encodeURIComponent("Webhook URL must be a public https:// address.")}`,
-    );
-  }
-
-  try {
-    await upsertCalendarIntegration(provider, config, (await currentUserId()) ?? undefined);
-  } catch (err) {
-    redirect(`/dashboard/integrations?error=${encodeURIComponent((err as Error).message)}`);
-  }
-
-  revalidatePath("/dashboard/integrations");
-  redirect("/dashboard/integrations?connected=1");
-}
+/**
+ * CRM push is unshipped - the blurred "Developer" card that used to drive these
+ * is gone from every surface. The actions stay in code so the capability is not
+ * silently lost, with their redirect targets repointed at Appointments, which
+ * now owns everything the integrations page used to.
+ *
+ * connectCalendarAction is NOT preserved: every provider is OAuth with zero
+ * credential fields, so the form-based connect path was unreachable.
+ */
 
 export async function createCrmAction(formData: FormData): Promise<void> {
   const name = String(formData.get("crm_name") ?? "").trim();
@@ -45,7 +22,7 @@ export async function createCrmAction(formData: FormData): Promise<void> {
   const secret = String(formData.get("crm_secret") ?? "").trim();
 
   const fail = (msg: string): never =>
-    redirect(`/dashboard/integrations?error=${encodeURIComponent(msg)}`);
+    redirect(`/dashboard/calendar?error=${encodeURIComponent(msg)}`);
 
   if (!name) fail("Give the CRM push a name so you can tell it apart.");
   if (!isSafeHttpsUrl(url)) fail("CRM URL must be a public https:// address.");
@@ -59,9 +36,9 @@ export async function createCrmAction(formData: FormData): Promise<void> {
     fail((err as Error).message);
   }
 
-  revalidatePath("/dashboard/integrations");
+  revalidatePath("/dashboard/calendar");
   revalidatePath("/dashboard/assistant", "layout");
-  redirect("/dashboard/integrations?connected=1");
+  redirect("/dashboard/calendar?connected=1");
 }
 
 export async function deleteCrmAction(formData: FormData): Promise<void> {
@@ -72,34 +49,8 @@ export async function deleteCrmAction(formData: FormData): Promise<void> {
     } catch {
       // already gone
     }
-    revalidatePath("/dashboard/integrations");
+    revalidatePath("/dashboard/calendar");
     revalidatePath("/dashboard/assistant", "layout");
   }
-  redirect("/dashboard/integrations");
-}
-
-export async function setPrimaryCalendarAction(formData: FormData): Promise<void> {
-  const id = String(formData.get("id") ?? "");
-  if (id) {
-    try {
-      await setPrimaryCalendar(id, (await currentUserId()) ?? undefined);
-    } catch (err) {
-      redirect(`/dashboard/integrations?error=${encodeURIComponent((err as Error).message)}`);
-    }
-    revalidatePath("/dashboard/integrations");
-  }
-  redirect("/dashboard/integrations");
-}
-
-export async function disconnectCalendarAction(formData: FormData): Promise<void> {
-  const id = String(formData.get("id") ?? "");
-  if (id) {
-    try {
-      await deleteIntegration(id, (await currentUserId()) ?? undefined);
-    } catch {
-      // already gone
-    }
-    revalidatePath("/dashboard/integrations");
-  }
-  redirect("/dashboard/integrations");
+  redirect("/dashboard/calendar");
 }
