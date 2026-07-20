@@ -1,8 +1,8 @@
 import { getDictionary } from "@/lib/i18n/server";
 import { isOAuthConfigured } from "@/lib/dashboard/oauth";
 import type { Integration } from "@/lib/dashboard/db";
-import { CALENDAR_PROVIDERS } from "@/app/dashboard/integrations/providers";
-import { ProviderIcon } from "@/app/dashboard/integrations/ProviderIcon";
+import { CALENDAR_PROVIDERS } from "@/lib/calendar/providers";
+import { ProviderIcon } from "@/app/dashboard/components/ProviderIcon";
 import { Check } from "@/app/dashboard/icons";
 import { AiAvatar } from "../AiAvatar";
 import { CalendarArt } from "../CalendarArt";
@@ -37,7 +37,7 @@ export async function CalendarStep({
         <div className="flex flex-col items-center text-center">
           <div className="relative">
             <CalendarArt />
-            <div className="onb-companion-avatar onb-cal-badge">
+            <div className="ava-ring onb-cal-badge">
               <span>
                 <AiAvatar mood="friendly" className="h-[82%] w-[82%]" label={o.role} />
               </span>

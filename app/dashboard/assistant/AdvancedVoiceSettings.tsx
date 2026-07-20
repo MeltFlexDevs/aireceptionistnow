@@ -77,16 +77,16 @@ export function AdvancedVoiceSettings({ defaultSpeed, defaultStability, voiceByL
       <div className="grid gap-5 sm:grid-cols-2">
         <Slider
           name="voice_speed"
-          label="Speaking speed"
-          hint="How fast the voice talks. 1.0× is natural."
+          label={t.assistants.speakingSpeed}
+          hint={t.assistants.speakingSpeedHint}
           {...SPEED}
           defaultValue={defaultSpeed}
           format={(v) => `${v.toFixed(2)}×`}
         />
         <Slider
           name="voice_stability"
-          label="Stability"
-          hint="Higher is steadier and calmer; lower is more expressive."
+          label={t.assistants.expressiveness}
+          hint={t.assistants.expressivenessHint}
           {...STABILITY}
           defaultValue={defaultStability}
           format={(v) => `${Math.round(v * 100)}%`}
@@ -95,10 +95,7 @@ export function AdvancedVoiceSettings({ defaultSpeed, defaultStability, voiceByL
 
       <div className="border-t border-neutral-100 pt-5">
         <h3 className="text-sm font-medium text-neutral-900">{t.assistants.voicePerLanguage}</h3>
-        <p className="mt-0.5 text-xs text-neutral-500">
-          Give a language its own voice. Any language you don&apos;t set here uses your default voice,
-          matched to the caller automatically.
-        </p>
+        <p className="mt-0.5 text-xs text-neutral-500">{t.assistants.voicePerLanguageHint}</p>
 
         {rows.length > 0 && (
           <ul className="mt-4 space-y-2">
@@ -118,14 +115,14 @@ export function AdvancedVoiceSettings({ defaultSpeed, defaultStability, voiceByL
                     <VoiceSelect
                       name={`voice_lang_${code}`}
                       defaultValue={voiceByLanguage[code] ?? ""}
-                      placeholder="Choose a voice"
+                      placeholder={t.assistants.chooseVoice}
                       language={code}
                     />
                   </div>
                   <button
                     type="button"
                     onClick={() => setRows((r) => r.filter((c) => c !== code))}
-                    aria-label={`Remove ${l.name} voice`}
+                    aria-label={t.assistants.removeLanguageVoice.replace("{language}", l.name)}
                     className="press flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
@@ -148,7 +145,7 @@ export function AdvancedVoiceSettings({ defaultSpeed, defaultStability, voiceByL
             className="press mt-3 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-700 outline-none hover:border-neutral-300 focus:border-neutral-900"
           >
             <option value="" disabled>
-              + Add a language…
+              {t.assistants.addLanguage}
             </option>
             {available.map((l) => (
               <option key={l.code} value={l.code}>

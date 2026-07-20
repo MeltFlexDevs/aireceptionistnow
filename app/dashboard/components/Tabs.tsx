@@ -2,14 +2,24 @@
 
 import { Children, useId, useState, type ReactNode } from "react";
 
-export function Tabs({ labels, children }: { labels: string[]; children: ReactNode }) {
+interface Props {
+  labels: string[];
+  children: ReactNode;
+  /** Wrapper for the whole component - e.g. to make it a shrinkable flex column. */
+  className?: string;
+  /** Applied to each panel, e.g. "min-h-0 flex-1 overflow-y-auto" to make the
+   *  active panel a page's single scroll region. */
+  panelClassName?: string;
+}
+
+export function Tabs({ labels, children, className = "", panelClassName = "" }: Props) {
   const [active, setActive] = useState(0);
   const panels = Children.toArray(children);
   const id = useId();
 
   return (
-    <div>
-      <div role="tablist" className="flex gap-1 border-b border-neutral-200">
+    <div className={className}>
+      <div role="tablist" className="flex shrink-0 gap-1 border-b border-neutral-200">
         {labels.map((label, i) => (
           <button
             key={label}
@@ -37,14 +47,20 @@ export function Tabs({ labels, children }: { labels: string[]; children: ReactNo
           </button>
         ))}
       </div>
-      <div className="pt-5">
+      {/* Every panel stays mounted (inactive ones are display:none), so form
+          state survives a tab switch. */}
+      <div className="flex min-h-0 flex-1 flex-col pt-5">
         {panels.map((panel, i) => (
           <div
             key={i}
             role="tabpanel"
             id={`${id}-panel-${i}`}
             aria-labelledby={`${id}-tab-${i}`}
-            className={i === active ? "" : "hidden"}
+            // `relative` so absolutely-positioned descendants (Tailwind's
+            // sr-only inputs, for one) resolve against the scrolling panel
+            // rather than some ancestor above the height cap - otherwise they
+            // inflate the capped root's scrollHeight.
+            className={`relative ${i === active ? panelClassName : `hidden ${panelClassName}`}`}
           >
             {panel}
           </div>

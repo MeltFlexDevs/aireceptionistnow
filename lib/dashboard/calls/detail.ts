@@ -11,6 +11,8 @@ const SELECT =
 export async function getCallDetail(
   id: string,
   viewerId?: string | null,
+  /** Viewer's locale for the date label; the page threads it in. */
+  locale?: string,
 ): Promise<CallDetail | null> {
   const sb = serviceClient();
   const { data, error } = await sb.from("calls").select(SELECT).eq("id", id).maybeSingle();
@@ -58,7 +60,7 @@ export async function getCallDetail(
     sid,
     date,
     // Owner's timezone, matching the call log and Calendar (tz resolved above).
-    dateLabel: dateTimeFmt(tz)(date),
+    dateLabel: dateTimeFmt(tz, locale)(date),
     status,
     statusLabel: statusLabel(status),
     direction: normalizeDirection(str(c.direction)),

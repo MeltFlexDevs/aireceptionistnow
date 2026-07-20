@@ -7,14 +7,19 @@ import { ENGLISH_AMERICA_VOICES } from "@/app/dashboard/numbers/voices";
 import { MeetAssistant } from "./MeetAssistant";
 
 export async function BasicsStep({ config }: { config: OnboardingConfig }) {
-  const locale = await getLocale();
-  const claims = (await getAuthClaims()) as { email?: string } | null;
+  // Locale, auth claims, and the ElevenLabs preview URLs are independent reads
+  // (previews even leave the building) - fetch all three at once.
+  const [locale, rawClaims, previews] = await Promise.all([
+    getLocale(),
+    getAuthClaims(),
+    voicePreviewUrls(ENGLISH_AMERICA_VOICES.map((v) => v.voiceId)),
+  ]);
+  const claims = rawClaims as { email?: string } | null;
   const emailDefault = config.alertsEmail || (typeof claims?.email === "string" ? claims.email : "");
   // Default to the saved voice or Rachel (American English). The picker filters
   // the rest by country language; these two are always offered as defaults.
   const voiceDefault = config.voiceId || DEFAULT_VOICE_ID;
   const countryDefault = config.country || countryForLocale(locale);
-  const previews = await voicePreviewUrls(ENGLISH_AMERICA_VOICES.map((v) => v.voiceId));
   const defaults = ENGLISH_AMERICA_VOICES.map((v) =>
     previews[v.voiceId] ? { ...v, previewUrl: previews[v.voiceId] } : v,
   );

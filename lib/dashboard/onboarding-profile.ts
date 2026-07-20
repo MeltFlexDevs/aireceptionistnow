@@ -18,6 +18,9 @@ export const PROVISION_LEASE_MS = 3 * 60_000;
 
 export interface OnboardingConfig {
   companyName?: string;
+  /** The company's website, collected in step 1. Scraped into `sources`
+   *  (best-effort) so the assistant knows the business from the first call. */
+  companyWebsite?: string;
   assistantName?: string;
   voiceId?: string;
   /** Preferred voice gender, used to pick a matching voice for whatever

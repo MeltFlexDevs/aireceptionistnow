@@ -27,6 +27,9 @@ import {
   routeNumberToAgent,
 } from "@/lib/call-engine/elevenlabs";
 import { syncAssistantAgent, deleteAssistantAgent } from "@/lib/call-engine/agent/sync";
+import { buildAssistantPatch } from "@/lib/dashboard/assistant-patch";
+import { getDictionary } from "@/lib/i18n/server";
+import { ok, fail, type ActionState } from "@/lib/dashboard/action-state";
 import { SUPPORTED_LANGUAGES } from "@/lib/call-engine/voice/phone-language";
 import { addSharedVoice } from "@/lib/call-engine/voice/catalog";
 
@@ -80,59 +83,22 @@ export async function createAssistantAction(formData: FormData): Promise<void> {
   redirect(`/dashboard/assistant/${id}`);
 }
 
-export async function updateAssistantAction(formData: FormData): Promise<void> {
+/**
+ * Each topic modal posts only its own section, so this must stay a patch (see
+ * lib/dashboard/assistant-patch.ts). The agent sync is awaited on purpose: the
+ * modal shows a pending state until it resolves, so a failure reaches the user
+ * instead of a server log.
+ */
+export async function updateAssistantAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const a = (await getDictionary()).assistants;
   const id = String(formData.get("id") ?? "");
-  if (!id) redirect("/dashboard/assistant");
+  if (!id) return fail(a.saveFailed);
   await requireAssistantOwner(id);
 
-  const transferTo = String(formData.get("transfer_to") ?? "").trim();
-
   const integrations = await listIntegrations((await currentUserId()) ?? undefined).catch(() => []);
-  const access: Array<{ integrationId: string; level: string }> = [];
-  for (const c of integrations) {
-    if (c.type !== "calendar") continue;
-    const raw = String(formData.get(`cal_access_${c.id}`) ?? "none");
-    const level = raw === "busy" ? "read" : raw;
-    if (level === "read" || level === "write") {
-      access.push({ integrationId: c.id, level });
-    }
-  }
-
-  const crmTargets: Array<{ integrationId: string }> = [];
-  for (const c of integrations) {
-    if (c.type !== "crm") continue;
-    if (formData.get(`crm_target_${c.id}`) === "on") crmTargets.push({ integrationId: c.id });
-  }
-
-  // Preserve keys the sync precomputes (greeting translations, auto voices) -
-  // the form doesn't carry them, and wiping them re-pays ~25 Gemini calls per save.
-  const prevRouting = ((await getAssistant(id).catch(() => null))?.routing ?? {}) as Record<
-    string,
-    unknown
-  >;
-  const routing: Record<string, unknown> = {};
-  if (prevRouting.greetingByLanguage) routing.greetingByLanguage = prevRouting.greetingByLanguage;
-  if (prevRouting.autoVoiceByLanguage)
-    routing.autoVoiceByLanguage = prevRouting.autoVoiceByLanguage;
-  if (transferTo) {
-    routing.transferTo = transferTo;
-    routing.smsAlerts = formData.get("sms_alerts") === "on";
-  }
-  if (access.length) routing.calendar = { access };
-  if (crmTargets.length) routing.crm = { targets: crmTargets };
-
-  // Email transcripts (optional). Stored even when sending isn't wired yet.
-  const emailTo = String(formData.get("email_to") ?? "").trim();
-  if (formData.get("email_enabled") === "on" && emailTo) {
-    routing.emailTranscripts = { enabled: true, to: emailTo };
-  }
-
-  const speed = Number(formData.get("voice_speed"));
-  const stability = Number(formData.get("voice_stability"));
-  const voice: Record<string, number> = {};
-  if (Number.isFinite(speed)) voice.speed = clamp(speed, 0.7, 1.2);
-  if (Number.isFinite(stability)) voice.stability = clamp(stability, 0, 1);
-  if (Object.keys(voice).length) routing.voice = voice;
 
   const voiceByLanguage: Record<string, string> = {};
   const voiceImportFailures: string[] = [];
@@ -162,46 +128,57 @@ export async function updateAssistantAction(formData: FormData): Promise<void> {
       else voiceImportFailures.push(lang);
     }),
   );
-  if (Object.keys(voiceByLanguage).length) routing.voiceByLanguage = voiceByLanguage;
 
   const existing = await getAssistant(id).catch(() => null);
-  const knowledge = readKnowledge(existing?.knowledge);
+  if (!existing) return fail(a.saveFailed);
+  const knowledge = readKnowledge(existing.knowledge);
+
+  // Patch, not rebuild: only sections this submit actually carried change.
+  // See lib/dashboard/assistant-patch.ts and its regression suite.
+  const { top, routing } = buildAssistantPatch(
+    formData,
+    {
+      name: existing.name,
+      greeting: existing.greeting,
+      system_prompt: existing.system_prompt,
+      voice_id: existing.voice_id,
+      language: existing.language,
+      routing: (existing.routing ?? {}) as Record<string, unknown>,
+    },
+    {
+      calendarIds: integrations.filter((c) => c.type === "calendar").map((c) => c.id),
+      crmIds: integrations.filter((c) => c.type === "crm").map((c) => c.id),
+    },
+    voiceByLanguage,
+  );
 
   try {
     await updateAssistant(id, {
-      name: String(formData.get("name") ?? "").trim() || "My assistant",
-      greeting: String(formData.get("greeting") ?? "").trim(),
-      system_prompt: String(formData.get("system_prompt") ?? "").trim(),
-      voice_id: String(formData.get("voice_id") ?? "").trim(),
-      language: String(formData.get("language") ?? "en").trim() || "en",
+      ...top,
       knowledge: { ...knowledge },
       routing,
     });
-  } catch (err) {
-    redirect(`/dashboard/assistant/${id}?error=${encodeURIComponent((err as Error).message)}`);
+  } catch {
+    return fail(a.saveFailed);
   }
 
-  // Sync stays awaited: rapid saves must serialize (last write wins on the
-  // live agent) and failures must reach the user, not a server log.
+  // Awaited, not fire-and-forget: rapid saves must serialize (last write wins
+  // on the live agent) and a failure has to reach the user.
   try {
     await syncAssistantAgent(id);
   } catch (err) {
     console.error("[assistant] agent sync failed on update", err);
-    redirect(
-      `/dashboard/assistant/${id}?error=${encodeURIComponent(`Saved, but updating the voice agent failed: ${(err as Error).message}`)}`,
-    );
+    return fail(a.savedButSyncFailed);
   }
 
   revalidatePath(`/dashboard/assistant/${id}`);
   revalidatePath("/dashboard/assistant");
+  // A library voice that could not be imported is worth saying out loud - that
+  // language quietly falls back to the default voice.
   if (voiceImportFailures.length) {
-    redirect(
-      `/dashboard/assistant/${id}?notice=${encodeURIComponent(
-        `Saved. Couldn't add ${voiceImportFailures.length} library voice(s) to your ElevenLabs account (${voiceImportFailures.join(", ")}); those languages use the default voice.`,
-      )}`,
-    );
+    return ok(a.savedVoiceImportFailed.replace("{languages}", voiceImportFailures.join(", ")));
   }
-  redirect(`/dashboard/assistant/${id}?saved=1`);
+  return ok(a.settingsSaved);
 }
 
 export async function deleteAssistantAction(formData: FormData): Promise<void> {
@@ -230,22 +207,24 @@ export async function deleteAssistantAction(formData: FormData): Promise<void> {
 
 // ── Phone number for an assistant ───────────────────────────────────────────
 
-export async function getAgentNumberAction(formData: FormData): Promise<void> {
+export async function getAgentNumberAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const a = (await getDictionary()).assistants;
   const assistantId = String(formData.get("assistant_id") ?? "");
   const country = String(formData.get("country") ?? "US").trim() || "US";
-  if (!assistantId) redirect("/dashboard/assistant");
+  if (!assistantId) return fail(a.saveFailed);
   await requireAssistantOwner(assistantId);
 
   const existingNumber = await getAssistantNumber(assistantId).catch(() => null);
   if (existingNumber) {
     revalidatePath(`/dashboard/assistant/${assistantId}`);
-    redirect(`/dashboard/assistant/${assistantId}?saved=1`);
+    return ok(a.numberReady);
   }
 
   const allowance = await canAssignNumber(await currentUserId());
-  if (!allowance.ok) {
-    redirect(`/dashboard/assistant/${assistantId}?notice=${encodeURIComponent(allowance.reason ?? "")}`);
-  }
+  if (!allowance.ok) return fail(allowance.reason || a.saveFailed);
 
   try {
     // Make sure this assistant has its managed agent before we point a number at it.
@@ -278,10 +257,12 @@ export async function getAgentNumberAction(formData: FormData): Promise<void> {
       console.error("[assistant] persist ElevenLabs phone id failed (number is routed)", e),
     );
   } catch (err) {
-    redirect(`/dashboard/assistant/${assistantId}?error=${encodeURIComponent((err as Error).message)}`);
+    console.error("[assistant] get number failed", err);
+    return fail(a.numberFailed);
   }
   revalidatePath(`/dashboard/assistant/${assistantId}`);
-  redirect(`/dashboard/assistant/${assistantId}?saved=1`);
+  revalidatePath("/dashboard");
+  return ok(a.numberReady);
 }
 
 export async function toggleAssistantEnabledAction(formData: FormData): Promise<void> {
@@ -295,19 +276,22 @@ export async function toggleAssistantEnabledAction(formData: FormData): Promise<
     redirect(`/dashboard/assistant?error=${encodeURIComponent((err as Error).message)}`);
   }
   // No redirect: the toggle is optimistic client-side; revalidate is enough.
+  // The overview hero exposes the same switch, so refresh it too.
   revalidatePath("/dashboard/assistant");
+  revalidatePath("/dashboard");
 }
 
-export async function testCallAction(formData: FormData): Promise<void> {
+export async function testCallAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const a = (await getDictionary()).assistants;
   const assistantId = String(formData.get("assistant_id") ?? formData.get("id") ?? "");
   const to = String(formData.get("to") ?? formData.get("transfer_to") ?? "").trim();
-  if (!assistantId) redirect("/dashboard/assistant");
+  if (!assistantId) return fail(a.saveFailed);
   await requireAssistantOwner(assistantId);
-  if (!E164.test(to)) {
-    redirect(
-      `/dashboard/assistant/${assistantId}?error=${encodeURIComponent("Enter a number in E.164 format, e.g. +14155550142")}`,
-    );
-  }
+  // "E.164" is a spec name, not something to put in front of a business owner.
+  if (!E164.test(to)) return fail(a.badPhoneFormat);
 
   try {
     const assistant = await getAssistant(assistantId).catch(() => null);
@@ -319,24 +303,25 @@ export async function testCallAction(formData: FormData): Promise<void> {
       agentPhoneNumberId: number?.elevenlabs_phone_number_id ?? undefined,
     });
   } catch (err) {
-    redirect(`/dashboard/assistant/${assistantId}?error=${encodeURIComponent((err as Error).message)}`);
+    console.error("[assistant] test call failed", err);
+    return fail(a.testCallFailed);
   }
 
-  redirect(`/dashboard/assistant/${assistantId}?calling=1`);
+  return ok(a.callingYou);
 }
 
-export async function unlinkNumberAction(formData: FormData): Promise<void> {
+export async function unlinkNumberAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const a = (await getDictionary()).assistants;
   const numberId = String(formData.get("number_id") ?? "");
   const assistantId = String(formData.get("assistant_id") ?? "");
-  if (!assistantId) redirect("/dashboard/assistant");
+  if (!assistantId) return fail(a.saveFailed);
   await requireAssistantOwner(assistantId);
 
   const number = await getAssistantNumber(assistantId).catch(() => null);
-  if (!number || !numberId || number.id !== numberId) {
-    redirect(
-      `/dashboard/assistant/${assistantId}?error=${encodeURIComponent("That number isn't linked to this assistant.")}`,
-    );
-  }
+  if (!number || !numberId || number.id !== numberId) return fail(a.numberNotLinked);
 
   try {
     await setNumberAssistant(numberId, null);
@@ -344,10 +329,12 @@ export async function unlinkNumberAction(formData: FormData): Promise<void> {
       console.error("[assistant] ElevenLabs release on unlink failed", e),
     );
   } catch (err) {
-    redirect(`/dashboard/assistant/${assistantId}?error=${encodeURIComponent((err as Error).message)}`);
+    console.error("[assistant] unlink failed", err);
+    return fail(a.saveFailed);
   }
   revalidatePath(`/dashboard/assistant/${assistantId}`);
-  redirect(`/dashboard/assistant/${assistantId}?saved=1`);
+  revalidatePath("/dashboard");
+  return ok(a.numberUnlinked);
 }
 
 export async function registerCnamAction(formData: FormData): Promise<void> {

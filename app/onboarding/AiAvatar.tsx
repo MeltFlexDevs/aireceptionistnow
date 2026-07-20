@@ -1,8 +1,8 @@
 import type { Mood } from "./personality";
 
 // An illustrated, monochrome AI-receptionist character - a soft charcoal head
-// wearing a headset, with blinking eyes and a mouth that morphs with the chosen
-// voice's personality. Pure SVG + CSS (no hooks), so it drops into both client
+// with blinking eyes and a mouth that morphs with the chosen voice's
+// personality. Pure SVG + CSS (no hooks), so it drops into both client
 // and server components. Re-mounting it via `key={mood}` replays the pop.
 
 // Mouth shape per mood. Filled shapes are open grins; the rest are stroked.
@@ -50,7 +50,7 @@ export function AiAvatar({
   return (
     <svg
       viewBox="0 0 100 100"
-      className={`onb-avatar ai-avatar ${className}`}
+      className={`ai-avatar ${className}`}
       data-wave={wave || undefined}
       data-mood={mood}
       role="img"
@@ -68,61 +68,41 @@ export function AiAvatar({
       </defs>
 
       <g className="ai-float">
-        {/* headset band */}
-        <path
-          d="M24 55 Q24 20 50 20 Q76 20 76 55"
-          fill="none"
-          stroke="#e8e8e8"
-          strokeWidth="4.5"
-          strokeLinecap="round"
-        />
-        {/* status light on the band */}
-        <circle className="ai-status" cx="50" cy="18" r="3" fill="#ffffff" />
+        {/* Nudged up so the face sits optically centred in the viewBox. Kept on
+            a nested g: CSS animates transform on .ai-float itself. */}
+        <g transform="translate(0 -4.5)">
+          {/* head */}
+          <rect x="22" y="27" width="56" height="55" rx="23" fill="url(#aiHead)" />
+          <rect x="22" y="27" width="56" height="55" rx="23" fill="url(#aiSheen)" />
 
-        {/* head */}
-        <rect x="22" y="27" width="56" height="55" rx="23" fill="url(#aiHead)" />
-        <rect x="22" y="27" width="56" height="55" rx="23" fill="url(#aiSheen)" />
+          {/* eyes */}
+          <g className="ai-eyes" fill="#ffffff">
+            <rect x="37" y="48" width="6" height="9" rx="3" />
+            <rect x="57" y="48" width="6" height="9" rx="3" />
+          </g>
 
-        {/* earpieces */}
-        <rect x="17.5" y="47" width="10" height="18" rx="5" fill="#e8e8e8" />
-        <rect x="72.5" y="47" width="10" height="18" rx="5" fill="#e8e8e8" />
-        {/* mic boom + tip */}
-        <path
-          d="M23 63 Q20 75 35 74.5"
-          fill="none"
-          stroke="#e8e8e8"
-          strokeWidth="3"
-          strokeLinecap="round"
-        />
-        <circle cx="36" cy="74.5" r="2.6" fill="#e8e8e8" />
+          {/* mouth */}
+          <path
+            d={mouth.d}
+            fill={mouth.filled ? "#ffffff" : "none"}
+            stroke={mouth.filled ? "none" : "#ffffff"}
+            strokeWidth="4.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
 
-        {/* eyes */}
-        <g className="ai-eyes" fill="#ffffff">
-          <rect x="37" y="48" width="6" height="9" rx="3" />
-          <rect x="57" y="48" width="6" height="9" rx="3" />
+          {/* sparkles (celebrate only) */}
+          {mood === "celebrate" &&
+            SPARKS.map((s, i) => (
+              <path
+                key={i}
+                className="ai-spark"
+                style={{ animationDelay: s.delay }}
+                d={sparkPath(s.x, s.y, s.r)}
+                fill="#1d1d1d"
+              />
+            ))}
         </g>
-
-        {/* mouth */}
-        <path
-          d={mouth.d}
-          fill={mouth.filled ? "#ffffff" : "none"}
-          stroke={mouth.filled ? "none" : "#ffffff"}
-          strokeWidth="4.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-
-        {/* sparkles (celebrate only) */}
-        {mood === "celebrate" &&
-          SPARKS.map((s, i) => (
-            <path
-              key={i}
-              className="ai-spark"
-              style={{ animationDelay: s.delay }}
-              d={sparkPath(s.x, s.y, s.r)}
-              fill="#1d1d1d"
-            />
-          ))}
       </g>
     </svg>
   );

@@ -37,10 +37,15 @@ export default async function OnboardingPage({
   const error = typeof sp.error === "string" ? sp.error : undefined;
   const connected = sp.connected === "1";
 
-  const t = await getDictionary();
+  const [t, ownerId] = await Promise.all([getDictionary(), currentUserId()]);
   const o = t.onboarding;
-  const ownerId = await currentUserId();
-  const profile = ownerId ? await getOnboardingProfile(ownerId) : null;
+  // Start every read this page might need in one round trip: the profile
+  // decides the step, billing decides whether payment is skippable, and the
+  // integrations list is only awaited if the calendar step actually renders.
+  const profilePromise = ownerId ? getOnboardingProfile(ownerId) : Promise.resolve(null);
+  const billingPromise = ownerId ? getBilling(ownerId).catch(() => null) : Promise.resolve(null);
+  const calendarsPromise = ownerId ? listIntegrations(ownerId).catch(() => []) : Promise.resolve([]);
+  const profile = await profilePromise;
   const cfg = profile?.config ?? {};
   const assistant = assistantIdentity(cfg);
 
@@ -60,7 +65,7 @@ export default async function OnboardingPage({
   // once their config steps are done they go straight to provisioning. This
   // covers webhook loss (paid but profile still draft) and returning
   // subscribers, either of whom PlanStep would otherwise double-charge.
-  const billing = ownerId && profile ? await getBilling(ownerId).catch(() => null) : null;
+  const billing = profile ? await billingPromise : null;
   const paid = billing?.status === "active" || billing?.status === "trialing";
   const goView =
     stepParam === "go" ||
@@ -85,11 +90,10 @@ export default async function OnboardingPage({
       ? Math.min(requested, cap)
       : Math.min(firstIncomplete, cap);
 
-  const calendars = ownerId
-    ? (await listIntegrations(ownerId).catch(() => [])).filter(
-        (i) => i.type === "calendar" && i.enabled,
-      )
-    : [];
+  const calendars =
+    step === 3
+      ? (await calendarsPromise).filter((i) => i.type === "calendar" && i.enabled)
+      : [];
 
   return (
     <div className="flex min-h-screen w-full flex-col">

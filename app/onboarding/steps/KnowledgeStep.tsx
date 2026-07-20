@@ -8,7 +8,6 @@ import { LiveAvatar } from "../LiveAvatar";
 import { PdfForm } from "./PdfForm";
 import {
   importTextAction,
-  importUrlAction,
   knowledgeContinueAction,
   removeSourceAction,
 } from "../actions";
@@ -30,8 +29,8 @@ export function KnowledgeStep({ sources }: { sources: KnowledgeSource[] }) {
         <div className="relative flex shrink-0 flex-col items-center justify-center gap-3 border-b border-neutral-200/70 bg-gradient-to-br from-neutral-100/90 to-neutral-50/30 px-6 py-5 text-center sm:w-[42%] sm:gap-4 sm:border-b-0 sm:border-r sm:py-10">
           <div className="relative flex items-center justify-center">
             <span className="onb-study-glow" aria-hidden />
-            <div className="onb-aura onb-aura-sm">
-              <div className="onb-avatar-disc">
+            <div className="ava-aura ava-aura-sm">
+              <div className="ava-disc">
                 <LiveAvatar mood="studying" className="h-[74%] w-[74%]" label={o.role} />
               </div>
             </div>
@@ -49,25 +48,6 @@ export function KnowledgeStep({ sources }: { sources: KnowledgeSource[] }) {
         {/* Right: feed it knowledge, then see what it learned. */}
         <div className="flex min-h-0 min-w-0 flex-1 flex-col p-5 sm:p-6">
           <div className="space-y-3">
-            <form action={importUrlAction} className="space-y-1.5">
-              <label htmlFor="url" className="flex items-center gap-2 text-sm font-medium text-neutral-700">
-                <Globe className="h-4 w-4 text-neutral-400" />
-                {o.websiteUrl}
-              </label>
-              <div className="flex items-stretch gap-2">
-                <input
-                  id="url"
-                  name="url"
-                  type="text"
-                  inputMode="url"
-                  autoComplete="off"
-                  placeholder={o.websitePlaceholder}
-                  className={`${field} min-w-0`}
-                />
-                <ImportButton>{o.importBtn}</ImportButton>
-              </div>
-            </form>
-
             <PdfForm />
 
             <form action={importTextAction} className="space-y-1.5">

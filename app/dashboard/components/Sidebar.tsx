@@ -1,49 +1,32 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Logo, Grid, Phone, Bot, Book, Building, Plug, ChartBar, Gear, Sparkle, Hash, Calendar } from "../icons";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useEffect, useState, type CSSProperties } from "react";
+import { useReducedMotion } from "motion/react";
+import { Logo, Grid, Phone, Bot, Gear, Sparkle, Calendar, Info } from "../icons";
+import { LiveAvatar, type Activity } from "@/app/onboarding/LiveAvatar";
+import type { Mood } from "@/app/onboarding/personality";
 import { useT } from "@/lib/i18n/client";
 import type { Dictionary } from "@/lib/i18n/dictionaries/en";
+import { useGuide } from "./DashboardGuide";
+import { useShell } from "./ShellProviders";
+import { AvatarStatusPopover } from "./AvatarStatusPopover";
+import { claimOnce } from "./once";
 
 type NavKey = keyof Dictionary["nav"];
+type IconFn = (props: { className?: string }) => React.ReactElement;
 
-interface NavItem {
-  href: string;
-  label: string;
-  Icon: (props: { className?: string }) => React.ReactElement;
-}
+export type { AiStatus } from "./ShellProviders";
 
-interface NavGroup {
-  title: string;
-  items: NavItem[];
-}
-
-const NAV: { titleKey: NavKey; items: { href: string; label: NavKey; Icon: NavItem["Icon"] }[] }[] = [
-  {
-    titleKey: "monitor",
-    items: [
-      { href: "/dashboard", label: "overview", Icon: Grid },
-      { href: "/dashboard/calls", label: "calls", Icon: Phone },
-      { href: "/dashboard/calendar", label: "calendar", Icon: Calendar },
-      { href: "/dashboard/analytics", label: "analytics", Icon: ChartBar },
-    ],
-  },
-  {
-    titleKey: "setup",
-    items: [
-      { href: "/dashboard/organizations", label: "organizations", Icon: Building },
-      { href: "/dashboard/assistant", label: "assistants", Icon: Bot },
-      { href: "/dashboard/numbers", label: "numbers", Icon: Hash },
-      { href: "/dashboard/integrations", label: "integrations", Icon: Plug },
-      { href: "/dashboard/knowledge", label: "knowledge", Icon: Sparkle },
-    ],
-  },
-];
-
-const FOOTER: { href: string; label: NavKey; Icon: NavItem["Icon"] }[] = [
-  { href: "/dashboard/tutorial", label: "tutorial", Icon: Book },
-  { href: "/dashboard/settings", label: "settings", Icon: Gear },
+// Five items, flat, no group title. Company, Analytics, Numbers, Integrations
+// and Tutorial are gone - their URLs survive only as redirect shims.
+const NAV: { href: string; label: NavKey; Icon: IconFn }[] = [
+  { href: "/dashboard", label: "overview", Icon: Grid },
+  { href: "/dashboard/calls", label: "calls", Icon: Phone },
+  { href: "/dashboard/calendar", label: "appointments", Icon: Calendar },
+  { href: "/dashboard/knowledge", label: "knowledge", Icon: Sparkle },
+  { href: "/dashboard/assistant", label: "assistants", Icon: Bot },
 ];
 
 function isActive(pathname: string, href: string): boolean {
@@ -51,72 +34,233 @@ function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-function NavLink({ item, active }: { item: NavItem; active: boolean }) {
+function navItemClass(active: boolean): string {
+  return `group press relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 ${
+    active ? "brand-grad text-white shadow-card" : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
+  }`;
+}
+
+function navIconClass(active: boolean): string {
+  return `h-[18px] w-[18px] shrink-0 transition-transform duration-200 ${active ? "" : "group-hover:scale-110"}`;
+}
+
+function NavLink({
+  href,
+  label,
+  Icon,
+  active,
+  onNavigate,
+}: {
+  href: string;
+  label: string;
+  Icon: IconFn;
+  active: boolean;
+  onNavigate?: () => void;
+}) {
   return (
     <Link
-      href={item.href}
+      href={href}
+      onClick={onNavigate}
       aria-current={active ? "page" : undefined}
-      className={`group press relative flex items-center gap-3 rounded-xl px-3 py-2 ${
-        active ? "bg-neutral-900 text-white" : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
-      }`}
+      className={navItemClass(active)}
     >
-      {active && (
-        <span className="absolute -left-4 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-neutral-800" />
-      )}
-      <item.Icon className="h-[18px] w-[18px] shrink-0" />
-      <span className="min-w-0 truncate text-sm font-medium leading-tight">{item.label}</span>
+      <Icon className={navIconClass(active)} />
+      <span className="min-w-0 truncate text-sm font-medium leading-tight">{label}</span>
     </Link>
   );
+}
+
+// What the receptionist acts out per section: answering calls on Calls,
+// ticking the calendar on Appointments, and so on. Longest prefix wins.
+const BRAND_ACTIVITIES: [string, Activity][] = [
+  ["/dashboard/calls", "phone"],
+  ["/dashboard/calendar", "calendar"],
+  ["/dashboard/knowledge", "study"],
+  ["/dashboard/settings", "gear"],
+];
+
+const BRAND_MOODS: [string, Mood][] = [
+  ["/dashboard/knowledge", "studying"],
+  ["/dashboard/assistant", "greeting"],
+  ["/dashboard/settings", "calm"],
+];
+
+function forPath<T>(pairs: [string, T][], pathname: string): T | null {
+  return pairs.find(([p]) => pathname === p || pathname.startsWith(`${p}/`))?.[1] ?? null;
 }
 
 export function Brand() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const reduce = useReducedMotion();
+  const t = useT();
+  const { status, hasCalls, hasBookings } = useShell();
+  const [popover, setPopover] = useState(false);
+
+  // Analytics is gone, but the chart scene it used to own still has a home:
+  // Home's This-month view, which is where those charts moved.
+  const monthView = pathname === "/dashboard" && searchParams.get("range") === "month";
+  const routeActivity = monthView ? "chart" : forPath(BRAND_ACTIVITIES, pathname);
+  const mood = forPath(BRAND_MOODS, pathname) ?? "friendly";
+
+  // A little fanfare the first time a call comes in, and the first time
+  // something gets booked. `celebrate` is a boolean the avatar sparkles while
+  // it is true, so pulse it briefly; claimOnce keeps it to once per browser.
+  // The claim and the pulse both run from a timer callback, never synchronously
+  // in the effect body - and letting the page settle first reads better anyway.
+  const [celebrate, setCelebrate] = useState(false);
+  useEffect(() => {
+    if (!hasCalls && !hasBookings) return;
+    let stop: ReturnType<typeof setTimeout>;
+    const start = setTimeout(() => {
+      const first =
+        (hasCalls && claimOnce("ar-celebrated-call")) ||
+        (hasBookings && claimOnce("ar-celebrated-booking"));
+      if (!first) return;
+      setCelebrate(true);
+      stop = setTimeout(() => setCelebrate(false), 1500);
+    }, 400);
+    return () => {
+      clearTimeout(start);
+      clearTimeout(stop);
+    };
+  }, [hasCalls, hasBookings]);
+
+  // Nod when the user changes pages (derived while rendering, no effect).
+  const [prevPath, setPrevPath] = useState(pathname);
+  const [nudge, setNudge] = useState(0);
+  if (prevPath !== pathname) {
+    setPrevPath(pathname);
+    setNudge(nudge + 1);
+  }
+
+  // On sections without a prop of their own, the receptionist still works the
+  // desk now and then: a call comes in, or a booking gets ticked off. A route
+  // prop taking over clears any scene in progress (derived while rendering).
+  const [idle, setIdle] = useState<Activity | null>(null);
+  const [prevRoute, setPrevRoute] = useState(routeActivity);
+  if (prevRoute !== routeActivity) {
+    setPrevRoute(routeActivity);
+    if (idle) setIdle(null);
+  }
+  useEffect(() => {
+    if (routeActivity || reduce) return;
+    let done: ReturnType<typeof setTimeout>;
+    const iv = setInterval(() => {
+      setIdle(Math.random() < 0.6 ? "phone" : "calendar");
+      done = setTimeout(() => setIdle(null), 5600);
+    }, 12000 + Math.random() * 6000);
+    return () => {
+      clearInterval(iv);
+      clearTimeout(done);
+    };
+  }, [routeActivity, reduce]);
+
+  const statusTitle = status === "online" ? t.home.online : status === "paused" ? t.home.paused : t.home.offline;
+  const statusChip =
+    status === "online" ? t.home.statusAnswering : status === "paused" ? t.home.statusPaused : t.home.statusNoNumber;
+
   return (
-    <Link href="/dashboard" className="flex items-center gap-2.5 px-2 text-neutral-900">
-      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-neutral-900 text-white">
-        <Logo className="h-3.5 w-3.5" />
-      </span>
-      <span className="text-[15px] font-semibold tracking-tight">AI Receptionist</span>
-    </Link>
+    <div className="flex flex-col items-center gap-4 text-neutral-900">
+      {/* Only the wordmark navigates - the avatar below opens the status
+          popover instead, so a click on the receptionist is never a surprise
+          page change. */}
+      <Link href="/dashboard" className="flex items-center gap-2.5">
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-neutral-900 text-white">
+          <Logo className="h-3.5 w-3.5" />
+        </span>
+        <span className="text-[15px] font-semibold tracking-tight">AI Receptionist</span>
+      </Link>
+      {/* The receptionist at the front desk: centered under the wordmark, eyes on the cursor.
+          The status dot sits on a wrapper OUTSIDE .ava-ring - a direct span child would
+          otherwise be caught by `.ava-ring > span` and painted as a full white disc. */}
+      <div className="relative flex flex-col items-center">
+        <button
+          type="button"
+          data-avatar-trigger
+          onClick={() => setPopover((o) => !o)}
+          aria-expanded={popover}
+          aria-label={statusChip}
+          className="ava-ring ava-breathe"
+          style={{ "--ava-size": "120px" } as CSSProperties}
+        >
+          <span>
+            <LiveAvatar
+              mood={mood}
+              activity={routeActivity ?? idle}
+              nudge={nudge}
+              celebrate={celebrate}
+              className="h-[82%] w-[82%]"
+            />
+          </span>
+        </button>
+        {/* Status dot: green answering, amber paused, red not set up. */}
+        <span
+          role="status"
+          title={statusTitle}
+          aria-label={statusTitle}
+          className={`pointer-events-none absolute bottom-2.5 right-2.5 z-10 h-4 w-4 rounded-full border-[3px] border-white ${
+            status === "online" ? "bg-emerald-500" : status === "paused" ? "bg-amber-500" : "bg-rose-500"
+          }`}
+        />
+        <AvatarStatusPopover open={popover} onClose={() => setPopover(false)} />
+      </div>
+      <p className="-mt-1 text-center text-xs text-neutral-500">{statusChip}</p>
+    </div>
   );
 }
 
-export function DashboardNav() {
+/**
+ * `onNavigate` lets the mobile drawer close itself. Help matters most here:
+ * it changes no route, so without this the drawer would stay open and cover
+ * the guide overlay it just opened.
+ */
+export function DashboardNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const nav = useT().nav;
-
-  const groups: NavGroup[] = NAV.map((g) => ({
-    title: nav[g.titleKey],
-    items: g.items.map((i) => ({ href: i.href, label: nav[i.label], Icon: i.Icon })),
-  }));
-  const footer: NavItem[] = FOOTER.map((i) => ({
-    href: i.href,
-    label: nav[i.label],
-    Icon: i.Icon,
-  }));
+  const { openGuide } = useGuide();
 
   return (
     <nav className="mt-7 flex flex-1 flex-col gap-6">
-      {groups.map((group) => (
-        <div key={group.title}>
-          <span className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
-            {group.title}
-          </span>
-          <ul className="space-y-1">
-            {group.items.map((item) => (
-              <li key={item.href}>
-                <NavLink item={item} active={isActive(pathname, item.href)} />
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
-
-      <ul className="mt-auto space-y-1">
-        {footer.map((item) => (
+      <ul className="space-y-1">
+        {NAV.map((item) => (
           <li key={item.href}>
-            <NavLink item={item} active={isActive(pathname, item.href)} />
+            <NavLink
+              href={item.href}
+              label={nav[item.label]}
+              Icon={item.Icon}
+              active={isActive(pathname, item.href)}
+              onNavigate={onNavigate}
+            />
           </li>
         ))}
+      </ul>
+
+      <ul className="mt-auto space-y-1">
+        <li>
+          <NavLink
+            href="/dashboard/settings"
+            label={nav.settings}
+            Icon={Gear}
+            active={isActive(pathname, "/dashboard/settings")}
+            onNavigate={onNavigate}
+          />
+        </li>
+        <li>
+          {/* A button, not a link: Help opens the guide overlay in place, so
+              the active-state styling never applies. */}
+          <button
+            type="button"
+            onClick={() => {
+              onNavigate?.();
+              openGuide();
+            }}
+            className={navItemClass(false)}
+          >
+            <Info className={navIconClass(false)} />
+            <span className="min-w-0 truncate text-sm font-medium leading-tight">{nav.help}</span>
+          </button>
+        </li>
       </ul>
     </nav>
   );
@@ -126,7 +270,6 @@ export function Sidebar() {
   return (
     <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-neutral-200 bg-white px-4 py-5 md:flex">
       <Brand />
-
       <DashboardNav />
     </aside>
   );

@@ -32,6 +32,7 @@ function ProgressOverlay() {
 }
 
 function SubmitButton() {
+  const t = useT();
   const { pending } = useFormStatus();
   return (
     <button
@@ -40,17 +41,20 @@ function SubmitButton() {
       className="press inline-flex h-[38px] items-center justify-center gap-2 rounded-lg bg-neutral-900 px-4 text-sm font-medium text-white transition-colors hover:bg-neutral-800 disabled:opacity-60"
     >
       <Plus className="h-4 w-4" />
-      {pending ? "Creating…" : "Create assistant"}
+      {pending ? t.assistants.createPending : t.assistants.createButton}
     </button>
   );
 }
 
 export function CreateAssistantForm() {
+  const t = useT();
   return (
     <form action={createAssistantAction} className="flex flex-col gap-3 sm:flex-row sm:items-end">
       <div className="flex-1">
-        <label htmlFor="name" className="mb-1.5 block text-sm font-medium text-neutral-700">Name</label>
-        <input id="name" name="name" placeholder="e.g. Front desk" className={field} />
+        <label htmlFor="name" className="mb-1.5 block text-sm font-medium text-neutral-700">
+          {t.assistants.name}
+        </label>
+        <input id="name" name="name" placeholder={t.assistants.namePlaceholder} className={field} />
       </div>
       <SubmitButton />
       <Progress />

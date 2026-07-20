@@ -3,10 +3,12 @@ import Link from "next/link";
 import { listAssistants, listNumbers, type Assistant } from "@/lib/dashboard/db";
 import { formatPhone } from "@/lib/call-engine/voice/phone-language";
 import { currentUserId } from "@/lib/auth";
-import { Bot, ChevronDown, Phone } from "../icons";
+import { ChevronDown, Phone } from "../icons";
 import { Tooltip } from "../components/Tooltip";
-import { EnabledToggle } from "./EnabledToggle";
+import { AssistantPowerToggle } from "../components/AssistantPowerToggle";
 import { getDictionary } from "@/lib/i18n/server";
+import { AiAvatar } from "@/app/onboarding/AiAvatar";
+import { moodForVoiceId } from "@/app/onboarding/personality";
 
 const LANGUAGE_LABELS: Record<string, string> = {
   en: "English",
@@ -23,7 +25,8 @@ function languageLabel(code: string): string {
 
 export async function AssistantsList() {
   const ownerId = await currentUserId();
-  const L = (await getDictionary()).assistants;
+  const t = await getDictionary();
+  const L = t.assistants;
   const steps = [
     { n: 1, title: L.step1Title, body: L.step1Body },
     { n: 2, title: L.step2Title, body: L.step2Body },
@@ -51,8 +54,10 @@ export async function AssistantsList() {
     return (
       <section className="shape-card glass p-6 sm:p-8">
         <div className="flex items-start gap-4">
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-neutral-900 text-white">
-            <Bot className="h-6 w-6" />
+          <span className="ava-ring shrink-0" style={{ "--ava-size": "48px" } as CSSProperties}>
+            <span>
+              <AiAvatar mood="greeting" className="h-[82%] w-[82%]" />
+            </span>
           </span>
           <div>
             <h2 className="text-lg font-semibold tracking-tight text-neutral-900">
@@ -113,8 +118,12 @@ export async function AssistantsList() {
                 className="absolute inset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-neutral-900/60"
               />
 
-              <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-neutral-900 text-white">
-                <Bot className="h-5 w-5" />
+              <span className="relative shrink-0">
+                <span className="ava-ring transition-transform duration-200 group-hover:scale-110">
+                  <span>
+                    <AiAvatar mood={moodForVoiceId(a.voice_id)} className="h-[82%] w-[82%]" label={a.name} />
+                  </span>
+                </span>
                 <span
                   className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white ${
                     a.enabled ? "bg-emerald-500" : "bg-amber-500"
@@ -132,8 +141,8 @@ export async function AssistantsList() {
                   side="top"
                   label={
                     number
-                      ? "The phone number callers dial to reach this assistant."
-                      : "No number yet - open the assistant to get one so it can take calls."
+                      ? L.numberTooltip
+                      : L.noNumberTooltip
                   }
                   className={`hidden text-xs sm:inline-flex ${
                     number ? "font-medium text-neutral-700" : "text-neutral-400"
@@ -145,7 +154,12 @@ export async function AssistantsList() {
                   </span>
                 </Tooltip>
 
-                <EnabledToggle id={a.id} enabled={a.enabled} />
+                <AssistantPowerToggle
+                  id={a.id}
+                  enabled={a.enabled}
+                  pauseLabel={t.home.pause}
+                  resumeLabel={t.home.resume}
+                />
               </div>
 
               <ChevronDown className="h-4 w-4 shrink-0 -rotate-90 text-neutral-300 transition-all group-hover:translate-x-0.5 group-hover:text-neutral-900" />

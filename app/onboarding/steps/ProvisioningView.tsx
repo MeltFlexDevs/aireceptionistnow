@@ -7,6 +7,7 @@ import { useT } from "@/lib/i18n/client";
 import { Spinner } from "@/app/dashboard/icons";
 import { fillTemplate } from "../personality";
 import { AiAvatar } from "../AiAvatar";
+import { AssistantReveal } from "../AssistantReveal";
 import { ensureProvisioningAction, type ProvisionPoll } from "../actions";
 
 const POLL_MS = 2500;
@@ -73,30 +74,28 @@ export function ProvisioningView({ assistantName = "" }: { assistantName?: strin
 
   if (state.status === "done") {
     return (
-      <section className="rise flex flex-col items-center py-16 text-center">
-        <div className="onb-aura">
-          <div className="onb-avatar-disc">
-            <AiAvatar mood="celebrate" className="h-[74%] w-[74%]" />
-          </div>
-        </div>
-        <h1 className="mt-6 text-2xl font-semibold tracking-tight text-neutral-900">
-          {name ? fillTemplate(o.doneTitleNamed, { name }) : o.doneTitle}
-        </h1>
-        <p className="mt-2 text-sm text-neutral-500">
-          {name ? fillTemplate(o.doneSubNamed, { name }) : o.doneSub}
-        </p>
-        {state.e164 && (
-          <p className="mt-3 text-3xl font-medium tracking-tight text-neutral-900 tabular-nums">
-            {formatPhone(state.e164)}
+      <section className="flex flex-col items-center py-16 text-center">
+        <AssistantReveal />
+        <div className="onb-reveal-copy flex flex-col items-center">
+          <h1 className="mt-6 text-2xl font-semibold tracking-tight text-neutral-900">
+            {name ? fillTemplate(o.doneTitleNamed, { name }) : o.doneTitle}
+          </h1>
+          <p className="mt-2 text-sm text-neutral-500">
+            {name ? fillTemplate(o.doneSubNamed, { name }) : o.doneSub}
           </p>
-        )}
-        <button
-          type="button"
-          onClick={() => router.push("/dashboard")}
-          className="press mt-8 inline-flex h-10 items-center rounded-lg bg-neutral-900 px-5 text-sm font-medium text-white hover:bg-neutral-800"
-        >
-          {o.doneCta}
-        </button>
+          {state.e164 && (
+            <p className="mt-3 text-3xl font-medium tracking-tight text-neutral-900 tabular-nums">
+              {formatPhone(state.e164)}
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={() => router.push("/dashboard")}
+            className="press mt-8 inline-flex h-10 items-center rounded-lg bg-neutral-900 px-5 text-sm font-medium text-white hover:bg-neutral-800"
+          >
+            {o.doneCta}
+          </button>
+        </div>
       </section>
     );
   }
@@ -125,8 +124,8 @@ export function ProvisioningView({ assistantName = "" }: { assistantName?: strin
   const waiting = state.status === "waiting-payment";
   return (
     <section className="rise flex flex-col items-center py-16 text-center" aria-busy>
-      <div className="onb-aura">
-        <div className="onb-avatar-disc">
+      <div className="ava-aura">
+        <div className="ava-disc">
           <AiAvatar mood="friendly" className="h-[74%] w-[74%]" />
         </div>
       </div>

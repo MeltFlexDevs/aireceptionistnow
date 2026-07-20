@@ -21,7 +21,7 @@ function returnBase(req: NextRequest): string {
   ) {
     return next;
   }
-  return "/dashboard/integrations";
+  return "/dashboard/calendar";
 }
 
 function redirectTo(req: NextRequest, params: Record<string, string>): Response {

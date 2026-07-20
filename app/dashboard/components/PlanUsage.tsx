@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { PlanContext } from "@/lib/dashboard/plan";
+import { getDictionary } from "@/lib/i18n/server";
 
 interface Props {
   ctx: PlanContext;
@@ -17,7 +18,7 @@ function Meter({ label, used, limit }: { label: string; used: number; limit: num
     <div>
       <div className="flex items-center justify-between text-sm">
         <span className="text-neutral-600">{label}</span>
-        <span className={`font-medium ${atLimit ? "text-neutral-900" : "text-neutral-900"}`}>
+        <span className="font-medium text-neutral-900">
           {used}
           <span className="text-neutral-400"> / {fmtLimit(limit)}</span>
         </span>
@@ -32,23 +33,23 @@ function Meter({ label, used, limit }: { label: string; used: number; limit: num
   );
 }
 
-export function PlanUsage({ ctx }: Props) {
+export async function PlanUsage({ ctx }: Props) {
+  const s = (await getDictionary()).settings;
   const showUpgrade = !ctx.active || !ctx.canAddNumber;
+  const fill = (tpl: string, n: string) => tpl.replace("{n}", n);
 
   return (
     <div>
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-sm font-medium text-neutral-900">Plan</h2>
+            <h2 className="text-sm font-medium text-neutral-900">{s.plan}</h2>
             <span className="rounded-full bg-neutral-900 px-2 py-0.5 text-xs font-medium text-white">
               {ctx.planName}
             </span>
           </div>
           <p className="mt-0.5 text-xs text-neutral-500">
-            {ctx.active
-              ? "Active subscription"
-              : "No active subscription. Entry tier limits apply."}
+            {ctx.active ? s.planActive : s.planInactive}
           </p>
         </div>
         {showUpgrade && (
@@ -56,21 +57,28 @@ export function PlanUsage({ ctx }: Props) {
             href="/pricing"
             className="inline-flex h-8 shrink-0 items-center rounded-lg bg-neutral-900 px-3 text-xs font-medium text-white transition-colors hover:bg-neutral-800"
           >
-            {ctx.active ? "Upgrade" : "Choose a plan"}
+            {ctx.active ? s.upgrade : s.choosePlan}
           </Link>
         )}
       </div>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        <Meter label="Phone numbers" used={ctx.usage.numbers} limit={ctx.limits.phoneNumbers} />
-        <Meter label="Assistants" used={ctx.usage.assistants} limit={ctx.limits.assistants} />
+        <Meter label={s.meterNumbers} used={ctx.usage.numbers} limit={ctx.limits.phoneNumbers} />
+        {/* "Assistants" was the old label; the persona is one receptionist. */}
+        <Meter
+          label={s.meterReceptionists}
+          used={ctx.usage.assistants}
+          limit={ctx.limits.assistants}
+        />
       </div>
 
       <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 border-t border-neutral-100 pt-3 text-xs text-neutral-500">
-        <span>{fmtLimit(ctx.limits.concurrentCalls)} concurrent calls</span>
-        <span>{ctx.limits.minutesIncluded.toLocaleString()} min included</span>
-        <span>{ctx.limits.contacts.toLocaleString()} contacts</span>
-        <span>{fmtLimit(ctx.limits.users)} user{ctx.limits.users === 1 ? "" : "s"}</span>
+        <span>{fill(s.limitConcurrent, fmtLimit(ctx.limits.concurrentCalls))}</span>
+        <span>{fill(s.limitMinutes, ctx.limits.minutesIncluded.toLocaleString())}</span>
+        <span>{fill(s.limitContacts, ctx.limits.contacts.toLocaleString())}</span>
+        <span>
+          {ctx.limits.users === 1 ? s.limitUsersOne : fill(s.limitUsers, fmtLimit(ctx.limits.users))}
+        </span>
       </div>
     </div>
   );

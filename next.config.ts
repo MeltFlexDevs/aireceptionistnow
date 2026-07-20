@@ -13,6 +13,16 @@ const nextConfig: NextConfig = {
     // Next 16 requires an explicit quality allowlist. 75 is the default we use.
     qualities: [75],
   },
+  async redirects() {
+    // The company pages lived under /dashboard/organizations before.
+    return [
+      {
+        source: "/dashboard/organizations/:path*",
+        destination: "/dashboard/company/:path*",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

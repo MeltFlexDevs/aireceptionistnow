@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useFormStatus } from "react-dom";
+import { useT } from "@/lib/i18n/client";
 
 const VARIANTS = {
   primary: "bg-neutral-900 text-white hover:bg-neutral-800",
@@ -28,6 +29,7 @@ function Spinner() {
 
 interface Props {
   children: ReactNode;
+  /** Defaults to the localized "Saving…". */
   pendingText?: string;
   variant?: keyof typeof VARIANTS;
   icon?: ReactNode;
@@ -37,12 +39,13 @@ interface Props {
 
 export function SubmitButton({
   children,
-  pendingText = "Working…",
+  pendingText,
   variant = "primary",
   icon,
   disabled = false,
   className = "",
 }: Props) {
+  const t = useT();
   const { pending } = useFormStatus();
   return (
     <button
@@ -52,7 +55,7 @@ export function SubmitButton({
       className={`press inline-flex h-9 items-center justify-center gap-2 rounded-lg px-4 text-sm font-medium disabled:cursor-wait disabled:opacity-70 ${VARIANTS[variant]} ${className}`}
     >
       {pending ? <Spinner /> : icon}
-      {pending ? pendingText : children}
+      {pending ? (pendingText ?? t.common.saving) : children}
     </button>
   );
 }

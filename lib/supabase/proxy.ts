@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { publicSupabaseEnv } from "./config";
+import { devDashboardBypass, publicSupabaseEnv } from "./config";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -32,7 +32,7 @@ export async function updateSession(request: NextRequest) {
   const user = data?.claims;
   const { pathname } = request.nextUrl;
 
-  if (!user && pathname.startsWith("/dashboard")) {
+  if (!user && pathname.startsWith("/dashboard") && !devDashboardBypass()) {
     const url = request.nextUrl.clone();
     url.pathname = "/";
     url.searchParams.set("auth", "login");

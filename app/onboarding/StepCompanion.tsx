@@ -20,7 +20,7 @@ export function StepCompanion({
 }) {
   return (
     <div className="rise mb-6 flex items-start gap-3.5">
-      <div className="onb-companion-avatar shrink-0">
+      <div className="ava-ring shrink-0">
         <span>
           <AiAvatar mood={mood} className="h-[82%] w-[82%]" label={name || role} />
         </span>

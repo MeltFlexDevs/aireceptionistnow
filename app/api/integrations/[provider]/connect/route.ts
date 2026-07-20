@@ -22,7 +22,7 @@ export async function GET(
   const next = safeNext(req.nextUrl.searchParams.get("next"));
 
   if (!isOAuthConfigured(provider)) {
-    const back = next ?? "/dashboard/integrations";
+    const back = next ?? "/dashboard/calendar";
     const sep = back.includes("?") ? "&" : "?";
     return NextResponse.redirect(
       new URL(

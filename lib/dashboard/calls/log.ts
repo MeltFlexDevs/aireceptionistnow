@@ -137,6 +137,8 @@ export async function getCallLog(
   filters: CallFilters = {},
   ownerId?: string | null,
   limit?: number,
+  /** Viewer's locale for date labels; the page threads it in. */
+  locale?: string,
 ): Promise<CallLog> {
   // Search/status filters run in memory, so a filtered view must scan deep
   // enough that older calls stay findable; the plain view stays light.
@@ -148,7 +150,7 @@ export async function getCallLog(
     listTwilioCallsCached(Math.max(scan, 500)).catch(() => [] as TwilioCallLog[]),
     ownerTimezone(ownerId),
   ]);
-  const fmtDateTime = dateTimeFmt(tz);
+  const fmtDateTime = dateTimeFmt(tz, locale);
 
   const dbBySid = new Map<string, DbCallRow>();
   for (const c of dbCalls) if (c.sid) dbBySid.set(c.sid, c);
