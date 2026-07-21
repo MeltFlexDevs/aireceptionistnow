@@ -28,6 +28,7 @@ export const meta = {
   readingTime: "11 min read",
   tag: "Guides",
   hero: "/blog/24-7-ai-receptionist-hero.svg",
+  ogImage: "/blog/24-7-ai-receptionist-og.webp",
   heroAlt:
     "A dark AI receptionist chip with a voice waveform inside a 24-hour clock ring, flanked by a sun and moon - always-on phone coverage",
   heroWidth: 1600,

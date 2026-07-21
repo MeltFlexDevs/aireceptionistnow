@@ -68,6 +68,8 @@ export type PostMeta = {
   heroHeight: number;
   heroCredit?: string;
   heroCreditUrl?: string;
+  /** Raster (webp/png) image for og:image & schema - required when hero is an SVG, which social crawlers won't render. */
+  ogImage?: string;
   keywords: string[];
   sections: { id: string; title: string }[];
   faqs: FaqItem[];

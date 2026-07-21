@@ -28,6 +28,7 @@ export const meta = {
   readingTime: "12 min read",
   tag: "Industries",
   hero: "/blog/medical-answering-service-hero.svg",
+  ogImage: "/blog/medical-answering-service-og.webp",
   heroAlt:
     "A medical cross beside a dark AI receptionist chip with a voice waveform and a 24/7 badge - round-the-clock patient call coverage for clinics",
   heroWidth: 1600,

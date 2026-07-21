@@ -29,6 +29,7 @@ export const meta = {
   readingTime: "10 min read",
   tag: "Guides",
   hero: "/blog/receptionist-comparison-hero.svg",
+  ogImage: "/blog/receptionist-comparison-og.webp",
   heroAlt:
     "Three ways to answer business calls compared side by side: an answering service message pad, a virtual receptionist headset, and an AI voice waveform",
   heroWidth: 1600,

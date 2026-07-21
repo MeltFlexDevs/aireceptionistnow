@@ -22,7 +22,7 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
-const defaultTitle = "AI Receptionist - Answer Every Call 24/7";
+const defaultTitle = "AI Receptionist - 24/7 AI Phone Answering Service";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

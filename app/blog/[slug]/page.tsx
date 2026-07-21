@@ -25,6 +25,8 @@ export async function generateMetadata({
   if (!post) return {};
 
   const url = `${siteUrl}/blog/${post.slug}`;
+  // Social crawlers don't render SVG - prefer the raster ogImage when the hero is vector.
+  const shareImage = post.ogImage ?? post.hero;
   return {
     // absolute: keep the brand suffix off so the title fits Google's ~60 char limit
     title: { absolute: post.title },
@@ -42,7 +44,7 @@ export async function generateMetadata({
       modifiedTime: post.updated,
       images: [
         {
-          url: post.hero,
+          url: shareImage,
           width: post.heroWidth,
           height: post.heroHeight,
           alt: post.heroAlt,
@@ -53,7 +55,7 @@ export async function generateMetadata({
       card: "summary_large_image",
       title: post.title,
       description: post.description,
-      images: [post.hero],
+      images: [shareImage],
     },
   };
 }
@@ -78,7 +80,7 @@ export default async function BlogPostPage({
       "@type": "BlogPosting",
       headline: post.title,
       description: post.description,
-      image: `${siteUrl}${post.hero}`,
+      image: `${siteUrl}${post.ogImage ?? post.hero}`,
       datePublished: post.date,
       dateModified: post.updated,
       keywords: post.keywords.join(", "),

@@ -29,6 +29,7 @@ export const meta = {
   readingTime: "12 min read",
   tag: "Guides",
   hero: "/blog/voice-hero.svg",
+  ogImage: "/blog/voice-og.webp",
   heroAlt:
     "An audio waveform in a soft pastel panel with a phone icon, representing a natural-sounding AI voice on a phone call",
   heroWidth: 1600,

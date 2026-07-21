@@ -28,6 +28,7 @@ export const meta = {
   readingTime: "12 min read",
   tag: "Guides",
   hero: "/blog/replace-receptionist-hero.svg",
+  ogImage: "/blog/replace-receptionist-og.webp",
   heroAlt:
     "A front-desk phone handing its ringing calls across an arrow to a dark AI receptionist chip with a voice waveform - the phone work moves, the person doesn't have to",
   heroWidth: 1600,
