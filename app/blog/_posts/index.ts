@@ -129,6 +129,59 @@ export function getPost(slug: string): Post | undefined {
   return posts.find((p) => p.slug === slug);
 }
 
+// Words too generic to signal topical similarity between posts.
+const RELATED_STOPWORDS = new Set([
+  "ai",
+  "receptionist",
+  "receptionists",
+  "virtual",
+  "answering",
+  "service",
+  "services",
+  "phone",
+  "call",
+  "calls",
+  "business",
+  "small",
+  "guide",
+  "2026",
+  "how",
+  "what",
+  "much",
+  "does",
+  "cost",
+  "for",
+  "with",
+  "the",
+  "and",
+]);
+
+function topicWords(p: PostMeta): Set<string> {
+  const words = [...p.keywords, p.title, p.slug.replace(/-/g, " ")]
+    .join(" ")
+    .toLowerCase()
+    .split(/[^a-z0-9/]+/)
+    .filter((w) => w.length > 2 && !RELATED_STOPWORDS.has(w));
+  return new Set(words);
+}
+
+/** Topically closest posts (shared tag + keyword overlap), newest first on ties. */
+export function relatedPosts(slug: string, n = 3): Post[] {
+  const current = getPost(slug);
+  if (!current) return posts.slice(0, n);
+  const currentWords = topicWords(current);
+  return posts
+    .filter((p) => p.slug !== slug)
+    .map((p) => {
+      let overlap = 0;
+      for (const w of topicWords(p)) if (currentWords.has(w)) overlap++;
+      return { p, score: (p.tag === current.tag ? 2 : 0) + overlap };
+    })
+    .sort((a, b) => b.score - a.score || (a.p.date < b.p.date ? 1 : -1))
+    .slice(0, n)
+    .map((x) => x.p);
+}
+
 export function formatDate(date: string): string {
   return new Date(`${date}T00:00:00Z`).toLocaleDateString("en-US", {
     year: "numeric",

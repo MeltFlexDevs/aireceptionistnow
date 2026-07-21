@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { siteUrl, siteName, logoUrl, getAuthor } from "@/lib/site";
-import { posts, getPost, formatDate } from "../_posts";
+import { posts, getPost, relatedPosts, formatDate } from "../_posts";
 import { PostToc } from "../_components/post-toc";
 import { BlogCtaCard } from "../_components/blog-cta";
 
@@ -71,7 +71,7 @@ export default async function BlogPostPage({
 
   const { Body } = post;
   const a = getAuthor(post.author);
-  const others = posts.filter((p) => p.slug !== post.slug).slice(0, 3);
+  const others = relatedPosts(post.slug, 3);
   const url = `${siteUrl}/blog/${post.slug}`;
 
   const jsonLd = [
@@ -165,6 +165,17 @@ export default async function BlogPostPage({
               </a>
               <span aria-hidden="true" className="size-[3px] rounded-full bg-[#ccc]" />
               <time dateTime={post.date}>{formatDate(post.date)}</time>
+              {post.updated !== post.date && (
+                <>
+                  <span aria-hidden="true" className="size-[3px] rounded-full bg-[#ccc]" />
+                  <span>
+                    Updated{" "}
+                    <time dateTime={post.updated}>
+                      {formatDate(post.updated)}
+                    </time>
+                  </span>
+                </>
+              )}
               <span aria-hidden="true" className="size-[3px] rounded-full bg-[#ccc]" />
               <span>{post.readingTime}</span>
             </div>

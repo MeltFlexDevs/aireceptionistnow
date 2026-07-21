@@ -40,6 +40,7 @@ const defs: Answer[] = [
     author: "matus",
     related: [
       "what-happens-if-an-ai-receptionist-cant-answer",
+      "can-an-ai-receptionist-handle-emergency-calls",
       "ai-receptionist-vs-ivr",
       "use-existing-phone-number-with-ai-receptionist",
     ],
@@ -527,6 +528,7 @@ const defs: Answer[] = [
     related: [
       "ai-receptionist-vs-ivr",
       "can-an-ai-receptionist-transfer-calls-to-a-human",
+      "can-an-ai-receptionist-handle-multiple-locations",
       "use-existing-phone-number-with-ai-receptionist",
     ],
     faqs: [
