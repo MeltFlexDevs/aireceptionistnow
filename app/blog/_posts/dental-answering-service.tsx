@@ -25,7 +25,7 @@ export const meta = {
   description:
     "A dental answering service that catches every new-patient and recall call, books into your practice software, and triages emergencies - HIPAA-compliant.",
   date: "2026-06-30",
-  updated: "2026-07-04",
+  updated: "2026-07-21",
   readingTime: "12 min read",
   tag: "Industries",
   hero: "/blog/dental-new-patient-exam.webp",
@@ -525,6 +525,11 @@ export default function Body() {
         legal world is in our{" "}
         <Internal href="/blog/law-firm-answering-service">
           law firm answering service guide
+        </Internal>
+        , and the broader healthcare version - HIPAA, the BAA, and clinical
+        triage rules - is in our{" "}
+        <Internal href="/blog/medical-answering-service">
+          medical answering service guide
         </Internal>
         . Then see how our{" "}
         <Internal href="/">AI receptionist</Internal> works, check the{" "}

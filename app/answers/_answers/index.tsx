@@ -619,19 +619,21 @@ const defs: Answer[] = [
     slug: "what-languages-can-an-ai-receptionist-speak",
     question: "What languages can an AI receptionist speak?",
     shortAnswer:
-      "Modern AI receptionists handle dozens of languages, typically 25 or more, including English, Spanish, French, and German, and can detect or switch language on the call. That lets one setup serve a multilingual customer base without hiring separate staff for each language.",
+      "Modern AI receptionists handle multiple languages and dialects - typically 25 or more languages, including English, Spanish, French, and German - and can detect or switch language mid-call. Regional accents and dialects are handled well in major languages, so one setup serves a multilingual customer base without hiring separate staff for each language.",
     description:
-      "Modern AI receptionists speak 25+ languages including English, Spanish, French and German, and can switch mid-call, so one setup serves a multilingual base.",
+      "AI receptionists handle multiple languages and dialects - 25+ languages including English, Spanish, French and German - and switch mid-call, so one setup serves everyone.",
     keywords: [
       "what languages can an AI receptionist speak",
+      "can AI receptionists handle multiple languages and dialects",
       "multilingual AI receptionist",
       "AI receptionist Spanish",
       "AI receptionist languages",
+      "AI receptionist dialects",
       "bilingual AI receptionist",
     ],
     category: "Features",
     date: "2026-06-29",
-    updated: "2026-06-29",
+    updated: "2026-07-21",
     author: "brano",
     related: [
       "do-callers-know-its-an-ai-receptionist",

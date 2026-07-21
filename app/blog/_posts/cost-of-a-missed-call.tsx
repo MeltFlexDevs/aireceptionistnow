@@ -22,9 +22,9 @@ export const meta = {
   slug: "cost-of-a-missed-call",
   title: "How Much Does a Missed Call Cost Your Business?",
   description:
-    "A missed call isn't a zero - it's a lead who dials your competitor. Put a real dollar figure on your missed calls, and the cheapest way to stop them.",
+    "What do missed calls cost a small business? A missed call isn't a zero - it's a lead dialling your competitor. Put a real dollar figure on yours, and the cheapest fix.",
   date: "2026-07-13",
-  updated: "2026-07-13",
+  updated: "2026-07-21",
   readingTime: "11 min read",
   tag: "Guides",
   hero: "/blog/cost-of-a-missed-call-hero.webp",
@@ -35,7 +35,9 @@ export const meta = {
   keywords: [
     "cost of a missed call",
     "how much does a missed call cost",
+    "missed calls cost small business",
     "missed calls small business",
+    "receptionist services for missed calls",
     "missed call revenue loss",
     "how much revenue do missed calls cost",
     "stop missing business calls",

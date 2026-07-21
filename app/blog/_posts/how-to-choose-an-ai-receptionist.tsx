@@ -24,7 +24,7 @@ export const meta = {
   description:
     "A vendor-neutral framework for choosing an AI receptionist: the features that matter, the pricing traps, how to run a real demo, and the red flags that should end the call.",
   date: "2026-06-27",
-  updated: "2026-07-04",
+  updated: "2026-07-21",
   readingTime: "12 min read",
   tag: "Guides",
   hero: "/blog/choose-ai-receptionist-checklist.webp",
@@ -466,8 +466,13 @@ export default function Body() {
         </LI>
       </OL>
       <P>
-        If a vendor won&apos;t let you trial it on your own number with your own
-        calls, that&apos;s information too. And to know what a well-built script
+        Run at least one of those test calls outside business hours - a
+        vendor&apos;s 24/7 claim is checkable at midnight, and our{" "}
+        <Internal href="/blog/24-7-ai-receptionist">
+          24/7 AI receptionist guide
+        </Internal>{" "}
+        lists exactly what to probe. If a vendor won&apos;t let you trial it on
+        your own number with your own calls, that&apos;s information too. And to know what a well-built script
         should sound like before you judge anyone&apos;s demo, skim our{" "}
         <Internal href="/blog/ai-receptionist-prompts">
           AI receptionist prompts and templates
