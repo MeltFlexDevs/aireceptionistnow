@@ -1,68 +1,81 @@
-<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" role="img" aria-label="A 24-hour timeline of business calls: overnight emergencies and triage, morning and daytime overflow while staff are busy, the evening booking window after callers finish work, and weekend calls competitors miss">
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" role="img" aria-label="A 24-hour timeline: an AI receptionist bar covers all hours, while the staffed front desk covers only 8am to 5pm. Cards explain the overnight triage calls, daytime overflow, the evening booking window, and weekend calls competitors miss">
   <rect width="1200" height="630" fill="#faf8ff"/>
   <rect x="0.5" y="0.5" width="1199" height="629" fill="none" stroke="#ece7f6"/>
 
-  <text x="60" y="66" font-size="26" font-weight="600" fill="#1a1a1a">The same phone, four different jobs</text>
-  <text x="60" y="100" font-size="16" fill="#8a8398">What a 24/7 AI receptionist is actually catching at each part of the day.</text>
+  <text x="60" y="60" font-size="26" font-weight="600" fill="#1a1a1a">The same phone, four different jobs</text>
+  <text x="60" y="94" font-size="16" fill="#8a8398">What a 24/7 AI receptionist is catching at each part of the day - and what a staffed desk can reach.</text>
 
-  <!-- timeline bar -->
-  <g transform="translate(60 180)">
-    <!-- segments: 0-8 night, 8-17 day, 17-22 evening, 22-24 night -->
-    <rect x="0" y="0" width="360" height="46" rx="10" fill="#e7dffb"/>
-    <rect x="368" y="0" width="404" height="46" rx="10" fill="#5b3ef0"/>
-    <rect x="780" y="0" width="224" height="46" rx="10" fill="#8f7bf5"/>
-    <rect x="1012" y="0" width="68" height="46" rx="10" fill="#e7dffb"/>
+  <!-- AI coverage bar: full 24h -->
+  <rect x="60" y="136" width="1080" height="36" rx="8" fill="#1a1a1a"/>
+  <text x="600" y="159" text-anchor="middle" font-size="13" font-weight="600" fill="#ffffff" letter-spacing="0.06em">AI RECEPTIONIST - EVERY HOUR ANSWERED</text>
 
-    <!-- tick labels -->
-    <text x="0" y="76" font-size="13" fill="#a49dba">12a</text>
-    <text x="360" y="76" font-size="13" fill="#a49dba" text-anchor="middle">8a</text>
-    <text x="772" y="76" font-size="13" fill="#a49dba" text-anchor="middle">5p</text>
-    <text x="1008" y="76" font-size="13" fill="#a49dba" text-anchor="middle">10p</text>
-    <text x="1080" y="76" font-size="13" fill="#a49dba" text-anchor="end">12a</text>
+  <!-- human coverage bar: 45px per hour, 0-8 / 8-17 / 17-22 / 22-24 -->
+  <g>
+    <rect x="60" y="192" width="358" height="44" rx="10" fill="#e7dffb"/>
+    <rect x="422" y="192" width="403" height="44" rx="10" fill="#5b3ef0"/>
+    <rect x="829" y="192" width="221" height="44" rx="10" fill="#8f7bf5"/>
+    <rect x="1054" y="192" width="86" height="44" rx="10" fill="#e7dffb"/>
+
+    <text x="239" y="219" text-anchor="middle" font-size="12" font-weight="600" fill="#6c6579" letter-spacing="0.06em">NIGHT</text>
+    <text x="623" y="219" text-anchor="middle" font-size="12" font-weight="600" fill="#ffffff" letter-spacing="0.06em">STAFFED HOURS</text>
+    <text x="939" y="219" text-anchor="middle" font-size="12" font-weight="600" fill="#ffffff" letter-spacing="0.06em">EVENING</text>
   </g>
 
-  <!-- cards -->
-  <g transform="translate(60 300)">
-    <rect x="0" y="0" width="252" height="240" rx="16" fill="#ffffff" stroke="#e4def1" stroke-width="2"/>
-    <text x="22" y="38" font-size="13" font-weight="700" fill="#8f7bf5" letter-spacing="0.06em">OVERNIGHT</text>
-    <text x="22" y="70" font-size="16" font-weight="600" fill="#1a1a1a">Triage</text>
-    <text x="22" y="100" font-size="14" fill="#3a3350">Low volume, high stakes.</text>
-    <text x="22" y="124" font-size="14" fill="#3a3350">Answer everything, wake a</text>
-    <text x="22" y="148" font-size="14" fill="#3a3350">human only for genuine</text>
-    <text x="22" y="172" font-size="14" fill="#3a3350">emergencies. The rest waits</text>
-    <text x="22" y="196" font-size="14" fill="#3a3350">politely until morning.</text>
+  <!-- hour ticks -->
+  <g font-size="13" fill="#a49dba">
+    <text x="60" y="262">12a</text>
+    <text x="420" y="262" text-anchor="middle">8a</text>
+    <text x="827" y="262" text-anchor="middle">5p</text>
+    <text x="1052" y="262" text-anchor="middle">10p</text>
+    <text x="1140" y="262" text-anchor="end">12a</text>
   </g>
 
-  <g transform="translate(336 300)">
-    <rect x="0" y="0" width="252" height="240" rx="16" fill="#ffffff" stroke="#e4def1" stroke-width="2"/>
-    <text x="22" y="38" font-size="13" font-weight="700" fill="#5b3ef0" letter-spacing="0.06em">BUSINESS HOURS</text>
-    <text x="22" y="70" font-size="16" font-weight="600" fill="#1a1a1a">Overflow</text>
-    <text x="22" y="100" font-size="14" fill="#3a3350">Staff are with customers,</text>
-    <text x="22" y="124" font-size="14" fill="#3a3350">two calls land at once. The</text>
-    <text x="22" y="148" font-size="14" fill="#3a3350">AI takes the second and</text>
-    <text x="22" y="172" font-size="14" fill="#3a3350">third ring your one line</text>
-    <text x="22" y="196" font-size="14" fill="#3a3350">would otherwise drop.</text>
+  <!-- cards: 4 x 252 wide, 24px gaps, aligned to the bar (60..1140) -->
+  <g transform="translate(60 296)">
+    <rect x="0" y="0" width="252" height="264" rx="16" fill="#ffffff" stroke="#e4def1" stroke-width="2"/>
+    <rect x="0" y="0" width="252" height="6" rx="3" fill="#e7dffb"/>
+    <text x="22" y="44" font-size="13" font-weight="700" fill="#8f7bf5" letter-spacing="0.06em">OVERNIGHT</text>
+    <text x="22" y="76" font-size="17" font-weight="600" fill="#1a1a1a">Triage</text>
+    <text x="22" y="108" font-size="14" fill="#3a3350">Low volume, high stakes.</text>
+    <text x="22" y="132" font-size="14" fill="#3a3350">Answer everything, wake a</text>
+    <text x="22" y="156" font-size="14" fill="#3a3350">human only for genuine</text>
+    <text x="22" y="180" font-size="14" fill="#3a3350">emergencies - the rest</text>
+    <text x="22" y="204" font-size="14" fill="#3a3350">waits until morning.</text>
   </g>
 
-  <g transform="translate(612 300)">
-    <rect x="0" y="0" width="252" height="240" rx="16" fill="#ffffff" stroke="#e4def1" stroke-width="2"/>
-    <text x="22" y="38" font-size="13" font-weight="700" fill="#8f7bf5" letter-spacing="0.06em">EVENINGS</text>
-    <text x="22" y="70" font-size="16" font-weight="600" fill="#1a1a1a">The booking window</text>
-    <text x="22" y="100" font-size="14" fill="#3a3350">Callers handle their own</text>
-    <text x="22" y="124" font-size="14" fill="#3a3350">errands after work. Ready-</text>
-    <text x="22" y="148" font-size="14" fill="#3a3350">to-book, impatient, and</text>
-    <text x="22" y="172" font-size="14" fill="#3a3350">gone to a competitor if</text>
-    <text x="22" y="196" font-size="14" fill="#3a3350">they reach voicemail.</text>
+  <g transform="translate(336 296)">
+    <rect x="0" y="0" width="252" height="264" rx="16" fill="#ffffff" stroke="#e4def1" stroke-width="2"/>
+    <rect x="0" y="0" width="252" height="6" rx="3" fill="#5b3ef0"/>
+    <text x="22" y="44" font-size="13" font-weight="700" fill="#5b3ef0" letter-spacing="0.06em">STAFFED HOURS</text>
+    <text x="22" y="76" font-size="17" font-weight="600" fill="#1a1a1a">Overflow</text>
+    <text x="22" y="108" font-size="14" fill="#3a3350">Staff are with customers</text>
+    <text x="22" y="132" font-size="14" fill="#3a3350">and two calls land at once.</text>
+    <text x="22" y="156" font-size="14" fill="#3a3350">The AI takes the second</text>
+    <text x="22" y="180" font-size="14" fill="#3a3350">ring your one line would</text>
+    <text x="22" y="204" font-size="14" fill="#3a3350">otherwise drop.</text>
   </g>
 
-  <g transform="translate(888 300)">
-    <rect x="0" y="0" width="252" height="240" rx="16" fill="#ffffff" stroke="#e4def1" stroke-width="2"/>
-    <text x="22" y="38" font-size="13" font-weight="700" fill="#5b3ef0" letter-spacing="0.06em">WEEKENDS + HOLIDAYS</text>
-    <text x="22" y="70" font-size="16" font-weight="600" fill="#1a1a1a">The competitor gap</text>
-    <text x="22" y="100" font-size="14" fill="#3a3350">The fewest businesses</text>
-    <text x="22" y="124" font-size="14" fill="#3a3350">answer, so answering wins</text>
-    <text x="22" y="148" font-size="14" fill="#3a3350">outright - while human</text>
-    <text x="22" y="172" font-size="14" fill="#3a3350">coverage bills its highest</text>
-    <text x="22" y="196" font-size="14" fill="#3a3350">premium rates.</text>
+  <g transform="translate(612 296)">
+    <rect x="0" y="0" width="252" height="264" rx="16" fill="#ffffff" stroke="#e4def1" stroke-width="2"/>
+    <rect x="0" y="0" width="252" height="6" rx="3" fill="#8f7bf5"/>
+    <text x="22" y="44" font-size="13" font-weight="700" fill="#8f7bf5" letter-spacing="0.06em">EVENING</text>
+    <text x="22" y="76" font-size="17" font-weight="600" fill="#1a1a1a">The booking window</text>
+    <text x="22" y="108" font-size="14" fill="#3a3350">Callers handle their own</text>
+    <text x="22" y="132" font-size="14" fill="#3a3350">errands after work: ready</text>
+    <text x="22" y="156" font-size="14" fill="#3a3350">to book, impatient, and</text>
+    <text x="22" y="180" font-size="14" fill="#3a3350">gone to a competitor if</text>
+    <text x="22" y="204" font-size="14" fill="#3a3350">they reach voicemail.</text>
+  </g>
+
+  <g transform="translate(888 296)">
+    <rect x="0" y="0" width="252" height="264" rx="16" fill="#ffffff" stroke="#e4def1" stroke-width="2"/>
+    <rect x="0" y="0" width="252" height="6" rx="3" fill="#1a1a1a"/>
+    <text x="22" y="44" font-size="13" font-weight="700" fill="#1a1a1a" letter-spacing="0.06em">WEEKENDS + HOLIDAYS</text>
+    <text x="22" y="76" font-size="17" font-weight="600" fill="#1a1a1a">The competitor gap</text>
+    <text x="22" y="108" font-size="14" fill="#3a3350">The fewest businesses</text>
+    <text x="22" y="132" font-size="14" fill="#3a3350">answer, so answering wins</text>
+    <text x="22" y="156" font-size="14" fill="#3a3350">outright - while human</text>
+    <text x="22" y="180" font-size="14" fill="#3a3350">coverage bills its highest</text>
+    <text x="22" y="204" font-size="14" fill="#3a3350">premium rates.</text>
   </g>
 </svg>
