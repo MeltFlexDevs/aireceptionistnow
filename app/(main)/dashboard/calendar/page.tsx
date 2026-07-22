@@ -18,10 +18,12 @@ import {
   fetchCalendarConnections,
   fetchExternalEvents,
   groupEventsByDay,
+  isEventPast,
   loadIntegrations,
   type ExternalEvent,
 } from "@/lib/dashboard/calendar-events";
-import { clockFmt, dayKeyFn, ownerTimezone, timeFmt } from "@/lib/dashboard/timezone";
+import { clockFmt, dayKeyFn, timeFmt } from "@/lib/dashboard/timezone";
+import { displayTimezone } from "@/lib/dashboard/display-timezone";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 import { MAX_SYNC_ATTEMPTS } from "@/lib/dashboard/booking-retry";
@@ -36,6 +38,7 @@ import { Skeleton } from "../components/Skeleton";
 import { CancelBooking } from "./CancelBooking";
 import { RetrySyncButton } from "./RetrySyncButton";
 import { ManageCalendars, type CalendarRow, type ConnectableProvider } from "./ManageCalendars";
+import { TimezoneSync } from "./TimezoneSync";
 import { AiAvatar } from "@/app/(main)/onboarding/AiAvatar";
 
 export const dynamic = "force-dynamic";
@@ -225,10 +228,7 @@ async function CalendarBody({
 
   // A calendar event already over renders muted/grey, like an inactive row.
   // `nowMs` is captured once in the parent so this stays a pure render.
-  const isPastEvent = (e: ExternalEvent): boolean => {
-    const t = Date.parse(e.end) || Date.parse(e.start);
-    return Number.isFinite(t) && t <= nowMs;
-  };
+  const isPastEvent = (e: ExternalEvent): boolean => isEventPast(e, nowMs);
 
   // Window covering the whole visible grid, padded a day each side so an event
   // near a grid edge in the owner's timezone still lands on the right cell.
@@ -528,7 +528,15 @@ async function CalendarBody({
           <section className="shape-card glass shrink-0 p-4 md:col-span-1">
             <div className="mb-3 flex items-center justify-between gap-2">
               <p className="text-sm font-medium text-neutral-900">{monthTitle}</p>
-              <MonthNav cursor={cursor} c={c} compact />
+              <div className="flex items-center gap-1.5">
+                <Link
+                  href="/dashboard/calendar"
+                  className="press flex h-7 items-center rounded-lg border border-neutral-200 bg-white px-2.5 text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-50 hover:text-neutral-900"
+                >
+                  {c.today}
+                </Link>
+                <MonthNav cursor={cursor} c={c} compact />
+              </div>
             </div>
             <div className="grid grid-cols-7 gap-1">
               {weekdays.map((w) => (
@@ -654,7 +662,7 @@ export default async function CalendarPage({
   const c = t.calendar;
 
   const ownerId = (await currentUserId()) ?? null;
-  const tz = await ownerTimezone(ownerId);
+  const tz = await displayTimezone(ownerId);
   const nowDate = new Date();
   const nowMs = nowDate.getTime();
   const todayKey = dayKeyFn(tz)(nowDate);
@@ -665,22 +673,10 @@ export default async function CalendarPage({
 
   return (
     <div className={`rise flex flex-col gap-3 ${CAP}`}>
-      {/* A: header + month nav */}
+      <TimezoneSync />
+      {/* A: header */}
       <div className="shrink-0">
-        <PageHeader
-          title={c.title}
-          action={
-            <div className="flex items-center gap-2">
-              <Link
-                href="/dashboard/calendar"
-                className="press inline-flex h-8 items-center rounded-lg border border-neutral-200 bg-white px-3 text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-50"
-              >
-                {c.today}
-              </Link>
-              <MonthNav cursor={cursor} c={c} />
-            </div>
-          }
-        />
+        <PageHeader title={c.title} />
       </div>
 
       {/* B: connected calendar */}

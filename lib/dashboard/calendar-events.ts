@@ -111,6 +111,17 @@ export function groupEventsByDay(
   return byDay;
 }
 
+// An event is "past" (rendered muted/grey) once its end instant is at or before
+// `nowMs`. Comparing absolute instants is timezone-agnostic: the shown wall-time
+// and `nowMs` are the same instants the UI converts through the owner timezone,
+// so an event only greys once it has genuinely ended in real time - if a shown
+// "14:00" is still not grey at a wall-clock 15:40, the owner timezone in effect
+// differs from that wall clock (e.g. account timezone left at UTC).
+export function isEventPast(e: Pick<ExternalEvent, "start" | "end">, nowMs: number): boolean {
+  const t = Date.parse(e.end) || Date.parse(e.start);
+  return Number.isFinite(t) && t <= nowMs;
+}
+
 export interface CalendarConnection {
   id: string;
   provider: string;
