@@ -29,42 +29,6 @@ export interface BoughtNumber {
   sid: string;
 }
 
-export interface TwilioStatus {
-  configured: boolean;
-  ok: boolean;
-  error?: string;
-}
-
-const accountReachable = unstable_cache(
-  async (accountSid: string): Promise<boolean> => {
-    const keySid = process.env.TWILIO_API_KEY_SID;
-    const keySecret = process.env.TWILIO_API_KEY_SECRET;
-    const token = process.env.TWILIO_AUTH_TOKEN;
-    const auth = keySid && keySecret ? `${keySid}:${keySecret}` : `${accountSid}:${token ?? ""}`;
-    try {
-      const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${accountSid}.json`, {
-        headers: { authorization: `Basic ${Buffer.from(auth).toString("base64")}` },
-        cache: "no-store",
-      });
-      return res.ok;
-    } catch {
-      return false;
-    }
-  },
-  ["twilio-account-ok"],
-  { revalidate: 60 },
-);
-
-export async function getTwilioStatus(): Promise<TwilioStatus> {
-  const accountSid = process.env.TWILIO_ACCOUNT_SID;
-  if (!twilioConfigured() || !accountSid) {
-    return { configured: false, ok: false, error: "Twilio credentials not set." };
-  }
-  return (await accountReachable(accountSid))
-    ? { configured: true, ok: true }
-    : { configured: true, ok: false, error: "Unavailable" };
-}
-
 async function regulatoryAttachments(
   client: ReturnType<typeof twilioClient>,
   country: string,
@@ -202,16 +166,14 @@ export async function releaseTwilioNumber(sid: string): Promise<void> {
   await twilioClient().incomingPhoneNumbers(sid).remove();
 }
 
-export async function placeCall(
-  to: string,
-  from: string,
-  twiml: string,
-): Promise<string> {
-  if (!twilioConfigured()) {
-    throw new Error("Twilio credentials are not set on the server.");
-  }
-  const call = await twilioClient().calls.create({ to, from, twiml });
-  return call.sid;
+// Numbers the Twilio account already owns (voice-capable). Used by the dev
+// provisioning flow to reuse an existing number instead of purchasing a new one.
+export async function listOwnedTwilioNumbers(): Promise<BoughtNumber[]> {
+  if (!twilioConfigured()) return [];
+  const nums = await twilioClient().incomingPhoneNumbers.list({ limit: 100 });
+  return nums
+    .filter((n) => n.capabilities?.voice !== false)
+    .map((n) => ({ e164: n.phoneNumber, sid: n.sid }));
 }
 
 // ── Call logs (reconcile dashboard history against Twilio) ───────────────────

@@ -5,7 +5,7 @@ import { translateTextsOrThrow } from "@/lib/dashboard/translate";
 import { isLocale } from "@/lib/i18n/config";
 
 // Translates dynamic dashboard content (summaries, transcripts) into the
-// dashboard locale for the client-side useTranslated hook. translateTexts
+// dashboard locale for the client-side useTranslated hook. translateTextsOrThrow
 // caches per (content, locale), so repeats never re-hit the model. `ok: false`
 // tells the client the model failed (originals returned) so it won't cache
 // the fallback as a translation.

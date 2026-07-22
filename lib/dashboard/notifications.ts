@@ -34,24 +34,23 @@ function subtitleFor(c: CallRow): string {
   return `${label} · ${fmtDuration(c.duration_seconds)}`;
 }
 
+// ownerId is required, not optional. This reads through serviceClient(), which
+// bypasses RLS, so the phone_number_id filter is the only tenant boundary --
+// an absent ownerId used to drop the filter and return every tenant's calls.
 export async function getNotifications(
-  ownerId?: string | null,
+  ownerId: string,
   limit = 8,
 ): Promise<NotificationItem[]> {
   // Scope to the user's assistants' numbers. [] = owns none → no notifications.
-  const numberIds = ownerId
-    ? (await getOwnedNumbers(ownerId)).map((n) => n.id)
-    : undefined;
-  if (numberIds && numberIds.length === 0) return [];
+  const numberIds = (await getOwnedNumbers(ownerId)).map((n) => n.id);
+  if (numberIds.length === 0) return [];
 
-  let query = serviceClient()
+  const { data, error } = await serviceClient()
     .from("calls")
     .select("id,started_at,duration_seconds,status,outcome,from_number")
+    .in("phone_number_id", numberIds)
     .order("started_at", { ascending: false })
     .limit(limit);
-  if (numberIds) query = query.in("phone_number_id", numberIds);
-
-  const { data, error } = await query;
   if (error) throw error;
 
   return ((data ?? []) as CallRow[]).map((c) => ({

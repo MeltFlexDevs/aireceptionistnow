@@ -18,6 +18,10 @@ export const siteKeywords = [
 
 export const sameAs: string[] = [];
 
+// Real support inbox (also used verbatim in the privacy policy). Feeds the
+// Organization contactPoint in JSON-LD - do not point this at a placeholder.
+export const supportEmail = "info@meltflexai.com";
+
 export const logoUrl = `${siteUrl}/logo.png`;
 
 export type Author = {

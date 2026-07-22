@@ -82,10 +82,3 @@ export function translateTextsOrThrow(texts: string[], locale: string): Promise<
     { revalidate: 30 * 24 * 3600 },
   )();
 }
-
-export function translateTexts(texts: string[], locale: string): Promise<string[]> {
-  return translateTextsOrThrow(texts, locale).catch((err) => {
-    console.error("[translate] transcript translation failed", err);
-    return texts;
-  });
-}

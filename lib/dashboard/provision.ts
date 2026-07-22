@@ -3,6 +3,7 @@ import {
   createAssistant,
   createNumber,
   claimFreeNumber,
+  existingNumberE164s,
   getAssistantNumber,
   listIntegrations,
   setNumberElevenLabsId,
@@ -13,6 +14,7 @@ import {
   getOnboardingProfile,
   claimProvisioning,
   provisionLeaseExpired,
+  saveOnboardingConfig,
   saveOnboardingResult,
   setOnboardingStatus,
   type OnboardingProfile,
@@ -20,8 +22,14 @@ import {
 import { syncAssistantAgent } from "@/lib/call-engine/agent/sync";
 import { resolvePickedVoiceId } from "@/lib/call-engine/voice/catalog";
 import { routeNumberToAgent } from "@/lib/call-engine/elevenlabs";
-import { buyTwilioNumber } from "./twilio";
+import { buyTwilioNumber, listOwnedTwilioNumbers } from "./twilio";
+import { devDashboardBypass } from "@/lib/supabase/config";
 import { DEFAULT_COUNTRY } from "@/lib/number-pricing";
+import { randomUUID } from "node:crypto";
+import { domainToUnicode } from "node:url";
+import { fetchWebsiteMarkdown } from "@/lib/knowledge/website";
+import { summarizeSourceMarkdown } from "@/lib/dashboard/ai-knowledge";
+import { MAX_SOURCES, type KnowledgeSource } from "@/lib/knowledge/sources";
 
 const PHONE_RE = /^\+[1-9]\d{6,15}$/;
 
@@ -91,19 +99,110 @@ async function mergeAssistantRouting(
   if (writeError) throw writeError;
 }
 
-async function runProvisioning(userId: string, profile: OnboardingProfile): Promise<string> {
+// Common two-part public suffixes, so "acme.co.uk" resolves to "acme" (not "co")
+// and "acme.com.au" to "acme". Not the full public-suffix list - just the ccTLDs
+// a small-business signup is likely to use.
+const MULTI_PART_TLDS = new Set([
+  "co.uk", "org.uk", "com.au", "net.au", "co.nz", "co.za", "com.br", "co.jp",
+  "com.mx", "co.in", "com.tr", "com.sg", "co.il", "com.hk", "com.es",
+]);
+
+// Derive a display company name from a website when the caller gave only a URL
+// in step 1. Takes the registrable label (so "blog.acme.co.uk" -> "Acme", not
+// "Blog" or "Co") and decodes IDN punycode back to readable Unicode
+// ("xn--mnchen-3ya.de" -> "München"). Best-effort: platform-hosted pages like
+// facebook.com/acme still yield the platform name, which the user can correct
+// later in the dashboard.
+function companyNameFromWebsite(input: string): string {
+  const raw = input.trim();
+  if (!raw) return "";
+  let host: string;
+  try {
+    host = new URL(/^[a-z][a-z0-9+.-]*:/i.test(raw) ? raw : `https://${raw}`).hostname;
+  } catch {
+    return "";
+  }
+  // Turn punycode labels back into the Unicode the owner would recognise.
+  try {
+    host = domainToUnicode(host) || host;
+  } catch {
+    // Keep the ASCII host if decoding fails.
+  }
+  const labels = host.replace(/\.$/, "").split(".").filter(Boolean);
+  if (labels.length === 0) return "";
+  // The registrable label sits just left of the public suffix.
+  const suffixLen = labels.length >= 3 && MULTI_PART_TLDS.has(labels.slice(-2).join(".")) ? 2 : 1;
+  const base = labels[Math.max(0, labels.length - suffixLen - 1)] ?? "";
+  // Title-case per whitespace token. A \b\w regex would mis-fire on non-ASCII
+  // letters (treating "ü" as a boundary), so split explicitly instead.
+  return base
+    .replace(/[-_]+/g, " ")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
+// Scrape the company website into a knowledge source during provisioning - i.e.
+// inside the post-payment loading screen, not inline in the funnel. Best-effort
+// and idempotent: returns the sources unchanged (no re-scrape) when the URL is
+// empty, already imported, or fails to fetch. A successful scrape is
+// checkpointed to the onboarding config so a resumed run keeps it.
+async function importWebsiteKnowledge(
+  userId: string,
+  website: string,
+  existing: KnowledgeSource[],
+): Promise<KnowledgeSource[]> {
+  if (!website) return existing;
+  if (existing.some((s) => s.kind === "website" && s.url === website)) return existing;
+  try {
+    const site = await fetchWebsiteMarkdown(website);
+    const summary = await summarizeSourceMarkdown(site.title, site.markdown).catch(() => null);
+    const sources: KnowledgeSource[] = [
+      ...existing,
+      {
+        id: randomUUID(),
+        kind: "website" as const,
+        title: site.title,
+        url: website,
+        markdown: site.markdown,
+        charCount: site.charCount,
+        addedAt: new Date().toISOString(),
+        ...(summary ? { summary } : {}),
+      },
+    ].slice(0, MAX_SOURCES); // keep the user's own sources; drop the auto-scrape if at the cap
+    await saveOnboardingConfig(userId, { sources }).catch(() => {});
+    return sources;
+  } catch {
+    // Deploy without the site if it couldn't be read; the user can still add
+    // knowledge later from the dashboard.
+    return existing;
+  }
+}
+
+async function runProvisioning(userId: string, profile: OnboardingProfile): Promise<string | undefined> {
   const cfg = profile.config;
   const result = { ...profile.result };
-  const companyName = (cfg.companyName ?? "").trim() || "My company";
   const assistantName = (cfg.assistantName ?? "").trim() || "Receptionist";
   const country = (cfg.country ?? DEFAULT_COUNTRY).toUpperCase();
+
+  // 0. Learn from the company website now, inside this loading screen. Deferred
+  //    here from step 1 so the funnel stays instant and the whole setup runs in
+  //    one place. Best-effort - a slow or failed scrape never fails the deploy.
+  const website = (cfg.companyWebsite ?? "").trim();
+  const sources = await importWebsiteKnowledge(userId, website, cfg.sources ?? []);
+
+  // Company name: an explicit name wins; a website-only signup derives one from
+  // the site's domain; otherwise fall back to a neutral default.
+  const companyName =
+    (cfg.companyName ?? "").trim() || companyNameFromWebsite(website) || "My company";
 
   // 1. Organization (hidden from the user - it holds the shared knowledge).
   if (!result.orgId) {
     result.orgId = await createOrganization(companyName, userId);
     await saveOnboardingResult(userId, { orgId: result.orgId });
   }
-  const sources = cfg.sources ?? [];
   if (sources.length > 0) {
     await updateOrganizationKnowledge(result.orgId, { notes: "", sources });
   }
@@ -174,7 +273,38 @@ async function runProvisioning(userId: string, profile: OnboardingProfile): Prom
     let e164 = existing?.e164 ?? null;
     let numberId = existing?.id ?? null;
 
-    if (!e164) {
+    if (!e164 && devDashboardBypass()) {
+      // Dev (skip-payment): keep only what's already available and NEVER purchase
+      // from Twilio - so the dev deploy costs nothing and can't 404 on a country
+      // Twilio doesn't stock (e.g. SK).
+      // 1) Claim a pre-seeded free-pool number (sets assistant_id).
+      const claimed = await claimFreeNumber(result.assistantId).catch(() => null);
+      if (claimed) {
+        e164 = claimed.e164;
+        numberId = claimed.id;
+      }
+      // 2) Else reuse a number the Twilio account already owns that isn't tracked
+      //    yet, and assign it to this assistant in the DB (createNumber sets
+      //    assistant_id, so it shows up on the dashboard).
+      if (!e164) {
+        const owned = await listOwnedTwilioNumbers().catch(() => []);
+        const taken =
+          owned.length > 0
+            ? await existingNumberE164s(owned.map((n) => n.e164)).catch(() => new Set<string>())
+            : new Set<string>();
+        const free = owned.find((n) => !taken.has(n.e164));
+        if (free) {
+          numberId = await createNumber({
+            e164: free.e164,
+            twilioSid: free.sid,
+            assistantId: result.assistantId,
+          });
+          e164 = free.e164;
+        }
+      }
+      // 3) Nothing available -> deploy without a number (dashboard shows "no
+      //    number yet"); add one from Numbers when needed.
+    } else if (!e164) {
       const gate = await canAssignNumber(userId);
       if (!gate.ok) throw new Error(gate.reason ?? "No active subscription.");
 
@@ -187,6 +317,7 @@ async function runProvisioning(userId: string, profile: OnboardingProfile): Prom
           numberId = claimed.id;
         }
       }
+      // No available free number -> purchase one from Twilio for that country.
       if (!e164) {
         const bought = await buyTwilioNumber({ country }, { configureWebhook: false });
         e164 = bought.e164;
@@ -207,12 +338,16 @@ async function runProvisioning(userId: string, profile: OnboardingProfile): Prom
       }
     }
 
-    result.e164 = e164;
-    result.numberId = numberId ?? undefined;
-    await saveOnboardingResult(userId, { e164, numberId: numberId ?? undefined });
+    // Only checkpoint a number if one was actually assigned (dev with an empty
+    // pool deploys without one).
+    if (e164) {
+      result.e164 = e164;
+      result.numberId = numberId ?? undefined;
+      await saveOnboardingResult(userId, { e164, numberId: numberId ?? undefined });
+    }
   }
 
-  if (!result.routed) {
+  if (!result.routed && result.e164) {
     const elId = await routeNumberToAgent(result.e164, agentId, `${companyName} - ${assistantName}`);
     // Tolerates the missing migration-0005 column; non-fatal either way.
     if (result.numberId && elId) await setNumberElevenLabsId(result.numberId, elId).catch(() => {});

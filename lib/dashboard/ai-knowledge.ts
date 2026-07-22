@@ -5,7 +5,7 @@ import { getEnv } from "../call-engine/env";
 import { accountKnowledgeNotes, getAccountSettings, type AccountSettings } from "./account";
 import { listAssistants, listIntegrations, type Assistant } from "./db";
 import { listOrganizations, type Organization } from "./organizations";
-import { mergeKnowledge, readKnowledge, renderKnowledgeMarkdown, type KnowledgeSource } from "../knowledge/sources";
+import { readKnowledge, renderKnowledgeMarkdown, type KnowledgeSource } from "../knowledge/sources";
 
 export interface OrgKnowledge {
   org: Organization;
@@ -61,18 +61,6 @@ export const getAiKnowledge = cache(async (ownerId: string | null): Promise<AiKn
 export async function connectedCalendarCount(ownerId: string | null): Promise<number> {
   const list = await listIntegrations(ownerId ?? undefined).catch(() => []);
   return list.filter((i) => i.type === "calendar" && i.enabled).length;
-}
-
-export function assistantKnowledgeMarkdown(
-  assistant: Assistant,
-  org: Organization | null,
-  ownerNotes: string,
-): string {
-  let merged = org?.knowledge
-    ? mergeKnowledge(assistant.knowledge, org.knowledge)
-    : readKnowledge(assistant.knowledge);
-  if (ownerNotes) merged = mergeKnowledge(merged, { notes: ownerNotes });
-  return renderKnowledgeMarkdown(merged);
 }
 
 const SUMMARY_INPUT_CHARS = 16_000;

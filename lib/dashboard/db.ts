@@ -3,6 +3,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { authConfigured } from "@/lib/supabase/config";
 import { mergeKnowledge, type AssistantKnowledge } from "../knowledge/sources";
 import { DEFAULT_VOICE_ID } from "../call-engine/voice/catalog";
+import { countryFromPhone } from "../call-engine/voice/phone-language";
 
 let client: SupabaseClient | null = null;
 
@@ -86,6 +87,36 @@ export async function createNumber(input: CreateNumberInput): Promise<string> {
     .single();
   if (error) throw error;
   return String(data.id);
+}
+
+// True while a call is live right now for this owner (drives the yellow "in a
+// call" avatar dot). Bounded to a recent-start window so a row stuck in a live
+// status can't pin the indicator on forever.
+const LIVE_CALL_STATUSES = ["in_progress", "in-progress", "ringing", "queued", "initiated"];
+export async function hasActiveCall(ownerId: string): Promise<boolean> {
+  const cutoff = new Date(Date.now() - 15 * 60_000).toISOString();
+  const { data, error } = await db()
+    .from("calls")
+    .select("id")
+    .eq("owner_id", ownerId)
+    .in("status", LIVE_CALL_STATUSES)
+    .gte("started_at", cutoff)
+    .limit(1);
+  if (error) throw error;
+  return (data ?? []).length > 0;
+}
+
+// Which of the given E.164 numbers already have a (non-deleted) row. Lets the
+// dev provisioning flow skip Twilio-owned numbers that are already assigned.
+export async function existingNumberE164s(e164s: string[]): Promise<Set<string>> {
+  if (e164s.length === 0) return new Set();
+  const { data, error } = await db()
+    .from("phone_numbers")
+    .select("e164")
+    .in("e164", e164s)
+    .is("deleted_at", null);
+  if (error) throw error;
+  return new Set((data ?? []).map((r) => String(r.e164)));
 }
 
 export async function updateNumber(
@@ -323,17 +354,6 @@ export async function setAssistantEnabled(id: string, enabled: boolean): Promise
   if (error) throw error;
 }
 
-export async function updateAssistantKnowledge(
-  id: string,
-  knowledge: Record<string, unknown>,
-): Promise<void> {
-  const { error } = await db()
-    .from("assistants")
-    .update({ knowledge })
-    .eq("id", id);
-  if (error) throw error;
-}
-
 export async function deleteAssistant(id: string): Promise<void> {
   const { error } = await db()
     .from("assistants")
@@ -455,17 +475,6 @@ export async function getAssistantSyncContext(
   };
 }
 
-// Lifetime call total for one assistant - a head-only count, no rows fetched.
-// Used by the company page's stat tiles and assistant list.
-export async function countAssistantCalls(assistantId: string): Promise<number> {
-  const { count, error } = await db()
-    .from("calls")
-    .select("id", { count: "exact", head: true })
-    .eq("assistant_id", assistantId);
-  if (error) throw error;
-  return count ?? 0;
-}
-
 export async function getAssistantNumber(
   assistantId: string,
 ): Promise<PhoneNumber | null> {
@@ -483,19 +492,28 @@ export async function getAssistantNumber(
 
 export async function claimFreeNumber(
   assistantId: string,
+  country?: string,
 ): Promise<PhoneNumber | null> {
   const { data: candidates, error } = await db()
     .from("phone_numbers")
-    .select("id")
+    .select("id,e164")
     .is("deleted_at", null)
     .is("assistant_id", null)
     .eq("enabled", true)
     .not("twilio_sid", "is", null)
     .order("created_at", { ascending: true })
-    .limit(20);
+    .limit(50);
   if (error) throw error;
 
-  for (const c of candidates ?? []) {
+  // Optionally restrict to a country (derived from the E.164 prefix) so the
+  // dashboard "assign a number" picker hands out a number for the country the
+  // user chose rather than any pool number.
+  const wanted = country?.toUpperCase();
+  const pool = wanted
+    ? (candidates ?? []).filter((c) => countryFromPhone(String(c.e164))?.iso === wanted)
+    : (candidates ?? []);
+
+  for (const c of pool) {
     const { data: claimed, error: claimErr } = await db()
       .from("phone_numbers")
       .update({ assistant_id: assistantId })
@@ -594,21 +612,6 @@ export async function setNumberElevenLabsId(
     return;
   }
   throw error;
-}
-
-export async function getAssistantNumbers(
-  assistantId: string,
-): Promise<{ id: string; twilio_sid: string | null }[]> {
-  const { data, error } = await db()
-    .from("phone_numbers")
-    .select("id, twilio_sid")
-    .eq("assistant_id", assistantId)
-    .is("deleted_at", null);
-  if (error) throw error;
-  return (data ?? []).map((r) => ({
-    id: String(r.id),
-    twilio_sid: r.twilio_sid ? String(r.twilio_sid) : null,
-  }));
 }
 
 export interface OwnedNumber {

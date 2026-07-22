@@ -102,16 +102,3 @@ export async function setAssistantOrganization(
     .eq("id", assistantId);
   if (error) throw error;
 }
-
-export async function getOrganizationKnowledge(
-  orgId: string,
-): Promise<Record<string, unknown> | null> {
-  const { data, error } = await serviceClient()
-    .from("organizations")
-    .select("knowledge")
-    .eq("id", orgId)
-    .is("deleted_at", null)
-    .maybeSingle();
-  if (error) throw error;
-  return (data?.knowledge as Record<string, unknown>) ?? null;
-}
