@@ -517,7 +517,7 @@ export default function Home({
         @media (max-width: 768px) {
           .lp-section { padding-top: 60px !important; padding-bottom: 60px !important; }
           .lp-pad { padding-left: 20px !important; padding-right: 20px !important; }
-          .lp-hero { padding-top: 92px !important; min-height: auto !important; }
+          .lp-hero { padding-top: 76px !important; min-height: auto !important; }
           .cta-outer { padding-left: 20px !important; padding-right: 20px !important; }
           .cta-card { padding: 48px 24px !important; border-radius: 20px !important; }
           .lp-marquee-item { padding-left: 32px !important; padding-right: 32px !important; }
@@ -547,7 +547,7 @@ export default function Home({
       <section className="lp-hero" style={{
         position: "relative", background: "#fff", minHeight: "100vh",
         display: "flex", flexDirection: "column", alignItems: "center",
-        paddingTop: "110px", overflow: "hidden",
+        paddingTop: "84px", overflow: "hidden",
       }}>
         <h1 className="hero-h1" style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontWeight: 300, letterSpacing: "-0.025em", color: "#1D1D1D", whiteSpace: "normal", textWrap: "balance", textTransform: "uppercase", position: "relative", zIndex: 2, textAlign: "center" }}>
           {copy.hero.h1}

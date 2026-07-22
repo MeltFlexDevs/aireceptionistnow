@@ -226,7 +226,7 @@ html {
   line-height: 1.06;
   max-width: min(94vw, 1180px);
   min-height: calc(3 * 1.06em);
-  margin-top: 48px;
+  margin-top: 16px;
   margin-bottom: 36px;
   display: flex;
   align-items: center;
@@ -243,7 +243,7 @@ html {
   .hero-h1 {
     font-size: clamp(17px, 4.5vw, 27px);
     min-height: calc(5 * 1.06em + 10px);
-    margin-top: 32px;
+    margin-top: 12px;
     margin-bottom: 24px;
     text-wrap: pretty;
   }
