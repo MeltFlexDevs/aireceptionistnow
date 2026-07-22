@@ -218,16 +218,16 @@ const BG_PRESETS = new Set<string>([
   "office1", "office2", "restaurant", "city", "typing",
   "elevator1", "elevator2", "elevator3", "elevator4",
 ]);
-// Low office ambience so a dead-silent line doesn't read as an AI tell. On by
-// default; operators can disable or tune it via routing.ambience. The platform
-// default volume (0.6) is far too loud for 8kHz telephony - 0.15 sits under
-// speech.
+// Optional low office ambience. OFF by default - a clean, silent line is the
+// neutral default. Opt in with routing.ambience: true (or { enabled: true,
+// preset, volume }). Platform default volume (0.6) is far too loud for 8kHz
+// telephony, so a custom volume defaults to 0.15, under speech.
 function ambientSound(assistant: Assistant): ElevenLabs.BackgroundSoundConfig | undefined {
   const routing = (assistant.routing ?? {}) as { ambience?: unknown };
   const a = routing.ambience;
-  if (a === false) return undefined;
   const cfg = a && typeof a === "object" ? (a as Record<string, unknown>) : {};
-  if (cfg.enabled === false) return undefined;
+  const enabled = a === true || cfg.enabled === true;
+  if (!enabled) return undefined;
   const presetRaw = typeof cfg.preset === "string" ? cfg.preset : "office1";
   const sourceId = (BG_PRESETS.has(presetRaw) ? presetRaw : "office1") as ElevenLabs.BackgroundSoundPresetId;
   const volume =
@@ -362,18 +362,11 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
     greetingByLanguage?: Record<string, string>;
   };
   const userVoiceByLang = voiceOpts.voiceByLanguage ?? {};
+  // Platform TTS defaults (stability 0.5 / similarityBoost 0.8, no post-gen text
+  // normalization) - the fastest, most neutral voice. Operator overrides win.
   const baseTts: ElevenLabs.TtsConversationalConfigOutput = {
     voiceId,
     modelId: ttsModelForBase(language),
-    // Better conversational defaults than the platform's (0.5 / 0.8): 0.45
-    // stability reads as warmer and more dynamic without wandering. Operator
-    // overrides below still win.
-    stability: 0.45,
-    similarityBoost: 0.75,
-    // Normalize numbers, prices, phone numbers and times *after* generation so
-    // Flash's weak raw-digit reading never says "$1,000,000" as "one thousand
-    // thousand dollars". Transcripts stay clean; slight documented latency cost.
-    textNormalisationType: "elevenlabs",
   };
   if (typeof voiceOpts.voice?.speed === "number") baseTts.speed = voiceOpts.voice.speed;
   if (typeof voiceOpts.voice?.stability === "number") baseTts.stability = voiceOpts.voice.stability;
