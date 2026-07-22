@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import HomeClient from "@/app/_home/HomeClient";
-import { siteName, siteUrl } from "@/lib/site";
+import { ogCardImage, siteName, siteUrl } from "@/lib/site";
 import { alternatesFor } from "@/lib/i18n/marketing/alternates";
 import {
   MARKETING_LOCALES,
@@ -72,11 +72,15 @@ export async function generateMetadata({
       url: `${siteUrl}/${locale}`,
       siteName,
       locale: OG_LOCALE[locale],
+      // Explicit because this tree cannot use the opengraph-image.png file
+      // convention - see the ogCardImage note in lib/site.ts.
+      images: [ogCardImage],
     },
     twitter: {
       card: "summary_large_image",
       title: copy.hero.h1,
       description: copy.metaDescription,
+      images: [ogCardImage],
     },
   };
 }

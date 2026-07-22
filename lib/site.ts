@@ -24,6 +24,19 @@ export const supportEmail = "info@meltflexai.com";
 
 export const logoUrl = `${siteUrl}/logo.png`;
 
+// The site's OG/Twitter card, served from public/. The [locale] tree must
+// reference it via metadata instead of the opengraph-image.png file convention:
+// a static metadata file inside a dynamic segment lands in the prerender
+// manifest's dynamicRoutes but is skipped from adapter outputs, which crashes
+// the Vercel build adapter in Next 16.2.9 ("Invariant: failed to find source
+// route /[locale]/opengraph-image.png"). app/(main) keeps the file convention.
+export const ogCardImage = {
+  url: `${siteUrl}/og-card.png`,
+  width: 1200,
+  height: 630,
+  alt: "AI Receptionist Now — an AI receptionist that answers every call 24/7, books appointments, and captures leads.",
+};
+
 export type Author = {
   name: string;
   role: string;
