@@ -333,6 +333,11 @@ export const sk: Dictionary = {
     billedNote: "Účtuje sa z kreditov vášho plánu. Číslo môžete kedykoľvek zrušiť.",
   },
   calendar: {
+    // Real events pulled live from the connected calendar(s).
+    allDay: "Celý deň",
+    fromCalendar: "Z {name}",
+    openEvent: "Otvoriť udalosť",
+    untitledEvent: "Obsadené",
     title: "Termíny",
     description: "Každý termín, ktorý vaša recepcia rezervovala: kto volal, kedy je a do ktorého kalendára sa dostal.",
     today: "Dnes",

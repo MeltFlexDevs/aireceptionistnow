@@ -1,7 +1,14 @@
 import type { BookingRequest, BookingResult } from "../types";
 import { timedFetch } from "../net";
 import { cachedAccessToken, persistAccessToken, storedTokenUsable } from "./token-store";
-import type { CalendarFactory, CalendarProvider, CancelResult } from "./types";
+import type {
+  CalendarEvent,
+  CalendarFactory,
+  CalendarProvider,
+  CancelResult,
+  ConnectionCheck,
+  EventsResult,
+} from "./types";
 
 interface OutlookConfig {
   access_token?: string;
@@ -86,6 +93,34 @@ export const createOutlookCalendar: CalendarFactory = (config): CalendarProvider
       headers: { authorization: `Bearer ${token}` },
     });
 
+  const graph = "https://graph.microsoft.com/v1.0";
+
+  // GET with the stored token, refreshing once on a 401. Shared by the read
+  // paths (listEvents / checkConnection).
+  const authedGet = async (
+    url: string,
+    headers: Record<string, string> = {},
+  ): Promise<Response | null> => {
+    const run = (token: string) =>
+      timedFetch(url, { headers: { authorization: `Bearer ${token}`, ...headers } });
+    let token = storedToken();
+    let res = token ? await run(token) : null;
+    if (!res || res.status === 401) {
+      token = await refreshAccessToken(cfg);
+      if (token) res = await run(token);
+    }
+    return res;
+  };
+
+  // With the Prefer header, Graph renders start/end as UTC wall-clock time with
+  // no trailing Z and up to 7 sub-second digits; normalize to a real instant.
+  const toInstant = (dt?: { dateTime?: string; timeZone?: string }): string | null => {
+    const raw = dt?.dateTime;
+    if (!raw) return null;
+    const trimmed = raw.replace(/\.\d+$/, "");
+    return /[zZ]|[+-]\d\d:?\d\d$/.test(trimmed) ? trimmed : `${trimmed}Z`;
+  };
+
   return {
     // Outlook exposes no getBusy, so its token never warms through the
     // availability prefetch. Ping a cheap authenticated endpoint at call start
@@ -132,6 +167,64 @@ export const createOutlookCalendar: CalendarFactory = (config): CalendarProvider
       if (!res) return { ok: false, error: "outlook not authorized" };
       if (res.ok || res.status === 404) return { ok: true };
       return { ok: false, error: `outlook ${res.status}` };
+    },
+
+    async listEvents(q): Promise<EventsResult> {
+      // calendarView expands recurrences across the range (unlike /me/events).
+      // A single page (top 100) covers a month without paging.
+      const params = new URLSearchParams({
+        startDateTime: q.timeMin,
+        endDateTime: q.timeMax,
+        $select: "id,subject,start,end,location,webLink,isAllDay,isCancelled",
+        $orderby: "start/dateTime",
+        $top: "100",
+      });
+      const res = await authedGet(`${graph}/me/calendarView?${params.toString()}`, {
+        prefer: 'outlook.timezone="UTC"',
+      });
+      if (!res) return { ok: false, events: [], error: "outlook not authorized" };
+      if (!res.ok) return { ok: false, events: [], error: `outlook ${res.status}` };
+      const json = (await res.json()) as {
+        value?: {
+          id?: string;
+          subject?: string;
+          isAllDay?: boolean;
+          isCancelled?: boolean;
+          webLink?: string;
+          start?: { dateTime?: string; timeZone?: string };
+          end?: { dateTime?: string; timeZone?: string };
+          location?: { displayName?: string };
+        }[];
+      };
+      const events: CalendarEvent[] = (json.value ?? [])
+        .filter((ev) => !ev.isCancelled)
+        .flatMap((ev) => {
+          const start = toInstant(ev.start);
+          const end = toInstant(ev.end);
+          if (!start || !end) return [];
+          return [
+            {
+              id: ev.id || start,
+              title: ev.subject ?? "",
+              start,
+              end,
+              allDay: Boolean(ev.isAllDay),
+              location: ev.location?.displayName,
+              url: ev.webLink,
+            },
+          ];
+        });
+      return { ok: true, events };
+    },
+
+    async checkConnection(): Promise<ConnectionCheck> {
+      // GET /me needs User.Read (not in our Calendars scope); the default
+      // calendar's owner is the mailbox email and stays within scope.
+      const res = await authedGet(`${graph}/me/calendar?$select=name,owner`);
+      if (!res) return { ok: false };
+      if (!res.ok) return { ok: false, error: `outlook ${res.status}` };
+      const json = (await res.json()) as { owner?: { name?: string; address?: string } };
+      return { ok: true, account: json.owner?.address ?? "" };
     },
   };
 };

@@ -169,7 +169,7 @@ export function VoiceSelect({
       </button>
 
       {open && (
-        <div className="absolute z-50 mt-1 w-full overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-lg">
+        <div className="absolute z-50 mt-1 w-full overflow-hidden rounded-lg border border-neutral-200 bg-white">
           <div className="border-b border-neutral-100 p-2">
             <input
               autoFocus

@@ -4,9 +4,12 @@ import { cachedAccessToken, persistAccessToken } from "./token-store";
 import type {
   AvailabilityResult,
   BusyInterval,
+  CalendarEvent,
   CalendarFactory,
   CalendarProvider,
   CancelResult,
+  ConnectionCheck,
+  EventsResult,
 } from "./types";
 
 interface CalcomConfig {
@@ -112,6 +115,23 @@ export const createCalcom: CalendarFactory = (config): CalendarProvider => {
   const bearer = () =>
     cachedAccessToken(cfg.refresh_token) ?? cfg.access_token ?? cfg.api_key ?? null;
   const canRefresh = Boolean(cfg.refresh_token && cfg.client_id && cfg.client_secret);
+
+  // Authenticated GET with one refresh-on-401 retry, for the dashboard read
+  // paths (listEvents / checkConnection). Mirrors the booking auth flow.
+  const authedGet = async (
+    path: string,
+    headers: Record<string, string> = {},
+  ): Promise<Response | null> => {
+    const run = (t: string) =>
+      timedFetch(`${API}${path}`, { headers: { authorization: `Bearer ${t}`, ...headers } });
+    let token = bearer();
+    let res = token ? await run(token) : null;
+    if ((!res || res.status === 401) && canRefresh) {
+      token = await refreshAccessToken(cfg);
+      if (token) res = await run(token);
+    }
+    return res;
+  };
 
   const post = (token: string, req: BookingRequest, withNotes = true) =>
     timedFetch(`${API}/bookings`, {
@@ -278,6 +298,48 @@ export const createCalcom: CalendarFactory = (config): CalendarProvider => {
       if (res.status === 404) return { ok: true };
       if (!res.ok) return { ok: false, error: await failure(res) };
       return { ok: true };
+    },
+
+    async listEvents(q): Promise<EventsResult> {
+      // afterStart/beforeEnd bound the range; a single page (limit 100) covers a
+      // month's bookings without paging - larger months would truncate here.
+      const params = new URLSearchParams({
+        afterStart: q.timeMin,
+        beforeEnd: q.timeMax,
+        sortStart: "asc",
+        limit: "100",
+      });
+      const res = await authedGet(`/bookings?${params.toString()}`, {
+        "cal-api-version": "2024-08-13",
+      });
+      if (!res) return { ok: false, events: [], error: "cal.com not authorized" };
+      if (!res.ok) return { ok: false, events: [], error: await failure(res) };
+      const json = (await res.json()) as {
+        data?: {
+          id?: number;
+          uid?: string;
+          title?: string;
+          start?: string;
+          end?: string;
+          status?: string;
+        }[];
+      };
+      const events: CalendarEvent[] = (json.data ?? [])
+        .filter((b) => b.status !== "cancelled" && b.status !== "rejected")
+        .flatMap((b) => {
+          if (!b.start || !b.end) return [];
+          const id = b.uid ?? (b.id != null ? String(b.id) : b.start);
+          return [{ id, title: b.title ?? "", start: b.start, end: b.end, allDay: false }];
+        });
+      return { ok: true, events };
+    },
+
+    async checkConnection(): Promise<ConnectionCheck> {
+      const res = await authedGet(`/me`);
+      if (!res) return { ok: false };
+      if (!res.ok) return { ok: false, error: await failure(res) };
+      const json = (await res.json()) as { data?: { email?: string; username?: string } };
+      return { ok: true, account: json.data?.email ?? json.data?.username ?? "" };
     },
   };
 };

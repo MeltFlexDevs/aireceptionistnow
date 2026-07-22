@@ -333,6 +333,11 @@ export const fr: Dictionary = {
     billedNote: "Facturé sur les crédits de votre forfait. Annulez le numéro à tout moment.",
   },
   calendar: {
+    // Real events pulled live from the connected calendar(s).
+    allDay: "Toute la journée",
+    fromCalendar: "Depuis {name}",
+    openEvent: "Ouvrir l'événement",
+    untitledEvent: "Occupé",
     title: "Rendez-vous",
     description: "Chaque rendez-vous pris par votre réception : qui a appelé, quand il a lieu et dans quel agenda il est arrivé.",
     today: "Aujourd'hui",

@@ -1,6 +1,6 @@
 import { Skeleton } from "../../components/Skeleton";
 
-const CARD = "overflow-hidden rounded-xl bg-white shadow-[0_1px_3px_rgba(16,24,40,0.07)]";
+const CARD = "overflow-hidden rounded-xl border border-neutral-200 bg-white";
 
 export default function Loading() {
   return (

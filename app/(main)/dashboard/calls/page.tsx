@@ -24,7 +24,7 @@ const CAP = "md:h-[calc(100dvh-7rem)] md:overflow-hidden lg:h-[calc(100dvh-8rem)
 // Borderless cards: a soft shadow lifts each white card off the grey page, so
 // no outline is needed. Everything inside is separated by whitespace and
 // hairline rules, not more boxes.
-const CARD = "rounded-xl bg-white shadow-[0_1px_3px_rgba(16,24,40,0.07)]";
+const CARD = "rounded-xl border border-neutral-200 bg-white";
 
 function one(v: string | string[] | undefined, fallback: string): string {
   return typeof v === "string" && v ? v : fallback;

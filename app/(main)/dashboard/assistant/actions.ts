@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
+  assignedElevenLabsNumberIds,
   claimFreeNumber,
   createAssistant,
   createNumber,
@@ -11,6 +12,7 @@ import {
   freeAssistantNumbers,
   getAssistant,
   getAssistantNumber,
+  listImportedFreeNumbers,
   listIntegrations,
   setNumberAssistant,
   setNumberElevenLabsId,
@@ -22,10 +24,12 @@ import { currentUserId } from "@/lib/auth";
 import { authConfigured } from "@/lib/supabase/config";
 import { canAssignNumber } from "@/lib/dashboard/plan";
 import {
+  assertUnderCallCaps,
   placeAgentCall,
   releaseNumberFromAgent,
   routeNumberToAgent,
 } from "@/lib/call-engine/elevenlabs";
+import { pickDemoCallerId } from "@/lib/call-engine/demo-caller";
 import { syncAssistantAgent, deleteAssistantAgent } from "@/lib/call-engine/agent/sync";
 import { buildAssistantPatch } from "@/lib/dashboard/assistant-patch";
 import { getDictionary } from "@/lib/i18n/server";
@@ -297,14 +301,33 @@ export async function testCallAction(
   if (!E164.test(to)) return fail(a.badPhoneFormat);
 
   try {
+    await assertUnderCallCaps();
+  } catch (err) {
+    // Over the hourly/daily cap - surface the friendly message it throws.
+    return fail((err as Error).message);
+  }
+
+  try {
     const assistant = await getAssistant(assistantId).catch(() => null);
-    const agentId =
-      assistant?.elevenlabs_agent_id ?? (await syncAssistantAgent(assistantId));
+    const agentId = assistant?.elevenlabs_agent_id ?? (await syncAssistantAgent(assistantId));
     const number = await getAssistantNumber(assistantId).catch(() => null);
-    await placeAgentCall(to, {
-      agentId: agentId ?? undefined,
-      agentPhoneNumberId: number?.elevenlabs_phone_number_id ?? undefined,
-    });
+
+    // A guaranteed caller ID, resolved the same way the home-page demo call does:
+    // the assistant's own linked number, else an unused imported number (env as
+    // last resort). Without this, a number-less assistant passed undefined and
+    // placeAgentCall threw "Calling isn't configured" - the button did nothing.
+    let agentPhoneNumberId = number?.elevenlabs_phone_number_id ?? "";
+    if (!agentPhoneNumberId) {
+      const [pool, inUse] = await Promise.all([
+        listImportedFreeNumbers().catch(() => []),
+        assignedElevenLabsNumberIds().catch(() => new Set<string>()),
+      ]);
+      agentPhoneNumberId =
+        pickDemoCallerId(to, pool, inUse, process.env.ELEVENLABS_AGENT_PHONE_NUMBER_ID) ?? "";
+    }
+    if (!agentPhoneNumberId) return fail(a.testCallFailed);
+
+    await placeAgentCall(to, { agentId: agentId ?? undefined, agentPhoneNumberId });
   } catch (err) {
     console.error("[assistant] test call failed", err);
     return fail(a.testCallFailed);

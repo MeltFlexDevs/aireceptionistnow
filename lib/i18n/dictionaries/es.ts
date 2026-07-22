@@ -333,6 +333,11 @@ export const es: Dictionary = {
     billedNote: "Se cobra de los créditos de tu plan. Cancela el número cuando quieras.",
   },
   calendar: {
+    // Real events pulled live from the connected calendar(s).
+    allDay: "Todo el día",
+    fromCalendar: "De {name}",
+    openEvent: "Abrir evento",
+    untitledEvent: "Ocupado",
     title: "Citas",
     description: "Cada cita que reservó tu recepción: quién llamó, cuándo es y en qué calendario quedó.",
     today: "Hoy",

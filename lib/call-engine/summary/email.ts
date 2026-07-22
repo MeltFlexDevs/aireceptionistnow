@@ -14,6 +14,7 @@ export interface TranscriptEmailInput {
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const AVATAR_CID = "assistant-avatar";
 
 export function readEmailConfig(routing: Record<string, unknown>): EmailTranscriptConfig | null {
   const cfg = (routing.emailTranscripts as EmailTranscriptConfig) ?? null;
@@ -58,13 +59,14 @@ function renderHtml(input: TranscriptEmailInput): string {
   const { config, summary, turns, from, bookingUrl } = input;
   const caller = (from ?? "").trim();
 
-  // Hosted PNG of the receptionist character (email-safe raster). Falls back to
-  // a lettered circle when APP_BASE_URL isn't set (dev), so the header never
-  // shows a broken image.
+  // The receptionist character, referenced as a cid: inline attachment (see
+  // sendTranscriptEmail) so it renders even when the client blocks remote images
+  // - which is exactly what happens in the spam folder. Falls back to a lettered
+  // circle when APP_BASE_URL isn't set (dev), so the header is never empty.
   const base = (process.env.APP_BASE_URL ?? "").replace(/\/$/, "");
   const initial = esc((config.businessName || "?").trim().charAt(0).toUpperCase() || "?");
   const avatar = base
-    ? `<img src="${esc(`${base}/assistant-avatar.png`)}" width="48" height="48" alt="" style="display:block;border-radius:50%;" />`
+    ? `<img src="cid:${AVATAR_CID}" width="48" height="48" alt="" style="display:block;border-radius:50%;" />`
     : `<span style="display:inline-block;width:48px;height:48px;border-radius:50%;background:#f4f4f5;color:#111111;font-size:20px;font-weight:700;text-align:center;line-height:48px;">${initial}</span>`;
 
   const button = bookingUrl
@@ -173,6 +175,22 @@ export async function sendTranscriptEmail(
     return { ok: false, skipped: true };
   }
 
+  // Embed the avatar as a cid: inline attachment (Resend fetches the hosted PNG
+  // server-side) so it renders even when the client blocks remote images - as it
+  // does for spam-foldered mail. Skipped when APP_BASE_URL is unset (the HTML
+  // then uses the lettered-circle fallback).
+  const base = (process.env.APP_BASE_URL ?? "").replace(/\/$/, "");
+  const body: Record<string, unknown> = { from, to: cfg.to, subject, text, html };
+  if (base) {
+    body.attachments = [
+      {
+        path: `${base}/assistant-avatar.png`,
+        filename: "assistant-avatar.png",
+        content_id: AVATAR_CID,
+      },
+    ];
+  }
+
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -180,7 +198,7 @@ export async function sendTranscriptEmail(
         authorization: `Bearer ${apiKey}`,
         "content-type": "application/json",
       },
-      body: JSON.stringify({ from, to: cfg.to, subject, text, html }),
+      body: JSON.stringify(body),
     });
     if (!res.ok) return { ok: false, error: `resend ${res.status}` };
     return { ok: true };

@@ -164,7 +164,7 @@ export async function CallDetailBody({
 
   if (variant === "page") {
     return (
-      <div className="overflow-hidden rounded-xl bg-white shadow-[0_1px_3px_rgba(16,24,40,0.07)]">
+      <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
         <div className="border-b border-neutral-100 px-5 py-4 sm:px-6">{header}</div>
         {recording && <div className="border-b border-neutral-100 px-5 py-3 sm:px-6">{recording}</div>}
         <div className="px-5 py-6 sm:px-6">{sections}</div>

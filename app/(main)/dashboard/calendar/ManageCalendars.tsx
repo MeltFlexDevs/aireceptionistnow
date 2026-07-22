@@ -12,6 +12,7 @@ export interface CalendarRow {
   id: string;
   provider: string;
   name: string;
+  account: string;
   isPrimary: boolean;
   needsReconnect: boolean;
 }
@@ -141,6 +142,11 @@ export function ManageCalendars({
                       <div className="flex flex-wrap items-center gap-2">
                         <ProviderIcon id={row.provider} />
                         <span className="text-sm font-medium text-neutral-900">{row.name}</span>
+                        {row.account && (
+                          <span className="max-w-[14rem] truncate text-xs text-neutral-500">
+                            {row.account}
+                          </span>
+                        )}
                         {row.isPrimary && showPrimary && (
                           <span className="shape-pill border border-neutral-200 px-2 py-0.5 text-[11px] font-medium text-neutral-500">
                             {t.common.primary}

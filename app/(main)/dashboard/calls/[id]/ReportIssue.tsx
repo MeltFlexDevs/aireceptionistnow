@@ -31,7 +31,7 @@ export function ReportIssue({ callId }: { callId: string }) {
       </summary>
       <form
         action={formAction}
-        className="absolute right-0 z-10 mt-2 w-72 space-y-2 rounded-xl border border-neutral-200 bg-white p-3 shadow-card"
+        className="absolute right-0 z-10 mt-2 w-72 space-y-2 rounded-xl border border-neutral-200 bg-white p-3"
       >
         <input type="hidden" name="callId" value={callId} />
         <label className="block text-xs font-medium text-neutral-700">

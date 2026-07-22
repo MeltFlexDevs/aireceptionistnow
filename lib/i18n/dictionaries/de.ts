@@ -333,6 +333,11 @@ export const de: Dictionary = {
     billedNote: "Wird von deinen Plan-Credits abgebucht. Kündige die Nummer jederzeit.",
   },
   calendar: {
+    // Real events pulled live from the connected calendar(s).
+    allDay: "Ganztägig",
+    fromCalendar: "Aus {name}",
+    openEvent: "Termin öffnen",
+    untitledEvent: "Belegt",
     title: "Termine",
     description: "Jeder Termin, den dein Empfang gebucht hat - wer angerufen hat, wann er ist und in welchem Kalender er gelandet ist.",
     today: "Heute",

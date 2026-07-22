@@ -20,7 +20,7 @@ function ProgressOverlay() {
   const t = useT();
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="status">
-      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+      <div className="w-full max-w-md rounded-2xl border border-neutral-200 bg-white p-6">
         <div className="flex items-center gap-3">
           <Spinner className="h-5 w-5 animate-spin text-neutral-900" />
           <h3 className="text-base font-medium text-neutral-900">{t.assistants.creating}…</h3>

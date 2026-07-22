@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -29,27 +29,15 @@ import { Phone, Calendar, Sparkle, Check } from "../../icons";
 
 export const dynamic = "force-dynamic";
 
-// Borderless white card, lifted off the grey page by a soft shadow.
-const CARD = "rounded-xl bg-white shadow-[0_1px_3px_rgba(16,24,40,0.07)]";
+// Flat, bordered surface - no drop shadow (by request).
+const CARD = "rounded-2xl border border-neutral-200 bg-white";
 const field =
   "w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition-colors focus:border-neutral-900";
 const labelCls = "mb-1.5 block text-sm font-medium text-neutral-700";
 const toggle =
-  "relative h-5 w-9 shrink-0 rounded-full bg-neutral-200 transition-colors peer-checked:bg-neutral-900 after:absolute after:left-0.5 after:top-0.5 after:h-4 after:w-4 after:rounded-full after:bg-white after:shadow-sm after:transition-all after:content-[''] peer-checked:after:translate-x-4";
+  "relative h-5 w-9 shrink-0 rounded-full bg-neutral-200 transition-colors peer-checked:bg-neutral-900 after:absolute after:left-0.5 after:top-0.5 after:h-4 after:w-4 after:rounded-full after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-4";
 const toggleRow =
   "flex cursor-pointer items-center justify-between gap-4 rounded-lg border border-neutral-200/70 bg-white/60 px-4 py-3 transition-colors hover:border-neutral-300";
-
-// A named group of feature cards, e.g. "General" or "Call handling".
-function Group({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <section>
-      <h2 className="mb-2.5 px-1 text-xs font-semibold uppercase tracking-wide text-neutral-400">
-        {title}
-      </h2>
-      <div className="space-y-2.5">{children}</div>
-    </section>
-  );
-}
 
 const strokeIcon = {
   viewBox: "0 0 24 24",
@@ -168,15 +156,16 @@ export default async function AssistantSettingsPage({
   const statusLabel = !number ? t.home.statusNoNumber : assistant.enabled ? a.onDuty : a.paused;
 
   return (
-    <div className="rise mx-auto flex w-full max-w-3xl flex-col gap-5 pb-4">
+    <div className="rise flex w-full flex-col gap-4 pb-2">
       <Link
         href="/dashboard/assistant"
         className="press inline-flex w-fit shrink-0 items-center gap-1.5 text-sm font-medium text-neutral-500 hover:text-neutral-900"
       >
         <span aria-hidden="true">&larr;</span> {a.back}
       </Link>
+
       {(assistant.elevenlabs_multilingual === false || error || notice) && (
-        <div className="shrink-0 space-y-3">
+        <div className="shrink-0 space-y-2">
           {assistant.elevenlabs_multilingual === false && (
             <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-700">
               <span className="font-medium">{a.englishOnlyTitle}</span> {a.englishOnlyBody}
@@ -198,21 +187,20 @@ export default async function AssistantSettingsPage({
         </div>
       )}
 
-      {/* HERO: who is answering, on what number, and a quick way to try it. */}
-      <div className={`${CARD} p-6`}>
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="ava-ring ava-breathe" style={{ "--ava-size": "64px" } as CSSProperties}>
+      {/* HERO BAR: who is answering, on what number, and the two primary actions. */}
+      <div className={`${CARD} shrink-0 p-4 sm:p-5`}>
+        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-4">
+          <div className="flex min-w-0 items-center gap-4">
+            <div className="ava-ring ava-breathe" style={{ "--ava-size": "56px" } as CSSProperties}>
               <span>
                 <AiAvatar mood={live ? "friendly" : "greeting"} className="h-[82%] w-[82%]" />
               </span>
             </div>
             <div className="min-w-0">
-              <h1 className="truncate text-2xl font-semibold tracking-tight text-neutral-900">
+              <h1 className="truncate text-xl font-semibold tracking-tight text-neutral-900">
                 {assistant.name}
               </h1>
-              <p className="text-sm text-neutral-500">{t.onboarding.brand}</p>
-              <div className="mt-2 flex items-center gap-1.5">
+              <div className="mt-1 flex items-center gap-1.5">
                 <span className={`h-2 w-2 rounded-full ${live ? "bg-emerald-500" : "bg-amber-500"}`} />
                 <span className={`text-sm font-medium ${live ? "text-emerald-600" : "text-amber-600"}`}>
                   {statusLabel}
@@ -220,47 +208,30 @@ export default async function AssistantSettingsPage({
               </div>
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <TestCall assistantId={assistant.id} transferTo={transferTo} />
-            <AssistantPowerToggle
-              id={assistant.id}
-              enabled={assistant.enabled}
-              pauseLabel={t.home.pause}
-              resumeLabel={t.home.resume}
-            />
-          </div>
-        </div>
 
-        <div className="mt-6 border-t border-neutral-100 pt-5">
-          {number ? (
-            <div className="min-w-0">
-              <p className="text-xs font-medium uppercase tracking-wide text-neutral-400">
-                  {a.phoneNumber}
-                </p>
-                <p className="mt-1.5 flex min-w-0 flex-wrap items-center gap-2.5">
-                  {country && (
-                    <span className="text-2xl leading-none" role="img" aria-label={country.iso}>
-                      {country.flag}
-                    </span>
-                  )}
-                  <span className="text-2xl font-semibold tabular-nums tracking-tight text-neutral-900">
-                    {formatPhone(number.e164)}
+          <div className="flex flex-1 flex-wrap items-center justify-end gap-x-4 gap-y-3">
+            {number ? (
+              <div className="flex flex-wrap items-center gap-2">
+                {country && (
+                  <span className="text-xl leading-none" role="img" aria-label={country.iso}>
+                    {country.flag}
                   </span>
-                  <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-1.5 py-0.5 text-xs font-medium text-emerald-700">
-                    <Check className="h-3 w-3" />
-                    {a.connected}
-                  </span>
-                </p>
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <UnlinkNumber assistantId={assistant.id} numberId={number.id} />
-                  {multi && (
-                    <ReassignNumber
-                      numberId={number.id}
-                      currentAssistantId={assistant.id}
-                      assistants={assistants.map((x) => ({ id: x.id, name: x.name }))}
-                    />
-                  )}
-                </div>
+                )}
+                <span className="text-lg font-semibold tabular-nums tracking-tight text-neutral-900">
+                  {formatPhone(number.e164)}
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-1.5 py-0.5 text-xs font-medium text-emerald-700">
+                  <Check className="h-3 w-3" />
+                  {a.connected}
+                </span>
+                <UnlinkNumber assistantId={assistant.id} numberId={number.id} />
+                {multi && (
+                  <ReassignNumber
+                    numberId={number.id}
+                    currentAssistantId={assistant.id}
+                    assistants={assistants.map((x) => ({ id: x.id, name: x.name }))}
+                  />
+                )}
               </div>
             ) : (
               <GetNumberForm
@@ -270,231 +241,227 @@ export default async function AssistantSettingsPage({
                 poolCountries={poolCountries}
               />
             )}
+            <div className="flex items-center gap-2">
+              <TestCall assistantId={assistant.id} transferTo={transferTo} />
+              <AssistantPowerToggle
+                id={assistant.id}
+                enabled={assistant.enabled}
+                pauseLabel={t.home.pause}
+                resumeLabel={t.home.resume}
+              />
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* SETTINGS: grouped feature cards, each opening a self-saving modal. */}
-      <div className="space-y-6">
-        <Group title={a.groupGeneral}>
-          <TopicModal
-            assistantId={assistant.id}
-            section={SECTION.basics}
-            icon={<Mic className="h-5 w-5" />}
-            title={a.topicVoiceTitle}
-            subtitle={a.topicVoiceSub}
-            summary={null}
-          >
-            <div>
-              <span className={labelCls}>{a.voice}</span>
-              <VoiceSelect name="voice_id" defaultValue={assistant.voice_id} />
-              <p className="mt-1.5 text-xs text-neutral-400">{a.autoLanguageNote}</p>
-            </div>
-            <div>
-              <label htmlFor="name" className={labelCls}>
-                {a.name}
-              </label>
-              <input
-                id="name"
-                name="name"
-                defaultValue={assistant.name}
-                placeholder={a.namePlaceholder}
-                className={field}
-              />
-            </div>
-          </TopicModal>
+      {/* SETTINGS: one card per topic, each opening a self-saving modal. Full-
+          width grid so it all reads on one screen instead of a long scroll. */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <TopicModal
+          assistantId={assistant.id}
+          section={SECTION.basics}
+          icon={<Mic className="h-5 w-5" />}
+          title={a.topicVoiceTitle}
+          subtitle={a.topicVoiceSub}
+          summary={null}
+        >
+          <div>
+            <span className={labelCls}>{a.voice}</span>
+            <VoiceSelect name="voice_id" defaultValue={assistant.voice_id} />
+            <p className="mt-1.5 text-xs text-neutral-400">{a.autoLanguageNote}</p>
+          </div>
+          <div>
+            <label htmlFor="name" className={labelCls}>
+              {a.name}
+            </label>
+            <input
+              id="name"
+              name="name"
+              defaultValue={assistant.name}
+              placeholder={a.namePlaceholder}
+              className={field}
+            />
+          </div>
+        </TopicModal>
 
-          <TopicModal
-            assistantId={assistant.id}
-            section={SECTION.basics}
-            icon={<Chat className="h-5 w-5" />}
-            title={a.topicGreetingTitle}
-            subtitle={a.topicGreetingSub}
-            summary={assistant.greeting}
-          >
-            <div>
-              <label htmlFor="greeting" className={labelCls}>
-                {a.welcomeMessage}
-              </label>
-              <textarea
-                id="greeting"
-                name="greeting"
-                defaultValue={assistant.greeting}
-                rows={3}
-                className={`${field} resize-y`}
-              />
-            </div>
-          </TopicModal>
-        </Group>
+        <TopicModal
+          assistantId={assistant.id}
+          section={SECTION.basics}
+          icon={<Chat className="h-5 w-5" />}
+          title={a.topicGreetingTitle}
+          subtitle={a.topicGreetingSub}
+          summary={assistant.greeting}
+        >
+          <div>
+            <label htmlFor="greeting" className={labelCls}>
+              {a.welcomeMessage}
+            </label>
+            <textarea
+              id="greeting"
+              name="greeting"
+              defaultValue={assistant.greeting}
+              rows={3}
+              className={`${field} resize-y`}
+            />
+          </div>
+        </TopicModal>
 
-        <Group title={a.groupCallHandling}>
-          <TopicModal
-            assistantId={assistant.id}
-            section={SECTION.alerts}
-            icon={<Phone className="h-5 w-5" />}
-            title={a.topicTransferTitle}
-            subtitle={a.topicTransferSub}
-            summary={transferTo ? formatPhone(transferTo) : null}
-          >
-            <div>
-              <label htmlFor="transfer_to" className={labelCls}>
-                {a.personalNumber}
-              </label>
-              <input
-                id="transfer_to"
-                name="transfer_to"
-                defaultValue={transferTo}
-                placeholder="+1 415 555 0199"
-                className={field}
-              />
-              <p className="mt-1.5 text-xs text-neutral-400">{a.forwardedNote}</p>
+        <TopicModal
+          assistantId={assistant.id}
+          section={SECTION.alerts}
+          icon={<Phone className="h-5 w-5" />}
+          title={a.topicTransferTitle}
+          subtitle={a.topicTransferSub}
+          summary={transferTo ? formatPhone(transferTo) : null}
+        >
+          <div>
+            <label htmlFor="transfer_to" className={labelCls}>
+              {a.personalNumber}
+            </label>
+            <input
+              id="transfer_to"
+              name="transfer_to"
+              defaultValue={transferTo}
+              placeholder="+1 415 555 0199"
+              className={field}
+            />
+            <p className="mt-1.5 text-xs text-neutral-400">{a.forwardedNote}</p>
+          </div>
+          <label className={toggleRow}>
+            <span>
+              <span className="block text-sm font-medium text-neutral-800">{a.textAlerts}</span>
+              <span className="block text-xs text-neutral-400">{a.textAlertsSub}</span>
+            </span>
+            <input type="checkbox" name="sms_alerts" defaultChecked={smsAlerts} className="peer sr-only" />
+            <span className={toggle} />
+          </label>
+        </TopicModal>
+
+        <TopicModal
+          assistantId={assistant.id}
+          section={SECTION.calendar}
+          icon={<Calendar className="h-5 w-5" />}
+          title={a.topicBookingTitle}
+          subtitle={a.topicBookingSub}
+          summary={accessCount > 0 ? a.writeBook : null}
+        >
+          {calendars.length === 0 ? (
+            <p className="text-sm text-neutral-500">
+              {a.noCalendars}{" "}
+              <Link
+                href="/dashboard/calendar"
+                className="font-medium text-neutral-900 underline underline-offset-2"
+              >
+                {a.connectOne}
+              </Link>
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {calendars.map((c) => (
+                <div
+                  key={c.id}
+                  className="flex items-center justify-between gap-3 rounded-lg border border-neutral-200/70 bg-white/60 px-3 py-2.5"
+                >
+                  <div className="text-sm font-medium text-neutral-800">{providerName(c.provider)}</div>
+                  {/* Three levels, deliberately not collapsed to a toggle. */}
+                  <select
+                    name={`cal_access_${c.id}`}
+                    defaultValue={accessMap.get(c.id) ?? "none"}
+                    className="shrink-0 rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-sm text-neutral-900 outline-none focus:border-neutral-900"
+                  >
+                    <option value="none">{a.noAccess}</option>
+                    <option value="read">{a.readAvailability}</option>
+                    <option value="write">{a.writeBook}</option>
+                  </select>
+                </div>
+              ))}
             </div>
+          )}
+        </TopicModal>
+
+        <TopicModal
+          assistantId={assistant.id}
+          section={`${SECTION.role}`}
+          icon={<Sparkle className="h-5 w-5" />}
+          title={a.topicTuneTitle}
+          subtitle={a.topicTuneSub}
+          summary={null}
+        >
+          {/* This modal owns three sections at once, so it carries all three
+              markers - the two extra ride along as hidden inputs. */}
+          <input type="hidden" name={SECTION.voice} value="1" />
+          <input type="hidden" name={SECTION.voiceLang} value="1" />
+          <input type="hidden" name={SECTION.email} value="1" />
+
+          <div>
+            <label htmlFor="system_prompt" className={labelCls}>
+              {a.role}
+            </label>
+            <textarea
+              id="system_prompt"
+              name="system_prompt"
+              defaultValue={assistant.system_prompt}
+              rows={5}
+              placeholder={a.rolePlaceholder}
+              className={`${field} resize-y`}
+            />
+            <p className="mt-1.5 text-xs text-neutral-400">{a.roleHint}</p>
+          </div>
+
+          <div className="border-t border-neutral-100 pt-4">
+            <AdvancedVoiceSettings
+              defaultSpeed={typeof voiceCfg.speed === "number" ? voiceCfg.speed : 1}
+              defaultStability={typeof voiceCfg.stability === "number" ? voiceCfg.stability : 0.5}
+              voiceByLanguage={voiceByLanguage}
+              languages={voiceLanguages}
+            />
+          </div>
+
+          <div className="space-y-3 border-t border-neutral-100 pt-4">
             <label className={toggleRow}>
               <span>
-                <span className="block text-sm font-medium text-neutral-800">{a.textAlerts}</span>
-                <span className="block text-xs text-neutral-400">{a.textAlertsSub}</span>
+                <span className="block text-sm font-medium text-neutral-800">
+                  {a.sendEmailTranscripts}
+                </span>
+                <span className="block text-xs text-neutral-400">{a.sendEmailTranscriptsSub}</span>
               </span>
               <input
                 type="checkbox"
-                name="sms_alerts"
-                defaultChecked={smsAlerts}
+                name="email_enabled"
+                defaultChecked={emailCfg.enabled ?? false}
                 className="peer sr-only"
               />
               <span className={toggle} />
             </label>
-          </TopicModal>
-
-          <TopicModal
-            assistantId={assistant.id}
-            section={SECTION.calendar}
-            icon={<Calendar className="h-5 w-5" />}
-            title={a.topicBookingTitle}
-            subtitle={a.topicBookingSub}
-            summary={accessCount > 0 ? a.writeBook : null}
-          >
-            {calendars.length === 0 ? (
-              <p className="text-sm text-neutral-500">
-                {a.noCalendars}{" "}
-                <Link
-                  href="/dashboard/calendar"
-                  className="font-medium text-neutral-900 underline underline-offset-2"
-                >
-                  {a.connectOne}
-                </Link>
-              </p>
-            ) : (
-              <div className="space-y-2">
-                {calendars.map((c) => (
-                  <div
-                    key={c.id}
-                    className="flex items-center justify-between gap-3 rounded-lg border border-neutral-200/70 bg-white/60 px-3 py-2.5"
-                  >
-                    <div className="text-sm font-medium text-neutral-800">
-                      {providerName(c.provider)}
-                    </div>
-                    {/* Three levels, deliberately not collapsed to a toggle. */}
-                    <select
-                      name={`cal_access_${c.id}`}
-                      defaultValue={accessMap.get(c.id) ?? "none"}
-                      className="shrink-0 rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-sm text-neutral-900 outline-none focus:border-neutral-900"
-                    >
-                      <option value="none">{a.noAccess}</option>
-                      <option value="read">{a.readAvailability}</option>
-                      <option value="write">{a.writeBook}</option>
-                    </select>
-                  </div>
-                ))}
-              </div>
-            )}
-          </TopicModal>
-        </Group>
-
-        <Group title={a.groupAi}>
-          <TopicModal
-            assistantId={assistant.id}
-            section={`${SECTION.role}`}
-            icon={<Sparkle className="h-5 w-5" />}
-            title={a.topicTuneTitle}
-            subtitle={a.topicTuneSub}
-            summary={null}
-          >
-            {/* This modal owns three sections at once, so it carries all three
-                markers - the two extra ride along as hidden inputs. */}
-            <input type="hidden" name={SECTION.voice} value="1" />
-            <input type="hidden" name={SECTION.voiceLang} value="1" />
-            <input type="hidden" name={SECTION.email} value="1" />
-
             <div>
-              <label htmlFor="system_prompt" className={labelCls}>
-                {a.role}
+              <label htmlFor="email_to" className={labelCls}>
+                {a.sendTo}
               </label>
-              <textarea
-                id="system_prompt"
-                name="system_prompt"
-                defaultValue={assistant.system_prompt}
-                rows={5}
-                placeholder={a.rolePlaceholder}
-                className={`${field} resize-y`}
-              />
-              <p className="mt-1.5 text-xs text-neutral-400">{a.roleHint}</p>
-            </div>
-
-            <div className="border-t border-neutral-100 pt-4">
-              <AdvancedVoiceSettings
-                defaultSpeed={typeof voiceCfg.speed === "number" ? voiceCfg.speed : 1}
-                defaultStability={typeof voiceCfg.stability === "number" ? voiceCfg.stability : 0.5}
-                voiceByLanguage={voiceByLanguage}
-                languages={voiceLanguages}
+              <input
+                id="email_to"
+                name="email_to"
+                type="email"
+                defaultValue={emailCfg.to ?? ""}
+                placeholder="you@business.com"
+                className={field}
               />
             </div>
-
-            <div className="space-y-3 border-t border-neutral-100 pt-4">
-              <label className={toggleRow}>
-                <span>
-                  <span className="block text-sm font-medium text-neutral-800">
-                    {a.sendEmailTranscripts}
-                  </span>
-                  <span className="block text-xs text-neutral-400">{a.sendEmailTranscriptsSub}</span>
-                </span>
-                <input
-                  type="checkbox"
-                  name="email_enabled"
-                  defaultChecked={emailCfg.enabled ?? false}
-                  className="peer sr-only"
-                />
-                <span className={toggle} />
-              </label>
-              <div>
-                <label htmlFor="email_to" className={labelCls}>
-                  {a.sendTo}
-                </label>
-                <input
-                  id="email_to"
-                  name="email_to"
-                  type="email"
-                  defaultValue={emailCfg.to ?? ""}
-                  placeholder="you@business.com"
-                  className={field}
-                />
-              </div>
-            </div>
-          </TopicModal>
-        </Group>
-
-        <Group title={a.dangerZone}>
-          {/* Delete posts to its own action, so it sits outside any modal form. */}
-          <div className={`${CARD} flex flex-wrap items-center justify-between gap-3 p-5`}>
-            <div className="flex min-w-0 items-center gap-4">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-rose-500">
-                <Trash className="h-5 w-5" />
-              </span>
-              <div className="min-w-0">
-                <p className="text-[15px] font-semibold text-neutral-900">{assistant.name}</p>
-                <p className="text-[13px] text-neutral-500">{a.deleteHint}</p>
-              </div>
-            </div>
-            <DeleteAssistant id={assistant.id} name={assistant.name} />
           </div>
-        </Group>
+        </TopicModal>
+
+        {/* Delete posts to its own action, so it sits outside any modal form. */}
+        <div className={`${CARD} flex h-full items-center justify-between gap-3 p-5`}>
+          <div className="flex min-w-0 items-center gap-4">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-rose-500">
+              <Trash className="h-5 w-5" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[15px] font-semibold text-neutral-900">{a.dangerZone}</p>
+              <p className="text-[13px] text-neutral-500">{a.deleteHint}</p>
+            </div>
+          </div>
+          <DeleteAssistant id={assistant.id} name={assistant.name} />
+        </div>
       </div>
     </div>
   );

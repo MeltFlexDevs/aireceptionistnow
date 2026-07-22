@@ -28,7 +28,7 @@ export function DeleteAssistant({ id, name }: { id: string; name: string }) {
           onClick={() => setOpen(false)}
         >
           <div
-            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+            className="w-full max-w-md rounded-2xl border border-neutral-200 bg-white p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-base font-medium text-neutral-900">{t.assistants.deleteAssistant}</h3>

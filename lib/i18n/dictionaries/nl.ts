@@ -333,6 +333,11 @@ export const nl: Dictionary = {
     billedNote: "Afgeschreven van je abonnementstegoed. Zeg het nummer op wanneer je wilt.",
   },
   calendar: {
+    // Real events pulled live from the connected calendar(s).
+    allDay: "Hele dag",
+    fromCalendar: "Uit {name}",
+    openEvent: "Afspraak openen",
+    untitledEvent: "Bezet",
     title: "Afspraken",
     description: "Elke afspraak die je receptie heeft geboekt: wie er belde, wanneer die is en in welke agenda die terechtkwam.",
     today: "Vandaag",

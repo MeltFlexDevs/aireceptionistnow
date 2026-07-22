@@ -15,12 +15,12 @@ export default function Loading() {
         <Skeleton className="h-10 w-40" />
       </div>
       <div className="grid min-h-0 flex-1 gap-3 md:grid-cols-[minmax(280px,2fr)_5fr]">
-        <div className="min-h-0 space-y-1.5 overflow-hidden rounded-xl bg-white p-2 shadow-[0_1px_3px_rgba(16,24,40,0.07)]">
+        <div className="min-h-0 space-y-1.5 overflow-hidden rounded-xl bg-white p-2 border border-neutral-200">
           {Array.from({ length: 11 }).map((_, i) => (
             <Skeleton key={i} className="h-12 w-full" />
           ))}
         </div>
-        <div className="hidden min-h-0 space-y-4 overflow-hidden rounded-xl bg-white p-5 shadow-[0_1px_3px_rgba(16,24,40,0.07)] md:block">
+        <div className="hidden min-h-0 space-y-4 overflow-hidden rounded-xl bg-white p-5 border border-neutral-200 md:block">
           <Skeleton className="h-6 w-64" />
           <Skeleton className="h-4 w-40" />
           <Skeleton className="h-24 w-full" />

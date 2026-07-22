@@ -353,6 +353,11 @@ export const en = {
     billedNote: "Billed from your plan credits. Cancel the number anytime.",
   },
   calendar: {
+    // Real events pulled live from the connected calendar(s).
+    allDay: "All day",
+    fromCalendar: "From {name}",
+    openEvent: "Open event",
+    untitledEvent: "Busy",
     title: "Appointments",
     description:
       "Every appointment your receptionist booked - who called, when it is, and which calendar it landed in.",

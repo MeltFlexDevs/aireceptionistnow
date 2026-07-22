@@ -70,7 +70,7 @@ export function TopicModal({
         type="button"
         onClick={() => setOpen(true)}
         aria-label={a.edit + " - " + title}
-        className="group flex w-full items-center gap-4 rounded-xl bg-white p-5 text-left shadow-[0_1px_3px_rgba(16,24,40,0.07)] transition-shadow hover:shadow-[0_4px_14px_rgba(16,24,40,0.10)]"
+        className="group flex h-full w-full items-center gap-4 rounded-2xl border border-neutral-200 bg-white p-5 text-left transition-colors hover:border-neutral-300 hover:bg-neutral-50/50"
       >
         {icon && (
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-neutral-100 text-neutral-600">

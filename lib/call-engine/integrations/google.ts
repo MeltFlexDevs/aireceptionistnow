@@ -5,9 +5,12 @@ import type {
   AvailabilityQuery,
   AvailabilityResult,
   BusyInterval,
+  CalendarEvent,
   CalendarFactory,
   CalendarProvider,
   CancelResult,
+  ConnectionCheck,
+  EventsResult,
 } from "./types";
 
 interface GoogleConfig {
@@ -92,18 +95,31 @@ export const createGoogleCalendar: CalendarFactory = (config): CalendarProvider 
       },
     );
 
-  const listEvents = (token: string, q: AvailabilityQuery) =>
-    timedFetch(
-      `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(
-        cfg.calendar_id || "primary",
-      )}/events?${new URLSearchParams({
-        timeMin: q.timeMin,
-        timeMax: q.timeMax,
-        singleEvents: "true",
-        fields: "timeZone,items(start,end,transparency)",
-      }).toString()}`,
-      { headers: { authorization: `Bearer ${token}` } },
-    );
+  const eventsUrl = (q: AvailabilityQuery, fields: string, maxResults = 250) =>
+    `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(
+      cfg.calendar_id || "primary",
+    )}/events?${new URLSearchParams({
+      timeMin: q.timeMin,
+      timeMax: q.timeMax,
+      singleEvents: "true", // required for orderBy=startTime and to expand recurrences
+      orderBy: "startTime",
+      maxResults: String(maxResults),
+      fields,
+    }).toString()}`;
+
+  // GET with the stored token, refreshing once on a 401. Shared by the read
+  // paths (getBusy / listEvents / checkConnection).
+  const authedGet = async (url: string): Promise<Response | null> => {
+    const run = (token: string) =>
+      timedFetch(url, { headers: { authorization: `Bearer ${token}` } });
+    let token = storedToken();
+    let res = token ? await run(token) : null;
+    if (!res || res.status === 401) {
+      token = await refreshAccessToken(cfg);
+      if (token) res = await run(token);
+    }
+    return res;
+  };
 
   return {
     async createEvent(req): Promise<BookingResult> {
@@ -141,12 +157,7 @@ export const createGoogleCalendar: CalendarFactory = (config): CalendarProvider 
     },
 
     async getBusy(q): Promise<AvailabilityResult> {
-      let token = storedToken();
-      let res = token ? await listEvents(token, q) : null;
-      if (!res || res.status === 401) {
-        token = await refreshAccessToken(cfg);
-        if (token) res = await listEvents(token, q);
-      }
+      const res = await authedGet(eventsUrl(q, "timeZone,items(start,end,transparency)"));
       if (!res) return { ok: false, busy: [], error: "google calendar not authorized" };
       if (!res.ok) return { ok: false, busy: [], error: `google calendar ${res.status}` };
       const json = (await res.json()) as {
@@ -171,6 +182,81 @@ export const createGoogleCalendar: CalendarFactory = (config): CalendarProvider 
           return start && end ? [{ start, end }] : [];
         });
       return { ok: true, busy };
+    },
+
+    async listEvents(q): Promise<EventsResult> {
+      const res = await authedGet(
+        eventsUrl(
+          q,
+          "items(id,status,summary,location,htmlLink,start(dateTime,date),end(dateTime,date))",
+        ),
+      );
+      if (!res) return { ok: false, events: [], error: "google calendar not authorized" };
+      if (!res.ok) return { ok: false, events: [], error: `google calendar ${res.status}` };
+      const json = (await res.json()) as {
+        items?: {
+          id?: string;
+          status?: string;
+          summary?: string;
+          location?: string;
+          htmlLink?: string;
+          start?: { dateTime?: string; date?: string };
+          end?: { dateTime?: string; date?: string };
+        }[];
+      };
+      const events: CalendarEvent[] = (json.items ?? [])
+        .filter((ev) => ev.status !== "cancelled")
+        .flatMap((ev) => {
+          const allDay = !ev.start?.dateTime && Boolean(ev.start?.date);
+          // All-day events carry date-only bounds; anchor them at UTC midnight so
+          // the date prefix is stable. Timed events already carry an offset.
+          const start = ev.start?.dateTime ?? (ev.start?.date ? `${ev.start.date}T00:00:00Z` : null);
+          const end = ev.end?.dateTime ?? (ev.end?.date ? `${ev.end.date}T00:00:00Z` : null);
+          if (!start || !end) return [];
+          return [
+            {
+              id: ev.id || start,
+              title: ev.summary ?? "",
+              start,
+              end,
+              allDay,
+              location: ev.location,
+              url: ev.htmlLink,
+            },
+          ];
+        });
+      return { ok: true, events };
+    },
+
+    async checkConnection(): Promise<ConnectionCheck> {
+      // calendar.events scope cannot read calendars.get/calendarList, so the
+      // account identity is derived from events.list: the primary calendar's
+      // title (its email) or a self-owned event's organizer/creator email.
+      const now = Date.now();
+      const q = {
+        timeMin: new Date(now - 30 * 86_400_000).toISOString(),
+        timeMax: new Date(now + 120 * 86_400_000).toISOString(),
+      };
+      const res = await authedGet(
+        eventsUrl(q, "summary,items(organizer(email,self),creator(email,self))", 50),
+      );
+      if (!res) return { ok: false };
+      if (!res.ok) return { ok: false, error: `google calendar ${res.status}` };
+      const json = (await res.json()) as {
+        summary?: string;
+        items?: {
+          organizer?: { email?: string; self?: boolean };
+          creator?: { email?: string; self?: boolean };
+        }[];
+      };
+      const fromEvent = (json.items ?? [])
+        .map((i) =>
+          i.organizer?.self ? i.organizer.email : i.creator?.self ? i.creator.email : undefined,
+        )
+        .find((e): e is string => Boolean(e));
+      const account =
+        (json.summary && json.summary.includes("@") ? json.summary : undefined) ?? fromEvent ?? "";
+      return { ok: true, account };
     },
   };
 };
