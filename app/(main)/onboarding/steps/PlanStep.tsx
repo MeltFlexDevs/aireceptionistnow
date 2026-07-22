@@ -192,21 +192,6 @@ export function PlanStep({
       </div>
 
       <p className="mt-4 text-center text-xs text-neutral-500">{o.goLiveHint}</p>
-
-      {/* Dev-only shortcut: skip Stripe and run the real provisioning flow (the
-          same one a paid checkout triggers) - deploys the assistant + a
-          Twilio free-tier number, plays the reveal, then lands on the dashboard.
-          Tree-shaken out of the production bundle. */}
-      {process.env.NODE_ENV === "development" && (
-        <div className="mt-4 flex justify-center">
-          <a
-            href="/onboarding?step=go"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-neutral-300 px-4 py-2 text-xs font-medium text-neutral-500 transition-colors hover:border-neutral-400 hover:text-neutral-800"
-          >
-            Dev: skip payment &amp; deploy →
-          </a>
-        </div>
-      )}
     </section>
   );
 }

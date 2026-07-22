@@ -4,7 +4,6 @@ import { randomUUID } from "node:crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { currentUserId } from "@/lib/auth";
-import { devDashboardBypass } from "@/lib/supabase/config";
 import { getBilling } from "@/lib/billing";
 import {
   getOnboardingProfile,
@@ -242,13 +241,7 @@ export async function ensureProvisioningAction(): Promise<ProvisionPoll> {
   if (profile.status === "provisioning") return { status: "provisioning" };
 
   const billing = await getBilling(userId).catch(() => null);
-  // devDashboardBypass (DEV_DASHBOARD=1 in development) skips the payment gate so
-  // the onboarding "Dev: skip payment" button can deploy a real (Twilio-free-tier)
-  // number without a Stripe checkout. Inert in production (NODE_ENV !== development).
-  const paid =
-    billing?.status === "active" ||
-    billing?.status === "trialing" ||
-    devDashboardBypass();
+  const paid = billing?.status === "active" || billing?.status === "trialing";
   if (!paid) return { status: "waiting-payment" };
 
   const outcome = await provisionOnboarding(userId);
