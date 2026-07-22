@@ -14,17 +14,33 @@ const nextConfig: NextConfig = {
     qualities: [75],
   },
   async redirects() {
-    // The company pages lived under /dashboard/organizations before.
     return [
+      // The company pages lived under /dashboard/organizations before.
       {
         source: "/dashboard/organizations/:path*",
         destination: "/dashboard/company/:path*",
+        permanent: true,
+      },
+      // Industry landing pages moved from /industries/[slug] to top-level /[slug].
+      {
+        source: "/industries/:slug",
+        destination: "/:slug",
         permanent: true,
       },
     ];
   },
   async headers() {
     return [
+      // Preview builds expose unreviewed translations. Make it impossible for
+      // one to be indexed, even if a preview URL leaks or gets linked.
+      ...(process.env.NEXT_PUBLIC_I18N_PREVIEW === "1"
+        ? [
+            {
+              source: "/:path*",
+              headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+            },
+          ]
+        : []),
       {
         source: STATIC_ASSET_MATCHER,
         headers: [

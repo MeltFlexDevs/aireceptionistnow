@@ -41,7 +41,7 @@ html {
 @layer base {
   body {
     -webkit-font-smoothing: antialiased;
-    -moz-osx-osx-font-smoothing: grayscale;
+    -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
 
@@ -98,301 +98,17 @@ html {
   }
 }
 
-/* Reusable card shadow utility for dashboard surfaces. */
-.shadow-card {
-  box-shadow: var(--shadow-card);
-}
-
-/* ── COOL-SHAPE SYSTEM ──────────────────────────────────────────────────────
-   Minimal but non-generic: cards get an asymmetric silhouette (one sharp
-   corner); small decorative/icon elements use notches, hexagons, and blobs.
-   Clip-path clips shadows, so only shadow-less accents are clipped — cards keep
-   their shadow and use border-radius instead. */
-.shape-card {
-  border-radius: 20px 20px 20px 4px;
-}
-.shape-card-alt {
-  border-radius: 20px 4px 20px 20px;
-}
-.shape-pill {
-  border-radius: 14px 14px 14px 4px;
-}
-.shape-notch {
-  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
-}
-.shape-hex {
-  clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
-}
-.shape-blob {
-  border-radius: 42% 58% 63% 37% / 41% 44% 56% 59%;
-}
-/* Monochrome accent gradient (near-black → grey) for small shape accents. */
-.brand-grad {
-  background-image: linear-gradient(135deg, #1D1D1D, #525252);
-}
-
-/* ── ASSISTANT AVATAR ───────────────────────────────────────────────────────
-   The illustrated AI-receptionist character (AiAvatar/LiveAvatar) and the two
-   holders it sits in: the large breathing aura for hero moments and the
-   compact ring that works as the assistant's profile picture in lists and
-   headers. Shared by the onboarding funnel and the dashboard so the assistant
-   the caller "hired" looks the same everywhere. */
-.ai-avatar {
-  overflow: visible;
-  line-height: 1;
-  user-select: none;
-  animation: ava-pop 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-}
-.ai-avatar[data-wave="true"] {
-  transform-origin: 70% 80%;
-  animation: ava-pop 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) both,
-    ava-wave 1.6s ease-in-out 0.4s 2;
-}
-.ai-float {
-  animation: ai-float 5s ease-in-out infinite;
-}
-.ai-eyes {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: ai-blink 5.4s ease-in-out infinite;
-}
-.ai-spark {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: ai-twinkle 1.7s ease-in-out infinite;
-}
-/* Subtle "talking" mouth: a slight vertical flutter, played in short bursts. */
-.ai-mouth {
-  transform-box: fill-box;
-  transform-origin: center;
-}
-.ai-mouth[data-talk="true"] {
-  animation: ai-talk 0.85s ease-in-out;
-}
-
-/* Breathing aura ring that holds the avatar on hero moments. */
-.ava-aura {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 138px;
-  height: 138px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #1D1D1D, #525252);
-  padding: 6px;
-  box-shadow: 0 18px 42px -12px rgb(24 24 27 / 0.44);
-  animation: ava-breathe 4.5s ease-in-out infinite;
-}
-/* Compact aura for screens that carry more content below the avatar. */
-.ava-aura.ava-aura-sm {
-  width: 104px;
-  height: 104px;
-  padding: 5px;
-  box-shadow: 0 14px 32px -12px rgb(24 24 27 / 0.4);
-}
-.ava-aura > .ava-disc {
-  display: grid;
-  place-items: center;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: #fff;
-}
-
-/* Idle "breathing" for rings that should feel alive even untouched. */
-.ava-breathe {
-  animation: ava-breathe 4.5s ease-in-out infinite;
-}
-
-/* Compact ring - size it per spot with `--ava-size` (default 44px). */
-.ava-ring {
-  display: grid;
-  place-items: center;
-  width: var(--ava-size, 44px);
-  height: var(--ava-size, 44px);
-  border-radius: 50%;
-  background: linear-gradient(135deg, #1D1D1D, #525252);
-  padding: 3px;
-  box-shadow: 0 6px 16px -8px rgb(24 24 27 / 0.4);
-}
-.ava-ring > span {
-  display: grid;
-  place-items: center;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: #fff;
-  font-size: 20px;
-  line-height: 1;
-}
-
-@keyframes ai-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-2px); }
-}
-@keyframes ai-blink {
-  0%, 92%, 100% { transform: scaleY(1); }
-  95% { transform: scaleY(0.12); }
-}
-@keyframes ai-twinkle {
-  0%, 100% { opacity: 0.15; transform: scale(0.7); }
-  50% { opacity: 1; transform: scale(1); }
-}
-@keyframes ai-talk {
-  0%, 100% { transform: scaleY(1); }
-  25% { transform: scaleY(0.82); }
-  50% { transform: scaleY(1.08); }
-  75% { transform: scaleY(0.9); }
-}
-@keyframes ava-pop {
-  0% { opacity: 0; transform: scale(0.55); }
-  100% { opacity: 1; transform: scale(1); }
-}
-@keyframes ava-wave {
-  0%, 60%, 100% { transform: rotate(0deg); }
-  15%, 45% { transform: rotate(14deg); }
-  30% { transform: rotate(-8deg); }
-}
-@keyframes ava-breathe {
-  0%, 100% { transform: scale(1); box-shadow: 0 12px 30px -10px rgb(24 24 27 / 0.4); }
-  50% { transform: scale(1.035); box-shadow: 0 18px 40px -10px rgb(24 24 27 / 0.5); }
-}
-
-/* Frosted-glass surface: translucent white + blur + a top inner highlight, so
-   the dotted backdrop shows through. Pair with .shape-card for the silhouette. */
-.glass {
-  background: color-mix(in oklab, white 72%, transparent);
-  backdrop-filter: blur(10px) saturate(1.15);
-  -webkit-backdrop-filter: blur(10px) saturate(1.15);
-  border: 1px solid rgb(255 255 255 / 0.55);
-  box-shadow:
-    var(--shadow-card),
-    inset 0 1px 0 rgb(255 255 255 / 0.7),
-    0 0 0 1px rgb(15 23 42 / 0.05);
-}
-.glass-dark {
-  background: color-mix(in oklab, #1D1D1D 70%, transparent);
-  backdrop-filter: blur(10px) saturate(1.15);
-  -webkit-backdrop-filter: blur(10px) saturate(1.15);
-  border: 1px solid rgb(255 255 255 / 0.08);
-}
-
-/* Each .glass card is its own stacking context (backdrop-filter), so a custom
-   dropdown overflowing one card gets painted over by the next card no matter how
-   high the dropdown's own z-index is. When a card holds an OPEN dropdown, lift the
-   whole card above its siblings so the menu shows in front. */
-.glass:has([data-el-dropdown="open"]) {
-  position: relative;
-  z-index: 30;
-}
-
-/* Minimal page backdrop: a faint neutral dot grid on off-white. No colour. */
-.dash-bg {
-  /* "black"/neutral-900/accent are Jet black (#1D1D1D) from :root — inherited
-     here, no per-surface override needed. */
-  background-color: #fafafa;
-  background-image: radial-gradient(circle at 1px 1px, rgb(15 23 42 / 0.05) 1px, transparent 0);
-  background-size: 22px 22px;
-  background-attachment: fixed;
-}
-
-/* ── PRIVACY / TERMS PAGES ── */
-.policy-page {
-  min-height: 100vh;
-  background: #ffffff;
-  color: #1D1D1D;
-  font-family: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-weight: 300;
-}
-
-.policy-header {
-  display: flex;
-  align-items: center;
-  padding: 22px 40px;
-  border-bottom: 1px solid #eee;
-}
-
-.policy-main {
-  padding: 120px 0 96px;
-}
-
-.policy-container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 0 40px;
-}
-
-.policy-title {
-  font-size: 42px;
-  font-weight: 300;
-  margin-bottom: 14px;
-  color: #1D1D1D;
-  letter-spacing: -0.02em;
-  font-family: var(--font-inter), 'Inter', sans-serif;
-}
-
-.policy-updated {
-  font-size: 14px;
-  color: #888;
-  margin-bottom: 48px;
-  padding-bottom: 28px;
-  border-bottom: 1px solid #eee;
-}
-
-.policy-content {
-  line-height: 1.8;
-}
-
-.policy-content h2 {
-  font-size: 17px;
-  font-weight: 500;
-  margin-top: 40px;
-  margin-bottom: 14px;
-  color: #1D1D1D;
-  letter-spacing: -0.01em;
-  font-family: var(--font-inter), 'Inter', sans-serif;
-}
-
-.policy-content h2:first-child {
-  margin-top: 0;
-}
-
-.policy-content p {
-  font-size: 15px;
-  color: #555;
-  margin-bottom: 14px;
-  line-height: 1.8;
-}
-
-.policy-content ul {
-  margin: 0 0 16px 0;
-  padding-left: 22px;
-}
-
-.policy-content li {
-  font-size: 15px;
-  color: #555;
-  margin-bottom: 8px;
-  line-height: 1.7;
-}
-
-.policy-content a {
-  color: #1D1D1D;
-  text-decoration: underline;
-}
-
-.policy-content strong {
-  font-weight: 500;
-  color: #333;
-}
-
-@media (max-width: 768px) {
-  .policy-header { padding: 18px 24px; }
-  .policy-main { padding: 48px 0 64px; }
-  .policy-container { padding: 0 24px; }
-  .policy-title { font-size: 30px; }
-  .policy-content h2 { font-size: 15px; margin-top: 32px; }
-  .policy-content p, .policy-content li { font-size: 14px; }
+/* iOS Safari zooms the page whenever a focused form control's font is under
+   16px, then leaves the layout zoomed and shifted. Keep every control at 16px
+   on phones so tapping a field never zooms; wider screens keep the denser
+   sizes from the text-* utilities. Unlayered on purpose so it wins over
+   Tailwind's utility layer (which would otherwise re-apply text-sm etc.). */
+@media (max-width: 640px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  textarea,
+  select {
+    font-size: 16px;
+  }
 }
 
 /* ── MOTION & INTERACTION ────────────────────────────────────────────────────
@@ -435,16 +151,10 @@ html {
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
+  /* Avatar animations (.ai-*, .ava-*) get their reduced-motion override in
+     app/(main)/dashboard/surfaces.css, next to the rules they disable. */
   .rise,
-  .rise-stagger > *,
-  .ai-avatar,
-  .ai-avatar[data-wave="true"],
-  .ai-float,
-  .ai-eyes,
-  .ai-spark,
-  .ai-mouth[data-talk="true"],
-  .ava-aura,
-  .ava-breathe {
+  .rise-stagger > * {
     animation: none;
   }
   .press,
@@ -454,5 +164,85 @@ html {
   .press:active,
   .lift:hover {
     transform: none;
+  }
+}
+
+/* Use-case cards on the home page. The hover arrow used to be driven by inline
+   onMouseOver handlers that reached into the DOM with querySelector; CSS does
+   the same job without shipping handlers or forcing a client component. */
+.use-case-card:hover [data-arrow] {
+  opacity: 1 !important;
+  transform: translate(2px, -2px) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .use-case-card:hover [data-arrow] {
+    transform: none !important;
+  }
+}
+
+/* Touch devices have no hover, so the reveal-on-hover arrow never appears and
+   the linked cards look identical to the inert ones. Show it by default where
+   the primary pointer can't hover, so mobile users see which cards are tappable. */
+@media (hover: none) {
+  .use-case-card [data-arrow] {
+    opacity: 1 !important;
+  }
+}
+
+/* Home hero headline.
+   Translations run much longer than the English source (the German headline is
+   ~40% more characters), and the industry landing pages swap in longer English
+   headlines too (e.g. "AI Receptionist for Property Management, Every Call
+   Answered 24/7"), which used to wrap to a third line and push the test-call
+   form down. Two rules keep the form anchored in the same place for every
+   headline, in every language:
+     1. a wider measure, so a longer headline grows sideways before it wraps
+     2. a reserved three-line box, so line count cannot change the layout below
+   The headline is centered inside that reserved box, so a short English
+   headline and a long industry or Slovak one occupy identical vertical space. */
+.hero-h1 {
+  font-size: clamp(26px, 4.1vw, 58px);
+  line-height: 1.06;
+  max-width: min(94vw, 1180px);
+  min-height: calc(3 * 1.06em);
+  margin-top: 48px;
+  margin-bottom: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 900px) {
+  /* Narrow viewports have far less horizontal room, so the headline cannot
+     grow sideways and must wrap. Shrink the type and reserve the worst-case
+     line count instead, so the form sits at one fixed offset in every
+     language. text-wrap: balance is disabled here: balancing optimises for
+     even line lengths, which on a narrow column adds lines rather than
+     removing them, and it was what pushed the German headline to five. */
+  .hero-h1 {
+    font-size: clamp(17px, 4.5vw, 27px);
+    min-height: calc(5 * 1.06em + 10px);
+    margin-top: 32px;
+    margin-bottom: 24px;
+    text-wrap: pretty;
+  }
+}
+
+/* Site footer mobile treatment. The footer is a server component styled with
+   inline styles, so its responsive rules live here and use !important to win
+   over the inline declarations. Below ~600px: tighten the side padding and the
+   column gap, and left-align the voice-partner / ask-AI block with the link
+   columns instead of hugging the right edge. */
+@media (max-width: 600px) {
+  .ar-footer-row {
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+  }
+  .ar-footer-nav {
+    gap: 28px !important;
+  }
+  .ar-footer-side {
+    align-items: flex-start !important;
   }
 }

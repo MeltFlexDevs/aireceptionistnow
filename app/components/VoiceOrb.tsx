@@ -53,6 +53,7 @@ export default function VoiceOrb() {
 
     let raf = 0;
     let start = 0;
+    let running = false;
     const draw = (ts: number) => {
       if (!start) start = ts;
       const t = (ts - start) / 1000;
@@ -86,10 +87,31 @@ export default function VoiceOrb() {
       }
       raf = requestAnimationFrame(draw);
     };
-    raf = requestAnimationFrame(draw);
+
+    const startLoop = () => {
+      if (running) return;
+      running = true;
+      raf = requestAnimationFrame(draw);
+    };
+    const stopLoop = () => {
+      running = false;
+      cancelAnimationFrame(raf);
+    };
+    // Only animate while the orb is on screen. The observer's first callback is
+    // async, so the initial start stays off the hydration critical path, and
+    // scrolling the hero away halts the loop instead of burning main-thread CPU.
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) startLoop();
+        else stopLoop();
+      },
+      { threshold: 0 },
+    );
+    io.observe(canvas);
 
     return () => {
-      cancelAnimationFrame(raf);
+      stopLoop();
+      io.disconnect();
       ro.disconnect();
     };
   }, []);

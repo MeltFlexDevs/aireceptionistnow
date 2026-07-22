@@ -1,0 +1,462 @@
+/* ── ONBOARDING: "HIRE YOUR AI RECEPTIONIST" ────────────────────────────────
+   A live, playful onboarding scoped to `onb-*` classes so nothing leaks into
+   the rest of the app. Strictly monochrome - black, white, and greys - to match
+   the funnel's existing shape/glass system. The life comes from motion and the
+   avatar's face, not from colour. The avatar itself (`.ai-*`, `.ava-*`) lives
+   in globals.css - the dashboard renders the same character. */
+
+/* ── Live assistant preview ────────────────────────────────────────────────*/
+.onb-preview {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(170deg, #ffffff 0%, #f5f5f5 100%);
+  border: 1px solid rgb(15 23 42 / 0.06);
+  border-radius: 24px 24px 24px 6px;
+  box-shadow:
+    0 1px 2px rgb(24 24 27 / 0.04),
+    0 18px 40px -26px rgb(24 24 27 / 0.32),
+    inset 0 1px 0 rgb(255 255 255 / 0.9);
+}
+/* Faint grey blobs drifting behind the avatar - texture, not colour. */
+.onb-preview::before,
+.onb-preview::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(38px);
+  opacity: 0.5;
+  pointer-events: none;
+}
+.onb-preview::before {
+  width: 190px;
+  height: 190px;
+  top: -50px;
+  right: -40px;
+  background: radial-gradient(circle, rgb(24 24 27 / 0.1), transparent 70%);
+  animation: onb-drift 9s ease-in-out infinite;
+}
+.onb-preview::after {
+  width: 220px;
+  height: 220px;
+  bottom: -70px;
+  left: -50px;
+  background: radial-gradient(circle, rgb(24 24 27 / 0.08), transparent 70%);
+  animation: onb-drift 11s ease-in-out infinite reverse;
+}
+
+/* Soft radial halo behind the studying avatar on the step-2 hero panel. */
+.onb-study-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 190px;
+  height: 190px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(24 24 27 / 0.07), transparent 62%);
+  pointer-events: none;
+  animation: onb-pulse-glow 6s ease-in-out infinite;
+}
+@keyframes onb-pulse-glow {
+  0%, 100% { opacity: 0.7; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+}
+/* Celebratory badge that pops in once the required fields are filled. */
+.onb-ready-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  font-size: 18px;
+  line-height: 1;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid rgb(15 23 42 / 0.08);
+  box-shadow: 0 6px 16px -4px rgb(24 24 27 / 0.3);
+  animation: ava-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Speech bubble with a little tail on the top-left. */
+.onb-bubble {
+  position: relative;
+  background: #fff;
+  border: 1px solid rgb(15 23 42 / 0.05);
+  border-radius: 4px 18px 18px 18px;
+  box-shadow: 0 12px 30px -18px rgb(24 24 27 / 0.35);
+}
+.onb-bubble::before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  left: 16px;
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  border-left: 1px solid rgb(15 23 42 / 0.05);
+  border-top: 1px solid rgb(15 23 42 / 0.05);
+  border-radius: 3px 0 0 0;
+  transform: rotate(45deg);
+}
+.onb-line {
+  animation: onb-line-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Personality / country chips. */
+.onb-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #525252;
+  background: #fff;
+  border: 1px solid rgb(15 23 42 / 0.08);
+  border-radius: 999px;
+  box-shadow: 0 4px 12px -8px rgb(24 24 27 / 0.35);
+  animation: onb-line-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* "Ready" confirmation note under the preview. */
+.onb-ready-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #1d1d1d;
+  font-weight: 500;
+  animation: onb-line-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── The signature "hire" call-to-action ───────────────────────────────────*/
+.onb-cta {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  height: 52px;
+  padding: 0 24px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: #fff;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #303030, #1a1a1a);
+  box-shadow:
+    0 1px 0 0 rgb(255 255 255 / 0.08) inset,
+    0 12px 26px -12px rgb(24 24 27 / 0.65);
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease,
+    filter 0.2s ease;
+}
+.onb-cta:hover {
+  filter: brightness(1.12);
+  box-shadow:
+    0 1px 0 0 rgb(255 255 255 / 0.1) inset,
+    0 16px 32px -12px rgb(24 24 27 / 0.75);
+}
+.onb-cta:active {
+  transform: scale(0.985);
+}
+.onb-cta:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+  box-shadow: none;
+}
+.onb-cta:disabled:hover {
+  filter: none;
+}
+.onb-cta svg {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.onb-cta:not(:disabled):hover svg {
+  transform: translateX(3px);
+}
+/* Gentle attention ring once the form is valid and ready to submit. */
+.onb-cta[data-ready="true"] {
+  animation: onb-cta-pulse 2.2s ease-in-out infinite;
+}
+
+/* ── Persistent companion header on steps 2-4 ──────────────────────────────*/
+.onb-name-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: #525252;
+  background: #f5f5f5;
+  border: 1px solid rgb(15 23 42 / 0.06);
+  border-radius: 999px;
+}
+
+/* ── Step 3: stylized calendar hero ────────────────────────────────────────*/
+.onb-cal {
+  width: 188px;
+  padding: 11px 13px 12px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid rgb(15 23 42 / 0.07);
+  box-shadow:
+    0 20px 44px -24px rgb(24 24 27 / 0.42),
+    inset 0 1px 0 rgb(255 255 255 / 0.9);
+}
+.onb-cal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 9px;
+}
+.onb-cal-month {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #1d1d1d;
+}
+.onb-cal-nav {
+  display: inline-flex;
+  gap: 10px;
+  color: #cacaca;
+}
+.onb-cal-week,
+.onb-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+.onb-cal-week {
+  margin-bottom: 3px;
+}
+.onb-cal-week span {
+  text-align: center;
+  font-size: 9px;
+  font-weight: 600;
+  color: #b8b8b8;
+}
+.onb-cal-grid {
+  gap: 1px;
+}
+.onb-cal-day {
+  position: relative;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  font-size: 10.5px;
+  color: #525252;
+  border-radius: 50%;
+}
+.onb-cal-day--today {
+  background: #1d1d1d;
+  color: #fff;
+  font-weight: 600;
+}
+.onb-cal-day--today::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 50%;
+  border: 2px solid rgb(24 24 27 / 0.3);
+  animation: onb-cal-pulse 2.6s ease-out infinite;
+}
+.onb-cal-day--dot::after {
+  content: "";
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #1d1d1d;
+}
+@keyframes onb-cal-pulse {
+  0% { transform: scale(0.85); opacity: 0.55; }
+  100% { transform: scale(1.65); opacity: 0; }
+}
+/* The receptionist badge, pinned to the calendar's corner. */
+.onb-cal-badge {
+  position: absolute;
+  top: -13px;
+  right: -13px;
+  box-shadow: 0 0 0 3px #ffffff, 0 6px 16px -8px rgb(24 24 27 / 0.45);
+}
+
+/* ── Keyframes ─────────────────────────────────────────────────────────────*/
+@keyframes onb-drift {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(14px, 18px); }
+}
+@keyframes onb-line-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes onb-cta-pulse {
+  0%, 100% {
+    box-shadow:
+      0 1px 0 0 rgb(255 255 255 / 0.08) inset,
+      0 12px 26px -12px rgb(24 24 27 / 0.65),
+      0 0 0 0 rgb(24 24 27 / 0.18);
+  }
+  50% {
+    box-shadow:
+      0 1px 0 0 rgb(255 255 255 / 0.08) inset,
+      0 14px 30px -10px rgb(24 24 27 / 0.8),
+      0 0 0 4px rgb(24 24 27 / 0.06);
+  }
+}
+
+/* ── Avatar "chatter" bubble (rotating thoughts) ───────────────────────────*/
+.onb-chatter {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 100%;
+  padding: 5px 12px;
+  font-size: 12px;
+  line-height: 1.3;
+  color: #6b6b6b;
+  background: #f4f4f4;
+  border: 1px solid rgb(15 23 42 / 0.05);
+  border-radius: 999px;
+}
+.onb-typing {
+  display: inline-flex;
+  flex: none;
+  gap: 3px;
+}
+.onb-typing i {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.4;
+  animation: onb-typing 1.2s ease-in-out infinite;
+}
+.onb-typing i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.onb-typing i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@keyframes onb-typing {
+  0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-2px); }
+}
+
+/* ── Finale: the brand mark parts to reveal the assistant ──────────────────*/
+/* The app icon is two vertical bars. On the "you're live" screen they fade in
+   as that mark, then slide apart like a gate while the assistant inflates into
+   the gap and waves hello. Timed in AssistantReveal.tsx. */
+.onb-reveal {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 138px;
+  height: 138px;
+}
+/* The two bars, proportioned to echo the 512px app icon. */
+.onb-reveal-bar {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 14px;
+  height: 84px;
+  border-radius: 7px;
+  background: linear-gradient(180deg, #303030, #141414);
+  box-shadow: 0 12px 26px -10px rgb(24 24 27 / 0.5);
+  will-change: transform, opacity;
+}
+/* Loading phase: the two bars sit as the app-icon mark and breathe in place
+   while provisioning runs, so the wait reads as the logo coming alive. */
+.onb-reveal-bar--l {
+  transform: translate(calc(-50% - 11px), -50%);
+  animation: onb-bar-pulse-l 1.5s ease-in-out infinite;
+}
+.onb-reveal-bar--r {
+  transform: translate(calc(-50% + 11px), -50%);
+  animation: onb-bar-pulse-r 1.5s ease-in-out infinite 0.18s;
+}
+/* Ready: provisioning finished - the bars part like a gate for the assistant. */
+.onb-reveal.is-ready .onb-reveal-bar--l {
+  animation: onb-bar-part-l 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.onb-reveal.is-ready .onb-reveal-bar--r {
+  animation: onb-bar-part-r 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes onb-bar-pulse-l {
+  0%, 100% { transform: translate(calc(-50% - 11px), -50%) scaleY(0.82); opacity: 0.45; }
+  50% { transform: translate(calc(-50% - 11px), -50%) scaleY(1); opacity: 1; }
+}
+@keyframes onb-bar-pulse-r {
+  0%, 100% { transform: translate(calc(-50% + 11px), -50%) scaleY(0.82); opacity: 0.45; }
+  50% { transform: translate(calc(-50% + 11px), -50%) scaleY(1); opacity: 1; }
+}
+/* The assistant capsule stays hidden until the bars begin to part (`is-in`),
+   then pops in and settles into its idle breathing. Descendant selector so it
+   overrides the base `.ava-aura` animation from globals.css. */
+.onb-reveal .ava-aura {
+  transform: scale(0);
+  opacity: 0;
+  animation: none;
+}
+.onb-reveal .ava-aura.is-in {
+  animation: onb-reveal-pop 0.62s cubic-bezier(0.34, 1.56, 0.64, 1) both,
+    ava-breathe 4.5s ease-in-out 0.8s infinite;
+}
+/* The copy below rises in once the assistant has landed. */
+.onb-reveal-copy {
+  animation: rise 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.62s both;
+}
+
+/* Start visible (the bars were already showing during the loading pulse), hold,
+   then slide out and fade so the assistant can pop into the gap. */
+@keyframes onb-bar-part-l {
+  0% { opacity: 1; transform: translate(calc(-50% - 11px), -50%) scaleY(1); }
+  46% { opacity: 1; transform: translate(calc(-50% - 11px), -50%) scaleY(1); }
+  100% { opacity: 0; transform: translate(calc(-50% - 66px), -50%) scaleY(1.14); }
+}
+@keyframes onb-bar-part-r {
+  0% { opacity: 1; transform: translate(calc(-50% + 11px), -50%) scaleY(1); }
+  46% { opacity: 1; transform: translate(calc(-50% + 11px), -50%) scaleY(1); }
+  100% { opacity: 0; transform: translate(calc(-50% + 66px), -50%) scaleY(1.14); }
+}
+@keyframes onb-reveal-pop {
+  0% { transform: scale(0.2); opacity: 0; }
+  55% { opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .onb-preview::before,
+  .onb-preview::after,
+  .onb-study-glow,
+  .onb-cal-day--today::before,
+  .onb-typing i,
+  .onb-ready-badge,
+  .onb-line,
+  .onb-chip,
+  .onb-ready-note,
+  .onb-cta[data-ready="true"],
+  .onb-reveal-copy {
+    animation: none;
+  }
+  /* Skip the theatrics: static bars while loading, hidden once ready. */
+  .onb-reveal-bar {
+    animation: none;
+  }
+  .onb-reveal.is-ready .onb-reveal-bar {
+    opacity: 0;
+  }
+  .onb-reveal .ava-aura,
+  .onb-reveal .ava-aura.is-in {
+    animation: none;
+    transform: none;
+    opacity: 1;
+  }
+  .onb-cta {
+    transition: none;
+  }
+}

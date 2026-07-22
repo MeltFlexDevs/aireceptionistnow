@@ -1,10 +1,10 @@
-"use client";
-
 import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
 
-import { COMPETITORS } from "@/app/compare/_compare/competitors";
-import { INDUSTRIES } from "@/app/industries/_industries/registry";
+import type { UiCopy } from "@/content/i18n/_ui-copy";
+import { enUi } from "@/content/i18n/en/ui";
+import { COMPETITOR_NAV } from "@/app/(main)/compare/_compare/nav";
+import { INDUSTRY_MENU } from "@/lib/marketing/industries";
 
 const resourceLinkStyle: CSSProperties = {
   color: "rgba(255,255,255,0.6)", fontSize: "13px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.01em", display: "inline-block", padding: "8px 0",
@@ -149,8 +149,8 @@ export default function SiteFooter() {
   return (
     <footer style={{ background: "#1D1D1D", color: "#fff", fontFamily: "var(--font-inter), Inter, -apple-system, sans-serif", fontWeight: 300 }}>
       <div style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", padding: "60px 0 50px" }}>
-        <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 40px", display: "flex", justifyContent: "space-between", gap: "40px", flexWrap: "wrap" }}>
-          <nav style={{ display: "flex", gap: "64px", flexWrap: "wrap" }}>
+        <div className="ar-footer-row" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 40px", display: "flex", justifyContent: "space-between", gap: "40px", flexWrap: "wrap" }}>
+          <nav className="ar-footer-nav" style={{ display: "flex", gap: "64px", flexWrap: "wrap" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
               <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", fontWeight: 400, letterSpacing: "0.08em", textTransform: "uppercase" }}>Resources</span>
               <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -161,19 +161,19 @@ export default function SiteFooter() {
               </ul>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", fontWeight: 400, letterSpacing: "0.08em", textTransform: "uppercase" }}>Industries</span>
+              <Link href="/industries" style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", fontWeight: 400, letterSpacing: "0.08em", textTransform: "uppercase", textDecoration: "none" }}>Industries</Link>
               <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
-                {INDUSTRIES.map((i) => (
+                {INDUSTRY_MENU.map((i) => (
                   <li key={i.slug}>
-                    <Link href={`/industries/${i.slug}`} style={resourceLinkStyle}>{i.industry}</Link>
+                    <Link href={`/${i.slug}`} style={resourceLinkStyle}>{i.label}</Link>
                   </li>
                 ))}
               </ul>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", fontWeight: 400, letterSpacing: "0.08em", textTransform: "uppercase" }}>Compare</span>
+              <Link href="/compare" style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", fontWeight: 400, letterSpacing: "0.08em", textTransform: "uppercase", textDecoration: "none" }}>Compare</Link>
               <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
-                {COMPETITORS.map((c) => (
+                {COMPETITOR_NAV.map((c) => (
                   <li key={c.slug}>
                     <Link href={`/compare/${c.slug}`} style={resourceLinkStyle}>vs {c.competitor}</Link>
                   </li>
@@ -181,14 +181,14 @@ export default function SiteFooter() {
               </ul>
             </div>
           </nav>
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "32px" }}>
+          <div className="ar-footer-side" style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "32px" }}>
             <VoicePartnerBadge />
             <AskAI />
           </div>
         </div>
       </div>
       <div style={{ padding: "20px 0" }}>
-        <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 40px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
+        <div className="ar-footer-row" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 40px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "20px", flexWrap: "wrap" }}>
             <Link href="/" style={{ display: "flex", alignItems: "center", gap: "6px", textDecoration: "none", color: "#fff" }}>
               <PauseLogo color="#fff" />

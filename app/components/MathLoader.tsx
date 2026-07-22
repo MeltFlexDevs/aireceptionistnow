@@ -1,5 +1,3 @@
-"use client";
-
 type Variant = "spiro" | "orbit";
 
 export function MathLoader({

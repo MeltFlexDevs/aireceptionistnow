@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getStripe } from "@/lib/stripe";
 import { getCustomerId, saveCustomerId } from "@/lib/billing";
 import { getPlan, priceIdFor, type BillingCycle } from "@/lib/plans";
+import { saveOnboardingConfig } from "@/lib/dashboard/onboarding-profile";
 
 export const runtime = "nodejs";
 
@@ -28,12 +29,16 @@ export async function POST(req: Request) {
   let planId: string | undefined;
   let cycle: BillingCycle = "monthly";
   let onboarding = false;
+  let country = "";
   try {
     const body = await req.json();
     planId = typeof body?.plan === "string" ? body.plan : undefined;
     if (body?.cycle === "annual" || body?.cycle === "monthly") {
       cycle = body.cycle;
     }
+    // The number country the user confirmed on the plan step - persisted below
+    // so provisioning buys the right country even if they changed it here.
+    if (typeof body?.country === "string") country = body.country.trim().toUpperCase();
     // The onboarding funnel returns to its provisioning screen and tags the
     // session so the Stripe webhook kicks off background provisioning.
     onboarding = body?.context === "onboarding";
@@ -53,6 +58,14 @@ export async function POST(req: Request) {
       { error: "Billing is not configured yet. Please try again later." },
       { status: 503 },
     );
+  }
+
+  // Lock in the chosen number country before payment. Authoritative over the
+  // optimistic client write, and covers a guest who only authenticated here.
+  // Best-effort: a persistence hiccup must not block checkout (provisioning
+  // falls back to the country saved in step 1, or the default).
+  if (onboarding && /^[A-Z]{2}$/.test(country)) {
+    await saveOnboardingConfig(userId, { country }).catch(() => {});
   }
 
   try {

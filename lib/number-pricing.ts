@@ -98,13 +98,6 @@ const DIAL_PREFIXES: { dial: string; code: string }[] = [
   { dial: "+421", code: "SK" },
 ];
 
-export function countryForE164(e164: string): { flag: string; name: string } {
-  const match = DIAL_PREFIXES.find((p) => e164.startsWith(p.dial));
-  if (!match) return { flag: "🌐", name: "Unknown" };
-  const c = getCountryPricing(match.code);
-  return { flag: c.flag, name: c.name };
-}
-
 export interface DialOption {
   code: string;
   name: string;

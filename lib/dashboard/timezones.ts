@@ -8,16 +8,6 @@ export function supportedTimezones(): string[] {
   }
 }
 
-export function isValidTimezone(tz: string): boolean {
-  if (!tz.trim()) return false;
-  try {
-    new Intl.DateTimeFormat("en-US", { timeZone: tz });
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 export function normalizeTimezone(raw: string): string {
   const input = raw.trim();
   if (!input) return "";
