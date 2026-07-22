@@ -44,6 +44,15 @@ import AfterHoursAnsweringService, {
 import BilingualAiReceptionist, {
   meta as bilingualAiReceptionistMeta,
 } from "./bilingual-ai-receptionist";
+import TwentyFourSevenAiReceptionist, {
+  meta as twentyFourSevenAiReceptionistMeta,
+} from "./24-7-ai-receptionist";
+import HowToReplaceFrontDeskReceptionist, {
+  meta as howToReplaceFrontDeskReceptionistMeta,
+} from "./how-to-replace-front-desk-receptionist-with-ai";
+import MedicalAnsweringService, {
+  meta as medicalAnsweringServiceMeta,
+} from "./medical-answering-service";
 
 export type PostMeta = {
   slug: string;
@@ -59,6 +68,8 @@ export type PostMeta = {
   heroHeight: number;
   heroCredit?: string;
   heroCreditUrl?: string;
+  /** Raster (webp/png) image for og:image & schema - required when hero is an SVG, which social crawlers won't render. */
+  ogImage?: string;
   keywords: string[];
   sections: { id: string; title: string }[];
   faqs: FaqItem[];
@@ -81,6 +92,9 @@ const postAuthors: Record<string, AuthorKey> = {
   "cost-of-a-missed-call": "brano",
   "after-hours-answering-service": "matus",
   "bilingual-ai-receptionist": "brano",
+  "24-7-ai-receptionist": "matus",
+  "how-to-replace-front-desk-receptionist-with-ai": "brano",
+  "medical-answering-service": "matus",
 };
 
 export const posts: Post[] = [
@@ -98,12 +112,74 @@ export const posts: Post[] = [
   { ...costOfAMissedCallMeta, Body: CostOfAMissedCall },
   { ...afterHoursAnsweringServiceMeta, Body: AfterHoursAnsweringService },
   { ...bilingualAiReceptionistMeta, Body: BilingualAiReceptionist },
+  {
+    ...twentyFourSevenAiReceptionistMeta,
+    Body: TwentyFourSevenAiReceptionist,
+  },
+  {
+    ...howToReplaceFrontDeskReceptionistMeta,
+    Body: HowToReplaceFrontDeskReceptionist,
+  },
+  { ...medicalAnsweringServiceMeta, Body: MedicalAnsweringService },
 ]
   .map((p) => ({ ...p, author: postAuthors[p.slug] ?? defaultAuthorKey }))
   .sort((a, b) => (a.date < b.date ? 1 : -1));
 
 export function getPost(slug: string): Post | undefined {
   return posts.find((p) => p.slug === slug);
+}
+
+// Words too generic to signal topical similarity between posts.
+const RELATED_STOPWORDS = new Set([
+  "ai",
+  "receptionist",
+  "receptionists",
+  "virtual",
+  "answering",
+  "service",
+  "services",
+  "phone",
+  "call",
+  "calls",
+  "business",
+  "small",
+  "guide",
+  "2026",
+  "how",
+  "what",
+  "much",
+  "does",
+  "cost",
+  "for",
+  "with",
+  "the",
+  "and",
+]);
+
+function topicWords(p: PostMeta): Set<string> {
+  const words = [...p.keywords, p.title, p.slug.replace(/-/g, " ")]
+    .join(" ")
+    .toLowerCase()
+    .split(/[^a-z0-9/]+/)
+    .filter((w) => w.length > 2 && !RELATED_STOPWORDS.has(w));
+  return new Set(words);
+}
+
+/** Topically closest posts (shared tag + keyword overlap), newest first on ties. */
+export function relatedPosts(slug: string, n = 3): Post[] {
+  const current = getPost(slug);
+  if (!current) return posts.slice(0, n);
+  const currentWords = topicWords(current);
+  return posts
+    .filter((p) => p.slug !== slug)
+    .map((p) => {
+      let overlap = 0;
+      for (const w of topicWords(p)) if (currentWords.has(w)) overlap++;
+      return { p, score: (p.tag === current.tag ? 2 : 0) + overlap };
+    })
+    .sort((a, b) => b.score - a.score || (a.p.date < b.p.date ? 1 : -1))
+    .slice(0, n)
+    .map((x) => x.p);
 }
 
 export function formatDate(date: string): string {

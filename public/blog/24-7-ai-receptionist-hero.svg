@@ -1,0 +1,78 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" role="img" aria-label="An AI receptionist chip with a voice waveform at the centre of a 24-hour clock ring, with a sun chip for daytime and a moon chip for night - always-on phone coverage">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1600" y2="900" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#b9cdf0"/>
+      <stop offset="0.48" stop-color="#dce6f2"/>
+      <stop offset="1" stop-color="#c3ecd9"/>
+    </linearGradient>
+    <filter id="soft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="40"/>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#bg)"/>
+
+  <!-- soft depth circles -->
+  <circle cx="300" cy="230" r="150" fill="#ffffff" opacity="0.30" filter="url(#soft)"/>
+  <circle cx="1320" cy="660" r="180" fill="#ffffff" opacity="0.25" filter="url(#soft)"/>
+
+  <!-- glass panel -->
+  <rect x="280" y="180" width="1040" height="530" rx="40" fill="#ffffff" opacity="0.45"/>
+  <rect x="280.5" y="180.5" width="1039" height="529" rx="40" stroke="#ffffff" opacity="0.7"/>
+
+  <!-- sun chip (daytime) -->
+  <g transform="translate(445 445)">
+    <rect x="-90" y="-90" width="180" height="180" rx="36" fill="#ffffff" opacity="0.55"/>
+    <rect x="-89.5" y="-89.5" width="179" height="179" rx="36" stroke="#ffffff" opacity="0.8"/>
+    <g stroke="#1a1a1a" stroke-width="6" fill="none" stroke-linecap="round">
+      <circle cx="0" cy="0" r="26"/>
+      <path d="M 0 -52 v 14"/>
+      <path d="M 0 38 v 14"/>
+      <path d="M -52 0 h 14"/>
+      <path d="M 38 0 h 14"/>
+      <path d="M -37 -37 l 10 10"/>
+      <path d="M 27 27 l 10 10"/>
+      <path d="M 37 -37 l -10 10"/>
+      <path d="M -27 27 l -10 10"/>
+    </g>
+  </g>
+
+  <!-- centre: AI chip inside a 24-tick clock ring -->
+  <g transform="translate(800 445)">
+    <!-- 24 hour ticks: circumference 2*pi*200 = 1256.6; 24 ticks -> dash 5, gap 47.36 -->
+    <circle cx="0" cy="0" r="200" fill="none" stroke="#1a1a1a" stroke-width="7" opacity="0.8"
+            stroke-dasharray="5 47.36" stroke-linecap="round" transform="rotate(-90)"/>
+    <!-- time labels around the ring, matching the site's clock convention -->
+    <text x="0" y="-228" text-anchor="middle" font-size="16" font-weight="500" fill="#1a1a1a" opacity="0.55">12a</text>
+    <text x="240" y="6" text-anchor="middle" font-size="16" font-weight="500" fill="#1a1a1a" opacity="0.55">6a</text>
+    <text x="0" y="246" text-anchor="middle" font-size="16" font-weight="500" fill="#1a1a1a" opacity="0.55">12p</text>
+    <text x="-240" y="6" text-anchor="middle" font-size="16" font-weight="500" fill="#1a1a1a" opacity="0.55">6p</text>
+
+    <rect x="-110" y="-110" width="220" height="220" rx="40" fill="#111111"/>
+    <g stroke="#ffffff" stroke-width="12" stroke-linecap="round">
+      <path d="M -54 -15 v 30"/>
+      <path d="M -27 -34 v 68"/>
+      <path d="M 0 -52 v 104"/>
+      <path d="M 27 -34 v 68"/>
+      <path d="M 54 -15 v 30"/>
+    </g>
+    <path d="M 71 -85 l 6 16 16 6 -16 6 -6 16 -6 -16 -16 -6 16 -6 z" fill="#ffffff"/>
+  </g>
+
+  <!-- moon chip (night) -->
+  <g transform="translate(1155 445)">
+    <rect x="-90" y="-90" width="180" height="180" rx="36" fill="#ffffff" opacity="0.55"/>
+    <rect x="-89.5" y="-89.5" width="179" height="179" rx="36" stroke="#ffffff" opacity="0.8"/>
+    <path d="M 12 -42 a 42 42 0 1 0 30 72 a 37 37 0 0 1 -30 -72 z" stroke="#1a1a1a" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <g fill="#1a1a1a">
+      <circle cx="40" cy="-48" r="4"/>
+      <circle cx="55" cy="-27" r="3"/>
+    </g>
+  </g>
+
+  <!-- badge: "ANSWERED 24/7" ~ 13 caps * 26px * 0.62 + tracking ~= 235px -->
+  <g transform="translate(800 775)">
+    <rect x="-180" y="-34" width="360" height="68" rx="34" fill="#111111"/>
+    <text x="0" y="9" text-anchor="middle" font-size="26" font-weight="600" fill="#ffffff" letter-spacing="0.06em">ANSWERED 24/7</text>
+  </g>
+</svg>

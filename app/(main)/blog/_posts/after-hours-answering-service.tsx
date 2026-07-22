@@ -24,7 +24,7 @@ export const meta = {
   description:
     "Most missed calls happen when you're closed. What an after-hours answering service really does, the options compared, and how to cover nights and weekends.",
   date: "2026-07-12",
-  updated: "2026-07-12",
+  updated: "2026-07-21",
   readingTime: "11 min read",
   tag: "Guides",
   hero: "/blog/after-hours-answering-service-hero.webp",
@@ -370,6 +370,16 @@ export default function Body() {
         bite. The middle path most owners land on is simple: let something answer
         every after-hours call, book or triage what it can, and reserve the
         human - you - for the genuine 2&nbsp;a.m. emergency.
+      </P>
+      <P>
+        One scope note: after-hours coverage is the narrow version of the
+        problem. If you also drop calls at midday - the second simultaneous
+        ring, the lunch rush - what you actually want is always-on answering,
+        and we&apos;ve written a separate guide to{" "}
+        <Internal href="/blog/24-7-ai-receptionist">
+          what a true 24/7 AI receptionist requires
+        </Internal>
+        , including how to test any vendor&apos;s claim.
       </P>
       <P>
         If nights and weekends are where your phone is leaking, that&apos;s also

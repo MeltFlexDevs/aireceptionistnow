@@ -40,6 +40,7 @@ const defs: Answer[] = [
     author: "matus",
     related: [
       "what-happens-if-an-ai-receptionist-cant-answer",
+      "can-an-ai-receptionist-handle-emergency-calls",
       "ai-receptionist-vs-ivr",
       "use-existing-phone-number-with-ai-receptionist",
     ],
@@ -527,6 +528,7 @@ const defs: Answer[] = [
     related: [
       "ai-receptionist-vs-ivr",
       "can-an-ai-receptionist-transfer-calls-to-a-human",
+      "can-an-ai-receptionist-handle-multiple-locations",
       "use-existing-phone-number-with-ai-receptionist",
     ],
     faqs: [
@@ -619,19 +621,21 @@ const defs: Answer[] = [
     slug: "what-languages-can-an-ai-receptionist-speak",
     question: "What languages can an AI receptionist speak?",
     shortAnswer:
-      "Modern AI receptionists handle dozens of languages, typically 25 or more, including English, Spanish, French, and German, and can detect or switch language on the call. That lets one setup serve a multilingual customer base without hiring separate staff for each language.",
+      "Modern AI receptionists handle multiple languages and dialects - typically 25 or more languages, including English, Spanish, French, and German - and can detect or switch language mid-call. Regional accents and dialects are handled well in major languages, so one setup serves a multilingual customer base without hiring separate staff for each language.",
     description:
-      "Modern AI receptionists speak 25+ languages including English, Spanish, French and German, and can switch mid-call, so one setup serves a multilingual base.",
+      "AI receptionists handle multiple languages and dialects - 25+ languages including English, Spanish, French and German - and switch mid-call, so one setup serves everyone.",
     keywords: [
       "what languages can an AI receptionist speak",
+      "can AI receptionists handle multiple languages and dialects",
       "multilingual AI receptionist",
       "AI receptionist Spanish",
       "AI receptionist languages",
+      "AI receptionist dialects",
       "bilingual AI receptionist",
     ],
     category: "Features",
     date: "2026-06-29",
-    updated: "2026-06-29",
+    updated: "2026-07-21",
     author: "brano",
     related: [
       "do-callers-know-its-an-ai-receptionist",
@@ -1240,6 +1244,452 @@ const defs: Answer[] = [
             . And since vendors now sell AI under the &ldquo;virtual
             receptionist&rdquo; label too, always ask one question before you
             sign: <em>is a person or a program answering my phone?</em>
+          </p>
+        </>
+      );
+    },
+  },
+
+  {
+    slug: "does-an-ai-receptionist-require-a-contract",
+    question: "Does an AI receptionist require a contract?",
+    shortAnswer:
+      "It shouldn't. Most reputable AI receptionist services - ours included - run month-to-month with no long-term contract: you subscribe, test it on real calls, and cancel any month it stops earning its fee. Some vendors do push annual terms for a discount; treat that as a red flag until the product has proven itself on your own phone line.",
+    description:
+      "Most good AI receptionists need no contract - month-to-month, cancel anytime. Why no-contract matters, what annual discounts really trade away, what to check.",
+    keywords: [
+      "AI receptionist no contract",
+      "does an AI receptionist require a contract",
+      "AI receptionist month-to-month",
+      "AI receptionist cancel anytime",
+      "AI answering service without contract",
+    ],
+    category: "Pricing",
+    date: "2026-07-21",
+    updated: "2026-07-21",
+    author: "matus",
+    related: [
+      "use-existing-phone-number-with-ai-receptionist",
+      "what-happens-if-an-ai-receptionist-cant-answer",
+      "virtual-receptionist-vs-answering-service",
+    ],
+    faqs: [
+      {
+        q: "Why does month-to-month matter for an AI receptionist?",
+        a: "Because the only evaluation that counts is the AI on your own number with your own callers. Month-to-month means a bad pick costs you one month, not a year - and it keeps the vendor motivated to stay good after the sale, since you can leave whenever quality slips.",
+      },
+      {
+        q: "Should I take an annual discount on an AI receptionist?",
+        a: "Only after it has handled your real calls for a month or two and earned the commitment. An annual discount offered before you've heard a single live transcript trades your leverage for 10-20% off - a bad deal if the product disappoints in week three.",
+      },
+      {
+        q: "What should I check before subscribing, even month-to-month?",
+        a: "Three things: whether cancellation is self-serve or requires a sales call, whether any setup fee is refundable, and whether you can export your call data and keep your phone number when you leave. All three should have easy answers.",
+      },
+    ],
+    Body: function Body() {
+      return (
+        <>
+          <p>
+            It shouldn&apos;t, and with most reputable vendors it doesn&apos;t.
+            The standard model for an{" "}
+            <Link href="/">AI receptionist</Link> is a monthly subscription you
+            can cancel any time - the same shape as any other software tool.
+            When you see a mandatory 12-month term on a voice AI product,
+            you&apos;re usually looking at either an old-school answering
+            service wearing an AI label, or a vendor who would rather lock you
+            in than keep earning you.
+          </p>
+
+          <h2 id="why-no-contract-matters">
+            Why no-contract matters more here than for most software
+          </h2>
+          <p>
+            You cannot evaluate an AI receptionist from a demo. The scripted
+            walkthrough always succeeds; the real test is your own callers,
+            your own accents, your own weird requests, on your own number.
+            That test takes a couple of weeks of live calls - which is exactly
+            what month-to-month terms let you run without risk. A vendor
+            confident in their product has no reason to need a year of your
+            money up front.
+          </p>
+          <ul>
+            <li>
+              <strong>A bad pick costs one month.</strong> At typical{" "}
+              <Link href="/blog/ai-receptionist-pricing">
+                AI receptionist prices
+              </Link>{" "}
+              that&apos;s $30-$300 of tuition, not a year-long regret.
+            </li>
+            <li>
+              <strong>The vendor stays motivated.</strong> When you can leave
+              next month, support and quality tend to stay sharp after the
+              sale, not just before it.
+            </li>
+            <li>
+              <strong>You keep negotiating power.</strong> Discounts for
+              commitment are worth considering only after the product has
+              proven itself on your calls.
+            </li>
+          </ul>
+
+          <h2 id="what-to-check-before-you-subscribe">
+            What to check before you subscribe, even month-to-month
+          </h2>
+          <p>
+            &ldquo;No contract&rdquo; can still hide friction. Three questions
+            settle it: Is cancellation self-serve, or does it require a
+            retention call? Is any setup or onboarding fee refundable if you
+            leave in the first month? And can you export your call history and
+            keep your{" "}
+            <Link href="/answers/use-existing-phone-number-with-ai-receptionist">
+              existing phone number
+            </Link>{" "}
+            on the way out? A vendor that answers all three plainly is safe to
+            trial; one that dodges any of them has told you something useful.
+          </p>
+
+          <h2 id="our-stance">Where we stand</h2>
+          <p>
+            AI Receptionist Now is month-to-month with no long-term contract -
+            you can see the terms on our{" "}
+            <Link href="/pricing">pricing page</Link>. We&apos;d rather earn
+            the renewal every month than collect it in advance, and we think
+            that should be the default you demand from any vendor in this
+            market.
+          </p>
+        </>
+      );
+    },
+  },
+
+  {
+    slug: "can-an-ai-receptionist-handle-emergency-calls",
+    question: "Can an AI receptionist handle emergency calls?",
+    shortAnswer:
+      "Yes - by routing them, not by resolving them. A well-configured AI receptionist recognises urgent calls against rules you define and immediately escalates: transferring to your on-call person, paging them, or - for genuine life-safety emergencies - telling the caller to hang up and dial 911. Everything routine still gets answered and booked without waking anyone.",
+    description:
+      "Yes - an AI receptionist routes urgent calls to your on-call person by rules you set and directs true emergencies to 911. How emergency escalation works.",
+    keywords: [
+      "AI receptionist for emergency calls",
+      "AI phone receptionist that routes urgent calls",
+      "AI receptionist emergency escalation",
+      "AI receptionist urgent call routing",
+      "after-hours emergency answering",
+    ],
+    category: "Call handling",
+    date: "2026-07-21",
+    updated: "2026-07-21",
+    author: "brano",
+    related: [
+      "can-an-ai-receptionist-transfer-calls-to-a-human",
+      "what-happens-if-an-ai-receptionist-cant-answer",
+      "can-an-ai-receptionist-handle-multiple-calls-at-once",
+    ],
+    faqs: [
+      {
+        q: "How does the AI know a call is an emergency?",
+        a: "You define the triggers in plain language - phrases and situations like 'burst pipe', 'no heat', 'locked out', or 'chest pain' - and the AI applies those rules identically on every call. When a trigger fires, it escalates instead of continuing the normal flow.",
+      },
+      {
+        q: "What does the AI do with a life-threatening emergency?",
+        a: "It should not attempt to help. The correct configured behaviour is instant redirection: the caller is told to hang up and dial 911 (or the local emergency number) immediately. An AI's job in a true emergency is speed of routing, never advice.",
+      },
+      {
+        q: "Will it wake me for every after-hours call?",
+        a: "No - that's the point of rules. Only calls matching your emergency definition ring the on-call phone; routine calls get answered, booked, or logged for the morning. A good setup fails toward escalation on ambiguous calls, so a false alarm costs minutes rather than a missed emergency.",
+      },
+    ],
+    Body: function Body() {
+      return (
+        <>
+          <p>
+            Yes, with an important distinction: an{" "}
+            <Link href="/">AI receptionist</Link> handles emergency calls the
+            way a great dispatcher does - by recognising urgency fast and
+            routing the caller to the right human immediately - not by trying
+            to solve the emergency itself. Configured well, it&apos;s arguably
+            more reliable at this than a tired human at 3&nbsp;a.m., because it
+            applies your escalation rules identically on every single call.
+          </p>
+
+          <h2 id="how-urgent-call-routing-works">
+            How urgent call routing works
+          </h2>
+          <p>
+            You define what counts as urgent for your business in plain
+            language: a burst pipe or active leak for a plumber, no heat in
+            winter for HVAC, a lockout for property management, an arrest for
+            a law firm. When a caller&apos;s description matches, the AI stops
+            the normal booking flow and escalates on the spot:
+          </p>
+          <ul>
+            <li>
+              <strong>Warm transfer</strong> - the call is passed live to your
+              on-call phone with context, so the caller doesn&apos;t repeat
+              themselves. (More on{" "}
+              <Link href="/answers/can-an-ai-receptionist-transfer-calls-to-a-human">
+                how transfers work
+              </Link>
+              .)
+            </li>
+            <li>
+              <strong>Priority page</strong> - if nobody can take a live
+              transfer, the on-call person gets an immediate text or call with
+              the details while the AI keeps the caller informed.
+            </li>
+            <li>
+              <strong>911 redirection</strong> - for genuine life-safety
+              language, the only correct behaviour: the caller is told to hang
+              up and dial 911 immediately, with no triage conversation.
+            </li>
+          </ul>
+
+          <h2 id="the-part-that-protects-your-sleep">
+            The part that protects your sleep
+          </h2>
+          <p>
+            Emergency handling is really a filtering problem: the failure modes
+            are waking you for everything and sleeping through the one call
+            that mattered. Rules solve both. Calls that don&apos;t match your
+            emergency definition get fully handled - answered, booked, logged -
+            without disturbing anyone, and ambiguous calls should fail toward
+            escalation, because a false alarm costs minutes while the opposite
+            mistake costs far more. We&apos;ve written up the full after-hours
+            playbook, including testing your own line at night, in our{" "}
+            <Link href="/blog/after-hours-answering-service">
+              after-hours answering service guide
+            </Link>
+            .
+          </p>
+
+          <h2 id="who-this-matters-most-for">Who this matters most for</h2>
+          <p>
+            Home services, property management, law, and healthcare - the
+            industries where the after-hours call is often the most valuable
+            or the most critical one of the week. For medical practices
+            specifically, where routing rules should be clinician-approved and
+            HIPAA applies, see our{" "}
+            <Link href="/blog/medical-answering-service">
+              medical answering service guide
+            </Link>
+            .
+          </p>
+        </>
+      );
+    },
+  },
+
+  {
+    slug: "can-an-ai-receptionist-block-spam-calls",
+    question: "Can an AI receptionist block spam calls?",
+    shortAnswer:
+      "Yes, and it's one of the quietest benefits. Because the AI answers and qualifies every call, robocalls and cold pitches get screened out before they ever reach you - the AI simply doesn't forward them or book them. You stop paying attention (or per-minute fees) to junk calls while real customers still get through instantly.",
+    description:
+      "Yes - an AI receptionist screens every call, so spam, robocalls and cold pitches never reach you while real customers get through. How spam filtering works.",
+    keywords: [
+      "AI receptionist spam call blocking",
+      "can an AI receptionist block spam calls",
+      "AI receptionist call screening",
+      "block robocalls business phone",
+      "AI answering service spam filter",
+    ],
+    category: "Features",
+    date: "2026-07-21",
+    updated: "2026-07-21",
+    author: "matus",
+    related: [
+      "can-an-ai-receptionist-handle-multiple-calls-at-once",
+      "do-callers-know-its-an-ai-receptionist",
+      "can-an-ai-receptionist-transfer-calls-to-a-human",
+    ],
+    faqs: [
+      {
+        q: "How does an AI receptionist tell spam from a real customer?",
+        a: "The same way a good human screener does: it answers, asks why the caller is calling, and routes based on the answer. Robocallers hang up or fail the interaction; cold pitches get politely declined or logged separately; real customers get served. Some services add number-reputation checks on top.",
+      },
+      {
+        q: "Will spam filtering ever block a real customer?",
+        a: "It shouldn't, because good screening blocks by behaviour, not by suspicion: every caller gets answered and a chance to state their business. A real customer who states a real need gets served normally - the filter only stops calls that never turn into a legitimate request.",
+      },
+      {
+        q: "Do I pay for the spam calls the AI handles?",
+        a: "Check the plan - it's a fair comparison point between vendors. Some bill every answered minute including junk; better plans don't count obvious spam and sub-30-second hangups against your bundle. Either way it beats per-minute human services, where a chatty robocall literally costs you money.",
+      },
+    ],
+    Body: function Body() {
+      return (
+        <>
+          <p>
+            Yes. Spam blocking isn&apos;t usually why people buy an{" "}
+            <Link href="/">AI receptionist</Link>, but it&apos;s one of the
+            first benefits owners mention after a month: the junk simply
+            stops reaching them. Because the AI answers and qualifies{" "}
+            <em>every</em> call, a robocall or cold pitch dies at the front
+            door - unforwarded, unbooked, and summarised at most as a line in
+            a log you never need to read.
+          </p>
+
+          <h2 id="how-screening-works">How the screening actually works</h2>
+          <p>
+            The mechanism is qualification, not a blocklist. Every caller gets
+            answered instantly and asked what they need. From there, three
+            paths:
+          </p>
+          <ul>
+            <li>
+              <strong>Real customers</strong> state a real need and get the
+              normal experience - questions answered, appointment booked,
+              message taken.
+            </li>
+            <li>
+              <strong>Robocalls</strong> mostly fail on contact: they
+              can&apos;t navigate a genuine conversation, so they hang up or
+              stall out without ever touching your phone or calendar.
+            </li>
+            <li>
+              <strong>Cold pitches</strong> get a polite, consistent decline
+              or are logged to a separate list you can skim monthly - useful
+              on the rare occasion a vendor call is actually relevant.
+            </li>
+          </ul>
+          <p>
+            Because behaviour does the filtering, there&apos;s no blocklist to
+            maintain and no risk of a real customer being silently rejected -
+            everyone gets answered, and only the calls that never become a
+            legitimate request get stopped.
+          </p>
+
+          <h2 id="why-this-beats-your-current-setup">
+            Why this beats how you handle spam today
+          </h2>
+          <p>
+            Today, spam costs you attention: every junk ring interrupts a job,
+            a patient, or a meal, because you can&apos;t know it&apos;s junk
+            until you answer. With an AI in front, interruptions only happen
+            for calls that deserve them. And unlike per-minute answering
+            services - where a persistent robocaller literally shows up on
+            your invoice - a flat-rate AI makes junk calls a non-event. When
+            you compare vendors, do ask whether spam and instant hangups count
+            against your minute bundle; we cover that and the other fine print
+            in our{" "}
+            <Link href="/blog/ai-receptionist-pricing">
+              AI receptionist pricing guide
+            </Link>
+            .
+          </p>
+        </>
+      );
+    },
+  },
+
+  {
+    slug: "can-an-ai-receptionist-handle-multiple-locations",
+    question: "Can an AI receptionist handle multiple locations?",
+    shortAnswer:
+      "Yes - multi-location coverage is where AI reception gets structurally easier than staffing. One setup answers for every branch with location-aware answers (hours, address, parking), books into each location's own calendar, and routes callers to the right office - with consistent quality everywhere and no per-desk hiring.",
+    description:
+      "Yes - one AI receptionist covers every branch: location-aware answers, per-location calendars and routing, consistent quality. How multi-location setups work.",
+    keywords: [
+      "AI receptionist for multi-location",
+      "AI receptionist multiple locations",
+      "multi-location answering service",
+      "AI receptionist for franchises",
+      "multi-office phone answering",
+    ],
+    category: "Capabilities",
+    date: "2026-07-21",
+    updated: "2026-07-21",
+    author: "brano",
+    related: [
+      "can-an-ai-receptionist-book-appointments",
+      "can-an-ai-receptionist-handle-multiple-calls-at-once",
+      "use-existing-phone-number-with-ai-receptionist",
+    ],
+    faqs: [
+      {
+        q: "Does each location need its own AI receptionist?",
+        a: "No - one service covers all of them. Each location keeps its own number (or you use one main line with routing), and the AI answers with the right location's details: its hours, address, staff, and calendar. You manage one knowledge base with per-location facts instead of training a separate setup per branch.",
+      },
+      {
+        q: "Can it book into different calendars for different offices?",
+        a: "Yes. The AI works out which location the caller needs - from the number they dialled or by asking - and books into that location's calendar, with that office's hours, providers, and services. Cross-location rebooking ('the downtown office has a slot sooner') is a bonus a human front desk rarely offers.",
+      },
+      {
+        q: "Is AI or hiring better for multi-location phone coverage?",
+        a: "The economics diverge fast: human coverage scales linearly (every branch needs its own receptionist, or a shared team that bottlenecks), while one AI answers every branch simultaneously for a flat fee. Most multi-location operators keep humans for in-person service and put AI on the phones across all sites.",
+      },
+    ],
+    Body: function Body() {
+      return (
+        <>
+          <p>
+            Yes, and this is honestly the setup where an{" "}
+            <Link href="/">AI receptionist</Link> makes the strongest case for
+            itself. A single location can debate AI versus a good front-desk
+            hire; at three, five, or twenty locations the maths stops being
+            close, because phone coverage with humans scales linearly - every
+            branch needs its own person or share of a team - while software
+            answers every branch at once.
+          </p>
+
+          <h2 id="how-a-multi-location-setup-works">
+            How a multi-location setup works
+          </h2>
+          <ul>
+            <li>
+              <strong>Every branch keeps its identity.</strong> Each location
+              keeps its own number and greeting, or a single main line asks
+              which office the caller needs. Either way callers hear the right
+              hours, address, and directions for their branch.
+            </li>
+            <li>
+              <strong>Bookings land in the right calendar.</strong> The AI
+              books into the specific location&apos;s calendar with its own
+              providers, services, and availability - and can offer the
+              nearest alternative when the caller&apos;s first choice is full.
+              (See{" "}
+              <Link href="/answers/can-an-ai-receptionist-book-appointments">
+                how AI appointment booking works
+              </Link>
+              .)
+            </li>
+            <li>
+              <strong>Routing follows your org chart.</strong> Urgent calls
+              reach the right branch manager or regional on-call, not a
+              central voicemail.
+            </li>
+            <li>
+              <strong>One knowledge base, per-location facts.</strong> You
+              update prices or policies once; location-specific details stay
+              per-branch. No re-training five separate setups.
+            </li>
+          </ul>
+
+          <h2 id="the-consistency-dividend">The consistency dividend</h2>
+          <p>
+            Ask any multi-location operator where customer experience varies
+            most and the phone is usually near the top: branch A answers
+            brilliantly, branch B lets it ring. An AI answers identically at
+            every site - same greeting, same accuracy, same speed - and every
+            call across all locations lands in one log you can actually
+            review. During a rush it also answers all branches&apos; calls{" "}
+            <Link href="/answers/can-an-ai-receptionist-handle-multiple-calls-at-once">
+              simultaneously
+            </Link>
+            , which no shared human team can structurally do.
+          </p>
+
+          <h2 id="who-this-fits">Who this fits</h2>
+          <p>
+            Dental and medical groups, franchise home-services brands,
+            multi-office law firms, property managers with distributed
+            portfolios - anywhere the phone rings in more places than people
+            can sit. If that&apos;s you, the practical next step is the same
+            as for a single site: put the AI on one branch&apos;s overflow for
+            two weeks, read the transcripts, then roll it across the rest.
+            Our <Link href="/pricing">pricing</Link> doesn&apos;t charge per
+            location, which tells you which side of this trade we&apos;re on.
           </p>
         </>
       );

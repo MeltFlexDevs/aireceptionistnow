@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { siteUrl, siteName, getAuthor } from "@/lib/site";
-import { posts, getPost, formatDate } from "../_posts";
+import { posts, getPost, relatedPosts, formatDate } from "../_posts";
 import { PostToc } from "../_components/post-toc";
 import { BlogCtaCard } from "../_components/blog-cta";
 
@@ -25,6 +25,8 @@ export async function generateMetadata({
   if (!post) return {};
 
   const url = `${siteUrl}/blog/${post.slug}`;
+  // Social crawlers don't render SVG - prefer the raster ogImage when the hero is vector.
+  const shareImage = post.ogImage ?? post.hero;
   return {
     // absolute: keep the brand suffix off so the title fits Google's ~60 char limit
     title: { absolute: post.title },
@@ -42,7 +44,7 @@ export async function generateMetadata({
       modifiedTime: post.updated,
       images: [
         {
-          url: post.hero,
+          url: shareImage,
           width: post.heroWidth,
           height: post.heroHeight,
           alt: post.heroAlt,
@@ -53,7 +55,7 @@ export async function generateMetadata({
       card: "summary_large_image",
       title: post.title,
       description: post.description,
-      images: [post.hero],
+      images: [shareImage],
     },
   };
 }
@@ -69,7 +71,7 @@ export default async function BlogPostPage({
 
   const { Body } = post;
   const a = getAuthor(post.author);
-  const others = posts.filter((p) => p.slug !== post.slug).slice(0, 3);
+  const others = relatedPosts(post.slug, 3);
   const url = `${siteUrl}/blog/${post.slug}`;
 
   const jsonLd = [
@@ -78,7 +80,7 @@ export default async function BlogPostPage({
       "@type": "BlogPosting",
       headline: post.title,
       description: post.description,
-      image: `${siteUrl}${post.hero}`,
+      image: `${siteUrl}${post.ogImage ?? post.hero}`,
       datePublished: post.date,
       dateModified: post.updated,
       keywords: post.keywords.join(", "),
@@ -158,6 +160,17 @@ export default async function BlogPostPage({
               </a>
               <span aria-hidden="true" className="size-[3px] rounded-full bg-[#ccc]" />
               <time dateTime={post.date}>{formatDate(post.date)}</time>
+              {post.updated !== post.date && (
+                <>
+                  <span aria-hidden="true" className="size-[3px] rounded-full bg-[#ccc]" />
+                  <span>
+                    Updated{" "}
+                    <time dateTime={post.updated}>
+                      {formatDate(post.updated)}
+                    </time>
+                  </span>
+                </>
+              )}
               <span aria-hidden="true" className="size-[3px] rounded-full bg-[#ccc]" />
               <span>{post.readingTime}</span>
             </div>
