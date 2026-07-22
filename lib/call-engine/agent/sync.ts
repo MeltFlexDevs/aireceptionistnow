@@ -41,7 +41,9 @@ const TURN_CONFIG: ElevenLabs.TurnConfig = {
   softTimeoutConfig: {
     timeoutSeconds: 2,
     useLlmGeneratedMessage: true,
-    maxSoftTimeoutsPerGeneration: 2,
+    // Fillers re-fire every timeoutSeconds until content streams, so 4 x 2s
+    // covers a slow booking window instead of going silent after 4s.
+    maxSoftTimeoutsPerGeneration: 4,
   },
 };
 
@@ -91,6 +93,7 @@ function composeSystemPrompt(
   businessName: string,
   toolNames: ReadonlySet<string>,
   multilingual = true,
+  timezone = "",
 ): string {
   const parts: string[] = [
     `You are the receptionist answering the phone for ${businessName}. Speak AS the business, in the first person plural: say "we", "our", and "us" when talking about ${businessName}, its services, and what it does - "we open at nine", "our team can help with that". Never introduce yourself as an AI, an assistant, or a bot, and never talk about ${businessName} in the third person.`,
@@ -99,7 +102,10 @@ function composeSystemPrompt(
       'Briefly acknowledge before you answer ("Of course", "Sure thing", "Let me see") and vary your wording - never repeat the same canned phrase twice in a call.',
       "Never read out lists or menus; mention at most two options at a time, conversationally. If the caller gives several details at once, don't re-ask for what they already told you.",
     ].join(" "),
-    'The current date and time is {{system__time_utc}} (UTC). Resolve relative dates the caller gives ("tomorrow", "next Tuesday") against it, interpret times in the business\'s local timezone when it is known from your instructions, and always pass tools full ISO 8601 timestamps with an explicit UTC offset. Say times back to the caller naturally ("three o\'clock on Tuesday"), never as raw timestamps.',
+    "Your replies are spoken aloud over the phone: never use markdown, bullet points, emoji, or symbols - say everything the way you would say it out loud.",
+    timezone
+      ? `The current date and time is {{system__time_utc}} (UTC). The business's local timezone is ${timezone} - interpret any time the caller gives in that timezone unless they say otherwise, and resolve relative dates they give ("tomorrow", "next Tuesday") against the current date. Always pass tools full ISO 8601 timestamps with an explicit UTC offset. Say times back to the caller naturally ("three o'clock on Tuesday"), never as raw timestamps.`
+      : 'The current date and time is {{system__time_utc}} (UTC). Resolve relative dates the caller gives ("tomorrow", "next Tuesday") against it, interpret times in the business\'s local timezone when it is known from your instructions, and always pass tools full ISO 8601 timestamps with an explicit UTC offset. Say times back to the caller naturally ("three o\'clock on Tuesday"), never as raw timestamps.',
   ];
   if (multilingual) {
     parts.push(
@@ -112,8 +118,11 @@ function composeSystemPrompt(
   const own = (assistant.system_prompt ?? "").trim();
   if (own) parts.push(own);
 
-  const routing = (assistant.routing ?? {}) as { transferTo?: unknown };
+  const routing = (assistant.routing ?? {}) as { transferTo?: unknown; optimisticBooking?: unknown };
   const transferTo = typeof routing.transferTo === "string" ? routing.transferTo : "";
+  // Positive approach: booking is acknowledged now and completed in the
+  // background (see optimisticBookingEnabled in actions.ts). Default on.
+  const optimisticBooking = routing.optimisticBooking !== false;
   const canCheck = toolNames.has("check_availability");
   const canBook = toolNames.has("book_appointment");
   const canTakeMessage = toolNames.has("take_message");
@@ -145,7 +154,9 @@ function composeSystemPrompt(
       ].join(" "),
     );
     parts.push(
-      `Once a booking succeeds, confirm it back naturally with the day and time ("You're all set for Tuesday at three"), then ask if there's anything else you can help with. If the booking couldn't be completed, be upfront about it and ${canTakeMessage ? "offer to take a message instead" : "tell them our team will sort it out and follow up"} - never claim something is booked when it isn't.`,
+      optimisticBooking
+        ? `When the caller settles on a time, tell them warmly that you're getting it booked for that day and time and they'll get a confirmation shortly - stay positive, but never say it's already confirmed. Then ask if there's anything else you can help with. The booking is finalized right after the call, so don't wait on it or read back a confirmation number.`
+        : `Once a booking succeeds, confirm it back naturally with the day and time ("You're all set for Tuesday at three"), then ask if there's anything else you can help with. If the booking couldn't be completed, be upfront about it and ${canTakeMessage ? "offer to take a message instead" : "tell them our team will sort it out and follow up"} - never claim something is booked when it isn't.`,
     );
   }
   if (transferTo) {
@@ -171,6 +182,59 @@ function composeSystemPrompt(
   return parts.join("\n\n");
 }
 
+// ASR keyword biasing so Scribe stops mishearing the terms that then poison
+// bookings and messages: the business's own name above all, plus any terms the
+// operator pins in routing.asrKeywords (staff names, services, street names).
+// Kept tight (<=50 terms, <=20 chars each) per the realtime keyterm limits.
+const ASR_STOPWORDS = new Set([
+  "the", "and", "for", "our", "llc", "ltd", "inc", "co", "of", "business",
+]);
+function buildAsrKeywords(assistant: Assistant, businessName: string): string[] {
+  const raw: string[] = [];
+  const bn = businessName.trim();
+  if (bn && bn !== "our business") {
+    if (bn.length <= 20) raw.push(bn);
+    for (const word of bn.split(/\s+/)) raw.push(word);
+  }
+  const routing = (assistant.routing ?? {}) as { asrKeywords?: unknown };
+  if (Array.isArray(routing.asrKeywords)) {
+    for (const k of routing.asrKeywords) if (typeof k === "string") raw.push(k);
+  }
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const term of raw) {
+    const t = term.trim();
+    if (!t || t.length > 20) continue;
+    const key = t.toLowerCase();
+    if (ASR_STOPWORDS.has(key) || seen.has(key)) continue;
+    seen.add(key);
+    out.push(t);
+    if (out.length >= 50) break;
+  }
+  return out;
+}
+
+const BG_PRESETS = new Set<string>([
+  "office1", "office2", "restaurant", "city", "typing",
+  "elevator1", "elevator2", "elevator3", "elevator4",
+]);
+// Low office ambience so a dead-silent line doesn't read as an AI tell. On by
+// default; operators can disable or tune it via routing.ambience. The platform
+// default volume (0.6) is far too loud for 8kHz telephony - 0.15 sits under
+// speech.
+function ambientSound(assistant: Assistant): ElevenLabs.BackgroundSoundConfig | undefined {
+  const routing = (assistant.routing ?? {}) as { ambience?: unknown };
+  const a = routing.ambience;
+  if (a === false) return undefined;
+  const cfg = a && typeof a === "object" ? (a as Record<string, unknown>) : {};
+  if (cfg.enabled === false) return undefined;
+  const presetRaw = typeof cfg.preset === "string" ? cfg.preset : "office1";
+  const sourceId = (BG_PRESETS.has(presetRaw) ? presetRaw : "office1") as ElevenLabs.BackgroundSoundPresetId;
+  const volume =
+    typeof cfg.volume === "number" && cfg.volume > 0 && cfg.volume <= 1 ? cfg.volume : 0.15;
+  return { sourceType: "preset", sourceId, volume, crossfadeLoop: true };
+}
+
 async function uploadKnowledge(
   assistant: Assistant,
   knowledge: AssistantKnowledge,
@@ -181,8 +245,16 @@ async function uploadKnowledge(
 
   const items: { name: string; text: string }[] = [];
   const notes = (knowledge.notes ?? "").trim();
+  // Notes are the operator's curated, business-critical facts - inject them
+  // first so they get the most reliable attention. Then sources, ordered
+  // most-important first (stable sort, so equal priorities keep insertion
+  // order). Earlier docs are both more salient to the LLM and the last to be
+  // dropped if the knowledge ever has to be trimmed.
   if (notes) items.push({ name: `${assistant.name} - Notes`, text: notes });
-  for (const src of knowledge.sources ?? []) {
+  const orderedSources = [...(knowledge.sources ?? [])].sort(
+    (a, b) => (b.priority ?? 0) - (a.priority ?? 0),
+  );
+  for (const src of orderedSources) {
     const text = (src.markdown ?? "").trim();
     if (!text) continue;
     items.push({ name: src.title || "Source", text: text.slice(0, MAX_SOURCE_CHARS) });
@@ -265,7 +337,7 @@ async function resolveAgentCapabilities(assistant: Assistant): Promise<AgentCapa
 export async function syncAssistantAgent(assistantId: string): Promise<string | null> {
   const ctx = await getAssistantSyncContext(assistantId);
   if (!ctx) return null;
-  const { assistant, businessName, knowledge } = ctx;
+  const { assistant, businessName, knowledge, timezone } = ctx;
   const client = elevenClient();
 
   const capabilities = await resolveAgentCapabilities(assistant);
@@ -280,7 +352,7 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
   const language = ELEVENLABS_LANGUAGES.has(rawLanguage) ? rawLanguage : "en";
   const firstMessage = (assistant.greeting ?? "").trim() || DEFAULT_GREETING;
   const toolNames = new Set(tools.map((t) => t.name));
-  const systemPrompt = composeSystemPrompt(assistant, businessName, toolNames);
+  const systemPrompt = composeSystemPrompt(assistant, businessName, toolNames, true, timezone);
   const voiceId = (assistant.voice_id ?? "").trim() || DEFAULT_VOICE_ID;
 
   const voiceOpts = (assistant.routing ?? {}) as {
@@ -293,6 +365,15 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
   const baseTts: ElevenLabs.TtsConversationalConfigOutput = {
     voiceId,
     modelId: ttsModelForBase(language),
+    // Better conversational defaults than the platform's (0.5 / 0.8): 0.45
+    // stability reads as warmer and more dynamic without wandering. Operator
+    // overrides below still win.
+    stability: 0.45,
+    similarityBoost: 0.75,
+    // Normalize numbers, prices, phone numbers and times *after* generation so
+    // Flash's weak raw-digit reading never says "$1,000,000" as "one thousand
+    // thousand dollars". Transcripts stay clean; slight documented latency cost.
+    textNormalisationType: "elevenlabs",
   };
   if (typeof voiceOpts.voice?.speed === "number") baseTts.speed = voiceOpts.voice.speed;
   if (typeof voiceOpts.voice?.stability === "number") baseTts.stability = voiceOpts.voice.stability;
@@ -328,10 +409,23 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
     llm: AGENT_LLM,
     thinkingBudget: 0,
     enableReasoningSummary: false,
+    // Explicit backup cascade: a Jan 2026 ElevenLabs incident degraded all
+    // Gemini-backed agents platform-wide. claude-haiku-4-5 is the fastest
+    // non-Google instruct model available, so calls stay alive if Gemini dies.
+    backupLlmConfig: { preference: "override", order: ["claude-haiku-4-5"] },
     knowledgeBase: locators,
     ...(useRag ? { rag: { enabled: true } } : {}),
     toolIds,
     builtInTools,
+  };
+
+  // Conversational fields shared by every config variant (multilingual, plain,
+  // English fallback): ASR keyword biasing and low office ambience.
+  const asrKeywords = buildAsrKeywords(assistant, businessName);
+  const backgroundSound = ambientSound(assistant);
+  const sharedConvFields: Partial<ElevenLabs.ConversationalConfig> = {
+    ...(asrKeywords.length ? { asr: { keywords: asrKeywords } } : {}),
+    ...(backgroundSound ? { conversation: { backgroundSound } } : {}),
   };
 
   const multilingualConfig: ElevenLabs.ConversationalConfig = {
@@ -343,6 +437,7 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
     turn: TURN_CONFIG,
     tts: baseTts,
     languagePresets,
+    ...sharedConvFields,
   };
 
   const multilingualPlainConfig: ElevenLabs.ConversationalConfig = {
@@ -352,9 +447,13 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
 
   const englishPromptConfig: ElevenLabs.PromptAgentApiModelOutput = {
     ...promptConfig,
-    prompt: composeSystemPrompt(assistant, businessName, toolNames, false),
+    prompt: composeSystemPrompt(assistant, businessName, toolNames, false, timezone),
     builtInTools: buildBuiltInTools(assistant, false),
   };
+  // Last-ditch rung: deliberately omits sharedConvFields (asr/backgroundSound).
+  // If a workspace rejects one of those newer fields, the multilingual and plain
+  // rungs (which carry them) fail, but this one still syncs a working agent -
+  // English-only at worst, instead of hard-failing the whole sync.
   const englishConfig: ElevenLabs.ConversationalConfig = {
     agent: {
       firstMessage,
@@ -521,6 +620,7 @@ export async function provisionDemoAgent(): Promise<{
     llm: AGENT_LLM,
     thinkingBudget: 0,
     enableReasoningSummary: false,
+    backupLlmConfig: { preference: "override", order: ["claude-haiku-4-5"] },
   } satisfies Partial<ElevenLabs.PromptAgentApiModelOutput>;
 
   const multilingualConfig: ElevenLabs.ConversationalConfig = {

@@ -115,8 +115,8 @@ export const createGoogleCalendar: CalendarFactory = (config): CalendarProvider 
       }
       if (!res) return { ok: false, error: "google calendar not authorized" };
       if (!res.ok) return { ok: false, error: `google calendar ${res.status}` };
-      const json = (await res.json()) as { id?: string };
-      return { ok: true, externalId: json.id };
+      const json = (await res.json()) as { id?: string; htmlLink?: string };
+      return { ok: true, externalId: json.id, url: json.htmlLink };
     },
 
     async cancelEvent(externalId): Promise<CancelResult> {

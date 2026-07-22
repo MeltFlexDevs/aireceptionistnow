@@ -149,6 +149,14 @@ export const createCalcom: CalendarFactory = (config): CalendarProvider => {
   const isBookingFieldRejection = (status: number, body: string): boolean =>
     status === 400 && /booking ?fields?|notes/i.test(body);
 
+  // Deliberately no warmAuth here. Cal.com's getBusy is unauthenticated so its
+  // write token is cold at booking time, but Cal.com hard-invalidates the old
+  // refresh token on every rotation. Warming at call start would move the
+  // refresh from book time to every call, widening the cross-instance rotation
+  // race that can brick the integration - a booking-breaking risk traded for a
+  // one-time ~400ms refresh. Not worth it until the token store tolerates
+  // rotation grace. (Outlook keeps warmAuth: Microsoft allows a rotation grace
+  // window and it is Outlook's only warm path.)
   return {
     async createEvent(req): Promise<BookingResult> {
       if (!cfg.event_type_id) return { ok: false, error: "cal.com not configured" };

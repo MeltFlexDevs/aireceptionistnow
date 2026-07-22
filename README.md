@@ -187,6 +187,10 @@ STT_API_KEY=
 # App
 DATABASE_URL=
 APP_BASE_URL=          # public URL Twilio webhooks call back into
+
+# Post-call summary emails (Resend). Without both, summaries are logged and skipped.
+RESEND_API_KEY=        # from resend.com
+EMAIL_FROM=            # verified sender, e.g. Meltflex Reception <noreply@receptionist.meltflexai.com>
 ```
 
 Anything prefixed `NEXT_PUBLIC_` is bundled into the client and is **public** — keep provider keys unprefixed and server-side only.

@@ -81,7 +81,25 @@ export const createOutlookCalendar: CalendarFactory = (config): CalendarProvider
     });
   };
 
+  const me = (token: string) =>
+    timedFetch("https://graph.microsoft.com/v1.0/me?$select=id", {
+      headers: { authorization: `Bearer ${token}` },
+    });
+
   return {
+    // Outlook exposes no getBusy, so its token never warms through the
+    // availability prefetch. Ping a cheap authenticated endpoint at call start
+    // so createEvent's first try uses a warm token instead of paying the
+    // 401 -> refresh -> retry chain on the booking critical path.
+    async warmAuth(): Promise<void> {
+      const token = storedToken();
+      const res = token ? await me(token).catch(() => null) : null;
+      if (!res || res.status === 401) {
+        const refreshed = await refreshAccessToken(cfg);
+        if (refreshed) await me(refreshed).catch(() => null);
+      }
+    },
+
     async createEvent(req): Promise<BookingResult> {
       if (!Number.isFinite(Date.parse(req.startTime)) || !Number.isFinite(Date.parse(req.endTime))) {
         return { ok: false, error: "invalid start/end time" };
@@ -94,8 +112,8 @@ export const createOutlookCalendar: CalendarFactory = (config): CalendarProvider
       }
       if (!res) return { ok: false, error: "outlook not authorized" };
       if (!res.ok) return { ok: false, error: `outlook ${res.status}` };
-      const json = (await res.json()) as { id?: string };
-      return { ok: true, externalId: json.id };
+      const json = (await res.json()) as { id?: string; webLink?: string };
+      return { ok: true, externalId: json.id, url: json.webLink };
     },
 
     async cancelEvent(externalId): Promise<CancelResult> {

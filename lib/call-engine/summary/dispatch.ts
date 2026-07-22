@@ -1,6 +1,6 @@
 import { pushCallToCrm, resolveCrmTargets } from "../integrations/crm";
 import type { CallRepository } from "../persistence/types";
-import type { CallSummary, NumberConfig, TranscriptTurn } from "../types";
+import type { CallAction, CallSummary, NumberConfig, TranscriptTurn } from "../types";
 import { readEmailConfig, sendTranscriptEmail } from "./email";
 import { summarizeCall } from "./summarize";
 
@@ -15,7 +15,7 @@ export async function runPostCall(
     await repo.saveSummary(callId, summary);
 
     await Promise.allSettled([
-      deliverEmail(callId, loaded.config, summary, loaded.turns),
+      deliverEmail(callId, loaded.config, summary, loaded.turns, loaded.actions, loaded.from),
       deliverCrm(callId, loaded.config, loaded.from, summary, loaded.turns),
     ]);
 
@@ -31,10 +31,19 @@ async function deliverEmail(
   config: NumberConfig,
   summary: CallSummary,
   turns: TranscriptTurn[],
+  actions: CallAction[],
+  from: string,
 ): Promise<void> {
   const cfg = readEmailConfig(config.routing);
   if (!cfg) return;
-  const res = await sendTranscriptEmail(cfg, { config, summary, turns });
+  const booking = actions.find((a) => a.type === "booking" && a.status === "done");
+  const eventUrl =
+    booking && typeof booking.payload.event_url === "string" ? booking.payload.event_url : "";
+  const appBase = (process.env.APP_BASE_URL ?? "").replace(/\/$/, "");
+  // Prefer the provider's own event link; fall back to the in-app calendar.
+  // Only when the call actually booked something.
+  const bookingUrl = eventUrl || (booking && appBase ? `${appBase}/dashboard/calendar` : "");
+  const res = await sendTranscriptEmail(cfg, { config, summary, turns, from, bookingUrl });
   if (!res.ok && !res.skipped) {
     console.error(`[postcall] email transcript failed for ${callId}: ${res.error}`);
   }

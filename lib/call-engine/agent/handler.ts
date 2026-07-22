@@ -9,12 +9,26 @@ function json(body: unknown, status = 200): Response {
   });
 }
 
+// Log the ElevenLabs egress IP once per warm instance so we can confirm the
+// serving region (5.2): US IPs 34.67.146.145 / 34.59.11.47 mean every tool
+// call pays a transatlantic hop before our fra1 code runs.
+let egressLogged = false;
+
 export async function handleTool(
   req: Request,
   run: (ctx: ActionContext, body: Record<string, unknown>) => Promise<string>,
 ): Promise<Response> {
   if (!verifyToolSecret(req.headers)) {
     return json({ error: "unauthorized" }, 401);
+  }
+
+  if (!egressLogged) {
+    egressLogged = true;
+    const ip =
+      req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+      req.headers.get("x-real-ip") ||
+      "unknown";
+    console.log("[agent] tool webhook egress ip", ip);
   }
 
   let body: Record<string, unknown>;

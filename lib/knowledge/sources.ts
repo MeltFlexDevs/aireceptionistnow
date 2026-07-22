@@ -10,6 +10,10 @@ export interface KnowledgeSource {
   charCount: number;
   addedAt: string; // ISO 8601
   summary?: string;
+  // Higher = more important. Sources are injected/retrieved most-important
+  // first so the agent reaches the business's key facts fastest. Defaults to 0
+  // (insertion order preserved); operators can raise it to pin a source up.
+  priority?: number;
 }
 
 export interface AssistantKnowledge {
@@ -68,9 +72,11 @@ export function mergeKnowledge(
   }
 
   // Provisioning-time merge, with no user present to tell - so this one does
-  // truncate. It keeps the FIRST MAX_SOURCES rather than the last; the
-  // asymmetry with addSource is deliberate, not an oversight.
-  return { notes, sources: sources.slice(0, MAX_SOURCES) };
+  // truncate. When over the cap keep the highest-priority sources (stable sort,
+  // so the common all-default case keeps the previous first-N-by-insertion
+  // behavior). This way an important source never loses its slot to ordering.
+  const ranked = [...sources].sort((x, y) => (y.priority ?? 0) - (x.priority ?? 0));
+  return { notes, sources: ranked.slice(0, MAX_SOURCES) };
 }
 
 export function renderKnowledgeMarkdown(raw: Record<string, unknown> | null | undefined): string {

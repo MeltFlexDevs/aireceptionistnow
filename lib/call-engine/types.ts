@@ -65,6 +65,7 @@ export interface BookingResult {
   ok: boolean;
   externalId?: string;
   error?: string;
+  url?: string; // web link to the created event, when the provider returns one
 }
 
 export type CallActionType = "booking" | "message" | "transfer";

@@ -25,6 +25,11 @@ export interface CalendarProvider {
   createEvent(req: BookingRequest): Promise<BookingResult>;
   getBusy?(query: AvailabilityQuery): Promise<AvailabilityResult>;
   cancelEvent?(externalId: string, reason?: string): Promise<CancelResult>;
+  // Prime the write-calendar OAuth token at call start. Providers whose
+  // getBusy is unauthenticated (Cal.com) or absent (Outlook) never warm their
+  // token through the availability prefetch, so the booking pays the
+  // 401 -> refresh -> retry chain. Best-effort: resolves regardless of outcome.
+  warmAuth?(): Promise<void>;
 }
 
 export type CalendarFactory = (

@@ -395,6 +395,9 @@ export async function setAssistantAgent(
 export interface AssistantSyncContext {
   assistant: Assistant;
   businessName: string;
+  // IANA timezone for the business (calendar integration, else owner account).
+  // "" when unknown - the prompt only names a zone when it has one.
+  timezone: string;
   knowledge: AssistantKnowledge;
 }
 
@@ -455,13 +458,43 @@ export async function getAssistantSyncContext(
 
   // Business identity: the assistant's organization, else the owner's company.
   let businessName = (org?.name ?? "").trim();
-  if (!businessName && data.owner_id) {
+
+  // Business timezone for time phrasing / relative-date resolution in the
+  // prompt. The connected calendar's zone is the most booking-relevant; fall
+  // back to the owner's account timezone.
+  let timezone = "";
+  const calAccessRaw = (data.routing as { calendar?: { access?: unknown } } | null)?.calendar
+    ?.access;
+  const calAccess = (Array.isArray(calAccessRaw) ? calAccessRaw : []) as {
+    integrationId?: unknown;
+  }[];
+  const calIds = [
+    ...new Set(calAccess.map((a) => String(a?.integrationId ?? "")).filter(Boolean)),
+  ];
+  if (calIds.length) {
+    const { data: cals } = await db()
+      .from("integrations")
+      .select("config")
+      .in("id", calIds)
+      .eq("type", "calendar")
+      .eq("enabled", true);
+    for (const c of cals ?? []) {
+      const tz = String((c.config as Record<string, unknown> | null)?.time_zone ?? "").trim();
+      if (tz) {
+        timezone = tz;
+        break;
+      }
+    }
+  }
+
+  if ((!businessName || !timezone) && data.owner_id) {
     const { data: acct } = await db()
       .from("account_settings")
-      .select("company")
+      .select("company, timezone")
       .eq("user_id", data.owner_id)
       .maybeSingle();
-    businessName = String(acct?.company ?? "").trim();
+    if (!businessName) businessName = String(acct?.company ?? "").trim();
+    if (!timezone) timezone = String(acct?.timezone ?? "").trim();
   }
 
   // Strip the joined relation so the returned assistant matches the flat type.
@@ -471,6 +504,7 @@ export async function getAssistantSyncContext(
   return {
     assistant: assistant as unknown as Assistant,
     businessName: businessName || "our business",
+    timezone,
     knowledge,
   };
 }

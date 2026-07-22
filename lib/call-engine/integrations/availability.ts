@@ -12,7 +12,10 @@ const DAY_START_HOUR = 8;
 const DAY_END_HOUR = 20;
 const SLOT_STEP_MIN = 30;
 const SEARCH_DAYS = 3;
-const PREFETCH_DAYS = 7;
+// A check needs start..start+SEARCH_DAYS covered; prefetching only 7 days made
+// any question more than ~4 days out a guaranteed live read. 14 covers the
+// common booking horizon (busy-window payloads are small).
+const PREFETCH_DAYS = 14;
 const MAX_ALTERNATIVES = 3;
 
 export interface AvailabilityAnswer {
@@ -73,7 +76,7 @@ export async function checkAvailability(
   calendars: ResolvedCalendar[],
   startIso: string,
   endIso: string,
-  opts: { fresh?: boolean } = {},
+  opts: { fresh?: boolean; maxSnapshotAgeMs?: number } = {},
 ): Promise<AvailabilityAnswer> {
   const startMs = Date.parse(startIso);
   const endMs = Date.parse(endIso);
@@ -97,17 +100,28 @@ export async function checkAvailability(
 
   // Snapshots prefetched at call start (or written by a check seconds ago)
   // answer without a live provider round trip; anything uncovered reads live.
-  // opts.fresh (the booking double-book guard) always reads live.
+  // A "guard read" is the pre-booking double-book guard:
+  //   - opts.fresh: never touch snapshots, always read live (legacy behavior).
+  //   - opts.maxSnapshotAgeMs: trust a covering snapshot only if it is at most
+  //     that many ms old (the check-then-book flow makes a seconds-old snapshot
+  //     the common case), else read live. Reads DB-only (skipMemory) so a book
+  //     on another instance, which clears the DB row, isn't hidden by a stale
+  //     per-instance memory entry - the provider's own conflict rejection stays
+  //     the final backstop either way.
+  const guardRead = opts.fresh === true || opts.maxSnapshotAgeMs !== undefined;
   const snapshots = opts.fresh
     ? new Map<string, BusySnapshot>()
     : await withDeadline(
-        readSnapshots(readable.map((c) => c.integrationId)),
+        readSnapshots(readable.map((c) => c.integrationId), {
+          skipMemory: opts.maxSnapshotAgeMs !== undefined,
+        }),
         1500,
         new Map<string, BusySnapshot>(),
       );
   const now = Date.now();
+  const maxSnapshotAge = Math.min(opts.maxSnapshotAgeMs ?? SNAPSHOT_FRESH_MS, SNAPSHOT_FRESH_MS);
   const covers = (s: BusySnapshot) =>
-    now - s.fetchedAt < SNAPSHOT_FRESH_MS &&
+    now - s.fetchedAt < maxSnapshotAge &&
     Date.parse(s.timeMin) <= Date.parse(timeMin) &&
     Date.parse(s.timeMax) >= Date.parse(timeMax);
 
@@ -127,9 +141,9 @@ export async function checkAvailability(
         busy: [] as BusyInterval[],
         error: "timeout",
       });
-      // Keep the shared snapshot warm for later checks - but never from the
-      // booking guard, whose write could land after the post-booking clear.
-      if (res.ok && !opts.fresh) {
+      // Keep the shared snapshot warm for later checks - but never from a guard
+      // read, whose write could land after the post-booking clear.
+      if (res.ok && !guardRead) {
         void writeSnapshot(c.integrationId, { timeMin, timeMax, busy: res.busy });
       }
       return res;
@@ -171,24 +185,50 @@ export async function checkAvailability(
 }
 
 // Fired from /api/agent/init via after(): warms OAuth tokens and stores each
-// calendar's busy window so mid-call checks answer from one indexed read.
+// calendar's busy window so mid-call checks answer from one indexed read. Also
+// warms the write-calendar token for providers whose getBusy is unauthenticated
+// (Cal.com) or absent (Outlook), which the busy prefetch alone never touches.
 export async function prefetchAvailability(calendars: ResolvedCalendar[]): Promise<void> {
-  const readable = calendars.filter((c) => typeof c.provider.getBusy === "function");
-  if (readable.length === 0) return;
+  // The same integration can appear under multiple access entries (read + write);
+  // warm each provider once.
+  const seen = new Set<string>();
+  const unique = calendars.filter((c) => {
+    if (seen.has(c.integrationId)) return false;
+    seen.add(c.integrationId);
+    return true;
+  });
+  if (unique.length === 0) return;
+
   const timeMin = new Date().toISOString();
   const timeMax = new Date(Date.now() + PREFETCH_DAYS * 24 * 60 * 60 * 1000).toISOString();
-  await Promise.all(
-    readable.map(async (c) => {
-      const read = await withDeadline(
-        c.provider.getBusy!({ timeMin, timeMax }).catch((err: Error) => ({
-          ok: false,
-          busy: [] as BusyInterval[],
-          error: err?.message ?? "threw",
-        })),
-        INTEGRATION_TIMEOUT_MS,
-        { ok: false, busy: [] as BusyInterval[], error: "timeout" },
+
+  const jobs: Promise<unknown>[] = [];
+  for (const c of unique) {
+    if (typeof c.provider.getBusy === "function") {
+      jobs.push(
+        (async () => {
+          const read = await withDeadline(
+            c.provider.getBusy!({ timeMin, timeMax }).catch((err: Error) => ({
+              ok: false,
+              busy: [] as BusyInterval[],
+              error: err?.message ?? "threw",
+            })),
+            INTEGRATION_TIMEOUT_MS,
+            { ok: false, busy: [] as BusyInterval[], error: "timeout" },
+          );
+          if (read.ok) await writeSnapshot(c.integrationId, { timeMin, timeMax, busy: read.busy });
+        })(),
       );
-      if (read.ok) await writeSnapshot(c.integrationId, { timeMin, timeMax, busy: read.busy });
-    }),
-  );
+    }
+    if (typeof c.provider.warmAuth === "function") {
+      jobs.push(
+        withDeadline(
+          c.provider.warmAuth().catch(() => undefined),
+          INTEGRATION_TIMEOUT_MS,
+          undefined,
+        ),
+      );
+    }
+  }
+  await Promise.all(jobs);
 }

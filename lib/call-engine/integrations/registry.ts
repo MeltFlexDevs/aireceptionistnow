@@ -49,6 +49,17 @@ export function providerSupportsBusy(provider: string): boolean {
   return hit;
 }
 
+// Providers that reject a booking on an already-taken slot at create time.
+// Cal.com books through an event type + slots API that refuses a taken slot,
+// so for it the pre-write double-book guard may trust a fresh snapshot. Google
+// and Outlook create events unconditionally (they allow overlapping events), so
+// for them the guard MUST read live - it is the only double-book backstop.
+const CONFLICT_REJECTING_PROVIDERS = new Set(["calcom"]);
+
+export function providerRejectsConflicts(provider: string): boolean {
+  return CONFLICT_REJECTING_PROVIDERS.has(provider);
+}
+
 export function resolveCalendarById(
   integrations: IntegrationConfig[],
   integrationId: string,
