@@ -3,8 +3,25 @@
 import { useActionState } from "react";
 import { useT } from "@/lib/i18n/client";
 import { SubmitButton } from "../../components/SubmitButton";
+import {
+  ValidatedForm,
+  RequiredMark,
+  FieldError,
+  useFormValidity,
+} from "@/app/components/forms/validated-form";
 import { reportCallIssue, type ReportState } from "./actions";
 import { MAX_MESSAGE_CHARS } from "./report-limits";
+
+// Keeps the shared SubmitButton (with its pending spinner) but gates it on the
+// surrounding form's validity - so it can read the ValidatedForm context.
+function ReportSubmit({ label, pendingText }: { label: string; pendingText: string }) {
+  const { valid } = useFormValidity();
+  return (
+    <SubmitButton pendingText={pendingText} className="w-full" disabled={!valid}>
+      {label}
+    </SubmitButton>
+  );
+}
 
 export function ReportIssue({ callId }: { callId: string }) {
   const t = useT();
@@ -29,14 +46,16 @@ export function ReportIssue({ callId }: { callId: string }) {
       <summary className="press inline-flex h-8 cursor-pointer list-none items-center rounded-lg border border-orange-200 bg-orange-50 px-3 text-xs font-medium text-orange-700 transition-colors hover:bg-orange-100 hover:text-orange-800 [&::-webkit-details-marker]:hidden">
         {d.reportButton}
       </summary>
-      <form
+      <ValidatedForm
         action={formAction}
         className="absolute right-0 z-10 mt-2 w-72 space-y-2 rounded-xl border border-neutral-200 bg-white p-3"
       >
         <input type="hidden" name="callId" value={callId} />
         <label className="block text-xs font-medium text-neutral-700">
           {d.reportQuestion}
+          <RequiredMark />
           <textarea
+            id="message"
             name="message"
             required
             maxLength={MAX_MESSAGE_CHARS}
@@ -45,11 +64,10 @@ export function ReportIssue({ callId }: { callId: string }) {
             className="mt-1.5 w-full resize-y rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-2 text-sm font-normal text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-neutral-900 focus:bg-white"
           />
         </label>
+        <FieldError name="message" />
         {state.error && <p className="text-xs text-rose-600">{state.error}</p>}
-        <SubmitButton pendingText={d.reportSending} className="w-full">
-          {d.reportSend}
-        </SubmitButton>
-      </form>
+        <ReportSubmit label={d.reportSend} pendingText={d.reportSending} />
+      </ValidatedForm>
     </details>
   );
 }

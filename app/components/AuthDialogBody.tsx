@@ -4,6 +4,7 @@ import * as React from "react";
 import Image from "next/image";
 
 import { createClient } from "@/lib/supabase/client";
+import { ValidatedForm, Field, FieldError, ValidatedSubmit } from "@/app/components/forms/validated-form";
 
 // The heavy half of the auth dialog: the Supabase browser client plus the full
 // modal markup. It is split out of AuthDialog.tsx and loaded with next/dynamic
@@ -219,12 +220,17 @@ export default function AuthDialogBody({
 
                 {error ? <ErrorBox message={error} /> : null}
 
-                <form className="w-full" onSubmit={verifyCode}>
+                <ValidatedForm className="w-full" onSubmit={verifyCode}>
                   <input
+                    id="auth-code"
+                    name="auth-code"
                     inputMode="numeric"
                     autoComplete="one-time-code"
                     autoFocus
+                    required
+                    pattern="\d{6}"
                     maxLength={6}
+                    data-error-patternmismatch="Enter the 6-digit code."
                     value={code}
                     onChange={(e) =>
                       setCode(e.target.value.replace(/\D/g, "").slice(0, 6))
@@ -232,14 +238,14 @@ export default function AuthDialogBody({
                     placeholder="••••••"
                     className="mb-3.5 w-full rounded-[10px] border border-neutral-200 bg-white px-3.5 py-3 text-center text-2xl font-light tracking-[0.4em] outline-none transition focus:border-neutral-400"
                   />
-                  <button
-                    type="submit"
+                  <FieldError name="auth-code" className="mb-3.5 text-center" />
+                  <ValidatedSubmit
                     disabled={pending !== null || code.length < 6}
                     className="w-full rounded-[10px] bg-neutral-900 px-4 py-3 text-[13px] font-light uppercase tracking-[0.08em] text-white transition hover:opacity-90 disabled:opacity-60"
                   >
                     {pending === "verify" ? "Verifying…" : "Verify & continue"}
-                  </button>
-                </form>
+                  </ValidatedSubmit>
+                </ValidatedForm>
 
                 <button
                   type="button"
@@ -286,30 +292,31 @@ export default function AuthDialogBody({
                   <span className="h-px flex-1 bg-neutral-200" />
                 </div>
 
-                <form className="w-full text-left" onSubmit={signInWithEmail}>
-                  <label
-                    htmlFor="auth-email"
-                    className="mb-1.5 block text-[11px] font-normal uppercase tracking-[0.08em] text-neutral-500"
-                  >
-                    Email
-                  </label>
-                  <input
-                    id="auth-email"
-                    type="email"
+                <ValidatedForm className="w-full text-left" onSubmit={signInWithEmail}>
+                  <Field
+                    name="auth-email"
+                    label="Email"
                     required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
-                    className="mb-3.5 w-full rounded-[10px] border border-neutral-200 bg-white px-3.5 py-3 text-base font-light outline-none transition focus:border-neutral-400"
-                  />
-                  <button
-                    type="submit"
+                    labelClassName="mb-1.5 block text-[11px] font-normal uppercase tracking-[0.08em] text-neutral-500"
+                  >
+                    <input
+                      id="auth-email"
+                      name="auth-email"
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@example.com"
+                      className="mb-3.5 w-full rounded-[10px] border border-neutral-200 bg-white px-3.5 py-3 text-base font-light outline-none transition focus:border-neutral-400"
+                    />
+                  </Field>
+                  <ValidatedSubmit
                     disabled={pending !== null}
                     className="w-full rounded-[10px] bg-neutral-900 px-4 py-3 text-[13px] font-light uppercase tracking-[0.08em] text-white transition hover:opacity-90 disabled:opacity-60"
                   >
                     {pending === "email" ? "Sending code…" : "Continue with email"}
-                  </button>
-                </form>
+                  </ValidatedSubmit>
+                </ValidatedForm>
 
                 <div className="mt-3.5 flex items-center justify-center gap-1.5 text-[11px] font-light text-neutral-500">
                   <LockGlyph />

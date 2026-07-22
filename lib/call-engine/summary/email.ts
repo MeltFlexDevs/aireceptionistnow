@@ -87,22 +87,24 @@ function renderHtml(input: TranscriptEmailInput): string {
       </td></tr>`
     : "";
 
-  // Chat bubbles so it's obvious who said what: the caller sits left in a light
-  // bubble, the AI sits right in a dark one, each with its own label.
+  // Chat bubbles that mirror the /calls transcript: the caller sits left in a
+  // dark bubble (neutral-900), the receptionist right in a white bordered bubble
+  // (neutral-800 text), each with its own label.
   const transcriptRows = turns.length
     ? turns
         .map((t) => {
           const isCaller = t.role === "caller";
-          const bubbleBg = isCaller ? "#f1f1f3" : "#111111";
-          const bubbleColor = isCaller ? "#27272a" : "#ffffff";
-          const labelColor = isCaller ? "#8a8a92" : "#c7c7cd";
+          const bubbleBg = isCaller ? "#1D1D1D" : "#ffffff";
+          const bubbleColor = isCaller ? "#ffffff" : "#262626";
+          const bubbleBorder = isCaller ? "none" : "1px solid #e5e5e5";
+          const labelColor = isCaller ? "#c7c7cd" : "#8a8a92";
           const tlr = isCaller ? "4px" : "16px";
           const trr = isCaller ? "16px" : "4px";
           return `<tr><td style="padding:5px 0;">
             <table role="presentation" width="100%" style="border-collapse:collapse;"><tr>
               <td align="${isCaller ? "left" : "right"}">
                 <table role="presentation" style="border-collapse:collapse;max-width:80%;"><tr>
-                  <td style="background:${bubbleBg};color:${bubbleColor};border-radius:16px;border-top-left-radius:${tlr};border-top-right-radius:${trr};padding:9px 14px;font-size:14px;line-height:1.5;">
+                  <td style="background:${bubbleBg};color:${bubbleColor};border:${bubbleBorder};border-radius:16px;border-top-left-radius:${tlr};border-top-right-radius:${trr};padding:9px 14px;font-size:14px;line-height:1.5;">
                     <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:${labelColor};margin-bottom:2px;">${
                       isCaller ? "Caller" : "AI"
                     }</div>

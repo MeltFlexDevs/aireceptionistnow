@@ -149,12 +149,32 @@ html {
   transform: translateY(-3px);
 }
 
+/* Modal / dialog entrance. The backdrop fades in; the panel pops up from
+   slightly below. Both are compositor-only (opacity/transform) and turned off
+   under reduced motion below. */
+@keyframes modal-backdrop-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes modal-panel-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to   { opacity: 1; transform: none; }
+}
+.modal-backdrop {
+  animation: modal-backdrop-in 0.16s ease-out both;
+}
+.modal-panel {
+  animation: modal-panel-in 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   /* Avatar animations (.ai-*, .ava-*) get their reduced-motion override in
      app/(main)/dashboard/surfaces.css, next to the rules they disable. */
   .rise,
-  .rise-stagger > * {
+  .rise-stagger > *,
+  .modal-backdrop,
+  .modal-panel {
     animation: none;
   }
   .press,

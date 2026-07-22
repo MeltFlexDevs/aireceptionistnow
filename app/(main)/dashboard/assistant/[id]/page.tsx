@@ -78,25 +78,30 @@ export default async function AssistantSettingsPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ error?: string; notice?: string }>;
 }) {
-  const { id } = await params;
-  // Saves report inline now; only cross-page redirects still use params.
-  const { error, notice } = await searchParams;
-  const t = await getDictionary();
+  // params, searchParams and the (cached) dictionary are independent - resolve
+  // them together. Saves report inline now; only cross-page redirects use params.
+  const [{ id }, { error, notice }, t] = await Promise.all([params, searchParams, getDictionary()]);
   const a = t.assistants;
 
-  const assistant = await getAssistant(id).catch(() => null);
+  // First batch: everything keyed only on the id param (or nothing) - no
+  // dependency on the assistant row or ownerId. getAssistant is cache()-wrapped,
+  // so the owner check below reuses this result without a second query, and
+  // getAssistantNumber takes the id directly (it equals assistant.id).
+  const [assistant, ownerId, number, allNumbers] = await Promise.all([
+    getAssistant(id).catch(() => null),
+    currentUserId(),
+    getAssistantNumber(id).catch(() => null),
+    listNumbers().catch(() => [] as Awaited<ReturnType<typeof listNumbers>>),
+  ]);
   if (!assistant) notFound();
-
-  const ownerId = await currentUserId();
   if (ownerId && assistant.owner_id && assistant.owner_id !== ownerId) notFound();
 
-  const [integrations, number, planCtx, allNumbers, assistants] = await Promise.all([
+  // Second batch: the ownerId-scoped reads, run only once the owner check passes.
+  const [integrations, planCtx, assistants] = await Promise.all([
     listIntegrations(ownerId ?? undefined).catch(
       () => [] as Awaited<ReturnType<typeof listIntegrations>>,
     ),
-    getAssistantNumber(assistant.id).catch(() => null),
     getPlanContextCached(ownerId).catch(() => null),
-    listNumbers().catch(() => [] as Awaited<ReturnType<typeof listNumbers>>),
     listAssistants(ownerId ?? undefined).catch(() => []),
   ]);
   const calendars = integrations.filter((i) => i.type === "calendar");
@@ -449,20 +454,24 @@ export default async function AssistantSettingsPage({
           </div>
         </TopicModal>
 
-        {/* Delete posts to its own action, so it sits outside any modal form. */}
-        <div className={`${CARD} flex h-full items-center justify-between gap-3 p-5`}>
+      </div>
+
+      {/* DANGER ZONE: the one irreversible action, set apart at the very bottom
+          so a destructive control never sits beside the routine settings. */}
+      <section className="mt-1 overflow-hidden rounded-2xl border border-rose-200 bg-rose-50/40">
+        <div className="flex flex-wrap items-center justify-between gap-4 px-5 py-4">
           <div className="flex min-w-0 items-center gap-4">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-rose-500">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-rose-100 text-rose-600">
               <Trash className="h-5 w-5" />
             </span>
             <div className="min-w-0">
-              <p className="text-[15px] font-semibold text-neutral-900">{a.dangerZone}</p>
-              <p className="text-[13px] text-neutral-500">{a.deleteHint}</p>
+              <p className="text-[15px] font-semibold text-rose-900">{a.dangerZone}</p>
+              <p className="text-[13px] text-rose-700/80">{a.deleteHint}</p>
             </div>
           </div>
           <DeleteAssistant id={assistant.id} name={assistant.name} />
         </div>
-      </div>
+      </section>
     </div>
   );
 }

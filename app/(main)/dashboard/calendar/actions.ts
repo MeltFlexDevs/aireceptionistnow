@@ -105,9 +105,12 @@ export async function disconnectCalendarAction(
   const id = String(formData.get("id") ?? "");
   if (!id) return fail(c.calendarMissing);
   try {
+    // Deleting a row that is already gone succeeds with zero rows affected, so a
+    // throw here is a real failure (e.g. not signed in) - surface it rather than
+    // claiming success and leaving the calendar visibly still connected.
     await deleteIntegration(id, (await currentUserId()) ?? undefined);
   } catch {
-    // Already gone is the outcome the user wanted; don't report a failure.
+    return fail(c.calendarActionFailed);
   }
   revalidatePath("/dashboard/calendar");
   revalidatePath("/dashboard/assistant", "layout");

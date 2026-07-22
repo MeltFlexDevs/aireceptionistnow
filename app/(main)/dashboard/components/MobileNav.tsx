@@ -60,10 +60,17 @@ export function MobileNav() {
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <Brand />
-        {/* The drawer sits above the guide overlay, so it has to get out of
-            the way when Help opens it. */}
-        <DashboardNav onNavigate={() => setOpen(false)} />
+        {/* Mount the drawer's contents only while open. Otherwise this second
+            <Brand/> runs a duplicate active-call poll and a second animated
+            avatar (window listeners + timers) on every route, invisibly. */}
+        {open && (
+          <>
+            <Brand />
+            {/* The drawer sits above the guide overlay, so it has to get out of
+                the way when Help opens it. */}
+            <DashboardNav onNavigate={() => setOpen(false)} />
+          </>
+        )}
       </div>
     </>
   );

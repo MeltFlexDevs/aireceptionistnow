@@ -2,10 +2,15 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect, useState, type CSSProperties } from "react";
+import { memo, useEffect, useState, type CSSProperties } from "react";
 import { useReducedMotion } from "motion/react";
 import { Logo, Grid, Phone, Bot, Gear, Sparkle, Calendar } from "../icons";
 import { LiveAvatar, type Activity } from "@/app/(main)/onboarding/LiveAvatar";
+
+// Brand re-renders on route/searchParams/state changes; the avatar itself only
+// depends on its props. Memoize it so those unrelated re-renders don't drag the
+// large animated SVG through reconciliation.
+const LiveAvatarMemo = memo(LiveAvatar);
 import type { Mood } from "@/app/(main)/onboarding/personality";
 import { useT } from "@/lib/i18n/client";
 import type { Dictionary } from "@/lib/i18n/dictionaries/en";
@@ -97,13 +102,17 @@ export function Brand() {
   // Live-call indicator: while the receptionist is answering, poll for an active
   // call so the status dot can turn yellow for the duration of a call.
   const [inCall, setInCall] = useState(false);
+  // Offline/paused means there is no call to be in, so derive the effective flag
+  // rather than resetting state inside the effect (which cascades a render).
+  const onCall = status === "online" && inCall;
   useEffect(() => {
-    if (status !== "online") {
-      setInCall(false);
-      return;
-    }
+    if (status !== "online") return;
     let alive = true;
     const check = async () => {
+      // A backgrounded tab isn't watching the status dot; skip the request
+      // outright (not just relying on browser timer throttling) and re-sync the
+      // moment the tab is shown again via the visibilitychange listener below.
+      if (document.hidden) return;
       try {
         const res = await fetch("/api/dashboard/active-call", { cache: "no-store" });
         if (!res.ok) return;
@@ -115,9 +124,14 @@ export function Brand() {
     };
     void check();
     const iv = setInterval(check, 6000);
+    const onVisible = () => {
+      if (!document.hidden) void check();
+    };
+    document.addEventListener("visibilitychange", onVisible);
     return () => {
       alive = false;
       clearInterval(iv);
+      document.removeEventListener("visibilitychange", onVisible);
     };
   }, [status]);
 
@@ -203,9 +217,9 @@ export function Brand() {
           style={{ "--ava-size": "108px" } as CSSProperties}
         >
           <span>
-            <LiveAvatar
+            <LiveAvatarMemo
               mood={mood}
-              activity={inCall ? "phone" : (routeActivity ?? idle)}
+              activity={onCall ? "phone" : (routeActivity ?? idle)}
               nudge={nudge}
               celebrate={celebrate}
               className="h-[82%] w-[82%]"
@@ -219,7 +233,7 @@ export function Brand() {
           title={statusTitle}
           aria-label={statusTitle}
           className={`pointer-events-none absolute bottom-2.5 right-2.5 z-10 h-4 w-4 rounded-full border-2 border-white ${
-            inCall
+            onCall
               ? "bg-amber-400"
               : status === "online"
                 ? "bg-emerald-500"

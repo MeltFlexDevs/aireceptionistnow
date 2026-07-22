@@ -4,6 +4,7 @@ import { useFormStatus } from "react-dom";
 import { useT } from "@/lib/i18n/client";
 import { Plus, Spinner } from "../icons";
 import { createAssistantAction } from "./actions";
+import { ValidatedForm, Field, ValidatedSubmit } from "@/app/components/forms/validated-form";
 
 const field =
   "w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition-colors focus:border-neutral-900";
@@ -31,33 +32,32 @@ function ProgressOverlay() {
   );
 }
 
-function SubmitButton() {
-  const t = useT();
-  const { pending } = useFormStatus();
-  return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="press inline-flex h-[38px] items-center justify-center gap-2 rounded-lg bg-neutral-900 px-4 text-sm font-medium text-white transition-colors hover:bg-neutral-800 disabled:opacity-60"
-    >
-      <Plus className="h-4 w-4" />
-      {pending ? t.assistants.createPending : t.assistants.createButton}
-    </button>
-  );
-}
-
 export function CreateAssistantForm() {
   const t = useT();
   return (
-    <form action={createAssistantAction} className="flex flex-col gap-3 sm:flex-row sm:items-end">
-      <div className="flex-1">
-        <label htmlFor="name" className="mb-1.5 block text-sm font-medium text-neutral-700">
-          {t.assistants.name}
-        </label>
-        <input id="name" name="name" placeholder={t.assistants.namePlaceholder} className={field} />
-      </div>
-      <SubmitButton />
+    <ValidatedForm action={createAssistantAction} className="flex flex-col gap-3 sm:flex-row sm:items-start">
+      <Field name="name" label={t.assistants.name} required className="flex-1">
+        <input
+          id="name"
+          name="name"
+          required
+          placeholder={t.assistants.namePlaceholder}
+          className={field}
+        />
+      </Field>
+      <ValidatedSubmit
+        pendingText={
+          <>
+            <Spinner className="h-4 w-4 animate-spin" />
+            {t.assistants.createPending}
+          </>
+        }
+        className="press inline-flex h-[38px] shrink-0 items-center justify-center gap-2 rounded-lg bg-neutral-900 px-4 text-sm font-medium text-white transition-colors hover:bg-neutral-800 disabled:opacity-60 sm:mt-[26px]"
+      >
+        <Plus className="h-4 w-4" />
+        {t.assistants.createButton}
+      </ValidatedSubmit>
       <Progress />
-    </form>
+    </ValidatedForm>
   );
 }

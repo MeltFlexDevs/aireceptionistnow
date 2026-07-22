@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { listBookings, undatedBookings, type Booking } from "@/lib/dashboard/calendar";
-import { clockFmt, dayKeyFn, ownerTimezone } from "@/lib/dashboard/timezone";
+import { undatedBookings, type Booking } from "@/lib/dashboard/calendar";
+import { clockFmt, dayKeyFn } from "@/lib/dashboard/timezone";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { StatusDot } from "./StatusBadge";
 
@@ -20,13 +20,10 @@ function nextBookings(bookings: Booking[]): Booking[] {
 
 // The receptionist's output, front and center: the next few appointments it
 // booked, plus a nudge for undated requests that need a human to confirm.
-export async function UpcomingAppointments({ ownerId }: { ownerId: string | null }) {
-  const [t, locale, tz, bookings] = await Promise.all([
-    getDictionary(),
-    getLocale(),
-    ownerTimezone(ownerId),
-    listBookings(ownerId ?? undefined).catch(() => [] as Booking[]),
-  ]);
+// bookings + tz are fetched by the parent (in its data batch) and passed in, so
+// this render adds no DB round trip of its own - only the deduped i18n reads.
+export async function UpcomingAppointments({ bookings, tz }: { bookings: Booking[]; tz: string }) {
+  const [t, locale] = await Promise.all([getDictionary(), getLocale()]);
   const c = t.calendar;
   const upcoming = nextBookings(bookings);
   const toConfirm = undatedBookings(bookings).length;

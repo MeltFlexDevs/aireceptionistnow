@@ -1,5 +1,6 @@
-"use client";
-
+// No "use client": Topbar is a static header shell. Its four interactive
+// children are their own client components and hydrate independently, so the
+// wrapper itself renders on the server (it sits in the server layout tree).
 import { MobileNav } from "./MobileNav";
 import { UserMenu } from "./UserMenu";
 import { NotificationsBell } from "./NotificationsBell";

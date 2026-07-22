@@ -4,8 +4,19 @@ const STATIC_ASSET_MATCHER =
   "/:path*\\.(ico|png|jpg|jpeg|gif|svg|webp|avif|woff|woff2)";
 
 const nextConfig: NextConfig = {
+  // Lets a verification build target a throwaway dir (NEXT_DIST_DIR) without
+  // clobbering a running `next dev` .next. Defaults to the normal directory.
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   experimental: {
     serverActions: { bodySizeLimit: "16mb" },
+    // Every dashboard route is force-dynamic, so the client Router Cache TTL is
+    // 0 by default and revisiting a tab within seconds re-hits the server. Cache
+    // the dynamic page-segment payload briefly so quick back-and-forth between
+    // dashboard tabs reuses it (per-browser, per-user; 30s is well within safe).
+    staleTimes: { dynamic: 30 },
+    // Tree-shake motion's barrel so routes that use one or two of its exports
+    // (Sidebar's useReducedMotion, the guide overlay) don't pull the whole entry.
+    optimizePackageImports: ["motion"],
   },
   images: {
     formats: ["image/avif", "image/webp"],

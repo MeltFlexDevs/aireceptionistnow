@@ -1,10 +1,11 @@
 "use client";
 
-import { useActionState, useEffect, useState, type ReactNode } from "react";
+import { useActionState, useState, type ReactNode } from "react";
 import { useT } from "@/lib/i18n/client";
 import { IDLE, type ActionState } from "@/lib/dashboard/action-state";
 import { SavePill } from "../components/SavePill";
 import { SubmitButton } from "../components/SubmitButton";
+import { Modal, MODAL_PANEL } from "../components/Modal";
 import { ChevronRight } from "../icons";
 import { updateAssistantAction } from "./actions";
 
@@ -53,15 +54,6 @@ export function TopicModal({
     if (open) setOpen(false);
   }
 
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !pending) setOpen(false);
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open, pending]);
-
   return (
     <>
       {/* Feature card: icon, what the setting is, what it does, and its current
@@ -92,48 +84,43 @@ export function TopicModal({
         </span>
       </button>
 
-      {open && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/40 p-4"
-          onClick={(e) => e.target === e.currentTarget && !pending && setOpen(false)}
+      <Modal open={open} onClose={() => setOpen(false)} busy={pending}>
+        <form
+          action={formAction}
+          role="dialog"
+          aria-modal="true"
+          aria-label={title}
+          aria-busy={pending}
+          className={`${MODAL_PANEL} flex max-h-[85dvh] w-full max-w-lg flex-col p-5`}
         >
-          <form
-            action={formAction}
-            role="dialog"
-            aria-modal="true"
-            aria-label={title}
-            aria-busy={pending}
-            className="glass shape-card flex max-h-[85dvh] w-full max-w-lg flex-col p-5"
-          >
-            <input type="hidden" name="id" value={assistantId} />
-            <input type="hidden" name={section} value="1" />
+          <input type="hidden" name="id" value={assistantId} />
+          <input type="hidden" name={section} value="1" />
 
-            <div className="flex shrink-0 items-start justify-between gap-4">
-              <div>
-                <h2 className="text-sm font-medium text-neutral-900">{title}</h2>
-                <p className="mt-0.5 text-xs text-neutral-500">{subtitle}</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                disabled={pending}
-                aria-label={t.common.close}
-                className="press -mr-1 -mt-1 rounded-lg p-1 text-neutral-400 hover:text-neutral-900 disabled:opacity-40"
-              >
-                ✕
-              </button>
+          <div className="flex shrink-0 items-start justify-between gap-4">
+            <div>
+              <h2 className="text-sm font-medium text-neutral-900">{title}</h2>
+              <p className="mt-0.5 text-xs text-neutral-500">{subtitle}</p>
             </div>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              disabled={pending}
+              aria-label={t.common.close}
+              className="press -mr-1 -mt-1 rounded-lg p-1 text-neutral-400 hover:text-neutral-900 disabled:opacity-40"
+            >
+              ✕
+            </button>
+          </div>
 
-            {/* Only the body scrolls. */}
-            <div className="mt-4 min-h-0 flex-1 space-y-4 overflow-y-auto">{children}</div>
+          {/* Only the body scrolls. */}
+          <div className="mt-4 min-h-0 flex-1 space-y-4 overflow-y-auto">{children}</div>
 
-            <div className="mt-4 flex shrink-0 items-center justify-end gap-3">
-              {state.ok === false && <SavePill state={state} />}
-              <SubmitButton pendingText={a.updating}>{t.common.save}</SubmitButton>
-            </div>
-          </form>
-        </div>
-      )}
+          <div className="mt-4 flex shrink-0 items-center justify-end gap-3">
+            {state.ok === false && <SavePill state={state} />}
+            <SubmitButton pendingText={a.updating}>{t.common.save}</SubmitButton>
+          </div>
+        </form>
+      </Modal>
     </>
   );
 }

@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { authConfigured } from "@/lib/supabase/config";
+import { authConfigured, devDashboardBypass } from "@/lib/supabase/config";
 import { mergeKnowledge, type AssistantKnowledge } from "../knowledge/sources";
 import { DEFAULT_VOICE_ID } from "../call-engine/voice/catalog";
 import { countryFromPhone } from "../call-engine/voice/phone-language";
@@ -209,7 +209,9 @@ export async function createCrmIntegration(
 // Marks one connected calendar as the primary (config.primary flag); clears
 // the flag on every other calendar the owner can see.
 export async function setPrimaryCalendar(id: string, ownerId?: string | null): Promise<void> {
-  if (authConfigured() && !ownerId) throw new Error("Not signed in.");
+  // Writes need a signed-in owner when auth is on - except the double-gated
+  // dev-dashboard preview, which manages the shared (null-owner) rows it shows.
+  if (authConfigured() && !ownerId && !devDashboardBypass()) throw new Error("Not signed in.");
   let query = db().from("integrations").select("id, config").eq("type", "calendar");
   if (ownerId) query = query.or(`owner_id.eq.${ownerId},owner_id.is.null`);
   const { data, error } = await query;
@@ -230,7 +232,9 @@ export async function setPrimaryCalendar(id: string, ownerId?: string | null): P
 }
 
 export async function deleteIntegration(id: string, ownerId?: string | null): Promise<void> {
-  if (authConfigured() && !ownerId) throw new Error("Not signed in.");
+  // See setPrimaryCalendar: unauthenticated writes are blocked unless this is
+  // the dev-dashboard preview (dev-only, inert in production).
+  if (authConfigured() && !ownerId && !devDashboardBypass()) throw new Error("Not signed in.");
   let query = db().from("integrations").delete().eq("id", id);
   if (ownerId) query = query.or(`owner_id.eq.${ownerId},owner_id.is.null`);
   const { error } = await query;

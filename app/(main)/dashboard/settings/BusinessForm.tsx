@@ -5,9 +5,14 @@ import { useT } from "@/lib/i18n/client";
 import { IDLE, type ActionState } from "@/lib/dashboard/action-state";
 import type { AccountSettings } from "@/lib/dashboard/account";
 import { SavePill } from "../components/SavePill";
-import { SubmitButton } from "../components/SubmitButton";
+import { ValidatedForm, Field, ValidatedSubmit } from "@/app/components/forms/validated-form";
 import { TimezoneSelect } from "./TimezoneSelect";
 import { saveAccountAction } from "./actions";
+
+// Dashboard primary-button styling, mirrored onto the self-contained
+// ValidatedSubmit (which gates on form validity).
+const primaryBtn =
+  "press inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-neutral-900 px-4 text-sm font-medium text-white transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60";
 
 const field =
   "w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition-colors focus:border-neutral-900";
@@ -34,22 +39,20 @@ export function BusinessForm({
   const [state, formAction] = useActionState<ActionState, FormData>(saveAccountAction, IDLE);
 
   return (
-    <form action={formAction} className="space-y-4">
+    <ValidatedForm action={formAction} className="space-y-4">
       <p className="text-xs leading-relaxed text-neutral-500">{s.accountSub}</p>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label htmlFor="full_name" className={labelCls}>
-            {s.fullName}
-          </label>
+        <Field name="full_name" label={s.fullName} required>
           <input
             id="full_name"
             name="full_name"
+            required
             defaultValue={account?.full_name ?? ""}
             className={field}
             disabled={!canEdit}
           />
-        </div>
+        </Field>
         <div>
           <label htmlFor="email_display" className={labelCls}>
             {s.email}
@@ -62,25 +65,22 @@ export function BusinessForm({
             className={`${field} bg-neutral-50 text-neutral-500`}
           />
         </div>
-        <div>
-          <label htmlFor="company" className={labelCls}>
-            {s.company}
-          </label>
+        <Field
+          name="company"
+          label={s.company}
+          required
+          hint={businessCount > 1 ? s.companyMultiHint : s.companyHint}
+        >
           <input
             id="company"
             name="company"
+            required
             defaultValue={account?.company ?? ""}
             className={field}
             disabled={!canEdit}
           />
-          <p className="mt-1 text-xs text-neutral-400">
-            {businessCount > 1 ? s.companyMultiHint : s.companyHint}
-          </p>
-        </div>
-        <div>
-          <label htmlFor="role" className={labelCls}>
-            {s.role}
-          </label>
+        </Field>
+        <Field name="role" label={s.role}>
           <input
             id="role"
             name="role"
@@ -88,19 +88,17 @@ export function BusinessForm({
             className={field}
             disabled={!canEdit}
           />
-        </div>
-        <div>
-          <label htmlFor="phone" className={labelCls}>
-            {s.phone}
-          </label>
+        </Field>
+        <Field name="phone" label={s.phone}>
           <input
             id="phone"
             name="phone"
+            type="tel"
             defaultValue={account?.phone ?? ""}
             className={field}
             disabled={!canEdit}
           />
-        </div>
+        </Field>
         <div>
           <label htmlFor="timezone" className={labelCls}>
             {s.timezone}
@@ -117,10 +115,7 @@ export function BusinessForm({
         </div>
       </div>
 
-      <div>
-        <label htmlFor="about" className={labelCls}>
-          {s.aboutYou}
-        </label>
+      <Field name="about" label={s.aboutYou}>
         <textarea
           id="about"
           name="about"
@@ -130,7 +125,7 @@ export function BusinessForm({
           className={`${field} resize-y`}
           disabled={!canEdit}
         />
-      </div>
+      </Field>
 
       <label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-neutral-200 px-4 py-3 transition-colors hover:border-neutral-300">
         <span>
@@ -149,8 +144,10 @@ export function BusinessForm({
 
       <div className="flex items-center justify-end gap-3">
         <SavePill state={state} />
-        <SubmitButton disabled={!canEdit}>{t.common.save}</SubmitButton>
+        <ValidatedSubmit className={primaryBtn} disabled={!canEdit}>
+          {t.common.save}
+        </ValidatedSubmit>
       </div>
-    </form>
+    </ValidatedForm>
   );
 }

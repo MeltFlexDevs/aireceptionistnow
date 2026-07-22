@@ -8,6 +8,22 @@ import { SubmitButton } from "../components/SubmitButton";
 import { UploadDropzone } from "./UploadDropzone";
 import { NotesModal } from "./NotesModal";
 import { addWebsiteKnowledgeAction, addPdfKnowledgeAction } from "./actions";
+import { ValidatedForm, FieldError, useFormValidity } from "@/app/components/forms/validated-form";
+
+/**
+ * Keeps the shared SubmitButton (spinner + localized pending) while gating it on
+ * the surrounding ValidatedForm's validity. The hook must run inside the form's
+ * context, so it lives in this child rather than in TeachBar's body.
+ */
+function WebsiteSubmit() {
+  const t = useT();
+  const { valid } = useFormValidity();
+  return (
+    <SubmitButton pendingText={t.knowledge.teachWebsitePending} disabled={!valid}>
+      {t.knowledge.teachWebsite}
+    </SubmitButton>
+  );
+}
 
 /**
  * Zone C: the one place you teach the receptionist something new. Each form
@@ -29,18 +45,20 @@ export function TeachBar({ orgId, notes }: { orgId: string; notes: string }) {
 
   return (
     <div className="shape-card glass shrink-0 space-y-3 p-4">
-      <form action={siteAction} className="flex flex-wrap items-center gap-2">
+      <ValidatedForm action={siteAction} className="flex flex-wrap items-center gap-2">
         <input type="hidden" name="id" value={orgId} />
         <input
+          id="url"
           name="url"
           type="url"
           required
           placeholder={k.teachWebsitePlaceholder}
           className="h-9 min-w-56 flex-1 rounded-lg border border-neutral-200 bg-white px-3 text-sm text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-neutral-900"
         />
-        <SubmitButton pendingText={k.teachWebsitePending}>{k.teachWebsite}</SubmitButton>
+        <WebsiteSubmit />
         <SavePill state={siteState} />
-      </form>
+        <FieldError name="url" className="w-full" />
+      </ValidatedForm>
 
       <div className="flex flex-wrap items-center gap-2">
         {/* The dropzone auto-submits on file pick, so it has to live inside the

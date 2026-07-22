@@ -5,6 +5,8 @@ import { getOverviewCached, getAnalyticsCached, type Segment } from "@/lib/dashb
 import { currentUserId } from "@/lib/auth";
 import { authConfigured, devDashboardBypass } from "@/lib/supabase/config";
 import { listAssistants, getOwnedNumbers, listIntegrations, type Assistant } from "@/lib/dashboard/db";
+import { listBookings, type Booking } from "@/lib/dashboard/calendar";
+import { ownerTimezone } from "@/lib/dashboard/timezone";
 import { formatPhone } from "@/lib/call-engine/voice/phone-language";
 import { getOnboardingProfile } from "@/lib/dashboard/onboarding-profile";
 import { getPlanContextCached } from "@/lib/dashboard/plan";
@@ -184,19 +186,24 @@ async function OverviewBody({ t, month }: { t: Dictionary; month: boolean }) {
   const o = t.overview;
   const h = t.home;
   const ownerId = await currentUserId();
-  const [data, analytics, assistants, numbers, integrations, plan, locale] = await Promise.all([
-    getOverviewCached(ownerId).catch((err: Error) => {
-      console.error("[overview] load failed", err);
-      return null;
-    }),
-    // Only the month view needs the 30-day rollup; today's view skips the query.
-    month ? getAnalyticsCached(ownerId).catch(() => null) : Promise.resolve(null),
-    listAssistants(ownerId ?? undefined).catch(() => [] as Assistant[]),
-    ownerId ? getOwnedNumbers(ownerId).catch(() => []) : Promise.resolve([]),
-    ownerId ? listIntegrations(ownerId).catch(() => []) : Promise.resolve([]),
-    getPlanContextCached(ownerId).catch(() => null),
-    getLocale(),
-  ]);
+  const [data, analytics, assistants, numbers, integrations, plan, locale, tz, bookings] =
+    await Promise.all([
+      getOverviewCached(ownerId).catch((err: Error) => {
+        console.error("[overview] load failed", err);
+        return null;
+      }),
+      // Only the month view needs the 30-day rollup; today's view skips the query.
+      month ? getAnalyticsCached(ownerId).catch(() => null) : Promise.resolve(null),
+      listAssistants(ownerId ?? undefined).catch(() => [] as Assistant[]),
+      ownerId ? getOwnedNumbers(ownerId).catch(() => []) : Promise.resolve([]),
+      ownerId ? listIntegrations(ownerId).catch(() => []) : Promise.resolve([]),
+      getPlanContextCached(ownerId).catch(() => null),
+      getLocale(),
+      // Upcoming appointments used to fetch these inside its own render, which
+      // serialized a DB round trip behind this batch; run them here in parallel.
+      ownerTimezone(ownerId),
+      listBookings(ownerId ?? undefined).catch(() => [] as Booking[]),
+    ]);
 
   const assistant = assistants[0] ?? null;
   const online = assistants.some((a) => a.enabled);
@@ -437,7 +444,7 @@ async function OverviewBody({ t, month }: { t: Dictionary; month: boolean }) {
               </Link>
             }
           >
-            <UpcomingAppointments ownerId={ownerId} />
+            <UpcomingAppointments bookings={bookings} tz={tz} />
           </SectionCard>
           {plan && (
             <SectionCard

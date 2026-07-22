@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Suspense, type ReactNode } from "react";
 import Link from "next/link";
 import { currentUserId } from "@/lib/auth";
 import {
@@ -27,17 +27,19 @@ import { displayTimezone } from "@/lib/dashboard/display-timezone";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 import { MAX_SYNC_ATTEMPTS } from "@/lib/dashboard/booking-retry";
-import { isOAuthConfigured } from "@/lib/dashboard/oauth";
 import { CALENDAR_PROVIDERS, providerName } from "@/lib/calendar/providers";
 import { ChevronLeft, ChevronRight } from "../icons";
 import { PageHeader } from "../components/PageHeader";
 import { StatusDot } from "../components/StatusBadge";
-import { ProviderIcon } from "../components/ProviderIcon";
 import { PILL_BASE, PILL_TONE } from "../components/pill";
 import { Skeleton } from "../components/Skeleton";
 import { CancelBooking } from "./CancelBooking";
 import { RetrySyncButton } from "./RetrySyncButton";
-import { ManageCalendars, type CalendarRow, type ConnectableProvider } from "./ManageCalendars";
+import {
+  CalendarConnections,
+  type CalendarRow,
+  type ConnectableProvider,
+} from "./CalendarConnections";
 import { TimezoneSync } from "./TimezoneSync";
 import { AiAvatar } from "@/app/(main)/onboarding/AiAvatar";
 
@@ -111,14 +113,14 @@ function MonthNav({
 }
 
 /**
- * Connected calendars: a live credential check per calendar (so "connected"
- * means the token actually works, not just that a row exists) plus the account
- * it is linked to. Its own Suspense boundary keeps the fast shell - and the
- * Manage / connect actions - from waiting on provider round trips.
+ * The calendar-connections panel that sits under the mini month grid. A live
+ * credential check per calendar (so "connected" means the token actually works,
+ * not just that a row exists) plus every bookable provider not yet linked, as a
+ * Connect button. Passed into CalendarBody as a slot but kept in its own
+ * Suspense boundary so its provider round trips never block the grid.
  */
-async function ConnectedCalendarPanel({ ownerId }: { ownerId: string | null }) {
-  const [t, integrations] = await Promise.all([getDictionary(), loadIntegrations(ownerId)]);
-  const c = t.calendar;
+async function CalendarConnectionsPanel({ ownerId }: { ownerId: string | null }) {
+  const integrations = await loadIntegrations(ownerId);
   const connections = await fetchCalendarConnections(integrations);
 
   const rows: CalendarRow[] = connections.map((cn) => ({
@@ -130,55 +132,19 @@ async function ConnectedCalendarPanel({ ownerId }: { ownerId: string | null }) {
     needsReconnect: !cn.ok,
   }));
 
+  // Every bookable provider that has no connection yet gets a Connect button -
+  // all three stay visible so the user always sees what they can link, even
+  // when a provider's OAuth env is not set up (the connect route reports that).
   const connectedProviders = new Set(connections.map((cn) => cn.provider));
-  // A provider whose OAuth env is not configured simply does not appear - the
-  // user cannot fix an environment variable, so offering the button is noise.
   const connectable: ConnectableProvider[] = CALENDAR_PROVIDERS.filter(
-    (p) => p.oauth && isOAuthConfigured(p.id) && !connectedProviders.has(p.id),
+    (p) => p.oauth && !connectedProviders.has(p.id),
   ).map((p) => ({
     id: p.id,
     name: p.name,
     href: `/api/integrations/${p.id}/connect?next=/dashboard/calendar`,
   }));
 
-  const primary = rows.find((r) => r.isPrimary) ?? rows[0];
-
-  return (
-    <div className="shape-card glass flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2 px-5 py-3">
-      {primary ? (
-        <>
-          <span className="text-xs font-medium text-neutral-500">{c.connectedCalendar}:</span>
-          <span className="flex items-center gap-2 text-sm font-medium text-neutral-900">
-            <ProviderIcon id={primary.provider} />
-            {primary.name}
-          </span>
-          {primary.account && (
-            <span className="max-w-[16rem] truncate text-xs text-neutral-500">
-              {primary.account}
-            </span>
-          )}
-          {rows.length > 1 && (
-            <span className="shape-pill border border-neutral-200 px-2 py-0.5 text-[11px] font-medium text-neutral-500">
-              {t.common.primary}
-            </span>
-          )}
-          {primary.needsReconnect && (
-            <span className="shape-pill border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700">
-              {c.reconnectNeeded}
-            </span>
-          )}
-        </>
-      ) : (
-        <>
-          <span className="text-sm font-medium text-neutral-900">{c.noCalendar}</span>
-          <span className="text-xs text-neutral-500">{c.noCalendarHint}</span>
-        </>
-      )}
-      <div className="ml-auto">
-        <ManageCalendars rows={rows} connectable={connectable} />
-      </div>
-    </div>
-  );
+  return <CalendarConnections rows={rows} connectable={connectable} />;
 }
 
 function CalendarBodySkeleton() {
@@ -209,6 +175,7 @@ async function CalendarBody({
   requestedDay,
   view,
   monthQ,
+  connectionsSlot,
 }: {
   ownerId: string | null;
   tz: string;
@@ -221,6 +188,7 @@ async function CalendarBody({
   requestedDay: string;
   view: string | undefined;
   monthQ: string;
+  connectionsSlot: ReactNode;
 }) {
   const toKey = dayKeyFn(tz);
   const atTime = clockFmt(tz);
@@ -516,16 +484,12 @@ async function CalendarBody({
         </div>
       )}
 
-      {hasNothing ? (
-        <div className="shape-card glass flex min-h-0 flex-1 flex-col items-center justify-center p-10 text-center">
-          <AiAvatar mood="greeting" className="h-20 w-20" />
-          <h2 className="mt-4 text-base font-semibold text-neutral-900">{c.emptyTitle}</h2>
-          <p className="mt-1.5 max-w-sm text-sm leading-relaxed text-neutral-500">{c.emptyBody}</p>
-        </div>
-      ) : (
-        <div className="grid min-h-0 flex-1 gap-3 md:grid-cols-3">
+      <div className="grid min-h-0 flex-1 gap-3 md:grid-cols-3">
+        {/* Left column: the mini month grid, with the calendar-connections
+            panel filling the free space beneath it. */}
+        <div className="flex min-h-0 flex-col gap-3 md:col-span-1">
           {/* Dots-only mini grid - fixed height, never scrolls, no chips to clip */}
-          <section className="shape-card glass shrink-0 p-4 md:col-span-1">
+          <section className="shape-card glass shrink-0 p-4">
             <div className="mb-3 flex items-center justify-between gap-2">
               <p className="text-sm font-medium text-neutral-900">{monthTitle}</p>
               <div className="flex items-center gap-1.5">
@@ -577,8 +541,13 @@ async function CalendarBody({
             </div>
           </section>
 
-          {/* The page's only scroll region */}
-          <section className="shape-card glass flex min-h-0 min-w-0 flex-col md:col-span-2">
+          {/* Connect / Manage / set-primary per provider - fills the free
+              space under the mini grid. */}
+          {connectionsSlot}
+        </div>
+
+        {/* The page's only scroll region */}
+        <section className="shape-card glass flex min-h-0 min-w-0 flex-col md:col-span-2">
             <div className="shrink-0 border-b border-neutral-200/70 px-5 py-3">
               <h2 className="text-sm font-medium text-neutral-900">
                 {activeView === "requests"
@@ -595,7 +564,15 @@ async function CalendarBody({
             </div>
 
             <div className="min-h-0 flex-1 overflow-y-auto px-5 py-2">
-              {activeView === "requests" ? (
+              {hasNothing ? (
+                <div className="flex min-h-[12rem] flex-col items-center justify-center py-8 text-center">
+                  <AiAvatar mood="greeting" className="h-16 w-16" />
+                  <h3 className="mt-4 text-base font-semibold text-neutral-900">{c.emptyTitle}</h3>
+                  <p className="mt-1.5 max-w-xs text-sm leading-relaxed text-neutral-500">
+                    {c.emptyBody}
+                  </p>
+                </div>
+              ) : activeView === "requests" ? (
                 <ul className="divide-y divide-neutral-100">
                   {undated.map((b) => (
                     <li
@@ -642,9 +619,8 @@ async function CalendarBody({
                 </ul>
               )}
             </div>
-          </section>
-        </div>
-      )}
+        </section>
+      </div>
     </>
   );
 }
@@ -652,9 +628,15 @@ async function CalendarBody({
 export default async function CalendarPage({
   searchParams,
 }: {
-  searchParams: Promise<{ month?: string; day?: string; view?: string; connected?: string }>;
+  searchParams: Promise<{
+    month?: string;
+    day?: string;
+    view?: string;
+    connected?: string;
+    error?: string;
+  }>;
 }) {
-  const [{ month, day, view, connected }, t, locale] = await Promise.all([
+  const [{ month, day, view, connected, error }, t, locale] = await Promise.all([
     searchParams,
     getDictionary(),
     getLocale(),
@@ -679,18 +661,18 @@ export default async function CalendarPage({
         <PageHeader title={c.title} />
       </div>
 
-      {/* B: connected calendar */}
-      <Suspense fallback={<Skeleton className="h-12 w-full shrink-0" />}>
-        <ConnectedCalendarPanel ownerId={ownerId} />
-      </Suspense>
-
       {connected && (
         <span className={`${PILL_BASE} ${PILL_TONE.success} shrink-0 self-start`}>
           {c.calendarConnected}
         </span>
       )}
+      {error && (
+        <span className={`${PILL_BASE} ${PILL_TONE.error} shrink-0 self-start`}>{error}</span>
+      )}
 
-      {/* C: chips + month grid + day agenda (merges bookings with live events) */}
+      {/* B: chips + (month grid + calendar connections) + day agenda.
+          The connections panel is its own Suspense-streamed slot so its live
+          credential checks never block the grid. */}
       <Suspense fallback={<CalendarBodySkeleton />}>
         <CalendarBody
           ownerId={ownerId}
@@ -704,6 +686,11 @@ export default async function CalendarPage({
           requestedDay={day ?? ""}
           view={view}
           monthQ={monthQ}
+          connectionsSlot={
+            <Suspense fallback={<Skeleton className="min-h-[8rem] shrink-0 md:min-h-0 md:flex-1" />}>
+              <CalendarConnectionsPanel ownerId={ownerId} />
+            </Suspense>
+          }
         />
       </Suspense>
     </div>

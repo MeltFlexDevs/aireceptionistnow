@@ -4,6 +4,12 @@ import type { ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 import { useT } from "@/lib/i18n/client";
 import type { KnowledgeSource } from "@/lib/knowledge/sources";
+import {
+  ValidatedForm,
+  ValidatedSubmit,
+  FieldError,
+  RequiredMark,
+} from "@/app/components/forms/validated-form";
 import { LiveAvatar } from "../LiveAvatar";
 import { PdfForm } from "./PdfForm";
 import {
@@ -50,22 +56,35 @@ export function KnowledgeStep({ sources }: { sources: KnowledgeSource[] }) {
           <div className="space-y-3">
             <PdfForm />
 
-            <form action={importTextAction} className="space-y-1.5">
+            <ValidatedForm action={importTextAction} className="space-y-1.5">
               <label htmlFor="text" className="flex items-center gap-2 text-sm font-medium text-neutral-700">
                 <Pencil className="h-4 w-4 text-neutral-400" />
                 {o.ownKnowledge}
+                <RequiredMark />
               </label>
               <textarea
                 id="text"
                 name="text"
                 rows={2}
+                required
                 placeholder={o.ownKnowledgePlaceholder}
                 className={`${field} resize-none`}
               />
+              <FieldError name="text" />
               <div className="flex justify-end">
-                <ImportButton>{o.addKnowledge}</ImportButton>
+                <ValidatedSubmit
+                  className="press inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-4 text-sm font-medium text-neutral-800 transition-colors hover:border-neutral-300 disabled:opacity-60"
+                  pendingText={
+                    <>
+                      <Spinner />
+                      {o.addKnowledge}
+                    </>
+                  }
+                >
+                  {o.addKnowledge}
+                </ValidatedSubmit>
               </div>
-            </form>
+            </ValidatedForm>
           </div>
 
           <div className="mt-4 flex min-h-0 flex-1 flex-col">
@@ -104,20 +123,6 @@ export function KnowledgeStep({ sources }: { sources: KnowledgeSource[] }) {
         </div>
       </div>
     </div>
-  );
-}
-
-function ImportButton({ children }: { children: ReactNode }) {
-  const { pending } = useFormStatus();
-  return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="press inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-4 text-sm font-medium text-neutral-800 transition-colors hover:border-neutral-300 disabled:opacity-60"
-    >
-      {pending && <Spinner />}
-      {children}
-    </button>
   );
 }
 
