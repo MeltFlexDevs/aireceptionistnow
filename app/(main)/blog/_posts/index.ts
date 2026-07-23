@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 import type { FaqItem } from "../_components/prose";
 import { defaultAuthorKey, type AuthorKey } from "@/lib/site";
+import type { IndustrySlug } from "@/lib/marketing/industries";
 
 import CanAiReplaceReceptionist, {
   meta as canAiReplaceReceptionistMeta,
@@ -75,7 +76,24 @@ export type PostMeta = {
   faqs: FaqItem[];
 };
 
-export type Post = PostMeta & { Body: ComponentType; author: AuthorKey };
+export type Post = PostMeta & {
+  Body: ComponentType;
+  author: AuthorKey;
+  /** Industry landing page this post is the topical twin of, if any. */
+  industry?: IndustrySlug;
+};
+
+// Posts that map onto an industry landing page. Rendered as an inbound
+// "Built for {industry}?" link in the post template - the industry pages'
+// only editorial inbound links, which they otherwise lack entirely.
+const postIndustry: Record<string, IndustrySlug> = {
+  "dental-answering-service": "dentists",
+  "medical-answering-service": "dentists",
+  "hvac-answering-service": "home-services",
+  "ai-receptionist-for-home-services": "home-services",
+  "law-firm-answering-service": "law-firms",
+  "real-estate-answering-service": "property-management",
+};
 
 const postAuthors: Record<string, AuthorKey> = {
   "can-an-ai-receptionist-replace-a-human-receptionist": "matus",
@@ -122,7 +140,11 @@ export const posts: Post[] = [
   },
   { ...medicalAnsweringServiceMeta, Body: MedicalAnsweringService },
 ]
-  .map((p) => ({ ...p, author: postAuthors[p.slug] ?? defaultAuthorKey }))
+  .map((p) => ({
+    ...p,
+    author: postAuthors[p.slug] ?? defaultAuthorKey,
+    industry: postIndustry[p.slug],
+  }))
   .sort((a, b) => (a.date < b.date ? 1 : -1));
 
 export function getPost(slug: string): Post | undefined {

@@ -16,7 +16,7 @@ const author = getAuthor("matus");
 const PUBLISHED = "2026-07-07";
 const MODIFIED = "2026-07-07";
 
-const title = "My AI Front Desk Alternative: AI Receptionist Now vs Frontdesk (2026)";
+const title = "My AI Front Desk Alternative: AI Receptionist Now (2026)";
 // Kept under ~160 chars so it is not truncated in the SERP, and ASCII-only:
 // the previous copy used an em dash and a multiplication sign.
 const description =

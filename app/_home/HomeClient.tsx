@@ -194,12 +194,17 @@ export default function Home({
   ui = enUi,
   nav = EN_NAV_HREFS,
   locale = "en",
+  relatedResources,
 }: {
   localeOptions?: LocaleOption[];
   copy?: HomeCopy;
   ui?: UiCopy;
   nav?: NavHrefs;
   locale?: ContentLocale;
+  // Optional cross-link module rendered just above the footer. The home page
+  // passes nothing (so it is unchanged); industry landing pages pass a
+  // "Related resources" block so they are no longer editorial dead-ends.
+  relatedResources?: ReactNode;
 } = {}) {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [phone, setPhone] = useState("");
@@ -871,6 +876,8 @@ export default function Home({
           </div>
         </div>
       </section>
+
+      {relatedResources}
 
       <SiteFooter />
     </main>

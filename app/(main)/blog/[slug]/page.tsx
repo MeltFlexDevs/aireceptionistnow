@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { siteUrl, siteName, getAuthor } from "@/lib/site";
+import { INDUSTRY_MENU } from "@/lib/marketing/industries";
 import { posts, getPost, relatedPosts, formatDate } from "../_posts";
 import { PostToc } from "../_components/post-toc";
 import { BlogCtaCard } from "../_components/blog-cta";
@@ -73,6 +74,9 @@ export default async function BlogPostPage({
   const a = getAuthor(post.author);
   const others = relatedPosts(post.slug, 3);
   const url = `${siteUrl}/blog/${post.slug}`;
+  const industry = post.industry
+    ? INDUSTRY_MENU.find((i) => i.slug === post.industry)
+    : undefined;
 
   const jsonLd = [
     {
@@ -231,6 +235,28 @@ export default async function BlogPostPage({
             <article>
               <Body />
             </article>
+
+            {industry && (
+              <aside className="mt-14">
+                <Link
+                  href={`/${industry.slug}`}
+                  className="flex items-center justify-between gap-4 border border-[#1D1D1D] bg-[#1D1D1D] px-6 py-5 text-white transition-opacity hover:opacity-90"
+                >
+                  <span>
+                    <span className="block text-[11px] font-medium tracking-[0.06em] text-white/60 uppercase">
+                      Built for {industry.label.toLowerCase()}?
+                    </span>
+                    <span className="mt-1 block text-[16px]">
+                      See the AI receptionist tuned for{" "}
+                      {industry.label.toLowerCase()}
+                    </span>
+                  </span>
+                  <span aria-hidden="true" className="shrink-0 text-[18px]">
+                    →
+                  </span>
+                </Link>
+              </aside>
+            )}
 
             {others.length > 0 && (
               <aside className="mt-16 border-t border-[#e5e5e5] pt-10">
