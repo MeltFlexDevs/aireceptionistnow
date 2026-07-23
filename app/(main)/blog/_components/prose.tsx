@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
+import { YouTubeFacade } from "./youtube-facade";
 
 export function Lead({ children }: { children: ReactNode }) {
   return <p className="mb-8 text-[18px] leading-[1.7] text-[#333]">{children}</p>;
@@ -174,16 +175,7 @@ export function VideoEmbed({
 }) {
   return (
     <figure className="my-9">
-      <div className="relative aspect-[16/9] w-full overflow-hidden bg-[#f5f5f5]">
-        <iframe
-          src={`https://www.youtube-nocookie.com/embed/${id}`}
-          title={title}
-          loading="lazy"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          allowFullScreen
-          className="absolute inset-0 h-full w-full border-0"
-        />
-      </div>
+      <YouTubeFacade id={id} title={title} />
       {caption && (
         <figcaption className="mt-3 text-[13px] leading-6 text-[#999]">
           {caption}

@@ -21,7 +21,7 @@ export const meta = {
   slug: "best-ai-receptionist",
   title: "The Best AI Receptionist Services, Honestly Compared (2026)",
   description:
-    "An honest comparison of AI receptionist services - the categories, what to compare, and how the real costs stack up. Includes a scoring checklist you can run on any vendor, including us.",
+    "An honest comparison of AI receptionist services - the vendor categories, what actually matters, how costs compare, and a scorecard for any vendor.",
   date: "2026-07-23",
   updated: "2026-07-23",
   readingTime: "12 min read",

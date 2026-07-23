@@ -22,7 +22,7 @@ export const meta = {
   slug: "ai-receptionist-for-it-companies",
   title: "AI Receptionist for IT Companies & MSPs",
   description:
-    "How managed service providers and IT firms use an AI receptionist to triage support calls, catch after-hours outages, and stop losing new-client calls - without a bigger help desk.",
+    "How MSPs and IT firms use an AI receptionist to triage support calls, catch after-hours outages, and win new-client calls - without a bigger help desk.",
   date: "2026-07-23",
   updated: "2026-07-23",
   readingTime: "11 min read",

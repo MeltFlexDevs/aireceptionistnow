@@ -21,7 +21,7 @@ export const meta = {
   slug: "ai-receptionist-orange-county",
   title: "AI Receptionist for Orange County Businesses",
   description:
-    "Why Orange County businesses - from Irvine clinics to Santa Ana trades - use an AI receptionist to answer every call 24/7, book appointments, and handle Spanish and Vietnamese callers.",
+    "Why Orange County businesses use an AI receptionist to answer every call 24/7, book appointments, and handle Spanish and Vietnamese callers.",
   date: "2026-07-23",
   updated: "2026-07-23",
   readingTime: "10 min read",
