@@ -22,7 +22,7 @@ export const meta = {
   slug: "ai-receptionist-appointment-booking",
   title: "AI Receptionist Appointment Booking: How It Actually Works",
   description:
-    "How an AI receptionist books appointments over the phone - checking your real calendar, avoiding double-bookings, handling reschedules, and where it hands off to a human.",
+    "How an AI receptionist books appointments by phone - checking your live calendar, avoiding double-bookings, handling reschedules, and when to hand off.",
   date: "2026-07-23",
   updated: "2026-07-23",
   readingTime: "10 min read",
