@@ -18,7 +18,7 @@ const MODIFIED = "2026-07-07";
 
 const title = "Goodcall Alternative: AI Receptionist Now vs Goodcall (2026)";
 const description =
-  "A multilingual, GDPR-first Goodcall alternative. AI Receptionist Now answers 24/7 in 25+ languages, is EU-hosted, flat-priced with no per-seat caps, and free to start.";
+  "A multilingual, GDPR-first Goodcall alternative. Answers 24/7 in 25+ languages, EU-hosted and flat-priced with no per-seat caps. Free to start.";
 
 export const metadata: Metadata = {
   // absolute: the root template would append the brand and push these past ~60 chars

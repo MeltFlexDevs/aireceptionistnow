@@ -8,7 +8,7 @@ import { INDUSTRY_MENU } from "@/lib/marketing/industries";
 
 const title = "AI Receptionist by Industry";
 const description =
-  "AI phone receptionist for your industry: dentists, restaurants, e-commerce, law firms, home services, and property management. Answers 24/7, books, captures leads.";
+  "AI phone receptionist for your industry: dentists, restaurants, e-commerce, law firms, home services, and property management. Answers and books 24/7.";
 const url = `${siteUrl}/industries`;
 
 export const metadata: Metadata = {

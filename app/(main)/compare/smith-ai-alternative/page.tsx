@@ -14,7 +14,7 @@ const url = `${siteUrl}${PATH}`;
 
 const title = "Smith.ai Alternative: AI Receptionist Now vs Smith.ai (2026)";
 const description =
-  "A flat-priced Smith.ai alternative. AI Receptionist Now bills per minute — not per call — answers 24/7 in 25+ languages, and goes live in 10 minutes. Free to start.";
+  "A flat-priced Smith.ai alternative that bills per minute, not per call. Answers 24/7 in 25+ languages and goes live in 10 minutes. Free to start.";
 
 export const metadata: Metadata = {
   // absolute: the root template would append the brand and push these past ~60 chars

@@ -24,7 +24,7 @@ const MODIFIED = "2026-07-07";
 
 const title = "Ruby Alternative: AI Receptionist Now vs Ruby (2026)";
 const description =
-  "A flat-priced, 24/7 AI alternative to Ruby's live-human receptionists. Answer every call in 25+ languages, book appointments, and pay a fraction per minute. Free to start.";
+  "A flat-priced, 24/7 AI alternative to Ruby's live-human receptionists. Answer every call in 25+ languages and pay a fraction per minute. Free to start.";
 
 export const metadata: Metadata = {
   // absolute: the root template would append the brand and push these past ~60 chars

@@ -29,22 +29,32 @@ export const metadata: Metadata = {
 };
 
 export default function BlogPage() {
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Blog",
-    name: `${siteName} Blog`,
-    url: `${siteUrl}/blog`,
-    description,
-    blogPost: posts.map((post) => ({
-      "@type": "BlogPosting",
-      headline: post.title,
-      url: `${siteUrl}/blog/${post.slug}`,
-      datePublished: post.date,
-      dateModified: post.updated,
-      image: `${siteUrl}${post.hero}`,
-      author: { "@type": "Person", name: getAuthor(post.author).name },
-    })),
-  };
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Blog",
+      name: `${siteName} Blog`,
+      url: `${siteUrl}/blog`,
+      description,
+      blogPost: posts.map((post) => ({
+        "@type": "BlogPosting",
+        headline: post.title,
+        url: `${siteUrl}/blog/${post.slug}`,
+        datePublished: post.date,
+        dateModified: post.updated,
+        image: `${siteUrl}${post.hero}`,
+        author: { "@type": "Person", name: getAuthor(post.author).name },
+      })),
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: siteUrl },
+        { "@type": "ListItem", position: 2, name: "Blog", item: `${siteUrl}/blog` },
+      ],
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-white font-light text-[#1D1D1D]">
