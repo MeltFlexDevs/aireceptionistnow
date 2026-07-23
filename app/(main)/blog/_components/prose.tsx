@@ -163,6 +163,36 @@ export function Figure({
   );
 }
 
+export function VideoEmbed({
+  id,
+  title,
+  caption,
+}: {
+  id: string;
+  title: string;
+  caption?: ReactNode;
+}) {
+  return (
+    <figure className="my-9">
+      <div className="relative aspect-[16/9] w-full overflow-hidden bg-[#f5f5f5]">
+        <iframe
+          src={`https://www.youtube-nocookie.com/embed/${id}`}
+          title={title}
+          loading="lazy"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+          className="absolute inset-0 h-full w-full border-0"
+        />
+      </div>
+      {caption && (
+        <figcaption className="mt-3 text-[13px] leading-6 text-[#999]">
+          {caption}
+        </figcaption>
+      )}
+    </figure>
+  );
+}
+
 export function KeyTakeaways({ items }: { items: ReactNode[] }) {
   return (
     <aside className="mb-10 border-l-2 border-[#1D1D1D] bg-[#fafafa] px-6 py-5">

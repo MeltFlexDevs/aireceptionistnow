@@ -54,6 +54,18 @@ import HowToReplaceFrontDeskReceptionist, {
 import MedicalAnsweringService, {
   meta as medicalAnsweringServiceMeta,
 } from "./medical-answering-service";
+import BestAiReceptionist, {
+  meta as bestAiReceptionistMeta,
+} from "./best-ai-receptionist";
+import AiReceptionistForItCompanies, {
+  meta as aiReceptionistForItCompaniesMeta,
+} from "./ai-receptionist-for-it-companies";
+import AiReceptionistAppointmentBooking, {
+  meta as aiReceptionistAppointmentBookingMeta,
+} from "./ai-receptionist-appointment-booking";
+import AiReceptionistOrangeCounty, {
+  meta as aiReceptionistOrangeCountyMeta,
+} from "./ai-receptionist-orange-county";
 
 export type PostMeta = {
   slug: string;
@@ -113,6 +125,10 @@ const postAuthors: Record<string, AuthorKey> = {
   "24-7-ai-receptionist": "matus",
   "how-to-replace-front-desk-receptionist-with-ai": "brano",
   "medical-answering-service": "matus",
+  "best-ai-receptionist": "matus",
+  "ai-receptionist-for-it-companies": "brano",
+  "ai-receptionist-appointment-booking": "brano",
+  "ai-receptionist-orange-county": "matus",
 };
 
 export const posts: Post[] = [
@@ -139,6 +155,16 @@ export const posts: Post[] = [
     Body: HowToReplaceFrontDeskReceptionist,
   },
   { ...medicalAnsweringServiceMeta, Body: MedicalAnsweringService },
+  { ...bestAiReceptionistMeta, Body: BestAiReceptionist },
+  {
+    ...aiReceptionistForItCompaniesMeta,
+    Body: AiReceptionistForItCompanies,
+  },
+  {
+    ...aiReceptionistAppointmentBookingMeta,
+    Body: AiReceptionistAppointmentBooking,
+  },
+  { ...aiReceptionistOrangeCountyMeta, Body: AiReceptionistOrangeCounty },
 ]
   .map((p) => ({
     ...p,
