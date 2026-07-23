@@ -110,6 +110,10 @@ export const Menu = ({ className = base }: IconProps) => (
   <Stroke className={className}><path d="M4 7h16M4 12h16M4 17h16" /></Stroke>
 );
 
+export const X = ({ className = base }: IconProps) => (
+  <Stroke className={className}><path d="M18 6 6 18M6 6l12 12" /></Stroke>
+);
+
 export const Info = ({ className = base }: IconProps) => (
   <Stroke className={className}><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h.01" /></Stroke>
 );

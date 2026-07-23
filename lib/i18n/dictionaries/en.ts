@@ -44,6 +44,7 @@ export const en = {
     settings: "Settings",
     help: "Help",
     openMenu: "Open menu",
+    closeMenu: "Close menu",
     navigation: "Navigation",
   },
   topbar: {

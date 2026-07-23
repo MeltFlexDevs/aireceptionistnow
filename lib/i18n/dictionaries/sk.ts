@@ -42,6 +42,7 @@ export const sk: Dictionary = {
     settings: "Nastavenia",
     help: "Pomoc",
     openMenu: "Otvoriť menu",
+    closeMenu: "Zavrieť menu",
     navigation: "Navigácia",
   },
   topbar: {

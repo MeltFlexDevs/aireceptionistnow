@@ -42,6 +42,7 @@ export const pt: Dictionary = {
     settings: "Definições",
     help: "Ajuda",
     openMenu: "Abrir menu",
+    closeMenu: "Fechar menu",
     navigation: "Navegação",
   },
   topbar: {

@@ -42,6 +42,7 @@ export const nl: Dictionary = {
     settings: "Instellingen",
     help: "Help",
     openMenu: "Menu openen",
+    closeMenu: "Menu sluiten",
     navigation: "Navigatie",
   },
   topbar: {
