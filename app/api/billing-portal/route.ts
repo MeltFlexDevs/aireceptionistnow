@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getStripe } from "@/lib/stripe";
 import { getCustomerId } from "@/lib/billing";
+import { isCompCustomerId } from "@/lib/comp-accounts";
 
 export const runtime = "nodejs";
 
@@ -20,6 +21,14 @@ export async function POST(req: Request) {
       return NextResponse.json(
         { error: "No subscription found." },
         { status: 404 },
+      );
+    }
+    // Complimentary test accounts have no real Stripe customer - there is no
+    // billing portal to open for them.
+    if (isCompCustomerId(customerId)) {
+      return NextResponse.json(
+        { error: "This is a complimentary account with no billing to manage." },
+        { status: 400 },
       );
     }
     const origin =

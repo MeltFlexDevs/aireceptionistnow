@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 
 import { createClient } from "@/lib/supabase/server";
 import { getStripe } from "@/lib/stripe";
-import { getCustomerId, saveCustomerId } from "@/lib/billing";
+import { getCustomerId, saveCustomerId, saveSubscription } from "@/lib/billing";
 import { getPlan, priceIdFor, type BillingCycle } from "@/lib/plans";
 import { saveOnboardingConfig } from "@/lib/dashboard/onboarding-profile";
+import { isCompEmail, COMP_CUSTOMER_PREFIX } from "@/lib/comp-accounts";
 
 export const runtime = "nodejs";
 
@@ -49,6 +50,41 @@ export async function POST(req: Request) {
   if (!plan) {
     return NextResponse.json({ error: "Unknown plan." }, { status: 400 });
   }
+
+  // Complimentary test accounts skip Stripe entirely: grant an active
+  // subscription and send them straight on. Onboarding provisioning then
+  // proceeds for free (it only gates on billing being active/trialing).
+  if (isCompEmail(email)) {
+    if (onboarding && /^[A-Z]{2}$/.test(country)) {
+      await saveOnboardingConfig(userId, { country }).catch(() => {});
+    }
+    const periodEnd = new Date();
+    periodEnd.setFullYear(periodEnd.getFullYear() + 1);
+    try {
+      await saveSubscription({
+        userId,
+        customerId: `${COMP_CUSTOMER_PREFIX}${userId}`,
+        subscriptionId: null,
+        plan: plan.id,
+        cycle,
+        status: "active",
+        currentPeriodEnd: periodEnd.toISOString(),
+      });
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Could not start checkout.";
+      console.error(`[checkout] comp grant failed: ${message}`);
+      return NextResponse.json(
+        { error: "Could not start checkout. Please try again." },
+        { status: 500 },
+      );
+    }
+    const url = onboarding
+      ? `${baseUrl(req)}/onboarding?step=go&checkout=comp`
+      : `${baseUrl(req)}/dashboard?checkout=comp`;
+    return NextResponse.json({ url });
+  }
+
   const priceId = priceIdFor(plan, cycle);
   if (!priceId) {
     console.error(
