@@ -98,10 +98,10 @@ export function MeetAssistant({
   // scraped into the assistant's knowledge after payment, and its domain seeds
   // the company name when none was typed.
   const hasBusiness = business.trim().length > 0 || website.trim().length > 0;
-  // How far the caller may jump: the first substep unlocks the name tab,
-  // first+name unlock the rest. Keeps them from reaching the last tab (or
-  // finishing) unfilled.
-  const maxOpenable = !hasBusiness ? 0 : !trimmedName ? 1 : LAST_STEP;
+  // How far the caller may jump: the business substep unlocks the rest. The
+  // name is optional (a private label only the owner sees), so it never gates
+  // progress - a blank name defaults to "Receptionist" server-side.
+  const maxOpenable = hasBusiness ? LAST_STEP : 0;
   const voiceLanguage = languageForCountry(countryCode);
   const mood: Mood = done
     ? "celebrate"
@@ -146,12 +146,9 @@ export function MeetAssistant({
     }
   }
 
-  const canAdvance =
-    step === 0
-      ? hasBusiness
-      : step === 1
-        ? trimmedName.length > 0
-        : hasBusiness && trimmedName.length > 0;
+  // Business is the only required substep; the name is optional and every step
+  // after it has a default, so a filled business unlocks advancing throughout.
+  const canAdvance = hasBusiness;
 
   function onEnter(e: KeyboardEvent) {
     if (e.key === "Enter") {
@@ -173,7 +170,7 @@ export function MeetAssistant({
         {/* Fixed-size card: the box never resizes between substeps. The avatar
             and progress rail sit at the top, the CTA is pinned to the bottom,
             and the changing question floats in the flexible middle. */}
-        <div className="shape-card glass relative mt-4 flex flex-col px-5 pb-6 pt-7 sm:h-[min(33rem,calc(100dvh_-_11.5rem))] sm:px-8 sm:pb-8">
+        <div className="shape-card glass relative mt-4 flex flex-col px-5 pb-6 pt-7 sm:min-h-[min(33rem,calc(100dvh_-_11.5rem))] sm:px-8 sm:pb-8">
           {/* Back: an arrow in the top-left corner, shown once past the first
               substep. Replaces the old inline "Back" text link. */}
           {!done && step > 0 && (
@@ -223,7 +220,9 @@ export function MeetAssistant({
                     {o.allSet}
                   </h2>
                   <p className="mt-2 text-sm text-neutral-500">
-                    {fillTemplate(o.previewReady, { name: trimmedName })}
+                    {trimmedName
+                      ? fillTemplate(o.previewReady, { name: trimmedName })
+                      : o.previewReadyUnnamed}
                   </p>
                 </motion.div>
               ) : (
@@ -305,6 +304,9 @@ export function MeetAssistant({
                         placeholder={o.assistantPlaceholder}
                         className={field}
                       />
+                      <p className="mt-2 text-center text-xs leading-snug text-neutral-400">
+                        {o.nameHint}
+                      </p>
                       <div className="mt-3 flex justify-center gap-2">
                         {(["f", "m"] as const).map((g) => (
                           <button
@@ -391,7 +393,7 @@ export function MeetAssistant({
           {/* Secondary action sits above the primary button so Next stays
               docked to the bottom of the card on every substep. */}
           {!done && (
-            <div className="flex flex-col items-center gap-3">
+            <div className="mt-6 flex flex-col items-center gap-3">
               {step === LAST_STEP && (
                 <button
                   type="button"
