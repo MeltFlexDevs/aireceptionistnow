@@ -3,7 +3,7 @@ export const siteUrl = "https://aireceptionistnow.com";
 export const siteName = "AI Receptionist Now";
 
 export const siteDescription =
-  "AI Receptionist Now answers your business calls 24/7, books appointments, captures leads, and texts you a summary. No code, live in 10 minutes.";
+  "24/7 AI answering service for small business. Answers every call, books appointments, captures leads, and texts you a summary. No code, live in 10 minutes.";
 
 export const siteKeywords = [
   "AI receptionist",

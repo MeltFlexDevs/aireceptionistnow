@@ -26,6 +26,15 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      // Canonical host: GSC shows www URLs collecting impressions as separate
+      // pages (e.g. www.../blog/dental-answering-service). Canonical tags point
+      // at the apex, but a 308 stops the split-signal problem outright.
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.aireceptionistnow.com" }],
+        destination: "https://aireceptionistnow.com/:path*",
+        permanent: true,
+      },
       // The company pages lived under /dashboard/organizations before.
       {
         source: "/dashboard/organizations/:path*",

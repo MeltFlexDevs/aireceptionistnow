@@ -35,7 +35,10 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
-const defaultTitle = "AI Receptionist - 24/7 AI Phone Answering Service";
+// "answering service for small business" is the highest-traffic-potential
+// cluster (Ahrefs TP ~28k) at a difficulty this domain can win; the head term
+// "ai receptionist" stays first for the brand match.
+const defaultTitle = "AI Receptionist - 24/7 AI Answering Service for Small Business";
 
 /**
  * Metadata every root layout re-exports.

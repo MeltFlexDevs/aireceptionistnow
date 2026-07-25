@@ -66,6 +66,27 @@ import AiReceptionistAppointmentBooking, {
 import AiReceptionistOrangeCounty, {
   meta as aiReceptionistOrangeCountyMeta,
 } from "./ai-receptionist-orange-county";
+import AnsweringServiceForSmallBusiness, {
+  meta as answeringServiceForSmallBusinessMeta,
+} from "./answering-service-for-small-business";
+import AnsweringServiceCost, {
+  meta as answeringServiceCostMeta,
+} from "./answering-service-cost";
+import VirtualReceptionistPricing, {
+  meta as virtualReceptionistPricingMeta,
+} from "./virtual-receptionist-pricing";
+import PropertyManagementAnsweringService, {
+  meta as propertyManagementAnsweringServiceMeta,
+} from "./property-management-answering-service";
+import TwentyFourHourAnsweringService, {
+  meta as twentyFourHourAnsweringServiceMeta,
+} from "./24-hour-answering-service";
+import PlumbingAnsweringService, {
+  meta as plumbingAnsweringServiceMeta,
+} from "./plumbing-answering-service";
+import TelephoneAnsweringService, {
+  meta as telephoneAnsweringServiceMeta,
+} from "./telephone-answering-service";
 
 export type PostMeta = {
   slug: string;
@@ -105,6 +126,8 @@ const postIndustry: Record<string, IndustrySlug> = {
   "ai-receptionist-for-home-services": "home-services",
   "law-firm-answering-service": "law-firms",
   "real-estate-answering-service": "property-management",
+  "property-management-answering-service": "property-management",
+  "plumbing-answering-service": "home-services",
 };
 
 const postAuthors: Record<string, AuthorKey> = {
@@ -129,6 +152,13 @@ const postAuthors: Record<string, AuthorKey> = {
   "ai-receptionist-for-it-companies": "brano",
   "ai-receptionist-appointment-booking": "brano",
   "ai-receptionist-orange-county": "matus",
+  "answering-service-for-small-business": "brano",
+  "answering-service-cost": "matus",
+  "virtual-receptionist-pricing": "brano",
+  "property-management-answering-service": "matus",
+  "24-hour-answering-service": "brano",
+  "plumbing-answering-service": "matus",
+  "telephone-answering-service": "brano",
 };
 
 export const posts: Post[] = [
@@ -165,6 +195,22 @@ export const posts: Post[] = [
     Body: AiReceptionistAppointmentBooking,
   },
   { ...aiReceptionistOrangeCountyMeta, Body: AiReceptionistOrangeCounty },
+  {
+    ...answeringServiceForSmallBusinessMeta,
+    Body: AnsweringServiceForSmallBusiness,
+  },
+  { ...answeringServiceCostMeta, Body: AnsweringServiceCost },
+  { ...virtualReceptionistPricingMeta, Body: VirtualReceptionistPricing },
+  {
+    ...propertyManagementAnsweringServiceMeta,
+    Body: PropertyManagementAnsweringService,
+  },
+  {
+    ...twentyFourHourAnsweringServiceMeta,
+    Body: TwentyFourHourAnsweringService,
+  },
+  { ...plumbingAnsweringServiceMeta, Body: PlumbingAnsweringService },
+  { ...telephoneAnsweringServiceMeta, Body: TelephoneAnsweringService },
 ]
   .map((p) => ({
     ...p,

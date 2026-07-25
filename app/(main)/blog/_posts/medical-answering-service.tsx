@@ -20,11 +20,11 @@ import {
 
 export const meta = {
   slug: "medical-answering-service",
-  title: "Medical Answering Service: AI Reception for Clinics That Never Close",
+  title: "Medical Answering Service: 24/7 AI for Clinics (2026)",
   description:
-    "How medical offices, clinics, and surgical centers handle patient calls 24/7 with an AI receptionist - scheduling, after-hours triage, HIPAA and the BAA question, and what to keep human.",
+    "How clinics handle patient calls 24/7 with an AI medical answering service: scheduling, after-hours triage, HIPAA and the BAA question, and what to keep human.",
   date: "2026-07-20",
-  updated: "2026-07-20",
+  updated: "2026-07-25",
   readingTime: "12 min read",
   tag: "Industries",
   hero: "/blog/medical-answering-service-hero.svg",
