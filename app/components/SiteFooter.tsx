@@ -196,6 +196,7 @@ export default function SiteFooter() {
             </Link>
             <span style={{ color: "#fff", fontSize: "11px", fontWeight: 300 }}>© 2026 MeltFlex s. r. o.</span>
             <Link href="/privacy-policy" style={{ color: "#fff", fontSize: "11px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.02em" }}>Data protection</Link>
+            <Link href="/terms-of-service" style={{ color: "#fff", fontSize: "11px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.02em" }}>Terms</Link>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>

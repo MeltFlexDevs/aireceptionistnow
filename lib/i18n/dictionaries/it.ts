@@ -640,6 +640,14 @@ export const it: Dictionary = {
     goLive: "Vai online",
     goLiveHint: "La tua carta viene addebitata da Stripe. Il tuo assistente viene messo online subito dopo.",
     checkoutError: "Impossibile avviare il pagamento. Riprova.",
+    // The elided article stays inside the link text: the UI puts a space after
+    // termsAnd, which would break "l'" away from the noun.
+    termsAgreePrefix: "Accetto i",
+    termsLink: "Termini di servizio",
+    termsAnd: "e",
+    privacyLink: "l'Informativa sulla privacy",
+    termsAgreeSuffix: ".",
+    termsRequired: "Accetta i Termini di servizio per continuare.",
     buildTitle: "Attivazione del tuo assistente in corso",
     buildSub: "Creiamo il tuo assistente, importiamo le tue conoscenze e colleghiamo il tuo numero di telefono. Di solito richiede circa un minuto - tieni aperta questa scheda.",
     waitingPayment: "In attesa della conferma di pagamento da Stripe…",

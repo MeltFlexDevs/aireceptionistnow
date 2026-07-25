@@ -636,14 +636,15 @@ export default async function CalendarPage({
     error?: string;
   }>;
 }) {
-  const [{ month, day, view, connected, error }, t, locale] = await Promise.all([
+  const [{ month, day, view, connected, error }, t, locale, owner] = await Promise.all([
     searchParams,
     getDictionary(),
     getLocale(),
+    currentUserId(),
   ]);
   const c = t.calendar;
 
-  const ownerId = (await currentUserId()) ?? null;
+  const ownerId = owner ?? null;
   const tz = await displayTimezone(ownerId);
   const nowDate = new Date();
   const nowMs = nowDate.getTime();

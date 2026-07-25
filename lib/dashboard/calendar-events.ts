@@ -1,4 +1,6 @@
 import { cache } from "react";
+import { createHash } from "node:crypto";
+import { unstable_cache } from "next/cache";
 import { resolveCalendarById } from "@/lib/call-engine/integrations/registry";
 import type { ConnectionCheck } from "@/lib/call-engine/integrations/types";
 import type { IntegrationConfig } from "@/lib/call-engine/types";
@@ -138,6 +140,39 @@ function storedAccount(config: Record<string, unknown>): string {
   return typeof v === "string" ? v : "";
 }
 
+// checkConnection is a real provider round trip per calendar - for Google it is
+// an events.list over a 150-day window whose only job is to recover the account
+// email, which never changes. Uncached, it ran on every render of the calendar
+// page and every dashboard navigation back to it, adding provider latency to a
+// panel that only answers "is this still connected?".
+//
+// 60s keeps a revoked or expired calendar visible quickly enough while removing
+// the per-render cost.
+const CONNECTION_TTL_SECONDS = 60;
+
+// Reconnecting mints new credentials, and that must invalidate the cached check
+// rather than showing a stale "connected" for up to a minute. Hashed so no
+// credential material is used as (or recoverable from) a cache key.
+function credentialFingerprint(config: Record<string, unknown>): string {
+  const material = [config.refresh_token, config.access_token, config.api_key]
+    .filter((v): v is string => typeof v === "string" && v.length > 0)
+    .join("|");
+  if (!material) return "none";
+  return createHash("sha256").update(material).digest("hex").slice(0, 16);
+}
+
+function cachedConnectionCheck(
+  integrationId: string,
+  config: Record<string, unknown>,
+  check: () => Promise<ConnectionCheck>,
+): Promise<ConnectionCheck> {
+  return unstable_cache(
+    () => check().catch((): ConnectionCheck => ({ ok: false })),
+    ["calendar-connection", integrationId, credentialFingerprint(config)],
+    { revalidate: CONNECTION_TTL_SECONDS },
+  )();
+}
+
 export async function fetchCalendarConnections(
   integrations: Integration[],
 ): Promise<CalendarConnection[]> {
@@ -154,7 +189,7 @@ export async function fetchCalendarConnections(
       let ok = true;
       let account = storedAccount(i.config);
       if (check) {
-        const res = await check().catch((): ConnectionCheck => ({ ok: false }));
+        const res = await cachedConnectionCheck(i.id, i.config, check);
         ok = res.ok;
         if (res.account) account = res.account;
       }

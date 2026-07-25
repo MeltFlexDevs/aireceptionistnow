@@ -6,6 +6,7 @@ import { getCustomerId, saveCustomerId, saveSubscription } from "@/lib/billing";
 import { getPlan, priceIdFor, type BillingCycle } from "@/lib/plans";
 import { saveOnboardingConfig } from "@/lib/dashboard/onboarding-profile";
 import { isCompEmail, COMP_CUSTOMER_PREFIX } from "@/lib/comp-accounts";
+import { TERMS_VERSION } from "@/lib/legal";
 
 export const runtime = "nodejs";
 
@@ -31,9 +32,15 @@ export async function POST(req: Request) {
   let cycle: BillingCycle = "monthly";
   let onboarding = false;
   let country = "";
+  let acceptedTerms = false;
   try {
     const body = await req.json();
     planId = typeof body?.plan === "string" ? body.plan : undefined;
+    // Explicit acceptance of the Terms, ticked on the plan step. Required here
+    // rather than trusted from the UI: this route is the point of contract
+    // formation, so a stored acceptance is only meaningful if checkout cannot
+    // proceed without one.
+    acceptedTerms = body?.acceptedTerms === true;
     if (body?.cycle === "annual" || body?.cycle === "monthly") {
       cycle = body.cycle;
     }
@@ -51,10 +58,30 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unknown plan." }, { status: 400 });
   }
 
+  if (!acceptedTerms) {
+    return NextResponse.json(
+      { error: "Please accept the Terms of Service to continue." },
+      { status: 400 },
+    );
+  }
+
+  // The acceptance record. Written before either checkout path so it exists
+  // even if the user abandons Stripe - they accepted at the click, and that is
+  // the moment worth recording. Best-effort for the same reason the country
+  // write is: a persistence hiccup must not block a paying customer.
+  const recordAcceptance = () =>
+    saveOnboardingConfig(userId, {
+      termsAcceptedAt: new Date().toISOString(),
+      termsVersion: TERMS_VERSION,
+    }).catch((err) => {
+      console.error("[checkout] terms acceptance not recorded", err);
+    });
+
   // Complimentary test accounts skip Stripe entirely: grant an active
   // subscription and send them straight on. Onboarding provisioning then
   // proceeds for free (it only gates on billing being active/trialing).
   if (isCompEmail(email)) {
+    await recordAcceptance();
     if (onboarding && /^[A-Z]{2}$/.test(country)) {
       await saveOnboardingConfig(userId, { country }).catch(() => {});
     }
@@ -95,6 +122,8 @@ export async function POST(req: Request) {
       { status: 503 },
     );
   }
+
+  await recordAcceptance();
 
   // Lock in the chosen number country before payment. Authoritative over the
   // optimistic client write, and covers a guest who only authenticated here.

@@ -1,7 +1,5 @@
 import Link from "next/link";
-import { currentUserId } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
-import { authConfigured } from "@/lib/supabase/config";
+import { currentUserId, getAuthClaims } from "@/lib/auth";
 import { getAccountSettings, type AccountSettings } from "@/lib/dashboard/account";
 import { getPlanContextCached } from "@/lib/dashboard/plan";
 import { listOrganizations } from "@/lib/dashboard/organizations";
@@ -20,21 +18,17 @@ export const dynamic = "force-dynamic";
 const CAP = "md:h-[calc(100dvh-7rem)] md:overflow-hidden lg:h-[calc(100dvh-8rem)]";
 
 export default async function SettingsPage() {
-  const t = await getDictionary();
+  // getAuthClaims is the same request-memoized read currentUserId derives from,
+  // so both resolve off one auth round trip. Building a second Supabase client
+  // here to call getClaims() again duplicated it, and awaiting the dictionary
+  // first put it behind a round trip it does not depend on.
+  const [t, claims, userId] = await Promise.all([
+    getDictionary(),
+    getAuthClaims(),
+    currentUserId(),
+  ]);
   const s = t.settings;
-
-  const userId = await currentUserId();
-
-  let email = "";
-  if (authConfigured()) {
-    try {
-      const supabase = await createClient();
-      const claims = (await supabase.auth.getClaims()).data?.claims;
-      email = typeof claims?.email === "string" ? claims.email : "";
-    } catch {
-      email = "";
-    }
-  }
+  const email = typeof claims?.email === "string" ? claims.email : "";
 
   const [account, planCtx, orgs] = await Promise.all([
     userId

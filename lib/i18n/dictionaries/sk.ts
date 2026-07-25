@@ -640,6 +640,14 @@ export const sk: Dictionary = {
     goLive: "Spustiť naživo",
     goLiveHint: "Platbu kartou spracuje Stripe. Váš asistent sa spustí hneď potom.",
     checkoutError: "Platbu sa nepodarilo spustiť. Skúste to znova.",
+    // "s"/"so" governs the instrumental, so the link labels are declined here
+    // rather than carrying the nominative form used on the pages themselves.
+    termsAgreePrefix: "Súhlasím s",
+    termsLink: "Podmienkami používania",
+    termsAnd: "a so",
+    privacyLink: "Zásadami ochrany osobných údajov",
+    termsAgreeSuffix: ".",
+    termsRequired: "Na pokračovanie prijmite Podmienky používania.",
     buildTitle: "Spúšťame vašu recepčnú",
     buildSub: "Vytvárame vašu recepčnú, importujeme vaše znalosti a pripájame vaše telefónne číslo. Zvyčajne to trvá asi minútu - nechajte túto kartu otvorenú.",
     waitingPayment: "Čaká sa na potvrdenie platby od Stripe…",

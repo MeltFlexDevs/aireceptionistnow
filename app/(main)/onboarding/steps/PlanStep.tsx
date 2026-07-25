@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
+import Link from "next/link";
 import { PLANS, annualAmountCents, type BillingCycle } from "@/lib/plans";
 import { NUMBER_COUNTRIES } from "@/lib/number-pricing";
 import { useT } from "@/lib/i18n/client";
@@ -29,6 +30,10 @@ export function PlanStep({
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [country, setCountry] = useState(initialCountry || NUMBER_COUNTRIES[0].code);
+  // Unticked by default: a pre-ticked box is not valid consent, and /api/checkout
+  // rejects the request without it anyway.
+  const [accepted, setAccepted] = useState(false);
+  const termsId = useId();
 
   const name = assistantName.trim();
   const company = companyName.trim();
@@ -41,13 +46,23 @@ export function PlanStep({
   }
 
   async function choose(planId: string) {
+    if (!accepted) {
+      setError(o.termsRequired);
+      return;
+    }
     setLoading(planId);
     setError(null);
     try {
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ plan: planId, cycle, country, context: "onboarding" }),
+        body: JSON.stringify({
+          plan: planId,
+          cycle,
+          country,
+          context: "onboarding",
+          acceptedTerms: true,
+        }),
       });
       if (res.status === 401) {
         window.location.assign(
@@ -136,6 +151,48 @@ export function PlanStep({
         </div>
       )}
 
+      {/* Consent sits above the plan cards, not under them: it has to be read
+          before the commitment, and on mobile anything below the second card is
+          off-screen. */}
+      <div className="mt-4">
+        <label
+          htmlFor={termsId}
+          className="flex cursor-pointer items-start gap-2.5 text-sm leading-relaxed text-neutral-600"
+        >
+          <input
+            id={termsId}
+            type="checkbox"
+            checked={accepted}
+            onChange={(e) => {
+              setAccepted(e.target.checked);
+              if (e.target.checked) setError(null);
+            }}
+            className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded border-neutral-300 accent-neutral-900"
+          />
+          <span>
+            {o.termsAgreePrefix}{" "}
+            <Link
+              href="/terms-of-service"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-neutral-900 underline underline-offset-2 hover:text-neutral-600"
+            >
+              {o.termsLink}
+            </Link>{" "}
+            {o.termsAnd}{" "}
+            <Link
+              href="/privacy-policy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-neutral-900 underline underline-offset-2 hover:text-neutral-600"
+            >
+              {o.privacyLink}
+            </Link>
+            {o.termsAgreeSuffix}
+          </span>
+        </label>
+      </div>
+
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         {PLANS.map((plan) => {
           const monthlyShown =
@@ -179,9 +236,10 @@ export function PlanStep({
               <button
                 type="button"
                 onClick={() => choose(plan.id)}
-                disabled={loading !== null}
+                disabled={loading !== null || !accepted}
                 aria-busy={loading === plan.id}
-                className="press mt-5 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-neutral-900 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-70"
+                title={!accepted ? o.termsRequired : undefined}
+                className="press mt-5 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-neutral-900 text-sm font-medium text-white hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {loading === plan.id && <Spinner className="h-4 w-4 animate-spin" />}
                 {o.goLive}

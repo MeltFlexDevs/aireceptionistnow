@@ -34,6 +34,12 @@ export interface OnboardingConfig {
   knowledgeDone?: boolean;
   /** The user finished (or skipped) the calendar step. */
   calendarDone?: boolean;
+  /** ISO instant the user accepted the Terms of Service, written server-side by
+   *  /api/checkout at the moment of subscribing. Absent means never accepted. */
+  termsAcceptedAt?: string;
+  /** Which revision of the Terms was accepted (lib/legal.ts TERMS_VERSION). A
+   *  timestamp without this cannot prove what the user actually agreed to. */
+  termsVersion?: string;
 }
 
 export interface OnboardingResult {

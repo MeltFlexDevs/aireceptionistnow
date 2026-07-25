@@ -1,7 +1,7 @@
 "use client";
 
-import type { CSSProperties, ReactNode } from "react";
-import { createContext, use, useCallback, useEffect, useMemo, useState } from "react";
+import type { CSSProperties } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion, MotionConfig } from "motion/react";
 import { useT } from "@/lib/i18n/client";
@@ -9,8 +9,12 @@ import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 import { LiveAvatar } from "@/app/(main)/onboarding/LiveAvatar";
 import { Check } from "../icons";
 import { claimOnce } from "./once";
+import { useGuide, type SectionKey } from "./guide-context";
 
-export type SectionKey = keyof Dictionary["tutorial"]["sections"];
+// The guide state itself lives in ./guide-context so ShellProviders can mount
+// the provider without pulling motion/react and LiveAvatar into every dashboard
+// route's bundle. Re-exported here so existing import sites keep working.
+export { GuideProvider, useGuide, type SectionKey } from "./guide-context";
 
 // Longest prefix first, so /dashboard/assistant/[id] resolves to "assistant"
 // and the bare /dashboard falls through to "overview". Cut routes are absent
@@ -34,45 +38,6 @@ const NAV_LABEL: Record<SectionKey, keyof Dictionary["nav"]> = {
   knowledge: "knowledge",
   settings: "settings",
 };
-
-interface GuideCtx {
-  open: boolean;
-  /** Open the overlay; pass a section to pin one instead of following the route. */
-  openGuide: (section?: SectionKey) => void;
-  close: () => void;
-  toggle: () => void;
-  forced: SectionKey | null;
-}
-
-const Ctx = createContext<GuideCtx | null>(null);
-
-/** Lets the sidebar Help button (and the mobile drawer) open the overlay. */
-export function GuideProvider({ children }: { children: ReactNode }) {
-  const [open, setOpen] = useState(false);
-  const [forced, setForced] = useState<SectionKey | null>(null);
-
-  const openGuide = useCallback((section?: SectionKey) => {
-    setForced(section ?? null);
-    setOpen(true);
-  }, []);
-  const close = useCallback(() => {
-    setOpen(false);
-    setForced(null);
-  }, []);
-  const toggle = useCallback(() => setOpen((o) => !o), []);
-
-  const value = useMemo(
-    () => ({ open, openGuide, close, toggle, forced }),
-    [open, openGuide, close, toggle, forced],
-  );
-  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
-}
-
-export function useGuide(): GuideCtx {
-  const ctx = use(Ctx);
-  if (!ctx) throw new Error("useGuide must be used inside <GuideProvider>");
-  return ctx;
-}
 
 // The receptionist, moonlighting as the dashboard's guide: a floating avatar
 // that tracks the cursor, nods when you change pages, and - when asked -

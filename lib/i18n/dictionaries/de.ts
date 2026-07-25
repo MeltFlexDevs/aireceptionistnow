@@ -640,6 +640,14 @@ export const de: Dictionary = {
     goLive: "Live gehen",
     goLiveHint: "Deine Karte wird über Stripe belastet. Direkt danach wird dein Assistent bereitgestellt.",
     checkoutError: "Checkout konnte nicht gestartet werden. Bitte versuch es erneut.",
+    // "zu" is the separable prefix of "zustimmen" and has to land at the end of
+    // the sentence, so it rides on the suffix rather than the prefix here.
+    termsAgreePrefix: "Ich stimme den",
+    termsLink: "Nutzungsbedingungen",
+    termsAnd: "und der",
+    privacyLink: "Datenschutzerklärung",
+    termsAgreeSuffix: " zu.",
+    termsRequired: "Bitte akzeptiere die Nutzungsbedingungen, um fortzufahren.",
     buildTitle: "Dein Assistent wird bereitgestellt",
     buildSub: "Dein Assistent wird erstellt, dein Wissen importiert und deine Telefonnummer verbunden. Das dauert meist etwa eine Minute - lass diesen Tab offen.",
     waitingPayment: "Warten auf die Zahlungsbestätigung von Stripe…",

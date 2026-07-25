@@ -17,8 +17,11 @@ export default async function AssistantsPage({
 }: {
   searchParams: Promise<{ error?: string; notice?: string; add?: string }>;
 }) {
-  const [{ error, notice, add }, t] = await Promise.all([searchParams, getDictionary()]);
-  const ownerId = await currentUserId();
+  const [{ error, notice, add }, t, ownerId] = await Promise.all([
+    searchParams,
+    getDictionary(),
+    currentUserId(),
+  ]);
   const assistants = await listAssistants(ownerId ?? undefined).catch(() => []);
 
   // Exactly one receptionist is the normal case, and a list of one is just a

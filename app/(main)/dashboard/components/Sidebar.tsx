@@ -2,15 +2,34 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { memo, useEffect, useState, type CSSProperties } from "react";
-import { useReducedMotion } from "motion/react";
+import { memo, useEffect, useState, useSyncExternalStore, type CSSProperties } from "react";
 import { Logo, Grid, Phone, Bot, Gear, Sparkle, Calendar } from "../icons";
-import { LiveAvatar, type Activity } from "@/app/(main)/onboarding/LiveAvatar";
+import type { Activity } from "@/app/(main)/onboarding/LiveAvatar";
+import { DeferredAvatar } from "./DeferredAvatar";
 
 // Brand re-renders on route/searchParams/state changes; the avatar itself only
 // depends on its props. Memoize it so those unrelated re-renders don't drag the
 // large animated SVG through reconciliation.
-const LiveAvatarMemo = memo(LiveAvatar);
+const LiveAvatarMemo = memo(DeferredAvatar);
+
+// motion's useReducedMotion was the only thing this module imported from
+// motion/react, and importing it here put the whole animation runtime in the
+// bundle of every dashboard route. The underlying media query is two lines.
+const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
+
+function subscribeReducedMotion(onChange: () => void): () => void {
+  const mq = window.matchMedia(REDUCED_MOTION);
+  mq.addEventListener("change", onChange);
+  return () => mq.removeEventListener("change", onChange);
+}
+
+function useReducedMotion(): boolean {
+  return useSyncExternalStore(
+    subscribeReducedMotion,
+    () => window.matchMedia(REDUCED_MOTION).matches,
+    () => false, // server: assume motion is allowed, matching motion/react
+  );
+}
 import type { Mood } from "@/app/(main)/onboarding/personality";
 import { useT } from "@/lib/i18n/client";
 import type { Dictionary } from "@/lib/i18n/dictionaries/en";

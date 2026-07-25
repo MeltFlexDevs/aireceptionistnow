@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 import { ChevronDown } from "../icons";
-import { createClient } from "@/lib/supabase/client";
 import { useT } from "@/lib/i18n/client";
 import type { AppUser } from "@/lib/auth-user";
 
@@ -42,8 +41,13 @@ export function UserMenu({ user }: { user: AppUser }) {
     };
   }, [open]);
 
+  // @supabase/supabase-js is ~240kB - nearly half the dashboard's client JS -
+  // and the only thing this shell component needs it for is a sign-out that
+  // happens once, on click. Importing it here keeps it out of the bundle every
+  // dashboard route loads. Same pattern as SiteHeader / PricingClient.
   async function signOut() {
     setSigningOut(true);
+    const { createClient } = await import("@/lib/supabase/client");
     const supabase = createClient();
     if (supabase) await supabase.auth.signOut();
     router.push("/");

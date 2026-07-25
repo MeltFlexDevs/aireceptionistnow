@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, use, useMemo, type ReactNode } from "react";
-import { GuideProvider } from "./DashboardGuide";
+import { GuideProvider } from "./guide-context";
 
 /**
  * Operational state of the receptionist, shown as a coloured dot on the avatar:

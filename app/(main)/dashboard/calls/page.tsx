@@ -100,8 +100,9 @@ async function CallLogBody({
   selected: string;
   t: Dictionary;
 }) {
-  const ownerId = await currentUserId();
-  const locale = await getLocale();
+  // Independent reads - the locale is a cookie lookup, not a function of who
+  // is signed in.
+  const [ownerId, locale] = await Promise.all([currentUserId(), getLocale()]);
 
   let log: Awaited<ReturnType<typeof getCallLog>> | null = null;
   let loadError = "";
