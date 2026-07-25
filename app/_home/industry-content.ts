@@ -286,6 +286,90 @@ export const INDUSTRY_CONTENT: Record<IndustrySlug, IndustryContent> = {
       },
     },
   },
+
+  medical: {
+    title: "AI Receptionist for Medical Practices | 24/7 Answering",
+    description:
+      "A 24/7 AI medical answering service for clinics and private practices. It schedules patients, covers after-hours calls, and escalates urgent cases to your rules.",
+    keywords: [
+      "medical answering service",
+      "AI receptionist for medical office",
+      "answering service for doctors",
+      "after-hours answering service medical",
+      "clinic answering service",
+      "patient appointment scheduling AI",
+      "HIPAA-ready medical phone AI",
+      "24/7 medical call answering",
+    ],
+    overrides: {
+      metaDescription:
+        "AI Receptionist Now answers your practice's calls 24/7, schedules patients into your calendar, and routes after-hours and urgent calls to your protocols.",
+      hero: {
+        h1: "AI Receptionist for Medical Practices, Answering 24/7",
+        usersTagline: "Every patient call answered 24/7.",
+      },
+      useCases: {
+        sub: "Appointment scheduling, refill and callback messages routed to your rules, and after-hours coverage per your protocols - on every call, in 25+ languages.",
+      },
+      faq: {
+        heading: "Medical practice questions, answered",
+        items: [
+          { q: "Is it HIPAA-ready and how is patient data handled?", a: "The service is HIPAA-ready and GDPR-first, hosted in the EU. Call data is encrypted, never sold, and never used to train external models. You control the confidentiality and escalation rules the AI follows on every patient call." },
+          { q: "What does it do with a medical emergency?", a: "It is not a clinician and never gives medical advice. You define the protocol: callers describing an emergency are told to hang up and call 911, or are routed to your on-call line - exactly as your practice specifies. Everything else follows your triage rules, with a message or transfer when it is unsure." },
+          { q: "Can it schedule patients into the system we already use?", a: "It books into your calendar during the call with two-way sync for Google Calendar, Outlook or Microsoft 365, and Calendly, so slots never double-book. Patient details and messages can also flow to your CRM or thousands of apps through Zapier." },
+          { q: "Can it handle refill requests and results calls?", a: "It takes structured messages for refills, results, and callback requests and routes them to the right inbox or staff member by your rules. It does not access medical records or give clinical information - it captures the request accurately so your team can act on it." },
+          { q: "Can it answer several patients at once, even at lunch or after hours?", a: "Yes. It answers unlimited simultaneous calls, so there is no busy signal at peak times, and it covers lunch hours, evenings, weekends, and holidays identically. Patients who would have hit voicemail get answered and scheduled instead." },
+          { q: "How long does setup take and what does it cost?", a: "Setup is self-serve with no code and typically live in about 10 minutes after you brief it on your practice, hours, and protocols. You can start free with no card. The Solo plan is EUR 99 per month for 1,000 talk minutes, and Team is EUR 299 per month for 3,000 minutes and three numbers." },
+        ],
+      },
+      footerCta: {
+        heading: "Stop losing patients to voicemail.",
+        body: "Answer every patient call 24/7, schedule into your calendar, and route urgent calls to your protocols. Free to start, EU-hosted, live in about 10 minutes.",
+      },
+    },
+  },
+
+  "real-estate": {
+    title: "AI Receptionist for Real Estate | 24/7 Lead Capture",
+    description:
+      "A 24/7 AI answering service for real estate agents and brokerages. It captures every buyer and seller call, qualifies the lead, and books showings into your calendar.",
+    keywords: [
+      "real estate answering service",
+      "AI receptionist for real estate",
+      "answering service for realtors",
+      "real estate lead capture",
+      "virtual receptionist for real estate agents",
+      "showing scheduling automation",
+      "after-hours real estate calls",
+      "24/7 answering service real estate",
+    ],
+    overrides: {
+      metaDescription:
+        "AI Receptionist Now answers buyer and seller calls 24/7, qualifies every lead, books showings into your calendar, and texts you a summary after each call.",
+      hero: {
+        h1: "AI Receptionist for Real Estate That Never Misses a Lead",
+        usersTagline: "Every buyer and seller answered 24/7.",
+      },
+      useCases: {
+        sub: "Listing inquiries answered, buyers and sellers qualified, and showings booked straight into your calendar - on every call, day or night, in 25+ languages.",
+      },
+      faq: {
+        heading: "Real estate questions, answered",
+        items: [
+          { q: "Can it book showings directly into my calendar?", a: "Yes. It checks your real availability, offers open slots, and books the showing during the call with two-way sync for Google Calendar, Outlook, and Calendly, so you are never double-booked. You get a text summary with the caller's details right after." },
+          { q: "Will callers know they are talking to an AI?", a: "You decide how it introduces itself, and a brief disclosure up front is the honest default. Voices are natural enough that short inquiry calls flow normally, and callers who want a human can be transferred to you or your team on your rules." },
+          { q: "How does it qualify a buyer or seller lead?", a: "You define the intake questions - timeline, financing readiness, area, price range for buyers; address and timeline for sellers - and it asks them conversationally, then texts and emails you the structured answers. Leads can flow into HubSpot, Salesforce, or your CRM via Zapier." },
+          { q: "Is it safe to use under fair housing rules?", a: "You control the script, and the safe configuration is factual intake only: availability, timing, financing readiness, and contact details. It does not steer callers toward or away from neighborhoods or answer questions your compliance rules exclude, and you can review every transcript." },
+          { q: "What happens when I am with a client and two calls come in?", a: "It answers unlimited calls at once, so both callers get through - no voicemail, no busy signal. Urgent calls can be transferred to you live per your rules, and everything else arrives as a transcript and summary you can act on between appointments." },
+          { q: "How long does setup take and what does it cost?", a: "It is self-serve with no code and usually live in about 10 minutes: brief it on your listings focus, service area, and intake questions, and forward your existing number. You can start free with no card. The Solo plan is EUR 99 per month, and Team is EUR 299 per month." },
+        ],
+      },
+      footerCta: {
+        heading: "The deal goes to whoever answers first.",
+        body: "Capture every buyer and seller call 24/7, qualify the lead, and book the showing before they dial the next agent. Free to start, live in about 10 minutes.",
+      },
+    },
+  },
 };
 
 /** Merge an industry's partial overrides over the English home copy. */

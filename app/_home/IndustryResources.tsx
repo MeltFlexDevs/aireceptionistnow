@@ -49,6 +49,18 @@ const RESOURCES: Record<IndustrySlug, ResourceLink[]> = {
     { href: "/answers/can-an-ai-receptionist-handle-emergency-calls", label: "Can it triage maintenance emergencies?", kind: "Answer" },
     { href: "/answers/can-an-ai-receptionist-handle-multiple-locations", label: "Can it handle multiple locations?", kind: "Answer" },
   ],
+  medical: [
+    { href: "/blog/medical-answering-service", label: "Medical answering service: 24/7 AI for clinics", kind: "Guide" },
+    { href: "/blog/after-hours-answering-service", label: "After-hours answering service: who answers at 2 a.m.?", kind: "Guide" },
+    { href: "/answers/can-an-ai-receptionist-handle-emergency-calls", label: "How does it handle urgent calls?", kind: "Answer" },
+    { href: "/answers/can-an-ai-receptionist-book-appointments", label: "Can it schedule patients into my calendar?", kind: "Answer" },
+  ],
+  "real-estate": [
+    { href: "/blog/real-estate-answering-service", label: "Real estate answering service: AI that books showings", kind: "Guide" },
+    { href: "/blog/cost-of-a-missed-call", label: "How much does a missed call cost your business?", kind: "Guide" },
+    { href: "/answers/can-an-ai-receptionist-book-appointments", label: "Can it book showings into my calendar?", kind: "Answer" },
+    { href: "/answers/use-existing-phone-number-with-ai-receptionist", label: "Can I keep my existing phone number?", kind: "Answer" },
+  ],
 };
 
 export function IndustryResources({ slug }: { slug: IndustrySlug }) {

@@ -14,6 +14,8 @@ export const INDUSTRY_MENU = [
   { slug: "law-firms", label: "Law firms", tagline: "Client intake around the clock" },
   { slug: "home-services", label: "Home services", tagline: "Every job call answered" },
   { slug: "property-management", label: "Property management", tagline: "Maintenance triage and leasing" },
+  { slug: "medical", label: "Medical practices", tagline: "Patient scheduling, after-hours coverage" },
+  { slug: "real-estate", label: "Real estate", tagline: "Every buyer and seller call captured" },
 ] as const;
 
 export type IndustrySlug = (typeof INDUSTRY_MENU)[number]["slug"];

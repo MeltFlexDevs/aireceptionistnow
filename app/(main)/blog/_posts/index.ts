@@ -121,11 +121,11 @@ export type Post = PostMeta & {
 // only editorial inbound links, which they otherwise lack entirely.
 const postIndustry: Record<string, IndustrySlug> = {
   "dental-answering-service": "dentists",
-  "medical-answering-service": "dentists",
+  "medical-answering-service": "medical",
   "hvac-answering-service": "home-services",
   "ai-receptionist-for-home-services": "home-services",
   "law-firm-answering-service": "law-firms",
-  "real-estate-answering-service": "property-management",
+  "real-estate-answering-service": "real-estate",
   "property-management-answering-service": "property-management",
   "plumbing-answering-service": "home-services",
 };
