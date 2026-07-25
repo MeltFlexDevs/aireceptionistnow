@@ -32,7 +32,12 @@ export async function CalendarStep({
   );
   return (
     <div className="mx-auto w-full max-w-md">
-      <div className="shape-card glass relative flex flex-col px-5 pb-6 pt-7 sm:h-[min(37rem,calc(100dvh_-_11.5rem))] sm:px-7 sm:pb-7">
+      {/* min-h, not h: the "calendar connected" banner adds a row after the
+          OAuth round trip, and against a fixed height that pushed the content
+          ~35px past the card so the Finalize button hung outside it. min-h keeps
+          the roomy default (the flex-1 spacer still pins the button to the
+          bottom) while letting the card grow when the banner is present. */}
+      <div className="shape-card glass relative flex flex-col px-5 pb-6 pt-7 sm:min-h-[min(37rem,calc(100dvh_-_11.5rem))] sm:px-7 sm:pb-7">
         {/* Calendar hero + the receptionist on duty. */}
         <div className="flex flex-col items-center text-center">
           <div className="relative">
