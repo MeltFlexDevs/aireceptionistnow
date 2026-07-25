@@ -37,14 +37,15 @@ const RESOURCES: Record<IndustrySlug, ResourceLink[]> = {
     { href: "/answers/can-an-ai-receptionist-book-appointments", label: "Can it book consultations into my calendar?", kind: "Answer" },
   ],
   "home-services": [
+    { href: "/blog/plumbing-answering-service", label: "Plumbing answering service: never miss an emergency call", kind: "Guide" },
     { href: "/blog/hvac-answering-service", label: "HVAC answering service: never miss a service call", kind: "Guide" },
     { href: "/blog/ai-receptionist-for-home-services", label: "AI receptionist for home services and trades", kind: "Guide" },
     { href: "/answers/can-an-ai-receptionist-handle-emergency-calls", label: "Can it handle emergency calls like a burst pipe?", kind: "Answer" },
     { href: "/answers/can-an-ai-receptionist-handle-multiple-calls-at-once", label: "Can it answer several calls at once?", kind: "Answer" },
   ],
   "property-management": [
+    { href: "/blog/property-management-answering-service", label: "Property management answering service: 24/7 tenant calls", kind: "Guide" },
     { href: "/blog/real-estate-answering-service", label: "Real estate answering service: AI that books showings", kind: "Guide" },
-    { href: "/blog/after-hours-answering-service", label: "After-hours answering service: who answers at 2 a.m.?", kind: "Guide" },
     { href: "/answers/can-an-ai-receptionist-handle-emergency-calls", label: "Can it triage maintenance emergencies?", kind: "Answer" },
     { href: "/answers/can-an-ai-receptionist-handle-multiple-locations", label: "Can it handle multiple locations?", kind: "Answer" },
   ],

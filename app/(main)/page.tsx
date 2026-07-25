@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { alternatesFor } from "@/lib/i18n/marketing/alternates";
 import { localeOptions } from "@/lib/i18n/marketing/switcher";
 import HomeClient from "../_home/HomeClient";
+import { HomeExplore } from "../_home/HomeExplore";
 
 // The home page body is a client component, so it cannot export metadata. The
 // canonical used to come from a site-wide `alternates` default on the root
@@ -18,5 +19,10 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <HomeClient localeOptions={localeOptions("home", "en")} />;
+  return (
+    <HomeClient
+      localeOptions={localeOptions("home", "en")}
+      relatedResources={<HomeExplore />}
+    />
+  );
 }
