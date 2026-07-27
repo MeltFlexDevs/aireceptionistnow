@@ -27,6 +27,18 @@ const PREV: PatchPrev = {
     emailTranscripts: { enabled: true, to: "owner@acme.com" },
     voice: { speed: 1.1, stability: 0.8 },
     voiceByLanguage: { de: "voice-de-custom" },
+    transferHours: {
+      timezone: "Europe/Bratislava",
+      days: [
+        null,
+        { start: "09:00", end: "17:00" },
+        { start: "09:00", end: "17:00" },
+        { start: "09:00", end: "17:00" },
+        { start: "09:00", end: "17:00" },
+        { start: "09:00", end: "17:00" },
+        null,
+      ],
+    },
   },
 };
 
@@ -225,4 +237,119 @@ test("per-language voices are replaced only when that panel was submitted", () =
 
   const untouched = buildAssistantPatch(fd({ id: "a1", [SECTION.basics]: "1" }), PREV, CTX);
   assert.deepEqual(untouched.routing.voiceByLanguage, { de: "voice-de-custom" });
+});
+
+// ── Transfer hours ──────────────────────────────────────────────────────────
+// Same hazard as everything above: the schedule lives in SECTION.alerts, so a
+// save that touches the transfer number must not silently clear the hours, and
+// a save that touches anything else must not clear either.
+
+function alertsForm(extra: Record<string, string>): FormData {
+  return fd({ id: "a1", [SECTION.alerts]: "1", transfer_to: "+14155550199", ...extra });
+}
+
+test("editing another section leaves the transfer hours alone", () => {
+  const patch = buildAssistantPatch(
+    fd({ id: "a1", [SECTION.basics]: "1", greeting: "New greeting" }),
+    PREV,
+    CTX,
+  );
+  assert.deepEqual(patch.routing.transferHours, PREV.routing.transferHours);
+});
+
+test("an alerts form with no hours fields preserves the saved schedule", () => {
+  // A form that predates the feature still submits SECTION.alerts. Rebuilding
+  // from fields it never carried would wipe the schedule.
+  const patch = buildAssistantPatch(alertsForm({}), PREV, CTX);
+  assert.equal(patch.routing.transferTo, "+14155550199");
+  assert.deepEqual(patch.routing.transferHours, PREV.routing.transferHours);
+});
+
+test("submitting the hours fields stores the schedule", () => {
+  const patch = buildAssistantPatch(
+    alertsForm({
+      transfer_hours_tz: "America/New_York",
+      transfer_day_1: "on",
+      transfer_start_1: "08:00",
+      transfer_end_1: "16:00",
+      transfer_day_6: "on",
+      transfer_start_6: "10:00",
+      transfer_end_6: "14:00",
+    }),
+    PREV,
+    CTX,
+  );
+  const hours = patch.routing.transferHours as {
+    timezone: string;
+    days: ({ start: string; end: string } | null)[];
+  };
+  assert.equal(hours.timezone, "America/New_York");
+  assert.equal(hours.days.length, 7);
+  assert.deepEqual(hours.days[1], { start: "08:00", end: "16:00" });
+  assert.deepEqual(hours.days[6], { start: "10:00", end: "14:00" });
+  assert.equal(hours.days[0], null, "Sunday unchecked");
+  assert.equal(hours.days[2], null, "Tuesday unchecked");
+});
+
+test("an unchecked day is closed even when its times are still filled in", () => {
+  // The inputs stay populated in the DOM when the day toggle is turned off, so
+  // the checkbox has to win.
+  const patch = buildAssistantPatch(
+    alertsForm({
+      transfer_hours_tz: "UTC",
+      transfer_day_1: "on",
+      transfer_start_1: "09:00",
+      transfer_end_1: "17:00",
+      transfer_start_2: "09:00",
+      transfer_end_2: "17:00",
+    }),
+    PREV,
+    CTX,
+  );
+  const hours = patch.routing.transferHours as { days: unknown[] };
+  assert.deepEqual(hours.days[1], { start: "09:00", end: "17:00" });
+  assert.equal(hours.days[2], null);
+});
+
+test("turning every day off clears the schedule instead of banning transfers", () => {
+  // An empty form means "no restriction", not "never transfer".
+  const patch = buildAssistantPatch(
+    alertsForm({ transfer_hours_tz: "UTC" }),
+    PREV,
+    CTX,
+  );
+  assert.equal(patch.routing.transferHours, undefined);
+  assert.equal(patch.routing.transferTo, "+14155550199", "the number itself survives");
+});
+
+test("a blank timezone clears the schedule", () => {
+  const patch = buildAssistantPatch(
+    alertsForm({
+      transfer_hours_tz: "",
+      transfer_day_1: "on",
+      transfer_start_1: "09:00",
+      transfer_end_1: "17:00",
+    }),
+    PREV,
+    CTX,
+  );
+  assert.equal(patch.routing.transferHours, undefined);
+});
+
+test("clearing the transfer number keeps the hours for when it comes back", () => {
+  const patch = buildAssistantPatch(
+    fd({
+      id: "a1",
+      [SECTION.alerts]: "1",
+      transfer_to: "",
+      transfer_hours_tz: "UTC",
+      transfer_day_1: "on",
+      transfer_start_1: "09:00",
+      transfer_end_1: "17:00",
+    }),
+    PREV,
+    CTX,
+  );
+  assert.equal(patch.routing.transferTo, undefined);
+  assert.ok(patch.routing.transferHours, "schedule is not collateral damage");
 });

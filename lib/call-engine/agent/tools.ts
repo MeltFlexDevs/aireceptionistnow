@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import type { ElevenLabs } from "@elevenlabs/elevenlabs-js";
 import { elevenClient } from "./eleven-client";
 import type { AgentTool, Assistant } from "../../dashboard/db";
+import { parseTransferHours } from "../transfer-hours";
 
 function sharedFields(): Record<string, ElevenLabs.LiteralJsonSchemaProperty> {
   return {
@@ -202,6 +203,15 @@ export function buildBuiltInTools(
   }
 
   if (transferTo) {
+    // When transfer hours are set, the condition carries a second clause. The
+    // tool itself cannot know the time - it is static agent config - so the
+    // real decision is the {{transfer_policy}} line in the prompt, filled per
+    // call. This just stops the condition from contradicting it: without the
+    // clause the tool advertises an unconditional "caller asked for a human ⇒
+    // transfer", which is precisely what the prompt may be forbidding.
+    const gated = parseTransferHours(
+      (assistant.routing as Record<string, unknown> | null)?.transferHours,
+    );
     tools.transferToNumber = {
       name: "transfer_to_number",
       description:
@@ -211,8 +221,9 @@ export function buildBuiltInTools(
         transfers: [
           {
             transferDestination: { type: "phone", phoneNumber: transferTo },
-            condition:
-              "The caller asks to speak to a human, asks to be transferred, or has a problem you cannot resolve.",
+            condition: gated
+              ? "The caller asks to speak to a human, asks to be transferred, or has a problem you cannot resolve - AND your instructions for this call say a human is currently available. Never use this when your instructions say no one is available to take a transfer."
+              : "The caller asks to speak to a human, asks to be transferred, or has a problem you cannot resolve.",
           },
         ],
         enableClientMessage: true,

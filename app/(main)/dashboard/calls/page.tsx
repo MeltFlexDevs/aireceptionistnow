@@ -10,6 +10,7 @@ import { CallDetailBody } from "./CallDetailBody";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 import { AiAvatar } from "@/app/(main)/onboarding/AiAvatar";
+import { CARD } from "../components/card";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,6 @@ const CAP = "md:h-[calc(100dvh-7rem)] md:overflow-hidden lg:h-[calc(100dvh-8rem)
 // Borderless cards: a soft shadow lifts each white card off the grey page, so
 // no outline is needed. Everything inside is separated by whitespace and
 // hairline rules, not more boxes.
-const CARD = "rounded-xl border border-neutral-200 bg-white";
 
 function one(v: string | string[] | undefined, fallback: string): string {
   return typeof v === "string" && v ? v : fallback;

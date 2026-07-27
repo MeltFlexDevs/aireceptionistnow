@@ -192,6 +192,13 @@ export default function Body() {
         missed call at the first-visit value is how businesses talk themselves
         into ignoring the phone.
       </Callout>
+      <P>
+        If you&apos;d rather not do the arithmetic by hand, the{" "}
+        <Internal href="/missed-call-calculator">missed call calculator</Internal>{" "}
+        runs exactly this formula with your numbers in it, and shows each step
+        so you can see where the figure comes from rather than taking it on
+        faith.
+      </P>
 
       <H2 id="worked-example">A worked example</H2>
       <P>

@@ -1,6 +1,7 @@
 import { Skeleton } from "../../components/Skeleton";
+import { CARD as SHARED_CARD } from "../../components/card";
 
-const CARD = "overflow-hidden rounded-xl border border-neutral-200 bg-white";
+const CARD = `overflow-hidden ${SHARED_CARD}`;
 
 export default function Loading() {
   return (

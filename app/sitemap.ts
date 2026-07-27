@@ -39,6 +39,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...localizedRoutes("pricing", 0.9),
     { url: `${siteUrl}/industries`, changeFrequency: "weekly", priority: 0.8 },
     { url: `${siteUrl}/compare`, changeFrequency: "weekly", priority: 0.8 },
+    // Interactive tool rather than an article, hence a real lastModified: the
+    // date means something here because the model and plan prices behind it can
+    // change independently of any prose on the page.
+    {
+      url: `${siteUrl}/missed-call-calculator`,
+      lastModified: new Date("2026-07-27T00:00:00Z"),
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
     { url: `${siteUrl}/blog`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${siteUrl}/answers`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${siteUrl}/privacy-policy`, changeFrequency: "yearly", priority: 0.3 },

@@ -1,0 +1,429 @@
+/* Styles for /missed-call-calculator.
+ *
+ * Palette and control styling deliberately mirror .compare-calc in
+ * app/(main)/compare/_compare/compare.css (#1D1D1D ink, #f5f5f5 surface, the
+ * same range-thumb treatment) so the tool reads as the same product rather than
+ * a bolted-on widget. Prefixed mcc- because compare.css is loaded on other
+ * routes and the two must never collide. */
+
+.mcc-page {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 56px 24px 96px;
+  color: #1d1d1d;
+}
+
+.mcc-page h1 {
+  font-size: 42px;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  font-weight: 500;
+  margin: 0 0 18px;
+}
+
+.mcc-page .mcc-lede {
+  font-size: 19px;
+  line-height: 1.6;
+  font-weight: 300;
+  color: #4a4a4a;
+  max-width: 68ch;
+  margin: 0 0 12px;
+}
+
+.mcc-eyebrow {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #999;
+  margin-bottom: 14px;
+}
+
+/* --- the tool --- */
+
+.mcc {
+  background: #f5f5f5;
+  border-radius: 16px;
+  padding: 32px;
+  margin: 36px 0 48px;
+}
+
+.mcc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 36px;
+  align-items: start;
+}
+
+.mcc-panel-label,
+.mcc-chain-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #999;
+  margin-bottom: 20px;
+}
+
+.mcc-control {
+  margin-bottom: 22px;
+}
+
+.mcc-control-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 13px;
+  color: #4a4a4a;
+  margin-bottom: 10px;
+  gap: 12px;
+}
+
+.mcc-control-top label {
+  cursor: pointer;
+}
+
+.mcc-control-val {
+  font-size: 15px;
+  font-weight: 500;
+  color: #1d1d1d;
+  white-space: nowrap;
+}
+
+.mcc-control input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 3px;
+  background: #d8d8d8;
+  outline: none;
+}
+
+.mcc-control input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #1d1d1d;
+  cursor: pointer;
+  border: 3px solid #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.mcc-control input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #1d1d1d;
+  cursor: pointer;
+  border: 3px solid #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.mcc-control input[type="range"]:focus-visible {
+  outline: 2px solid #1d1d1d;
+  outline-offset: 4px;
+}
+
+.mcc-money-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+
+.mcc-money-input span {
+  color: #999;
+  font-size: 15px;
+}
+
+.mcc-money-input input {
+  border: 0;
+  outline: none;
+  background: transparent;
+  font-size: 16px;
+  font-weight: 500;
+  color: #1d1d1d;
+  width: 100%;
+}
+
+.mcc-money-input:focus-within {
+  border-color: #1d1d1d;
+}
+
+.mcc-hint {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #888;
+  margin: 8px 0 0;
+}
+
+.mcc-assumptions {
+  border-top: 1px solid #e2e2e2;
+  padding-top: 18px;
+  margin-top: 4px;
+}
+
+.mcc-assumptions summary {
+  cursor: pointer;
+  font-size: 13px;
+  color: #4a4a4a;
+  margin-bottom: 18px;
+  list-style: none;
+}
+
+.mcc-assumptions summary::-webkit-details-marker {
+  display: none;
+}
+
+.mcc-assumptions summary::before {
+  content: "+ ";
+  color: #999;
+}
+
+.mcc-assumptions[open] summary::before {
+  content: "- ";
+}
+
+/* --- results --- */
+
+.mcc-headline {
+  background: #1d1d1d;
+  color: #fff;
+  border-radius: 12px;
+  padding: 26px 28px;
+  margin-bottom: 16px;
+}
+
+.mcc-headline-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.55);
+  margin-bottom: 10px;
+}
+
+.mcc-headline-value {
+  font-size: 44px;
+  line-height: 1.05;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.mcc-headline-sub {
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 10px;
+}
+
+.mcc-chain,
+.mcc-payback {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 22px 24px;
+  margin-bottom: 16px;
+}
+
+.mcc-chain ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  counter-reset: step;
+}
+
+.mcc-chain li {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #4a4a4a;
+  padding: 9px 0;
+  border-bottom: 1px solid #f2f2f2;
+}
+
+.mcc-chain li:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.mcc-chain li span {
+  font-weight: 500;
+  color: #1d1d1d;
+  font-variant-numeric: tabular-nums;
+  min-width: 3.5ch;
+}
+
+.mcc-payback-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 14px;
+  color: #4a4a4a;
+  padding: 9px 0;
+  border-bottom: 1px solid #f2f2f2;
+}
+
+.mcc-payback-row strong {
+  color: #1d1d1d;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.mcc-payback-net {
+  border-bottom: 0;
+  border-top: 1px solid #e5e5e5;
+  margin-top: 4px;
+  padding-top: 14px;
+  font-size: 15px;
+}
+
+.mcc-payback-net--good strong {
+  color: #0a7b43;
+}
+
+.mcc-breakeven {
+  font-size: 13px;
+  line-height: 1.55;
+  color: #666;
+  margin: 14px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid #f2f2f2;
+}
+
+.mcc-breakeven strong {
+  color: #1d1d1d;
+}
+
+/* --- CTA --- */
+
+.mcc-cta {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.mcc-btn {
+  display: inline-block;
+  background: #1d1d1d;
+  color: #fff;
+  border: 1px solid #1d1d1d;
+  border-radius: 999px;
+  padding: 13px 24px;
+  font-size: 14.5px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
+
+.mcc-btn:hover {
+  opacity: 0.85;
+}
+
+.mcc-btn--outline {
+  background: transparent;
+  color: #1d1d1d;
+}
+
+/* --- prose below the tool --- */
+
+.mcc-prose {
+  max-width: 72ch;
+}
+
+.mcc-prose h2 {
+  font-size: 26px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin: 44px 0 14px;
+  scroll-margin-top: 96px;
+}
+
+.mcc-prose h3 {
+  font-size: 18px;
+  font-weight: 500;
+  margin: 28px 0 8px;
+}
+
+.mcc-prose p,
+.mcc-prose li {
+  font-size: 17px;
+  line-height: 1.65;
+  font-weight: 300;
+  color: #333;
+}
+
+.mcc-prose p {
+  margin: 0 0 16px;
+}
+
+.mcc-prose ul {
+  margin: 0 0 16px;
+  padding-left: 22px;
+}
+
+.mcc-prose li {
+  margin-bottom: 8px;
+}
+
+.mcc-prose a {
+  color: #1d1d1d;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.mcc-formula {
+  background: #fafafa;
+  border-left: 2px solid #1d1d1d;
+  padding: 18px 22px;
+  margin: 22px 0;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.mcc-faq-item {
+  border-bottom: 1px solid #ececec;
+  padding: 16px 0;
+}
+
+.mcc-faq-item summary {
+  cursor: pointer;
+  font-size: 16.5px;
+  font-weight: 500;
+  list-style: none;
+}
+
+.mcc-faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.mcc-faq-answer {
+  font-size: 16px;
+  line-height: 1.65;
+  font-weight: 300;
+  color: #444;
+  margin: 10px 0 0;
+}
+
+@media (max-width: 860px) {
+  .mcc-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .mcc {
+    padding: 22px;
+  }
+  .mcc-page h1 {
+    font-size: 32px;
+  }
+  .mcc-headline-value {
+    font-size: 36px;
+  }
+}

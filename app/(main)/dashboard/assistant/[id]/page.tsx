@@ -12,8 +12,19 @@ import { getPlanContextCached } from "@/lib/dashboard/plan";
 import { countryFromPhone, formatPhone } from "@/lib/call-engine/voice/phone-language";
 import { NUMBER_COUNTRIES } from "@/lib/number-pricing";
 import { currentUserId } from "@/lib/auth";
-import { getDictionary } from "@/lib/i18n/server";
+import { getDictionary, getLocale } from "@/lib/i18n/server";
+import { ownerTimezone } from "@/lib/dashboard/timezone";
+import { describeTransferHours, parseTransferHours } from "@/lib/call-engine/transfer-hours";
+import {
+  buildSetupItems,
+  greetingWordCount,
+  setupProgress,
+  voiceName,
+  type SetupKey,
+} from "@/lib/dashboard/assistant-setup";
+import { TransferHoursFields } from "../TransferHoursFields";
 import { SECTION } from "@/lib/dashboard/assistant-patch";
+import { CARD, SECTION_HEADING } from "../../components/card";
 import { AssistantPowerToggle } from "../../components/AssistantPowerToggle";
 import { providerName } from "@/lib/calendar/providers";
 import { VoiceSelect } from "../../numbers/VoiceSelect";
@@ -29,8 +40,7 @@ import { Phone, Calendar, Sparkle, Check } from "../../icons";
 
 export const dynamic = "force-dynamic";
 
-// Flat, bordered surface - no drop shadow (by request).
-const CARD = "rounded-2xl border border-neutral-200 bg-white";
+
 const field =
   "w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition-colors focus:border-neutral-900";
 const labelCls = "mb-1.5 block text-sm font-medium text-neutral-700";
@@ -80,7 +90,7 @@ export default async function AssistantSettingsPage({
 }) {
   // params, searchParams and the (cached) dictionary are independent - resolve
   // them together. Saves report inline now; only cross-page redirects use params.
-  const [{ id }, { error, notice }, t] = await Promise.all([params, searchParams, getDictionary()]);
+  const [{ id }, { error, notice }, t, locale] = await Promise.all([params, searchParams, getDictionary(), getLocale()]);
   const a = t.assistants;
 
   // First batch: everything keyed only on the id param (or nothing) - no
@@ -97,12 +107,13 @@ export default async function AssistantSettingsPage({
   if (ownerId && assistant.owner_id && assistant.owner_id !== ownerId) notFound();
 
   // Second batch: the ownerId-scoped reads, run only once the owner check passes.
-  const [integrations, planCtx, assistants] = await Promise.all([
+  const [integrations, planCtx, assistants, accountTimezone] = await Promise.all([
     listIntegrations(ownerId ?? undefined).catch(
       () => [] as Awaited<ReturnType<typeof listIntegrations>>,
     ),
     getPlanContextCached(ownerId).catch(() => null),
     listAssistants(ownerId ?? undefined).catch(() => []),
+    ownerTimezone(ownerId ?? "").catch(() => "UTC"),
   ]);
   const calendars = integrations.filter((i) => i.type === "calendar");
 
@@ -111,6 +122,22 @@ export default async function AssistantSettingsPage({
       ?.emailTranscripts ?? {};
   const transferTo = String((assistant.routing as { transferTo?: string })?.transferTo ?? "");
   const smsAlerts = (assistant.routing as { smsAlerts?: boolean })?.smsAlerts ?? true;
+  const transferHours = parseTransferHours(
+    (assistant.routing as Record<string, unknown>)?.transferHours,
+  );
+  // accountTimezone (resolved in the batch above) is only a seed for a schedule
+  // that has none yet - once saved, the timezone travels inside
+  // routing.transferHours, because the call-start webhook resolves a
+  // NumberConfig and never sees account settings.
+  //
+  // Weekday names come from Intl rather than the dictionaries: eight locales
+  // times seven days is 56 strings the platform already knows, and Intl gets
+  // the capitalisation conventions right per language.
+  const weekdayNames = new Intl.DateTimeFormat(locale, { weekday: "short" });
+  const weekdayLabels = Array.from({ length: 7 }, (_, day) =>
+    // 2026-07-26 was a Sunday, so day 0 lands on Sunday to match getDay().
+    weekdayNames.format(new Date(Date.UTC(2026, 6, 26 + day))),
+  );
   const calAccess =
     (assistant.routing as { calendar?: { access?: Array<{ integrationId: string; level: string }> } })
       ?.calendar?.access ?? [];
@@ -159,6 +186,29 @@ export default async function AssistantSettingsPage({
   // No number yet -> the receptionist isn't in service, whatever its enabled flag.
   const live = assistant.enabled && Boolean(number);
   const statusLabel = !number ? t.home.statusNoNumber : assistant.enabled ? a.onDuty : a.paused;
+
+  // One source of truth for "is this set up?", shared by the cards and the
+  // progress bar so the badges and the percentage can never disagree.
+  const setupItems = buildSetupItems({
+    voiceId: assistant.voice_id ?? "",
+    greeting: assistant.greeting ?? "",
+    transferTo,
+    calendarsConnected: calendars.length,
+    calendarAccessCount: accessCount,
+    systemPrompt: assistant.system_prompt ?? "",
+  });
+  const progress = setupProgress(setupItems);
+  const isDone = (key: SetupKey) => setupItems.find((i) => i.key === key)?.done ?? false;
+
+  // What each card shows at rest. A configured card states its current value;
+  // an unconfigured one shows its todoLabel instead, so this is only read when
+  // the topic is done.
+  const greetingWords = greetingWordCount(assistant.greeting ?? "");
+  const voiceSummary = voiceName(assistant.voice_id ?? "") || a.customVoice;
+  const calendarSummary = calendars
+    .filter((c) => accessMap.has(c.id))
+    .map((c) => providerName(c.provider))
+    .join(", ");
 
   return (
     <div className="rise flex w-full flex-col gap-4 pb-2">
@@ -257,18 +307,51 @@ export default async function AssistantSettingsPage({
             </div>
           </div>
         </div>
+
+        {/* Setup progress. Reads the same items as the card badges, so the bar
+            and the badges cannot disagree. Hidden once everything is done -
+            a permanent 100% bar is decoration, not information. */}
+        {progress.done < progress.total && (
+          <div className="mt-5 border-t border-neutral-100 pt-4">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-[13px] font-medium text-neutral-600">{a.setupProgress}</span>
+              <span className="text-[13px] font-medium tabular-nums text-neutral-500">
+                {progress.done}/{progress.total}
+              </span>
+            </div>
+            <div
+              className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-neutral-100"
+              role="progressbar"
+              aria-valuenow={progress.percent}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label={a.setupProgress}
+            >
+              <div
+                className="h-full rounded-full bg-neutral-900 transition-[width] duration-500"
+                style={{ width: `${progress.percent}%` }}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* SETTINGS: one card per topic, each opening a self-saving modal. Full-
           width grid so it all reads on one screen instead of a long scroll. */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      <section>
+        <h2 className={SECTION_HEADING}>
+          {a.groupGeneral}
+        </h2>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <TopicModal
           assistantId={assistant.id}
           section={SECTION.basics}
-          icon={<Mic className="h-5 w-5" />}
+          icon={<Mic className="h-6 w-6" />}
           title={a.topicVoiceTitle}
           subtitle={a.topicVoiceSub}
-          summary={null}
+          summary={voiceSummary}
+          done={isDone("voice")}
+          todoLabel={a.voiceTodo}
         >
           <div>
             <span className={labelCls}>{a.voice}</span>
@@ -292,10 +375,12 @@ export default async function AssistantSettingsPage({
         <TopicModal
           assistantId={assistant.id}
           section={SECTION.basics}
-          icon={<Chat className="h-5 w-5" />}
+          icon={<Chat className="h-6 w-6" />}
           title={a.topicGreetingTitle}
           subtitle={a.topicGreetingSub}
-          summary={assistant.greeting}
+          summary={`${greetingWords} ${a.wordsLabel}`}
+          done={isDone("greeting")}
+          todoLabel={a.greetingTodo}
         >
           <div>
             <label htmlFor="greeting" className={labelCls}>
@@ -311,13 +396,27 @@ export default async function AssistantSettingsPage({
           </div>
         </TopicModal>
 
+        </div>
+      </section>
+
+      <section>
+        <h2 className={SECTION_HEADING}>
+          {a.groupCallHandling}
+        </h2>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <TopicModal
           assistantId={assistant.id}
           section={SECTION.alerts}
-          icon={<Phone className="h-5 w-5" />}
+          icon={<Phone className="h-6 w-6" />}
           title={a.topicTransferTitle}
           subtitle={a.topicTransferSub}
-          summary={transferTo ? formatPhone(transferTo) : null}
+          summary={
+            transferHours
+              ? `${formatPhone(transferTo)} · ${describeTransferHours(transferHours)}`
+              : formatPhone(transferTo)
+          }
+          done={isDone("transfer")}
+          todoLabel={a.transferTodo}
         >
           <div>
             <label htmlFor="transfer_to" className={labelCls}>
@@ -340,15 +439,32 @@ export default async function AssistantSettingsPage({
             <input type="checkbox" name="sms_alerts" defaultChecked={smsAlerts} className="peer sr-only" />
             <span className={toggle} />
           </label>
+          <TransferHoursFields
+            hours={transferHours}
+            fallbackTimezone={accountTimezone}
+            labels={{
+              scheduleTitle: a.transferScheduleTitle,
+              scheduleSub: a.transferScheduleSub,
+              alwaysLabel: a.transferAlways,
+              scheduledLabel: a.transferScheduled,
+              timezoneLabel: a.transferTimezone,
+              fromLabel: a.transferFrom,
+              toLabel: a.transferTo,
+              closedNote: a.transferClosedNote,
+              days: weekdayLabels,
+            }}
+          />
         </TopicModal>
 
         <TopicModal
           assistantId={assistant.id}
           section={SECTION.calendar}
-          icon={<Calendar className="h-5 w-5" />}
+          icon={<Calendar className="h-6 w-6" />}
           title={a.topicBookingTitle}
           subtitle={a.topicBookingSub}
-          summary={accessCount > 0 ? a.writeBook : null}
+          summary={calendarSummary}
+          done={isDone("calendar")}
+          todoLabel={a.calendarTodo}
         >
           {calendars.length === 0 ? (
             <p className="text-sm text-neutral-500">
@@ -384,13 +500,23 @@ export default async function AssistantSettingsPage({
           )}
         </TopicModal>
 
+        </div>
+      </section>
+
+      <section>
+        <h2 className={SECTION_HEADING}>
+          {a.groupAi}
+        </h2>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <TopicModal
           assistantId={assistant.id}
           section={`${SECTION.role}`}
-          icon={<Sparkle className="h-5 w-5" />}
+          icon={<Sparkle className="h-6 w-6" />}
           title={a.topicTuneTitle}
           subtitle={a.topicTuneSub}
-          summary={null}
+          summary={(assistant.system_prompt ?? "").trim() ? a.role : a.behaviourDefault}
+          done={isDone("behaviour")}
+          todoLabel={a.behaviourTodo}
         >
           {/* This modal owns three sections at once, so it carries all three
               markers - the two extra ride along as hidden inputs. */}
@@ -453,20 +579,26 @@ export default async function AssistantSettingsPage({
             </div>
           </div>
         </TopicModal>
+        </div>
+      </section>
 
-      </div>
-
-      {/* DANGER ZONE: the one irreversible action, set apart at the very bottom
-          so a destructive control never sits beside the routine settings. */}
-      <section className="mt-1 overflow-hidden rounded-2xl border border-rose-200 bg-rose-50/40">
-        <div className="flex flex-wrap items-center justify-between gap-4 px-5 py-4">
+      {/* ADVANCED: still the last thing on the page and still set apart, but no
+          longer a red slab. A permanent alarm around a button nobody is about to
+          press just spends attention that the unfinished setup cards need more.
+          DeleteAssistant already confirms by name, so the danger lives in the
+          interaction rather than in the decoration around it. */}
+      <section className="mt-2 border-t border-neutral-200 pt-5">
+        <h2 className={SECTION_HEADING}>
+          {a.advancedSection}
+        </h2>
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-neutral-200 bg-white px-5 py-4">
           <div className="flex min-w-0 items-center gap-4">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-rose-100 text-rose-600">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-neutral-100 text-neutral-500">
               <Trash className="h-5 w-5" />
             </span>
             <div className="min-w-0">
-              <p className="text-[15px] font-semibold text-rose-900">{a.dangerZone}</p>
-              <p className="text-[13px] text-rose-700/80">{a.deleteHint}</p>
+              <p className="text-[15px] font-semibold text-neutral-900">{a.dangerZone}</p>
+              <p className="text-[13px] text-neutral-500">{a.deleteHint}</p>
             </div>
           </div>
           <DeleteAssistant id={assistant.id} name={assistant.name} />

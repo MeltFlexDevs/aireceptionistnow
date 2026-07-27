@@ -113,6 +113,34 @@ export function buildAssistantPatch(
     }
     // Present section + absent checkbox = the user turned it off.
     routing.smsAlerts = form.get("sms_alerts") === "on";
+
+    // Transfer hours ride in the same section as the number they constrain.
+    // Guarded on the timezone field rather than on the section alone: a form
+    // that predates this feature still submits SECTION.alerts, and rebuilding
+    // from fields it never carried would silently wipe a saved schedule - the
+    // exact bug the whole patch module exists to prevent.
+    if (form.has("transfer_hours_tz")) {
+      const timezone = str(form, "transfer_hours_tz");
+      const days: ({ start: string; end: string } | null)[] = [];
+      for (let i = 0; i < 7; i++) {
+        // Absent checkbox = that day is closed.
+        if (form.get(`transfer_day_${i}`) !== "on") {
+          days.push(null);
+          continue;
+        }
+        const start = str(form, `transfer_start_${i}`);
+        const end = str(form, `transfer_end_${i}`);
+        days.push(start && end ? { start, end } : null);
+      }
+      // No timezone or every day closed means "no restriction". Storing that as
+      // a schedule would read as "never transfer", which is not what an empty
+      // form means - parseTransferHours rejects it too, so keep the two in step.
+      if (timezone && days.some((d) => d !== null)) {
+        routing.transferHours = { timezone, days };
+      } else {
+        delete routing.transferHours;
+      }
+    }
   }
 
   if (submitted(SECTION.calendar)) {

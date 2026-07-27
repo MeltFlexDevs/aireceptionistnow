@@ -3,6 +3,17 @@ export type BillingCycle = "monthly" | "annual";
 
 export const ANNUAL_DISCOUNT = 0.15;
 
+/**
+ * Price of a minute beyond a plan's included allowance. Quoted verbatim in
+ * every plan's `included` copy below ("1000 minutes - EUR 0.09 per extra
+ * minute"), so it is defined once here rather than retyped by each caller.
+ *
+ * NOTE: app/(main)/compare/_compare/compare-client.tsx still hardcodes 0.09 and
+ * the two plan prices. It predates this constant and was left alone - worth
+ * pointing at these exports next time that file is touched.
+ */
+export const EXTRA_MINUTE_EUR = 0.09;
+
 export function annualAmountCents(monthlyCents: number): number {
   return Math.round(monthlyCents * 12 * (1 - ANNUAL_DISCOUNT));
 }

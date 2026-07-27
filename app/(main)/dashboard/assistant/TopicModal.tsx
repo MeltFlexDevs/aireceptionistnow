@@ -6,7 +6,8 @@ import { IDLE, type ActionState } from "@/lib/dashboard/action-state";
 import { SavePill } from "../components/SavePill";
 import { SubmitButton } from "../components/SubmitButton";
 import { Modal, MODAL_PANEL } from "../components/Modal";
-import { ChevronRight } from "../icons";
+import { CARD_INTERACTIVE } from "../components/card";
+import { SetupBadge } from "../components/StatusBadge";
 import { updateAssistantAction } from "./actions";
 
 /**
@@ -24,6 +25,8 @@ export function TopicModal({
   title,
   subtitle,
   summary,
+  done,
+  todoLabel,
   children,
 }: {
   assistantId: string;
@@ -35,6 +38,14 @@ export function TopicModal({
   subtitle: string;
   /** What the card shows at rest, e.g. the current voice name. */
   summary: ReactNode;
+  /**
+   * Whether this topic is configured. Undefined opts the card out of the
+   * status system entirely - every card currently opts in, and a card without
+   * a status reads as "nothing to finish here", which is a claim, not a default.
+   */
+  done?: boolean;
+  /** Call to action shown on an unconfigured card, e.g. "Choose a voice". */
+  todoLabel?: string;
   children: ReactNode;
 }) {
   const t = useT();
@@ -56,31 +67,54 @@ export function TopicModal({
 
   return (
     <>
-      {/* Feature card: icon, what the setting is, what it does, and its current
-          value. The whole card opens the editor - no repeated "Edit" button. */}
+      {/* Feature card: icon, what the setting is, what it does, its current
+          value, and whether it is finished. The whole card opens the editor -
+          no chevron and no "Edit" button, because a card that is entirely a
+          button does not need to advertise it twice. Hover lifts instead. */}
       <button
         type="button"
         onClick={() => setOpen(true)}
         aria-label={a.edit + " - " + title}
-        className="group flex h-full w-full items-center gap-4 rounded-2xl border border-neutral-200 bg-white p-5 text-left transition-colors hover:border-neutral-300 hover:bg-neutral-50/50"
+        className={`${CARD_INTERACTIVE} group flex h-full w-full flex-col p-6 ${
+          // An unfinished card overrides the neutral surface with amber. Listed
+          // after CARD_INTERACTIVE so these win on the border and background.
+          done === false ? "border-amber-200 bg-amber-50/30 hover:border-amber-300" : ""
+        }`}
       >
-        {icon && (
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-neutral-100 text-neutral-600">
-            {icon}
-          </span>
-        )}
-        <span className="min-w-0 flex-1">
-          <span className="block text-[15px] font-semibold text-neutral-900">{title}</span>
-          <span className="mt-0.5 block text-[13px] leading-snug text-neutral-500">{subtitle}</span>
-          {summary && (
-            <span className="mt-1.5 block truncate text-sm font-medium text-neutral-800">{summary}</span>
+        <span className="flex w-full items-start gap-4">
+          {icon && (
+            <span
+              className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-colors ${
+                done === false
+                  ? "bg-amber-100 text-amber-700"
+                  : "bg-neutral-100 text-neutral-700 group-hover:bg-neutral-200"
+              }`}
+            >
+              {icon}
+            </span>
           )}
-        </span>
-        <span className="flex shrink-0 items-center gap-2">
-          {/* The pill lives on the card, so a save is still visible after the
-              modal closes. */}
+          <span className="min-w-0 flex-1">
+            <span className="block text-[15px] font-semibold text-neutral-900">{title}</span>
+            <span className="mt-1 block text-[13px] leading-relaxed text-neutral-500">
+              {subtitle}
+            </span>
+          </span>
           <SavePill state={state} />
-          <ChevronRight className="h-5 w-5 text-neutral-300 transition-transform group-hover:translate-x-0.5 group-hover:text-neutral-500" />
+        </span>
+
+        {/* Bottom row: what is set now, or what to do about it. Kept on its own
+            line so the value never competes with the description for width. */}
+        <span className="mt-4 flex w-full items-end justify-between gap-3 pt-3 border-t border-neutral-100">
+          <span className="min-w-0 flex-1 truncate text-sm font-medium text-neutral-800">
+            {done === false ? (
+              <span className="text-amber-700">{todoLabel ?? a.setupNotDone}</span>
+            ) : (
+              summary
+            )}
+          </span>
+          {done !== undefined && (
+            <SetupBadge done={done} label={done ? a.setupDone : a.setupNotDone} />
+          )}
         </span>
       </button>
 

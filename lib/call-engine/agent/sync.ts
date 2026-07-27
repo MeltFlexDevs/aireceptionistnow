@@ -11,6 +11,7 @@ import {
   type Assistant,
 } from "../../dashboard/db";
 import { providerSupportsBusy } from "../integrations/registry";
+import { parseTransferHours } from "../transfer-hours";
 import { localizeGreeting } from "../llm/greeting";
 import { MAX_SOURCE_CHARS, type AssistantKnowledge } from "../../knowledge/sources";
 import { ELEVENLABS_LANGUAGES, SUPPORTED_LANGUAGES } from "../voice/phone-language";
@@ -160,8 +161,17 @@ function composeSystemPrompt(
     );
   }
   if (transferTo) {
+    // With hours configured the instruction cannot be baked in here: whether a
+    // human is reachable depends on when the call happens, and this prompt is
+    // composed once at save time. {{transfer_policy}} is filled per call by
+    // app/api/agent/init/route.ts, which ALWAYS sends the variable - including
+    // on its no-config fallback - so this placeholder can never reach the model
+    // unsubstituted. agent.prompt.prompt is already allow-listed for override
+    // in platformSettings below, which is what makes this possible.
     parts.push(
-      "If the caller needs a human, asks to be transferred, or has a request beyond what you can handle, use transfer_to_number to hand off.",
+      parseTransferHours((assistant.routing as Record<string, unknown> | null)?.transferHours)
+        ? "A human is only reachable at certain times, and you are told which on each call. {{transfer_policy}}"
+        : "If the caller needs a human, asks to be transferred, or has a request beyond what you can handle, use transfer_to_number to hand off.",
     );
   }
   if (canTakeMessage) {

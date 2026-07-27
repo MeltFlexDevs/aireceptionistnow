@@ -13,6 +13,8 @@ import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { PageHeader } from "../components/PageHeader";
 import { Skeleton } from "../components/Skeleton";
 import { Calendar, Sparkle } from "../icons";
+import { CARD, CARD_INTERACTIVE, SECTION_HEADING } from "../components/card";
+import { SetupBadge } from "../components/StatusBadge";
 import { TeachBar } from "./TeachBar";
 import { SourceList, type SourceRow } from "./SourceList";
 import { AiAvatar } from "@/app/(main)/onboarding/AiAvatar";
@@ -86,12 +88,14 @@ export default async function KnowledgePage({
         )}
       </div>
 
+      <h2 className={`${SECTION_HEADING} shrink-0`}>{k.groupKnows}</h2>
+
       {/* B: what it can answer */}
-      <div className="shape-card glass shrink-0 p-4">
-        <div className="flex items-start gap-3">
-          <AiAvatar mood="studying" className="h-10 w-10 shrink-0" />
+      <div className={`${CARD} shrink-0 p-5`}>
+        <div className="flex items-start gap-4">
+          <AiAvatar mood="studying" className="h-12 w-12 shrink-0" />
           <div className="min-w-0">
-            <p className="text-sm font-medium text-neutral-900">{k.digestTitle}</p>
+            <p className="text-[15px] font-semibold text-neutral-900">{k.digestTitle}</p>
             <div className="mt-1">
               {active ? (
                 <Suspense fallback={<Skeleton className="h-10 w-full" />}>
@@ -110,13 +114,13 @@ export default async function KnowledgePage({
 
       {/* D: the page's only scroll region */}
       {isEmpty ? (
-        <div className="shape-card glass flex min-h-0 flex-1 flex-col items-center justify-center p-10 text-center">
+        <div className={`${CARD} flex min-h-0 flex-1 flex-col items-center justify-center p-10 text-center`}>
           <AiAvatar mood="studying" className="h-20 w-20" />
           <h2 className="mt-4 text-base font-semibold text-neutral-900">{k.emptyTitle}</h2>
           <p className="mt-1.5 max-w-sm text-sm leading-relaxed text-neutral-500">{k.emptyBody}</p>
         </div>
       ) : (
-        <section className="shape-card glass flex min-h-0 flex-1 flex-col">
+        <section className={`${CARD} flex min-h-0 flex-1 flex-col`}>
           <header className="shrink-0 border-b border-neutral-200/70 px-5 py-3">
             <h2 className="text-sm font-medium text-neutral-900">{k.sources}</h2>
           </header>
@@ -126,28 +130,47 @@ export default async function KnowledgePage({
         </section>
       )}
 
-      {/* E: one-line footer strip */}
-      <div className="flex shrink-0 flex-wrap items-center gap-x-6 gap-y-2 px-1 text-xs text-neutral-500">
-        <span className="flex items-center gap-2">
-          <Sparkle className="h-3.5 w-3.5 text-neutral-400" />
-          {knowledge.ownerNotes ? k.aboutYouShared : k.aboutYouNotShared}
-          <Link
-            href="/dashboard/settings"
-            className="font-medium text-neutral-900 underline underline-offset-2"
-          >
-            {t.common.edit}
+      {/* E: the two things feeding the receptionist from OUTSIDE this page.
+          These were a 12px footer strip, which is where information goes to be
+          ignored - both are configuration state, so they now read the same way
+          as the assistant page's setup cards. Kept at p-4 and shrink-0: this
+          page is height-capped and the source list above is the only thing
+          allowed to grow. */}
+      <div className="shrink-0">
+        <h2 className={SECTION_HEADING}>{k.groupUses}</h2>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <Link href="/dashboard/settings" className={`${CARD_INTERACTIVE} group flex items-center gap-4 p-4`}>
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-700 transition-colors group-hover:bg-neutral-200">
+              <Sparkle className="h-5 w-5" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-semibold text-neutral-900">{k.aboutYouTitle}</span>
+              <span className="mt-0.5 block truncate text-[13px] text-neutral-500">
+                {knowledge.ownerNotes ? k.aboutYouShared : k.aboutYouNotShared}
+              </span>
+            </span>
+            <SetupBadge
+              done={Boolean(knowledge.ownerNotes)}
+              label={knowledge.ownerNotes ? t.common.connected : t.common.edit}
+            />
           </Link>
-        </span>
-        <span className="flex items-center gap-2">
-          <Calendar className="h-3.5 w-3.5 text-neutral-400" />
-          {calendars > 0 ? k.bookingOn : k.bookingOff}
-          <Link
-            href="/dashboard/calendar"
-            className="font-medium text-neutral-900 underline underline-offset-2"
-          >
-            {calendars > 0 ? t.common.manage : t.common.connect}
+
+          <Link href="/dashboard/calendar" className={`${CARD_INTERACTIVE} group flex items-center gap-4 p-4`}>
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-700 transition-colors group-hover:bg-neutral-200">
+              <Calendar className="h-5 w-5" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-semibold text-neutral-900">{k.bookingTitle}</span>
+              <span className="mt-0.5 block truncate text-[13px] text-neutral-500">
+                {calendars > 0 ? k.bookingOn : k.bookingOff}
+              </span>
+            </span>
+            <SetupBadge
+              done={calendars > 0}
+              label={calendars > 0 ? t.common.connected : t.common.connect}
+            />
           </Link>
-        </span>
+        </div>
       </div>
     </div>
   );

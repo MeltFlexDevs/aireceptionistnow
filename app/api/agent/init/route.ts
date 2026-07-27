@@ -5,6 +5,11 @@ import { verifyElevenLabsSignature, verifyToolSecret } from "@/lib/call-engine/a
 import { prefetchAvailability } from "@/lib/call-engine/integrations/availability";
 import { resolveCalendarsForAccess } from "@/lib/call-engine/integrations/registry";
 import { localizeGreeting } from "@/lib/call-engine/llm/greeting";
+import {
+  TRANSFER_POLICY_OPEN,
+  parseTransferHours,
+  transferPolicyLine,
+} from "@/lib/call-engine/transfer-hours";
 import { withDeadline } from "@/lib/call-engine/net";
 import { voiceForLanguage, baseLanguage } from "@/lib/call-engine/voice/catalog";
 import { languageFromPhone } from "@/lib/call-engine/voice/phone-language";
@@ -75,7 +80,20 @@ export async function POST(req: Request): Promise<Response> {
     console.error("[agent/init] resolve failed", err);
   }
   // No overrides ⇒ ElevenLabs keeps the agent's configured defaults. Safe fallback.
-  if (!config) return json({ type: "conversation_initiation_client_data" });
+  //
+  // transfer_policy still has to go out. A prompt synced with transfer hours
+  // contains {{transfer_policy}}, and this path is not rare: an OUTBOUND or test
+  // call arrives with the dialed customer number as called_number, which resolves
+  // to no config at all. Omitting the variable would leave the placeholder
+  // unsubstituted in a live prompt. The permissive value is the right default -
+  // it is exactly the behaviour before hours existed, and stranding a caller who
+  // asks for a human is the worse of the two failures.
+  if (!config) {
+    return json({
+      type: "conversation_initiation_client_data",
+      dynamic_variables: { transfer_policy: TRANSFER_POLICY_OPEN },
+    });
+  }
 
   // Preload after responding: warm calendar tokens + store busy windows so the
   // first mid-call availability check answers from one indexed read.
@@ -127,6 +145,14 @@ export async function POST(req: Request): Promise<Response> {
     overrides.tts = { voice_id: voiceId };
   }
 
+  // Whether a human can take a hand-off right now. Evaluated per call because
+  // the answer changes with the clock; the synced prompt only carries the
+  // placeholder. Fails open on a malformed schedule - see transfer-hours.ts.
+  const transferHours = parseTransferHours(
+    (config.routing as Record<string, unknown> | null)?.transferHours,
+  );
+  const transferPolicy = transferPolicyLine(transferHours, new Date());
+
   return json({
     type: "conversation_initiation_client_data",
     // Handy for the agent prompt + surfaced back on tool calls.
@@ -134,6 +160,7 @@ export async function POST(req: Request): Promise<Response> {
       business_name: config.businessName,
       to_number: config.e164,
       from_number: callerId,
+      transfer_policy: transferPolicy,
     },
     conversation_config_override: overrides,
   });
