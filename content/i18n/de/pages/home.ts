@@ -9,8 +9,12 @@
 import type { HomeCopy } from "../../_home-copy";
 
 export const deHome: HomeCopy = {
+  // "KI-Telefonassistent" is the German head term for this category - it is what
+  // a Handwerksbetrieb or Praxis actually types, whereas "KI-Rezeptionist" is a
+  // literal translation nobody searches.
+  metaTitle: "KI-Telefonassistent: jeder Anruf angenommen, 24/7",
   metaDescription:
-    "AI Receptionist Now nimmt Ihre Geschäftsanrufe rund um die Uhr an, bucht Termine und erfasst jeden Interessenten. Ohne Code, in Minuten startklar.",
+    "KI-Telefonassistent, der Ihre Geschäftsanrufe rund um die Uhr annimmt, Termine bucht und jeden Interessenten erfasst. Ohne Code, in Minuten startklar.",
   hero: {
     h1: "KI-Telefonassistent, der jeden Anruf annimmt - rund um die Uhr",
     phonePlaceholder: "Telefonnummer eingeben",

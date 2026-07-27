@@ -10,10 +10,14 @@
 import type { HomeCopy } from "../../_home-copy";
 
 export const esHome: HomeCopy = {
+  // "Recepcionista virtual" is the established Spanish category term and carries
+  // far more volume than "recepcionista con IA"; the H1 now leads with it and
+  // keeps "con IA" as the qualifier.
+  metaTitle: "Recepcionista virtual con IA: contesta llamadas 24/7",
   metaDescription:
-    "AI Receptionist Now responde las llamadas de tu negocio 24/7, agenda citas y capta cada oportunidad. Sin código, en marcha en minutos.",
+    "Recepcionista virtual con IA que responde las llamadas de tu negocio 24/7, agenda citas y capta cada oportunidad. Sin código, en marcha en minutos.",
   hero: {
-    h1: "Recepcionista con IA que contesta todas las llamadas 24/7",
+    h1: "Recepcionista virtual con IA que contesta todas las llamadas 24/7",
     phonePlaceholder: "Introduzca su número de teléfono",
     ctaCall: "Hable ahora con nuestra IA",
     ctaCalling: "Llamando...",

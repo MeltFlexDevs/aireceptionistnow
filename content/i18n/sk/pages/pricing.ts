@@ -10,9 +10,14 @@
 import type { PricingCopy } from "../../_pricing-copy";
 
 export const skPricing: PricingCopy = {
+  metaTitle: "Virtuálna asistentka s AI: cenník a plány bez viazanosti",
+  metaDescription:
+    "Plány Solo a Team virtuálnej asistentky s AI, s mesačnou alebo ročnou platbou so zľavou 15 %. Záruka vrátenia peňazí do 30 dní.",
   guarantee: "Záruka vrátenia peňazí do 30 dní",
-  h1: "Jednoduchý a prehľadný cenník",
-  sub: "Vyberte si plán a vaša AI recepcia dvíha hovory už o pár minút. Zrušiť môžete kedykoľvek.",
+  // H1 leads with the category term; the "jednoduchý a prehľadný" reassurance
+  // moved into `sub`. "Virtuálna asistentka" matches ./home.ts.
+  h1: "Cenník virtuálnej asistentky s AI",
+  sub: "Jednoducho a prehľadne: vyberte si plán a vaša virtuálna asistentka s AI dvíha hovory už o pár minút. Zrušiť môžete kedykoľvek.",
   monthly: "Mesačne",
   annually: "Ročne",
   perMonth: "/ mesiac",

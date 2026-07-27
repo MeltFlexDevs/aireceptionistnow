@@ -10,9 +10,15 @@
 import type { PricingCopy } from "../../_pricing-copy";
 
 export const dePricing: PricingCopy = {
+  metaTitle: "KI-Telefonassistent: Preise und Tarife, jederzeit kündbar",
+  metaDescription:
+    "Alle Tarife für Ihren KI-Telefonassistenten: Solo und Team, monatlich oder jährlich mit 15 % Rabatt. 30 Tage Geld-zurück-Garantie.",
   guarantee: "30 Tage Geld-zurück-Garantie",
-  h1: "Einfache, transparente Preise",
-  sub: "Wählen Sie einen Tarif und Ihr KI-Telefonassistent nimmt schon nach wenigen Minuten Anrufe an. Jederzeit kündbar.",
+  // The H1 names the product rather than describing the price list: "Einfache,
+  // transparente Preise" is a fine headline and contains none of the words a
+  // buyer searches. The reassurance moved into `sub`, which still carries it.
+  h1: "Preise für Ihren KI-Telefonassistenten",
+  sub: "Einfach und transparent: Wählen Sie einen Tarif und Ihr KI-Telefonassistent nimmt schon nach wenigen Minuten Anrufe an. Jederzeit kündbar.",
   monthly: "Monatlich",
   annually: "Jährlich",
   perMonth: "/ Monat",

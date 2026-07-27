@@ -10,10 +10,13 @@
 import type { HomeCopy } from "../../_home-copy";
 
 export const ptHome: HomeCopy = {
+  // "Rececionista virtual" is the established pt-PT category term; the AO90
+  // single-c spelling is kept throughout, matching this file's convention.
+  metaTitle: "Rececionista virtual com IA: atende chamadas 24/7",
   metaDescription:
-    "A AI Receptionist Now atende as chamadas da sua empresa 24/7, marca reuniões e capta cada oportunidade. Sem código, pronto em minutos.",
+    "Rececionista virtual com IA que atende as chamadas da sua empresa 24/7, marca reuniões e capta cada oportunidade. Sem código, pronto em minutos.",
   hero: {
-    h1: "Rececionista com IA que atende todas as chamadas 24/7",
+    h1: "Rececionista virtual com IA que atende todas as chamadas 24/7",
     phonePlaceholder: "Introduza o número de telefone",
     ctaCall: "Fale já com a nossa IA",
     ctaCalling: "A ligar...",

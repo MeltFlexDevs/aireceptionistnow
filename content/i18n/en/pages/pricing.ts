@@ -8,6 +8,12 @@
 import type { PricingCopy } from "../../_pricing-copy";
 
 export const enPricing: PricingCopy = {
+  // Reference-only. The live English pricing route sets its own metadata in
+  // app/(main)/pricing/page.tsx and never reads these two, so they exist to show
+  // translators the intended shape: head keyword first, no brand suffix.
+  metaTitle: "AI Receptionist Pricing: Solo and Team Plans",
+  metaDescription:
+    "AI receptionist pricing - Solo and Team plans, billed monthly or annually with 15% off. 30-day money-back guarantee, answering calls in 10 minutes.",
   guarantee: "30-day money-back guarantee",
   h1: "Simple, transparent pricing",
   sub: "Pick a plan and your AI receptionist is answering calls in minutes. Cancel anytime.",

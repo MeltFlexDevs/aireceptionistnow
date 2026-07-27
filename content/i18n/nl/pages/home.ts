@@ -11,8 +11,12 @@
 import type { HomeCopy } from "../../_home-copy";
 
 export const nlHome: HomeCopy = {
+  // "Telefoonservice" is the high-volume Dutch term and "receptioniste" the
+  // descriptive one, so the title carries both. The description switches "je" to
+  // "uw" to match this file's stated register.
+  metaTitle: "AI-receptioniste en telefoonservice: 24/7 bereikbaar",
   metaDescription:
-    "AI Receptionist Now beantwoordt je zakelijke oproepen 24/7, plant afspraken in en legt elke lead vast. Zonder code, in enkele minuten live.",
+    "AI-receptioniste die uw zakelijke oproepen 24/7 beantwoordt, afspraken inplant en elke lead vastlegt. Zonder code, in enkele minuten live.",
   hero: {
     h1: "AI-receptioniste die 24/7 elke oproep aanneemt",
     phonePlaceholder: "Telefoonnummer invoeren",

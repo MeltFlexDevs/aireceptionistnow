@@ -40,13 +40,16 @@ export async function generateMetadata({
   if (!isMarketingLocale(locale)) return {};
   const copy = PRICING_COPY[locale];
 
+  // Title and description come from the dedicated meta fields, not from h1/sub.
+  // See the note in app/[locale]/page.tsx: h1 is a page headline and `sub` is
+  // written for a reader who already arrived, so neither earns the click.
   return {
-    title: { absolute: `${copy.h1} | ${siteName}` },
-    description: copy.sub,
+    title: { absolute: copy.metaTitle },
+    description: copy.metaDescription,
     alternates: alternatesFor("pricing", locale),
     openGraph: {
       title: copy.h1,
-      description: copy.sub,
+      description: copy.metaDescription,
       type: "website",
       url: `${siteUrl}/${locale}/pricing`,
       siteName,
@@ -58,7 +61,7 @@ export async function generateMetadata({
     twitter: {
       card: "summary_large_image",
       title: copy.h1,
-      description: copy.sub,
+      description: copy.metaDescription,
       images: [ogCardImage],
     },
   };

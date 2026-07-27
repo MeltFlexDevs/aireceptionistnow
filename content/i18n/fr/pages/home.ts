@@ -11,10 +11,14 @@
 import type { HomeCopy } from "../../_home-copy";
 
 export const frHome: HomeCopy = {
+  // "Standardiste virtuel" is the searched French term; "permanence
+  // téléphonique" carries more volume still but promises a human service, so it
+  // is left to the body copy rather than the title.
+  metaTitle: "Standardiste virtuel IA : tous vos appels répondus 24h/24",
   metaDescription:
-    "AI Receptionist Now répond aux appels de votre entreprise 24h/24, prend les rendez-vous et capture chaque prospect. Sans code, prêt en minutes.",
+    "Standardiste virtuel IA qui répond aux appels de votre entreprise 24h/24, prend les rendez-vous et capture chaque prospect. Sans code, prêt en minutes.",
   hero: {
-    h1: "Standardiste IA qui répond à tous vos appels, 24h/24 et 7j/7",
+    h1: "Standardiste virtuel IA qui répond à tous vos appels, 24h/24",
     phonePlaceholder: "Saisissez votre numéro de téléphone",
     ctaCall: "Parlez à notre IA dès maintenant",
     ctaCalling: "Appel en cours...",

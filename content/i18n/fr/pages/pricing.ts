@@ -10,9 +10,14 @@
 import type { PricingCopy } from "../../_pricing-copy";
 
 export const frPricing: PricingCopy = {
+  metaTitle: "Standardiste virtuel IA : tarifs et formules sans engagement",
+  metaDescription:
+    "Formules Solo et Team du standardiste virtuel IA, au mois ou à l'année avec 15 % de remise. Satisfait ou remboursé sous 30 jours.",
   guarantee: "Satisfait ou remboursé sous 30 jours",
-  h1: "Une tarification simple et transparente",
-  sub: "Choisissez une formule et votre standardiste IA répond à vos appels en quelques minutes. Résiliable à tout moment.",
+  // H1 leads with the category term; the "simple et transparente" reassurance
+  // moved into `sub`.
+  h1: "Tarifs du standardiste virtuel IA",
+  sub: "Simple et transparent : choisissez une formule et votre standardiste virtuel IA répond à vos appels en quelques minutes. Résiliable à tout moment.",
   monthly: "Mensuel",
   annually: "Annuel",
   perMonth: "/ mois",

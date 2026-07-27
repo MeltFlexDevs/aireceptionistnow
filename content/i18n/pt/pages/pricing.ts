@@ -10,9 +10,14 @@
 import type { PricingCopy } from "../../_pricing-copy";
 
 export const ptPricing: PricingCopy = {
+  metaTitle: "Rececionista virtual com IA: preços e planos sem fidelização",
+  metaDescription:
+    "Planos Solo e Team da rececionista virtual com IA, com pagamento mensal ou anual com 15% de desconto. Garantia de devolução em 30 dias.",
   guarantee: "Garantia de devolução do dinheiro em 30 dias",
-  h1: "Preços simples e transparentes",
-  sub: "Escolha um plano e a sua rececionista com IA começa a atender chamadas em minutos. Cancele quando quiser.",
+  // H1 leads with the category term; a garantia de "simples e transparentes"
+  // passou para o `sub`.
+  h1: "Preços da rececionista virtual com IA",
+  sub: "Simples e transparentes: escolha um plano e a sua rececionista virtual com IA começa a atender chamadas em minutos. Cancele quando quiser.",
   monthly: "Mensal",
   annually: "Anual",
   perMonth: "/ mês",

@@ -10,10 +10,13 @@
 import type { HomeCopy } from "../../_home-copy";
 
 export const itHome: HomeCopy = {
+  // "Centralino virtuale" is the term Italian businesses search for this;
+  // "receptionist con IA" is an English loan that carries almost no volume.
+  metaTitle: "Centralino virtuale con IA: risponde a ogni chiamata 24/7",
   metaDescription:
-    "AI Receptionist Now risponde alle chiamate della tua attività 24/7, fissa appuntamenti e raccoglie ogni contatto. Senza codice, attivo in pochi minuti.",
+    "Centralino virtuale con IA che risponde alle chiamate della tua attività 24/7, fissa appuntamenti e raccoglie ogni contatto. Attivo in pochi minuti.",
   hero: {
-    h1: "Receptionist con IA che risponde a ogni chiamata 24 ore su 24",
+    h1: "Centralino virtuale con IA che risponde a ogni chiamata 24/7",
     phonePlaceholder: "Inserisca il numero di telefono",
     ctaCall: "Parli subito con la nostra IA",
     ctaCalling: "Chiamata in corso...",

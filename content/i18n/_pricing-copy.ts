@@ -15,6 +15,24 @@ export interface PricingPlanCopy {
 }
 
 export interface PricingCopy {
+  /**
+   * SERP title, separate from h1 for the same reason as HomeCopy.metaTitle:
+   * "Simple, transparent pricing" is a fine page headline and a worthless
+   * search result, because it contains none of the words a buyer types. Emitted
+   * as an ABSOLUTE title with no brand suffix appended - keep it <=60 chars and
+   * lead with the head keyword for that market.
+   */
+  metaTitle: string;
+  /**
+   * Meta description for the SERP snippet and OG/Twitter cards. Previously the
+   * localized pricing route reused `sub` for this; that is a page subheading
+   * written for someone already on the page, not a snippet written to win the
+   * click. Keep it <=160 characters.
+   *
+   * FACTUAL SCOPE: there is no free plan in lib/plans.ts, so do not write one
+   * into a snippet here. Claims must be checkable against PLANS and `guarantee`.
+   */
+  metaDescription: string;
   guarantee: string;
   h1: string;
   sub: string;

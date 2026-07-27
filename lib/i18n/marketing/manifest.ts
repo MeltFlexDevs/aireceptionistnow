@@ -29,15 +29,16 @@ const MANIFESTS: Record<MarketingLocale, TranslationEntry[]> = { es, de, fr, sk,
 export const I18N_PREVIEW = process.env.NEXT_PUBLIC_I18N_PREVIEW === "1";
 
 /**
- * THE GATE. The router, sitemap, hreflang builder and locale switcher all call
- * this and nothing else, so a page cannot be routable in one place and hidden
- * in another.
+ * THE GATE as a pure function of a manifest, kept separate from the live
+ * MANIFESTS so the RULE can be tested against synthetic entries.
  *
- * Unreviewed means a hard 404, not merely absent from the sitemap.
+ * The separation was earned: the original tests asserted "nothing is published",
+ * which was true of the data on the day they were written rather than of the
+ * rule, so they passed for the wrong reason and all had to be deleted the first
+ * time a locale actually shipped. A test over `gate` keeps working no matter
+ * what the manifests say.
  */
-export function isPublished(locale: MarketingLocale, pageId: PageId): boolean {
-  const entries = MANIFESTS[locale] ?? [];
-
+export function gate(entries: TranslationEntry[], pageId: PageId): boolean {
   // Chrome gate: every page depends on translated nav/footer/CTA copy.
   const ui = entries.find((e) => e.pageId === "ui");
   const uiOk = I18N_PREVIEW ? ui !== undefined : ui?.status === "reviewed";
@@ -48,6 +49,17 @@ export function isPublished(locale: MarketingLocale, pageId: PageId): boolean {
   // In preview, anything present in the manifest is routable regardless of
   // status. In production, only "reviewed" publishes.
   return I18N_PREVIEW ? true : entry.status === "reviewed";
+}
+
+/**
+ * The gate applied to the real manifests. The router, sitemap, hreflang builder
+ * and locale switcher all call this and nothing else, so a page cannot be
+ * routable in one place and hidden in another.
+ *
+ * Unreviewed means a hard 404, not merely absent from the sitemap.
+ */
+export function isPublished(locale: MarketingLocale, pageId: PageId): boolean {
+  return gate(MANIFESTS[locale] ?? [], pageId);
 }
 
 /** Locales in which this page is live. Drives hreflang and the switcher. */

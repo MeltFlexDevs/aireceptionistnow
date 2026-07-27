@@ -9,6 +9,10 @@
 import type { HomeCopy } from "../../_home-copy";
 
 export const enHome: HomeCopy = {
+  // Reference-only, like metaDescription below: the live English home builds its
+  // own title. Kept here so translators can see the intended shape - head
+  // keyword first, benefit second, no brand name, under 60 characters.
+  metaTitle: "AI Receptionist: Every Business Call Answered 24/7",
   metaDescription:
     "AI Receptionist Now answers your business calls 24/7, books appointments, and captures every lead. No code, live in minutes.",
   hero: {

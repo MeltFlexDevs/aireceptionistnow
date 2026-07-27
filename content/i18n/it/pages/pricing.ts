@@ -10,9 +10,15 @@
 import type { PricingCopy } from "../../_pricing-copy";
 
 export const itPricing: PricingCopy = {
+  metaTitle: "Centralino virtuale con IA: prezzi e piani senza vincoli",
+  metaDescription:
+    "Piani Solo e Team del centralino virtuale con IA, con pagamento mensile o annuale con il 15% di sconto. Garanzia soddisfatti o rimborsati in 30 giorni.",
   guarantee: "Garanzia soddisfatti o rimborsati entro 30 giorni",
-  h1: "Prezzi semplici e trasparenti",
-  sub: "Scelga un piano e in pochi minuti il suo receptionist con IA risponde alle chiamate. Disdica quando vuole.",
+  // H1 leads with the category term; the "semplici e trasparenti" reassurance
+  // moved into `sub`. "Centralino virtuale" replaces the English loan
+  // "receptionist", matching ./home.ts.
+  h1: "Prezzi del centralino virtuale con IA",
+  sub: "Semplici e trasparenti: scelga un piano e in pochi minuti il suo centralino virtuale con IA risponde alle chiamate. Disdica quando vuole.",
   monthly: "Mensile",
   annually: "Annuale",
   perMonth: "/ mese",

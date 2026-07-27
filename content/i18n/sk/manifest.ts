@@ -9,8 +9,12 @@ import type { TranslationEntry } from "../_types";
 //
 // "ui" gates the whole locale: no page publishes while the shared chrome
 // (nav, footer, CTA labels) is unreviewed.
+//
+// PUBLISHED 2026-07-27. Slovak is the one locale where the native-speaker read
+// actually happened: it is the owner's own language and the home market of
+// MeltFlex s.r.o. See content/i18n/de/manifest.ts for the wider decision.
 export const sk: TranslationEntry[] = [
-  { pageId: "ui", status: "draft" },
-  { pageId: "home", status: "draft" },
-  { pageId: "pricing", status: "draft" },
+  { pageId: "ui", status: "reviewed", reviewedAt: "2026-07-27" },
+  { pageId: "home", status: "reviewed", reviewedAt: "2026-07-27" },
+  { pageId: "pricing", status: "reviewed", reviewedAt: "2026-07-27" },
 ];

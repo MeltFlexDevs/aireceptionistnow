@@ -35,11 +35,29 @@ export interface HomeStepCopy {
 
 export interface HomeCopy {
   /**
+   * SERP title for the localized page. Deliberately SEPARATE from hero.h1,
+   * because the two have different jobs: h1 is the on-page headline and may run
+   * long, while this has to survive Google's ~60-character cut with the head
+   * keyword still visible. It is emitted as an ABSOLUTE title (no " | AI
+   * Receptionist Now" suffix is appended), so whatever is written here is
+   * exactly what ships - budget the full 60 characters accordingly, and lead
+   * with the term the market actually searches rather than the brand.
+   *
+   * NOT rendered in the page body. Feeds generateMetadata in
+   * app/[locale]/page.tsx. The English entry (enHome) is reference-only, like
+   * metaDescription below: the live English home builds its own title.
+   */
+  metaTitle: string;
+  /**
    * Meta description for the localized page's <title> snippet and OG/Twitter
    * cards. NOT rendered in the page body - it feeds generateMetadata in
-   * app/[locale]/page.tsx. Keep it <=160 characters. The English entry (enHome)
-   * is the translation reference; the live English home uses the site-wide
-   * siteDescription instead, so enHome.metaDescription is reference-only.
+   * app/[locale]/page.tsx. Keep it <=160 characters, and open with the head
+   * keyword rather than the brand name: Google bolds the matched query terms,
+   * and a description that leads with "AI Receptionist Now" spends the most
+   * valuable characters on a brand nobody is searching for yet. The English
+   * entry (enHome) is the translation reference; the live English home uses the
+   * site-wide siteDescription instead, so enHome.metaDescription is
+   * reference-only.
    */
   metaDescription: string;
   hero: {

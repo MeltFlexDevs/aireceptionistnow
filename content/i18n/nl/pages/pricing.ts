@@ -9,9 +9,14 @@
 import type { PricingCopy } from "../../_pricing-copy";
 
 export const nlPricing: PricingCopy = {
+  metaTitle: "AI-receptioniste: prijzen en pakketten, altijd opzegbaar",
+  metaDescription:
+    "Pakketten Solo en Team van de AI-receptioniste, per maand of per jaar met 15% korting. 30 dagen niet-goed-geld-terug-garantie.",
   guarantee: "30 dagen niet-goed-geld-terug-garantie",
-  h1: "Eenvoudige, transparante prijzen",
-  sub: "Kies een pakket en binnen enkele minuten neemt uw AI-receptioniste de gesprekken aan. Altijd opzegbaar.",
+  // H1 leads with the category term; de "eenvoudig en transparant" geruststelling
+  // staat nu in `sub`.
+  h1: "Prijzen van de AI-receptioniste",
+  sub: "Eenvoudig en transparant: kies een pakket en binnen enkele minuten neemt uw AI-receptioniste de gesprekken aan. Altijd opzegbaar.",
   monthly: "Maandelijks",
   annually: "Jaarlijks",
   perMonth: "/ maand",

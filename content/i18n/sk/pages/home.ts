@@ -12,10 +12,14 @@
 import type { HomeCopy } from "../../_home-copy";
 
 export const skHome: HomeCopy = {
+  // "Virtuálna asistentka" is what a Slovak business actually types; "AI
+  // recepcia" is a coined phrase with no search behind it. The FAQ below already
+  // bridges the two terms, so the body stays coherent with the new H1.
+  metaTitle: "Virtuálna asistentka s AI: zdvihne každý hovor 24/7",
   metaDescription:
-    "AI Receptionist Now prijíma vaše firemné hovory 24/7, rezervuje stretnutia a zachytí každý kontakt. Bez kódu, spustené za pár minút.",
+    "Virtuálna asistentka s AI prijíma vaše firemné hovory 24/7, rezervuje stretnutia a zachytí každý kontakt. Bez kódu, spustené za pár minút.",
   hero: {
-    h1: "AI recepcia, ktorá zdvihne každý hovor 24/7",
+    h1: "Virtuálna asistentka s AI, ktorá zdvihne každý hovor 24/7",
     phonePlaceholder: "Zadajte telefónne číslo",
     ctaCall: "Vyskúšajte našu AI hneď teraz",
     ctaCalling: "Volám...",

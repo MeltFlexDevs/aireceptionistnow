@@ -14,31 +14,12 @@ import { isPublished } from "@/lib/i18n/marketing/manifest";
 import { localeOptions } from "@/lib/i18n/marketing/switcher";
 import { navHrefs } from "@/lib/i18n/marketing/href";
 import { UI_COPY } from "@/content/i18n/ui-registry";
-import type { HomeCopy } from "@/content/i18n/_home-copy";
-import { esHome } from "@/content/i18n/es/pages/home";
-import { deHome } from "@/content/i18n/de/pages/home";
-import { frHome } from "@/content/i18n/fr/pages/home";
-import { skHome } from "@/content/i18n/sk/pages/home";
-import { itHome } from "@/content/i18n/it/pages/home";
-import { ptHome } from "@/content/i18n/pt/pages/home";
-import { nlHome } from "@/content/i18n/nl/pages/home";
+import { HOME_COPY } from "@/content/i18n/home-registry";
 
-// Every marketing locale now has copy, so this is a total Record: adding a
-// locale to MARKETING_LOCALES without adding its copy here is a compile error
-// rather than a page that silently renders English under a localized URL.
-const HOME_COPY: Record<MarketingLocale, HomeCopy> = {
-  es: esHome,
-  de: deHome,
-  fr: frHome,
-  sk: skHome,
-  it: itHome,
-  pt: ptHome,
-  nl: nlHome,
-};
-
-// Only locales whose home page is reviewed become routable. With every
-// manifest empty this returns [], so the build produces zero localized URLs
-// and dynamicParams=false makes /de, /es, /fr, /sk a hard 404.
+// Only locales whose home page is reviewed become routable. All seven are
+// reviewed as of 2026-07-27, so this returns the full list; an entry flipped
+// back to "draft" drops out here and dynamicParams=false makes its URL a hard
+// 404 again.
 export function generateStaticParams(): { locale: MarketingLocale }[] {
   return MARKETING_LOCALES.filter((locale) => isPublished(locale, "home")).map(
     (locale) => ({ locale }),
@@ -61,8 +42,14 @@ export async function generateMetadata({
   // inheriting locale "en_US". So the openGraph below is complete, mirroring
   // app/[locale]/pricing/page.tsx. Title/description come from the reviewed
   // translation so localized homes never emit the English defaults.
+  //
+  // The SERP title is copy.metaTitle, NOT `${hero.h1} | ${siteName}`. The suffix
+  // cost 22 characters of a ~60-character budget and pushed the head keyword out
+  // of the visible part of the result; hero.h1 is now free to be a headline
+  // while metaTitle is written to be clicked. og:title keeps h1, which is what a
+  // social preview should show.
   return {
-    title: { absolute: `${copy.hero.h1} | ${siteName}` },
+    title: { absolute: copy.metaTitle },
     description: copy.metaDescription,
     alternates: alternatesFor("home", locale),
     openGraph: {

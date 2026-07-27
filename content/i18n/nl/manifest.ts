@@ -1,11 +1,12 @@
 import type { TranslationEntry } from "../_types";
 
-// Review state for the nl marketing pages. Draft until a native speaker reads
-// the rendered page, so every nl URL stays a hard 404 and nl never appears in
-// the language menu until the status flips to "reviewed".
+// Review state for the nl marketing pages.
 // See content/i18n/de/manifest.ts for the publish workflow.
+//
+// PUBLISHED 2026-07-27 without a native-speaker read - see
+// content/i18n/de/manifest.ts for the decision and its caveat.
 export const nl: TranslationEntry[] = [
-  { pageId: "ui", status: "draft" },
-  { pageId: "home", status: "draft" },
-  { pageId: "pricing", status: "draft" },
+  { pageId: "ui", status: "reviewed", reviewedAt: "2026-07-27" },
+  { pageId: "home", status: "reviewed", reviewedAt: "2026-07-27" },
+  { pageId: "pricing", status: "reviewed", reviewedAt: "2026-07-27" },
 ];
