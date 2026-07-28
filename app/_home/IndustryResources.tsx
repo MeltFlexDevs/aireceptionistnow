@@ -39,6 +39,9 @@ const RESOURCES: Record<IndustrySlug, ResourceLink[]> = {
   "home-services": [
     { href: "/blog/plumbing-answering-service", label: "Plumbing answering service: never miss an emergency call", kind: "Guide" },
     { href: "/blog/hvac-answering-service", label: "HVAC answering service: never miss a service call", kind: "Guide" },
+    { href: "/blog/roofing-answering-service", label: "Roofing answering service: catch every storm call", kind: "Guide" },
+    { href: "/blog/electrician-answering-service", label: "Electrician answering service: never lose a job call", kind: "Guide" },
+    { href: "/blog/contractor-answering-service", label: "Contractor answering service: never miss a bid call", kind: "Guide" },
     { href: "/blog/ai-receptionist-for-home-services", label: "AI receptionist for home services and trades", kind: "Guide" },
     { href: "/answers/can-an-ai-receptionist-handle-emergency-calls", label: "Can it handle emergency calls like a burst pipe?", kind: "Answer" },
     { href: "/answers/can-an-ai-receptionist-handle-multiple-calls-at-once", label: "Can it answer several calls at once?", kind: "Answer" },

@@ -87,6 +87,21 @@ import PlumbingAnsweringService, {
 import TelephoneAnsweringService, {
   meta as telephoneAnsweringServiceMeta,
 } from "./telephone-answering-service";
+import RoofingAnsweringService, {
+  meta as roofingAnsweringServiceMeta,
+} from "./roofing-answering-service";
+import ContractorAnsweringService, {
+  meta as contractorAnsweringServiceMeta,
+} from "./contractor-answering-service";
+import ElectricianAnsweringService, {
+  meta as electricianAnsweringServiceMeta,
+} from "./electrician-answering-service";
+import VeterinaryAnsweringService, {
+  meta as veterinaryAnsweringServiceMeta,
+} from "./veterinary-answering-service";
+import TowingAnsweringService, {
+  meta as towingAnsweringServiceMeta,
+} from "./towing-answering-service";
 
 export type PostMeta = {
   slug: string;
@@ -128,6 +143,9 @@ const postIndustry: Record<string, IndustrySlug> = {
   "real-estate-answering-service": "real-estate",
   "property-management-answering-service": "property-management",
   "plumbing-answering-service": "home-services",
+  "roofing-answering-service": "home-services",
+  "contractor-answering-service": "home-services",
+  "electrician-answering-service": "home-services",
 };
 
 const postAuthors: Record<string, AuthorKey> = {
@@ -159,6 +177,11 @@ const postAuthors: Record<string, AuthorKey> = {
   "24-hour-answering-service": "brano",
   "plumbing-answering-service": "matus",
   "telephone-answering-service": "brano",
+  "roofing-answering-service": "matus",
+  "contractor-answering-service": "brano",
+  "electrician-answering-service": "matus",
+  "veterinary-answering-service": "brano",
+  "towing-answering-service": "matus",
 };
 
 export const posts: Post[] = [
@@ -211,6 +234,11 @@ export const posts: Post[] = [
   },
   { ...plumbingAnsweringServiceMeta, Body: PlumbingAnsweringService },
   { ...telephoneAnsweringServiceMeta, Body: TelephoneAnsweringService },
+  { ...roofingAnsweringServiceMeta, Body: RoofingAnsweringService },
+  { ...contractorAnsweringServiceMeta, Body: ContractorAnsweringService },
+  { ...electricianAnsweringServiceMeta, Body: ElectricianAnsweringService },
+  { ...veterinaryAnsweringServiceMeta, Body: VeterinaryAnsweringService },
+  { ...towingAnsweringServiceMeta, Body: TowingAnsweringService },
 ]
   .map((p) => ({
     ...p,
