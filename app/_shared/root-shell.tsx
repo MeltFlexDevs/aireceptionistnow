@@ -30,6 +30,11 @@ import {
 // dashboard and onboarding - had no real weight to use, so the browser
 // synthesized a faux-bold from 500 and those screens looked like a different
 // typeface to the marketing pages.
+// Keep `preload` at its default (true). Turning it off was measured on a
+// throttled mobile profile and made things worse, not better: `font-display:
+// swap` still has a ~100ms block period, and without the preload that period
+// only starts once the stylesheet has parsed, so FCP moved 905ms -> 1208ms and
+// CLS 0.004 -> 0.020 as the swap landed late enough to reflow visible text.
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],

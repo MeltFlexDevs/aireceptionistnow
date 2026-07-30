@@ -368,7 +368,9 @@ export default function Home({
           font-family: var(--font-inter), Inter, sans-serif;
           font-size: 15px;
           font-weight: 300;
-          color: #888;
+          /* #888 on white is 3.54:1 and fails WCAG AA for body text. #6f6f6f is
+             5.03:1 and reads as the same soft grey. */
+          color: #6f6f6f;
           margin: 0;
         }
         .hiw-vars ._4rem-margin-top { margin-top: 4rem; }
@@ -594,11 +596,16 @@ export default function Home({
               {callMsg && (
                 <p style={{ color: "#444", fontSize: "12px", textAlign: "center", fontWeight: 300, margin: 0 }}>{callMsg}</p>
               )}
-              <p style={{ color: "#aaa", fontSize: "11px", textAlign: "center", marginTop: "2px", fontWeight: 300 }}>
+              {/* Consent small print. At 11px this is the least legible text on
+                  the page, and #aaa/#888 on white were 2.32:1 / 3.54:1 - both
+                  below the 4.5:1 WCAG AA floor. #6f6f6f (5.03:1) for the prose
+                  and #4a4a4a (8.86:1) for the links keeps the links visibly
+                  darker than the sentence around them. */}
+              <p style={{ color: "#6f6f6f", fontSize: "11px", textAlign: "center", marginTop: "2px", fontWeight: 300 }}>
                 {copy.hero.consent.before}{" "}
-                <Link href="/privacy-policy" style={{ color: "#888", textDecoration: "underline" }}>{copy.hero.consent.contactLink}</Link>
+                <Link href="/privacy-policy" style={{ color: "#4a4a4a", textDecoration: "underline" }}>{copy.hero.consent.contactLink}</Link>
                 {" "}{copy.hero.consent.between}{" "}
-                <Link href="/privacy-policy" style={{ color: "#888", textDecoration: "underline" }}>{copy.hero.consent.privacyLink}</Link>
+                <Link href="/privacy-policy" style={{ color: "#4a4a4a", textDecoration: "underline" }}>{copy.hero.consent.privacyLink}</Link>
                 {copy.hero.consent.after}
               </p>
             </div>
@@ -606,12 +613,10 @@ export default function Home({
 
           <div style={{ display: "flex", alignItems: "center", gap: "20px", padding: "18px 0 4px", marginTop: "12px", marginBottom: "52px", justifyContent: "center", flexWrap: "wrap" }}>
             <div style={{ display: "flex", marginRight: "-4px" }}>
-              {[
-                { src: "/testimonials/maria_sm.webp", alt: "Illustrative avatar" },
-                { src: "/testimonials/mustafa_sm.webp", alt: "Illustrative avatar" },
-                { src: "/testimonials/saheed_sm.webp", alt: "Illustrative avatar" },
-                { src: "/testimonials/delphine_sm.webp", alt: "Illustrative avatar" },
-              ].map((av, i) => (
+              {/* heroAvatars, not a second hardcoded list: the inline copy that
+                  used to be here shipped the English "Illustrative avatar" to
+                  all eight locales and left copy.hero.avatarAlts unused. */}
+              {heroAvatars.map((av, i) => (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img key={i} src={av.src} alt={av.alt} width={32} height={32} loading="eager"
                   style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover", border: "none", marginRight: i < 3 ? "-8px" : "0" }}
@@ -645,7 +650,7 @@ export default function Home({
             <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 300, letterSpacing: "-0.025em", textTransform: "uppercase", color: "#1D1D1D", margin: "0 0 8px" }}>
               {copy.testimonials.heading}
             </h2>
-            <p style={{ fontSize: "15px", color: "#888", fontWeight: 300, margin: 0 }}>
+            <p style={{ fontSize: "15px", color: "#6f6f6f", fontWeight: 300, margin: 0 }}>
               {copy.testimonials.sub}
             </p>
           </div>
@@ -656,7 +661,8 @@ export default function Home({
                   <Image src={r.photo} alt={r.name} width={36} height={36} sizes="36px" loading="lazy" style={{ width: "36px", height: "36px", borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
                   <div style={{ display: "flex", flexDirection: "column" }}>
                     <div style={{ fontWeight: 400, color: "#1D1D1D", fontSize: "13px" }}>{r.name}</div>
-                    <div style={{ color: "#bbb", fontSize: "10px", fontWeight: 300, letterSpacing: "0.5px" }}>{r.role}</div>
+                    {/* #bbb at 10px was 1.91:1 - the worst ratio on the page. */}
+                    <div style={{ color: "#6f6f6f", fontSize: "10px", fontWeight: 300, letterSpacing: "0.5px" }}>{r.role}</div>
                   </div>
                 </div>
                 <p style={{ fontSize: "13px", color: "#555", lineHeight: 1.6, fontWeight: 300, fontStyle: "italic", margin: 0 }}>&ldquo;{r.quote}&rdquo;</p>
@@ -749,18 +755,11 @@ export default function Home({
             </Link>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "16px" }}>
-            {[
-              // href drives the affordance: the pointer cursor and hover arrow
-              // only appear where there is somewhere to go. Customer Service and
-              // Order Processing have no matching answer page yet, so they stay
-              // inert rather than advertising a click that does nothing.
-              { icon: "briefcase", title: "Reception & Routing", desc: "Takes incoming calls and forwards them to the appropriate contact person.", href: "/answers/can-an-ai-receptionist-transfer-calls-to-a-human" },
-              { icon: "transcript", title: "Call Transcription", desc: "Collects inquiries, transcribes them, and sends you a summary by email.", href: "/answers/what-happens-if-an-ai-receptionist-cant-answer" },
-              { icon: "headset", title: "Customer Service", desc: "Handles customer inquiries around the clock with precisely defined behavior." },
-              { icon: "calendar", title: "Appointment Booking", desc: "Schedules appointments during the conversation with instant confirmation.", href: "/answers/can-an-ai-receptionist-book-appointments" },
-              { icon: "package", title: "Order Processing", desc: "Fast 24/7 automated request handling - no waiting, no missed orders." },
-              { icon: "grid", title: "50+ More Options", desc: "Every business is different. Configure the AI to match your exact workflow.", href: "/answers" },
-            ].map((uc: { icon: string; title: string; desc: string; href?: string }, i) => (
+            {/* `useCases` merges useCaseMeta (icon + href) with the localized
+                copy. It replaces an inline English-only copy of this list that
+                shadowed it, which shipped all six card titles and descriptions
+                in English on /de, /es, /fr, /it, /nl, /pt and /sk. */}
+            {useCases.map((uc, i) => (
               <UseCaseCard key={i} href={uc.href}>
                 <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "14px" }}>
                   <div style={{ width: "44px", height: "44px", flexShrink: 0, borderRadius: "12px", background: "rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
@@ -828,7 +827,7 @@ export default function Home({
             <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(24px, 3.5vw, 40px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#1D1D1D", marginBottom: "16px", textTransform: "uppercase" }}>
               {copy.footerCta.heading}
             </h2>
-            <p style={{ color: "#888", fontSize: "16px", fontWeight: 300, lineHeight: 1.65, maxWidth: "560px", margin: "0 auto 36px" }}>
+            <p style={{ color: "#6f6f6f", fontSize: "16px", fontWeight: 300, lineHeight: 1.65, maxWidth: "560px", margin: "0 auto 36px" }}>
               {copy.footerCta.body}
             </p>
             <Link href="/dashboard" style={{ display: "inline-flex", alignItems: "center", height: "46px", padding: "0 28px", background: "#1D1D1D", color: "#fff", borderRadius: "23px", fontSize: "14px", fontWeight: 400, textDecoration: "none", transition: "opacity 0.2s" }}

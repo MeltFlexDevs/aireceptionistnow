@@ -40,7 +40,11 @@ const VoicePartnerBadge = () => (
     aria-label="ElevenLabs - Voice Partner"
     style={{ display: "inline-flex", flexDirection: "column", alignItems: "flex-end", gap: "8px", textDecoration: "none" }}
   >
-    <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "10px", fontWeight: 400, letterSpacing: "0.12em", textTransform: "uppercase" }}>
+    {/* The footer's section labels are white at low alpha over #1D1D1D. At 0.4
+        they composite to #777 - 3.76:1, under the 4.5:1 WCAG AA floor. 0.52
+        composites to ~#929292 (5.4:1) and keeps them subordinate to the links
+        below them, which are full white. Same value on the three nav headings. */}
+    <span style={{ color: "rgba(255,255,255,0.52)", fontSize: "10px", fontWeight: 400, letterSpacing: "0.12em", textTransform: "uppercase" }}>
       Voice Partner
     </span>
     <ElevenLabsLogo />
@@ -152,7 +156,7 @@ export default function SiteFooter() {
         <div className="ar-footer-row" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 40px", display: "flex", justifyContent: "space-between", gap: "40px", flexWrap: "wrap" }}>
           <nav className="ar-footer-nav" style={{ display: "flex", gap: "64px", flexWrap: "wrap" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", fontWeight: 400, letterSpacing: "0.08em", textTransform: "uppercase" }}>Resources</span>
+              <span style={{ color: "rgba(255,255,255,0.52)", fontSize: "11px", fontWeight: 400, letterSpacing: "0.08em", textTransform: "uppercase" }}>Resources</span>
               <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
                 {[{ label: "Blog", href: "/blog" }, { label: "Answers", href: "/answers" }, { label: "24/7 AI Receptionist", href: "/blog/24-7-ai-receptionist" }].map((l) => (
                   <li key={l.label}><Link href={l.href} style={resourceLinkStyle}>{l.label}</Link></li>
@@ -161,7 +165,7 @@ export default function SiteFooter() {
               </ul>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <Link href="/industries" style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", fontWeight: 400, letterSpacing: "0.08em", textTransform: "uppercase", textDecoration: "none" }}>Industries</Link>
+              <Link href="/industries" style={{ color: "rgba(255,255,255,0.52)", fontSize: "11px", fontWeight: 400, letterSpacing: "0.08em", textTransform: "uppercase", textDecoration: "none" }}>Industries</Link>
               <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
                 {INDUSTRY_MENU.map((i) => (
                   <li key={i.slug}>
@@ -171,7 +175,7 @@ export default function SiteFooter() {
               </ul>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <Link href="/compare" style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", fontWeight: 400, letterSpacing: "0.08em", textTransform: "uppercase", textDecoration: "none" }}>Compare</Link>
+              <Link href="/compare" style={{ color: "rgba(255,255,255,0.52)", fontSize: "11px", fontWeight: 400, letterSpacing: "0.08em", textTransform: "uppercase", textDecoration: "none" }}>Compare</Link>
               <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
                 {COMPETITOR_NAV.map((c) => (
                   <li key={c.slug}>

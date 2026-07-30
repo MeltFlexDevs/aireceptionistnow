@@ -39,7 +39,8 @@ export function HomeExplore() {
               className="border border-[#e5e5e5] px-[18px] py-3.5 transition-colors hover:border-[#1D1D1D] hover:bg-[#fafafa]"
             >
               <span className="block text-[15px] text-[#1D1D1D]">{i.label}</span>
-              <span className="mt-0.5 block text-[13px] text-[#999]">
+              {/* #999 on white is 2.84:1; #6f6f6f is 5.03:1 (WCAG AA). */}
+              <span className="mt-0.5 block text-[13px] text-[#6f6f6f]">
                 {i.tagline}
               </span>
             </Link>
@@ -60,7 +61,7 @@ export function HomeExplore() {
               className="flex items-center justify-between gap-3 border border-[#e5e5e5] px-[18px] py-3.5 transition-colors hover:border-[#1D1D1D] hover:bg-[#fafafa]"
             >
               <span className="text-[15px] text-[#1D1D1D]">{g.label}</span>
-              <span className="shrink-0 text-[11px] font-medium tracking-[0.06em] text-[#999] uppercase">
+              <span className="shrink-0 text-[11px] font-medium tracking-[0.06em] text-[#6f6f6f] uppercase">
                 Guide
               </span>
             </Link>
