@@ -9,8 +9,10 @@ import {
   siteKeywords,
   logoUrl,
   sameAs,
+  foundingDate,
   supportEmail,
   authors,
+  authorId,
 } from "@/lib/site";
 
 // THE single <html>/<body> shell, shared by every root layout.
@@ -128,12 +130,17 @@ const orgJsonLd = {
       "Slovak",
     ],
   },
+  // Founders reuse the author-page @id so the founder entry, the byline on every
+  // post, and /authors/{slug} all resolve to a single Person node.
   founder: Object.values(authors).map((a) => ({
     "@type": "Person",
+    "@id": authorId(a),
     name: a.name,
     jobTitle: a.role,
+    url: `${siteUrl}/authors/${a.slug}`,
     sameAs: [a.linkedin],
   })),
+  ...(foundingDate ? { foundingDate } : {}),
   ...(sameAs.length ? { sameAs } : {}),
 };
 

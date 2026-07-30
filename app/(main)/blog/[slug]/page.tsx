@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { siteUrl, siteName, getAuthor } from "@/lib/site";
+import { siteUrl, siteName, getAuthor, authorId } from "@/lib/site";
 import { INDUSTRY_MENU } from "@/lib/marketing/industries";
 import { posts, getPost, relatedPosts, formatDate } from "../_posts";
 import { PostToc } from "../_components/post-toc";
@@ -89,11 +89,15 @@ export default async function BlogPostPage({
       dateModified: post.updated,
       keywords: post.keywords.join(", "),
       mainEntityOfPage: { "@type": "WebPage", "@id": url },
+      // Same @id as the author page's Person and the Organization's founder
+      // entry, so 29 bylines reconcile to one entity instead of 29 duplicates.
+      // url points at our author page; LinkedIn stays in sameAs.
       author: {
         "@type": "Person",
+        "@id": authorId(a),
         name: a.name,
         jobTitle: a.role,
-        url: a.linkedin,
+        url: `${siteUrl}/authors/${a.slug}`,
         image: `${siteUrl}${a.image}`,
         sameAs: [a.linkedin],
       },
@@ -144,10 +148,11 @@ export default async function BlogPostPage({
             </h1>
 
             <div className="mt-6 flex flex-wrap items-center gap-3 text-[14px] text-[#666]">
-              <a
-                href={a.linkedin}
-                target="_blank"
-                rel="noopener noreferrer me"
+              {/* Byline points at our own author page, not straight out to
+                  LinkedIn: it keeps the link internal and gives every post a
+                  crawlable path to the Person entity behind the byline. */}
+              <Link
+                href={`/authors/${a.slug}`}
                 className="flex items-center gap-3 transition-opacity hover:opacity-80"
               >
                 <Image
@@ -159,9 +164,9 @@ export default async function BlogPostPage({
                 />
                 <span>
                   By <span className="text-[#1D1D1D]">{a.name}</span>
-                  <span className="block text-[12px] text-[#999]">{a.role}</span>
+                  <span className="block text-[12px] text-[#6f6f6f]">{a.role}</span>
                 </span>
-              </a>
+              </Link>
               <span aria-hidden="true" className="size-[3px] rounded-full bg-[#ccc]" />
               <time dateTime={post.date}>{formatDate(post.date)}</time>
               {post.updated !== post.date && (
