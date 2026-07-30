@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { siteUrl } from "@/lib/site";
+import { siteUrl, authors, authorKeys } from "@/lib/site";
 import { alternatesFor } from "@/lib/i18n/marketing/alternates";
 import { localesFor } from "@/lib/i18n/marketing/manifest";
 import type { ContentLocale } from "@/lib/i18n/marketing/locales";
@@ -83,5 +83,31 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.6,
   }));
 
-  return [...staticPages, ...industryPages, ...comparePages, ...blogPosts, ...answerPages];
+  // lastModified tracks the author's newest post: the page's only volatile part
+  // is the article list, so that date is the honest one.
+  const authorPages: MetadataRoute.Sitemap = authorKeys.map((key) => {
+    const a = authors[key];
+    // posts is sorted by date, not updated, so take the real max.
+    const newest = posts
+      .filter((p) => p.author === key)
+      .reduce<string | undefined>(
+        (max, p) => (!max || p.updated > max ? p.updated : max),
+        undefined,
+      );
+    return {
+      url: `${siteUrl}/authors/${a.slug}`,
+      ...(newest ? { lastModified: new Date(`${newest}T00:00:00Z`) } : {}),
+      changeFrequency: "monthly" as const,
+      priority: 0.4,
+    };
+  });
+
+  return [
+    ...staticPages,
+    ...industryPages,
+    ...comparePages,
+    ...blogPosts,
+    ...answerPages,
+    ...authorPages,
+  ];
 }
