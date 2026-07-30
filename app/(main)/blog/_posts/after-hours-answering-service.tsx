@@ -318,6 +318,11 @@ export default function Body() {
         <Internal href="/answers/can-an-ai-receptionist-transfer-calls-to-a-human">
           how an AI receptionist transfers calls to a human
         </Internal>
+        , and the full specification - triggers, acknowledgement timers, the
+        on-call ladder and the 911 boundary - is in{" "}
+        <Internal href="/blog/how-to-set-up-emergency-call-escalation">
+          how to set up emergency call escalation
+        </Internal>
         .
       </P>
 
@@ -383,7 +388,12 @@ export default function Body() {
       </P>
       <P>
         If nights and weekends are where your phone is leaking, that&apos;s also
-        the easiest slice to plug first. You can{" "}
+        the easiest slice to plug first - and the keypad work is one
+        conditional forwarding code, which we walk through in{" "}
+        <Internal href="/blog/how-to-forward-calls-to-an-answering-service">
+          how to forward calls to an answering service
+        </Internal>
+        . You can{" "}
         <Internal href="/">hear our AI receptionist</Internal> handle a call and
         set an escalation rule, then check the{" "}
         <Internal href="/pricing">flat monthly pricing</Internal> - the one that

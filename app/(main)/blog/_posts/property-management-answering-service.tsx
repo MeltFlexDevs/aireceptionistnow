@@ -157,7 +157,13 @@ export default function Body() {
           AI receptionist for property management
         </Internal>{" "}
         page shows how we do it; this guide is the honest context around that
-        pitch.
+        pitch. If you run an on-site leasing office at a single community
+        rather than a scattered portfolio, the sister guide to{" "}
+        <Internal href="/blog/apartment-answering-service">
+          apartment answering services
+        </Internal>{" "}
+        covers leasing-call handling and the fair housing limits on what a
+        script may say.
       </P>
 
       <H2 id="burst-pipe">The 2 a.m. burst-pipe problem</H2>
@@ -504,7 +510,12 @@ export default function Body() {
           <Strong>Test the triage yourself, at night.</Strong> Call your own
           line and report a fake leak, a fake dead dishwasher, and a leasing
           inquiry. Confirm each lands where it should. Repeat after any
-          change to properties or on-call staff.
+          change to properties or on-call staff - and wire the on-call ladder
+          properly first, which we spell out in{" "}
+          <Internal href="/blog/how-to-set-up-emergency-call-escalation">
+            how to set up emergency call escalation
+          </Internal>
+          .
         </LI>
         <LI>
           <Strong>Read the first two weeks of transcripts.</Strong> Find

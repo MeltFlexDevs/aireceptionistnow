@@ -241,7 +241,12 @@ export default function Body() {
         <Internal href="/blog/property-management-answering-service">
           property management answering guide
         </Internal>{" "}
-        walks the overnight tenant-call problem end to end.
+        walks the overnight tenant-call problem end to end, and the{" "}
+        <Internal href="/blog/apartment-answering-service">
+          apartment answering service guide
+        </Internal>{" "}
+        does the on-site leasing-office version, where the same line carries
+        evening prospects and 2 a.m. burst pipes.
       </P>
 
       <H2 id="live-vs-ai">Live vs. AI vs. hybrid at night</H2>
@@ -297,7 +302,12 @@ export default function Body() {
         </Internal>
         , and our own{" "}
         <Internal href="/pricing">flat monthly pricing</Internal> is public if
-        you want a concrete number for the AI column.
+        you want a concrete number for the AI column. Whichever column you
+        pick, the switch itself is one forwarding code -{" "}
+        <Internal href="/blog/how-to-forward-calls-to-an-answering-service">
+          here are the carrier codes and the rule to choose
+        </Internal>
+        .
       </P>
 
       <H2 id="features">The features that matter at 3 a.m.</H2>

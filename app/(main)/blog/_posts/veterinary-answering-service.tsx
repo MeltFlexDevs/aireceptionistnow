@@ -370,10 +370,15 @@ export default function Body() {
       />
       <P>
         Whichever you choose, your published number stays the same -{" "}
-        <Internal href="/answers/use-existing-phone-number-with-ai-receptionist">
+        <Internal href="/blog/how-to-forward-calls-to-an-answering-service">
           forwarding handles it
-        </Internal>{" "}
-        - and you can compare market pricing in our{" "}
+        </Internal>
+        , and the triage rules behind it belong in a written ladder, which we
+        specify in{" "}
+        <Internal href="/blog/how-to-set-up-emergency-call-escalation">
+          how to set up emergency call escalation
+        </Internal>
+        . You can compare market pricing in our{" "}
         <Internal href="/blog/answering-service-cost">
           answering service cost guide
         </Internal>{" "}

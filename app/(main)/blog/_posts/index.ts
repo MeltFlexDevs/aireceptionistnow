@@ -102,6 +102,15 @@ import VeterinaryAnsweringService, {
 import TowingAnsweringService, {
   meta as towingAnsweringServiceMeta,
 } from "./towing-answering-service";
+import HowToForwardCallsToAnAnsweringService, {
+  meta as howToForwardCallsToAnAnsweringServiceMeta,
+} from "./how-to-forward-calls-to-an-answering-service";
+import ApartmentAnsweringService, {
+  meta as apartmentAnsweringServiceMeta,
+} from "./apartment-answering-service";
+import HowToSetUpEmergencyCallEscalation, {
+  meta as howToSetUpEmergencyCallEscalationMeta,
+} from "./how-to-set-up-emergency-call-escalation";
 
 export type PostMeta = {
   slug: string;
@@ -146,6 +155,7 @@ const postIndustry: Record<string, IndustrySlug> = {
   "roofing-answering-service": "home-services",
   "contractor-answering-service": "home-services",
   "electrician-answering-service": "home-services",
+  "apartment-answering-service": "property-management",
 };
 
 const postAuthors: Record<string, AuthorKey> = {
@@ -182,6 +192,9 @@ const postAuthors: Record<string, AuthorKey> = {
   "electrician-answering-service": "matus",
   "veterinary-answering-service": "brano",
   "towing-answering-service": "matus",
+  "how-to-forward-calls-to-an-answering-service": "brano",
+  "apartment-answering-service": "matus",
+  "how-to-set-up-emergency-call-escalation": "brano",
 };
 
 export const posts: Post[] = [
@@ -239,6 +252,15 @@ export const posts: Post[] = [
   { ...electricianAnsweringServiceMeta, Body: ElectricianAnsweringService },
   { ...veterinaryAnsweringServiceMeta, Body: VeterinaryAnsweringService },
   { ...towingAnsweringServiceMeta, Body: TowingAnsweringService },
+  {
+    ...howToForwardCallsToAnAnsweringServiceMeta,
+    Body: HowToForwardCallsToAnAnsweringService,
+  },
+  { ...apartmentAnsweringServiceMeta, Body: ApartmentAnsweringService },
+  {
+    ...howToSetUpEmergencyCallEscalationMeta,
+    Body: HowToSetUpEmergencyCallEscalation,
+  },
 ]
   .map((p) => ({
     ...p,

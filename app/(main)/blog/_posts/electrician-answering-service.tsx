@@ -352,8 +352,8 @@ export default function Body() {
       />
       <P>
         Whatever the model, your number stays -{" "}
-        <Internal href="/answers/use-existing-phone-number-with-ai-receptionist">
-          forwarding handles it
+        <Internal href="/blog/how-to-forward-calls-to-an-answering-service">
+          forwarding handles it in about eight minutes
         </Internal>
         . Market-wide pricing is in our{" "}
         <Internal href="/blog/answering-service-cost">
@@ -410,6 +410,10 @@ export default function Body() {
           how handoffs work in{" "}
           <Internal href="/answers/can-an-ai-receptionist-transfer-calls-to-a-human">
             this answer on transfers
+          </Internal>
+          , and on wiring the on-call ladder behind them in{" "}
+          <Internal href="/blog/how-to-set-up-emergency-call-escalation">
+            how to set up emergency call escalation
           </Internal>
           .
         </LI>

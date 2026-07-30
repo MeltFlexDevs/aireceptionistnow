@@ -241,7 +241,13 @@ export default function Body() {
           the cost of a missed call
         </Internal>
         ; the short version is that in the trades, the answering setup is a
-        revenue decision, not an office-supplies decision.
+        revenue decision, not an office-supplies decision. What separates a
+        service that captures those calls from one that fumbles them is the
+        escalation ladder behind it -{" "}
+        <Internal href="/blog/how-to-set-up-emergency-call-escalation">
+          how to set it up so someone actually wakes
+        </Internal>
+        .
       </P>
       <Callout>
         Frame the comparison honestly. An answering service doesn&apos;t
