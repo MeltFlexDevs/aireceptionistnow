@@ -105,6 +105,45 @@ const UseCaseIcon = ({ name }: { name: string }) => {
         <path d="M17 14.5v6M14 17.5h6" />
       </>
     ),
+    handoff: (
+      <>
+        <circle cx="7" cy="7" r="3" />
+        <path d="M2.5 20v-1.5A4.5 4.5 0 0 1 7 14h1" />
+        <path d="M12.5 12h7M17 9.5l2.5 2.5L17 14.5" />
+        <circle cx="17" cy="20" r="2.2" />
+      </>
+    ),
+    alert: (
+      <>
+        <path d="M12 3.5 2.8 19.5h18.4L12 3.5Z" />
+        <path d="M12 9.5v4M12 16.8v.2" />
+      </>
+    ),
+    bell: (
+      <>
+        <path d="M6 9a6 6 0 0 1 12 0c0 4 1.5 5.5 2 6H4c.5-.5 2-2 2-6Z" />
+        <path d="M10 18.5a2 2 0 0 0 4 0" />
+      </>
+    ),
+    plug: (
+      <>
+        <path d="M9 2.5v5M15 2.5v5" />
+        <path d="M6.5 7.5h11v3.5a5.5 5.5 0 0 1-11 0V7.5Z" />
+        <path d="M12 16.5v5" />
+      </>
+    ),
+    shield: (
+      <>
+        <path d="M12 2.5 20 6v6c0 4.8-3.2 9-8 10.2C7.2 21 4 16.8 4 12V6l8-3.5Z" />
+        <path d="M9 12.2l2 2 4-4.2" />
+      </>
+    ),
+    user: (
+      <>
+        <circle cx="12" cy="8" r="3.5" />
+        <path d="M4.5 20.5v-1A5.5 5.5 0 0 1 10 14h4a5.5 5.5 0 0 1 5.5 5.5v1" />
+      </>
+    ),
   };
   return <svg {...common}>{paths[name]}</svg>;
 };
@@ -152,6 +191,18 @@ const reviewPhotos = [
 // where there is somewhere to go. Customer Service and Order Processing have no
 // matching answer page yet, so they stay inert rather than advertising a click
 // that does nothing.
+// Icons and deep links for the capability cards. Same split as useCaseMeta: the
+// prose is localized in content/i18n/*/pages/home.ts and merged by index, so a
+// reordering here silently repoints every icon - keep the two in step.
+const capabilityMeta: { icon: string; href?: string }[] = [
+  { icon: "handoff", href: "/answers/can-an-ai-receptionist-transfer-calls-to-a-human" },
+  { icon: "alert" },
+  { icon: "bell" },
+  { icon: "plug" },
+  { icon: "shield", href: "/answers/what-happens-if-an-ai-receptionist-cant-answer" },
+  { icon: "user" },
+];
+
 const useCaseMeta: { icon: string; href?: string }[] = [
   { icon: "briefcase", href: "/answers/can-an-ai-receptionist-transfer-calls-to-a-human" },
   { icon: "transcript", href: "/answers/what-happens-if-an-ai-receptionist-cant-answer" },
@@ -271,6 +322,7 @@ export default function Home({
   const reviews = copy.testimonials.items.map((r, i) => ({ ...r, photo: reviewPhotos[i] }));
   const faqs = copy.faq.items;
   const useCases = useCaseMeta.map((m, i) => ({ ...m, ...copy.useCases.items[i] }));
+  const capabilities = capabilityMeta.map((m, i) => ({ ...m, ...copy.capabilities.items[i] }));
   const heroAvatars = heroAvatarSrcs.map((src, i) => ({ src, alt: copy.hero.avatarAlts[i] }));
 
   const prices = PLANS.map((p) => p.monthlyAmountCents / 100);
@@ -744,6 +796,47 @@ export default function Home({
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* What the product does, as opposed to where it gets used (the dark
+          "use cases" grid below). Sits before that on purpose: a prospect
+          deciding between us and a hybrid answering service wants to know what
+          happens when the AI can't cope, and that answer is here.
+
+          Every claim maps to shipped behaviour in lib/call-engine - escalation
+          destinations, proactive escalation, urgent paging, custom actions, the
+          post-call accuracy audit, caller recognition. Do not add a card here
+          without the code to back it. */}
+      <section id="capabilities" className="lp-section" style={{ padding: "100px 0" }}>
+        <div className="lp-pad" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 40px" }}>
+          <div style={{ maxWidth: "620px", marginBottom: "56px" }}>
+            <h2 style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 300, letterSpacing: "-0.025em", textTransform: "uppercase", color: "#1D1D1D", marginBottom: "16px" }}>
+              {copy.capabilities.heading}
+            </h2>
+            <p style={{ fontSize: "16px", color: "#6f6f6f", fontWeight: 300, lineHeight: 1.65 }}>
+              {copy.capabilities.sub}
+            </p>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "28px 32px" }}>
+            {capabilities.map((cap, i) => (
+              <UseCaseCard key={i} href={cap.href}>
+                <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "14px" }}>
+                  <div style={{ width: "44px", height: "44px", flexShrink: 0, borderRadius: "12px", background: "rgba(29,29,29,0.05)", display: "flex", alignItems: "center", justifyContent: "center", color: "#1D1D1D" }}>
+                    <UseCaseIcon name={cap.icon} />
+                  </div>
+                  <h3 style={{ fontSize: "15px", fontWeight: 500, color: "#1D1D1D", letterSpacing: "-0.01em", margin: 0 }}>{cap.title}</h3>
+                  {cap.href && (
+                    <span data-arrow style={{ display: "inline-flex", marginLeft: "auto", color: "#1D1D1D", opacity: 0, transform: "translate(0, 0)", transition: "opacity 0.2s, transform 0.2s" }}>
+                      <svg width="18" height="18" viewBox="0 -960 960 960" fill="currentColor"><path d="M640-624 284-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l356-356H280q-17 0-28.5-11.5T240-720q0-17 11.5-28.5T280-760h400q17 0 28.5 11.5T720-720v400q0 17-11.5 28.5T680-280q-17 0-28.5-11.5T640-320v-304Z" /></svg>
+                    </span>
+                  )}
+                </div>
+                {/* #6f6f6f, not #888: 11-15px body text needs 4.5:1 on white. */}
+                <p style={{ fontSize: "13px", color: "#6f6f6f", lineHeight: 1.65, fontWeight: 300 }}>{cap.desc}</p>
+              </UseCaseCard>
+            ))}
           </div>
         </div>
       </section>

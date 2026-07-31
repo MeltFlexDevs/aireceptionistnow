@@ -7,16 +7,24 @@ import type { TransferHours } from "@/lib/call-engine/transfer-hours";
 /**
  * The weekly window during which the receptionist may hand a caller to a human.
  *
- * Field names match what buildAssistantPatch reads: transfer_hours_tz, and per
- * day transfer_day_<i> / transfer_start_<i> / transfer_end_<i>, where i is the
- * JS weekday (0 = Sunday). The day checkbox is the source of truth - the time
- * inputs stay mounted and populated when a day is switched off, so the patch
- * layer ignores them unless the checkbox is on.
+ * Field names are supplied by the caller (see `names`) because this grid is now
+ * rendered once per escalation destination, each with its own schedule. The day
+ * index is the JS weekday (0 = Sunday). The day checkbox is the source of truth -
+ * the time inputs stay mounted and populated when a day is switched off, so the
+ * patch layer ignores them unless the checkbox is on.
  *
  * Client component only because switching a day off should visibly disable its
  * times. Everything else is plain uncontrolled form state, which is what the
  * surrounding TopicModal submits.
  */
+
+/** The four form-field names this grid writes, per destination. */
+export interface TransferHoursNames {
+  tz: string;
+  day: (weekday: number) => string;
+  start: (weekday: number) => string;
+  end: (weekday: number) => string;
+}
 
 export interface TransferHoursLabels {
   scheduleTitle: string;
@@ -39,11 +47,13 @@ export function TransferHoursFields({
   hours,
   fallbackTimezone,
   labels,
+  names,
 }: {
   hours: TransferHours | null;
   /** Account timezone, used when no schedule has been saved yet. */
   fallbackTimezone: string;
   labels: TransferHoursLabels;
+  names: TransferHoursNames;
 }) {
   const [enabled, setEnabled] = useState(hours !== null);
   const [openDays, setOpenDays] = useState<boolean[]>(() =>
@@ -75,7 +85,7 @@ export function TransferHoursFields({
 
       {/* Always submitted. Blank when the schedule is off, which is what makes
           buildAssistantPatch delete a previously saved schedule. */}
-      <input type="hidden" name="transfer_hours_tz" value={enabled ? timezone : ""} />
+      <input type="hidden" name={names.tz} value={enabled ? timezone : ""} />
 
       {enabled && (
         <div className="space-y-2 rounded-lg border border-neutral-200/70 bg-white/60 p-3">
@@ -94,7 +104,7 @@ export function TransferHoursFields({
                 <label className="flex w-28 shrink-0 cursor-pointer items-center gap-2">
                   <input
                     type="checkbox"
-                    name={`transfer_day_${day}`}
+                    name={names.day(day)}
                     checked={on}
                     onChange={(e) =>
                       setOpenDays((prev) => {
@@ -110,7 +120,7 @@ export function TransferHoursFields({
 
                 <input
                   type="time"
-                  name={`transfer_start_${day}`}
+                  name={names.start(day)}
                   defaultValue={win.start}
                   disabled={!on}
                   aria-label={`${labels.days[day]} ${labels.fromLabel}`}
@@ -119,7 +129,7 @@ export function TransferHoursFields({
                 <span className="text-xs text-neutral-400">{labels.toLabel}</span>
                 <input
                   type="time"
-                  name={`transfer_end_${day}`}
+                  name={names.end(day)}
                   defaultValue={win.end}
                   disabled={!on}
                   aria-label={`${labels.days[day]} ${labels.toLabel}`}

@@ -107,6 +107,19 @@ export const frHome: HomeCopy = {
     ],
   },
 
+  capabilities: {
+    heading: "Ce qu'elle fait vraiment",
+    sub: "Pas un menu téléphonique avec une plus jolie voix. Voici ce qu'elle fait sur un vrai appel - et ce qui se passe quand elle ne peut pas.",
+    items: [
+      { title: "Oriente vers la bonne personne", desc: "Jusqu'à cinq destinations - accueil, facturation, l'astreinte - chacune avec ses horaires. Elle choisit celle qui correspond au besoin de l'appelant et sait qui est réellement joignable à cet instant." },
+      { title: "Passe la main avant que vous perdiez l'appelant", desc: "Elle propose une personne dès que quelqu'un s'agace, a dû se répéter ou parle d'une urgence. Sans attendre qu'on le lui demande. Ajoutez vos propres déclencheurs : une canalisation rompue, une menace de résiliation." },
+      { title: "Vous appelle quand ça compte", desc: "Un message urgent vous arrive aussitôt par SMS et, si vous le souhaitez, la standardiste vous appelle et vous donne l'appelant, son numéro et le problème. Fixez un délai de rappel et elle le promet à voix haute." },
+      { title: "Interroge vos propres systèmes", desc: "Indiquez-lui votre API et elle pourra retrouver une commande, vérifier un stock ou donner vos vrais tarifs en pleine conversation, au lieu de deviner ou de vous laisser un message à traiter plus tard." },
+      { title: "N'invente rien", desc: "Nommez les sujets auxquels elle ne doit jamais répondre et elle le dira franchement plutôt que de deviner. Donnez-lui les formulations qui doivent être exactes et elle reprendra les vôtres. Après chaque appel, elle confronte ce qu'elle a dit à ce que vous lui avez fourni et signale ce qu'elle n'a pas pu étayer. Et si un appelant demande franchement s'il parle à une IA, elle le lui dit." },
+      { title: "Reconnaît vos habitués", desc: "Un appelant déjà venu est accueilli par son nom et n'a pas à répéter ce qu'il vous a déjà dit. Un interrupteur le désactive si vous préférez." },
+    ],
+  },
+
   faq: {
     heading: "Questions fréquentes",
     items: [
@@ -132,7 +145,7 @@ export const frHome: HomeCopy = {
       },
       {
         q: "Peut-elle prendre des rendez-vous et se connecter à mon agenda et à mon CRM ?",
-        a: "Oui. AI Receptionist Now prend les rendez-vous pendant l'appel et s'intègre nativement à Google Calendar, Outlook, HubSpot, Salesforce et Calendly, ainsi qu'à des milliers d'applications via Zapier. Des intégrations sur mesure sont possibles grâce à notre API ouverte : les données des appelants arrivent directement dans les outils que vous utilisez déjà.",
+        a: "Oui. Elle prend le rendez-vous pendant l'appel dans Google Calendar, Microsoft Calendar ou Cal.com, vérifie d'abord que le créneau est libre lorsque l'agenda le permet, et envoie une confirmation par SMS à l'appelant. Au-delà des agendas, vous pouvez l'orienter vers votre propre API pour retrouver une commande ou vérifier un stock en pleine conversation, et chaque résumé et transcription peut être transmis à votre CRM par webhook.",
       },
       {
         q: "Quelles langues la standardiste IA prend-elle en charge ?",

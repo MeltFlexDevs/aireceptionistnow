@@ -7,7 +7,7 @@ import {
   summarizeOrgKnowledgeCached,
   type OrgKnowledge,
 } from "@/lib/dashboard/ai-knowledge";
-import { readKnowledge } from "@/lib/knowledge/sources";
+import { formatVerifiedLines, readKnowledge } from "@/lib/knowledge/sources";
 import { relTimeOf } from "@/lib/dashboard/rel-time";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { PageHeader } from "../components/PageHeader";
@@ -53,6 +53,7 @@ export default async function KnowledgePage({
   const orgId = active?.org.id ?? "";
   const stored = readKnowledge(active?.org.knowledge);
   const notes = stored.notes ?? "";
+  const verified = formatVerifiedLines(stored.verified ?? []);
   const rows: SourceRow[] = (stored.sources ?? []).map((s) => ({
     id: s.id,
     kind: s.kind,
@@ -61,7 +62,7 @@ export default async function KnowledgePage({
     summary: s.summary ?? "",
   }));
 
-  const isEmpty = rows.length === 0 && !notes;
+  const isEmpty = rows.length === 0 && !notes && !verified;
 
   return (
     <div className={`rise flex flex-col gap-3 ${CAP}`}>
@@ -110,7 +111,7 @@ export default async function KnowledgePage({
       </div>
 
       {/* C: teach bar */}
-      <TeachBar orgId={orgId} notes={notes} />
+      <TeachBar orgId={orgId} notes={notes} verified={verified} />
 
       {/* D: the page's only scroll region */}
       {isEmpty ? (
@@ -125,7 +126,7 @@ export default async function KnowledgePage({
             <h2 className="text-sm font-medium text-neutral-900">{k.sources}</h2>
           </header>
           <div className="min-h-0 flex-1 overflow-y-auto px-5">
-            <SourceList orgId={orgId} notes={notes} rows={rows} />
+            <SourceList orgId={orgId} notes={notes} verified={verified} rows={rows} />
           </div>
         </section>
       )}

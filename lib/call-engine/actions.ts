@@ -8,7 +8,9 @@ import {
   type CalendarAccessEntry,
   type ResolvedCalendar,
 } from "./integrations/registry";
+import { alertNumber, parseEscalation } from "./escalation";
 import { BOOKING_TIMEOUT_MS, withDeadline } from "./net";
+import { pageOwner, shouldPage } from "./paging";
 import type { CallRepository } from "./persistence/types";
 import { sendSms } from "./telephony";
 import type { BookingRequest, NumberConfig } from "./types";
@@ -102,13 +104,14 @@ async function notifyBookingIssue(
   req: BookingRequest,
   reason: string,
 ): Promise<void> {
-  const r = ctx.config.routing as { transferTo?: string; smsAlerts?: boolean };
-  if (!r.transferTo || r.smsAlerts === false) return;
+  const r = ctx.config.routing as { smsAlerts?: boolean };
+  const to = alertNumber(parseEscalation(ctx.config.routing));
+  if (!to || r.smsAlerts === false) return;
   const who = req.attendeeName || ctx.from;
   const body =
     `Booking needs attention for ${ctx.config.businessName}: couldn't complete "${req.title}" ` +
     `for ${who} at ${req.startTime} - ${reason}. Please follow up.`;
-  const send = sendSms(r.transferTo, ctx.to, body, ctx.config.businessName).catch((err) =>
+  const send = sendSms(to, ctx.to, body, ctx.config.businessName).catch((err) =>
     console.error("[actions] booking-issue sms failed", err),
   );
   await withDeadline(send, 3000, undefined);
@@ -382,9 +385,26 @@ export async function takeMessageAction(
     urgency: clip(input.urgency, 20),
   };
   // The insert IS the saved message - it must land before we claim success.
-  // Only the best-effort SMS alert (up to 3s) runs after the response.
+  // Only the best-effort alerts (SMS, and a phone page when it's urgent) run
+  // after the response, so the caller never waits on either.
   await repo.recordAction(ctx.callId, { type: "message", status: "done", payload });
-  after(() => alertOwner(ctx, payload));
+  after(async () => {
+    await alertOwner(ctx, payload);
+    if (!shouldPage(payload.urgency)) return;
+    // An SMS at 3am wakes nobody. When the agent marked this urgent, ring the
+    // business too - this is the closest thing to a human backstop we can
+    // honestly offer. Off unless the operator turned it on; see ./paging.ts.
+    //
+    // Deliberately not recorded as a second action row: the message is already
+    // in the list with its urgency, and a duplicate entry would read as two
+    // messages. pageOwner logs its own outcome.
+    await pageOwner(ctx.config, {
+      callerName: payload.caller_name,
+      callbackNumber: payload.callback_number,
+      message: payload.message,
+      from: ctx.from,
+    });
+  });
   return "Message saved. Reassure the caller it's been passed on, then ask if there's anything else you can help with.";
 }
 
@@ -392,14 +412,15 @@ async function alertOwner(
   ctx: ActionContext,
   input: { caller_name: string; callback_number: string; message: string },
 ): Promise<void> {
-  const r = ctx.config.routing as { transferTo?: string; smsAlerts?: boolean };
-  if (!r.transferTo || r.smsAlerts === false) return;
+  const r = ctx.config.routing as { smsAlerts?: boolean };
+  const to = alertNumber(parseEscalation(ctx.config.routing));
+  if (!to || r.smsAlerts === false) return;
   const who = input.caller_name || ctx.from;
   const cb = input.callback_number ? ` (${input.callback_number})` : "";
   const body = `New message for ${ctx.config.businessName}: ${input.message} - from ${who}${cb}`;
   // Log on the promise itself: withDeadline swallows rejections into its
   // fallback, so a try/catch around it would never see the Twilio error.
-  const send = sendSms(r.transferTo, ctx.to, body, ctx.config.businessName).catch((err) =>
+  const send = sendSms(to, ctx.to, body, ctx.config.businessName).catch((err) =>
     console.error("[actions] sms alert failed", err),
   );
   await withDeadline(send, 3000, undefined);

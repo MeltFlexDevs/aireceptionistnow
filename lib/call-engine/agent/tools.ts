@@ -2,7 +2,13 @@ import crypto from "node:crypto";
 import type { ElevenLabs } from "@elevenlabs/elevenlabs-js";
 import { elevenClient } from "./eleven-client";
 import type { AgentTool, Assistant } from "../../dashboard/db";
-import { parseTransferHours } from "../transfer-hours";
+import {
+  needsPerCallPolicy,
+  parseEscalation,
+  transferCondition,
+  transferTypeFor,
+} from "../escalation";
+import { toCustomToolRequest, type CustomTool } from "./custom-tools";
 
 function sharedFields(): Record<string, ElevenLabs.LiteralJsonSchemaProperty> {
   return {
@@ -33,11 +39,6 @@ interface WebhookToolSpec {
 export interface AgentCapabilities {
   canRead: boolean;
   canBook: boolean;
-}
-
-function transferNumber(assistant: Assistant): string {
-  const r = (assistant.routing ?? {}) as { transferTo?: unknown };
-  return typeof r.transferTo === "string" ? r.transferTo.trim() : "";
 }
 
 function webhookToolSpecs({ canRead, canBook }: AgentCapabilities): WebhookToolSpec[] {
@@ -129,23 +130,41 @@ function webhookToolSpecs({ canRead, canBook }: AgentCapabilities): WebhookToolS
 
 let secretLocatorPromise: Promise<ElevenLabs.ConvAiSecretLocator | null> | null = null;
 
+/**
+ * Store a value as an ElevenLabs workspace secret and return its locator, so the
+ * credential is never written into a tool config in plaintext.
+ *
+ * The name is derived from a hash of the value, which makes this idempotent:
+ * re-syncing an unchanged secret finds the existing one instead of piling up
+ * duplicates. Also means a rotated value gets a new secret rather than silently
+ * reusing the old one.
+ */
+export async function storeWorkspaceSecret(
+  prefix: string,
+  value: string,
+): Promise<ElevenLabs.ConvAiSecretLocator | null> {
+  const name = `${prefix}-${crypto.createHash("sha256").update(value).digest("hex").slice(0, 8)}`;
+  try {
+    const client = elevenClient();
+    const existing = (await client.conversationalAi.secrets.list({ search: name })).secrets.find(
+      (s) => s.name === name,
+    );
+    if (existing) return { secretId: existing.secretId };
+    const created = await client.conversationalAi.secrets.create({ name, value });
+    return { secretId: created.secretId };
+  } catch (err) {
+    console.error("[agent-tools] workspace secret setup failed", name, err);
+    return null;
+  }
+}
+
 function workspaceSecretLocator(secret: string): Promise<ElevenLabs.ConvAiSecretLocator | null> {
-  secretLocatorPromise ??= (async () => {
-    const name = `agent-webhook-${crypto.createHash("sha256").update(secret).digest("hex").slice(0, 8)}`;
-    try {
-      const client = elevenClient();
-      const existing = (await client.conversationalAi.secrets.list({ search: name })).secrets.find(
-        (s) => s.name === name,
-      );
-      if (existing) return { secretId: existing.secretId };
-      const created = await client.conversationalAi.secrets.create({ name, value: secret });
-      return { secretId: created.secretId };
-    } catch (err) {
-      console.error("[agent-tools] workspace secret setup failed, using plaintext header", err);
-      secretLocatorPromise = null;
-      return null;
-    }
-  })();
+  secretLocatorPromise ??= storeWorkspaceSecret("agent-webhook", secret).then((locator) => {
+    // On failure, clear the memo so the next sync retries instead of caching a
+    // null forever. The caller falls back to a plaintext header meanwhile.
+    if (!locator) secretLocatorPromise = null;
+    return locator;
+  });
   return secretLocatorPromise;
 }
 
@@ -186,7 +205,7 @@ export function buildBuiltInTools(
   assistant: Assistant,
   includeLanguageDetection = true,
 ): ElevenLabs.BuiltInToolsOutput {
-  const transferTo = transferNumber(assistant);
+  const escalation = parseEscalation(assistant.routing);
 
   const tools: ElevenLabs.BuiltInToolsOutput = {
     endCall: { name: "end_call", params: { systemToolType: "end_call" } },
@@ -202,30 +221,32 @@ export function buildBuiltInTools(
     };
   }
 
-  if (transferTo) {
-    // When transfer hours are set, the condition carries a second clause. The
-    // tool itself cannot know the time - it is static agent config - so the
-    // real decision is the {{transfer_policy}} line in the prompt, filled per
-    // call. This just stops the condition from contradicting it: without the
-    // clause the tool advertises an unconditional "caller asked for a human ⇒
-    // transfer", which is precisely what the prompt may be forbidding.
-    const gated = parseTransferHours(
-      (assistant.routing as Record<string, unknown> | null)?.transferHours,
-    );
+  if (escalation.targets.length > 0) {
+    // One entry per destination, each with its own condition, so the agent can
+    // route (billing vs the on-call engineer) instead of dumping every caller
+    // on one number.
+    //
+    // When any destination is scheduled, every condition carries a second
+    // clause. The tool itself cannot know the time - it is static agent config -
+    // so the real decision is the {{transfer_policy}} line in the prompt, filled
+    // per call. The clause only stops the condition from contradicting it:
+    // without it the tool advertises an unconditional "caller asked for a human
+    // ⇒ transfer", which is precisely what the prompt may be forbidding.
+    const gated = needsPerCallPolicy(escalation);
     tools.transferToNumber = {
       name: "transfer_to_number",
       description:
-        "Transfer the caller to a human when they ask for a person, or when the request is beyond what you can handle.",
+        "Transfer the caller to a person when they ask for one, when the request is beyond what you can handle, or when they are upset or describing an emergency.",
       params: {
         systemToolType: "transfer_to_number",
-        transfers: [
-          {
-            transferDestination: { type: "phone", phoneNumber: transferTo },
-            condition: gated
-              ? "The caller asks to speak to a human, asks to be transferred, or has a problem you cannot resolve - AND your instructions for this call say a human is currently available. Never use this when your instructions say no one is available to take a transfer."
-              : "The caller asks to speak to a human, asks to be transferred, or has a problem you cannot resolve.",
-          },
-        ],
+        transfers: escalation.targets.map((target) => ({
+          transferDestination: { type: "phone" as const, phoneNumber: target.number },
+          condition: transferCondition(target, gated),
+          // Spread, not assign: an explicit undefined serializes as
+          // "transfer_type": null instead of being omitted, which would override
+          // the platform default rather than leave it alone.
+          ...(transferTypeFor(target) ? { transferType: transferTypeFor(target) } : {}),
+        })),
         enableClientMessage: true,
       },
     };
@@ -236,29 +257,54 @@ export function buildBuiltInTools(
 
 export async function createAgentTools(
   capabilities: AgentCapabilities,
+  /** The business's own actions, already validated - see ./custom-tools.ts. */
+  customTools: CustomTool[] = [],
 ): Promise<{ toolIds: string[]; tools: AgentTool[] }> {
   const baseUrl = (process.env.APP_BASE_URL ?? "").replace(/\/$/, "");
   const secret = process.env.AGENT_WEBHOOK_SECRET ?? "";
-  if (!baseUrl || !secret) {
-    console.warn(
-      "[agent-tools] APP_BASE_URL or AGENT_WEBHOOK_SECRET unset - agent gets no server tools (Q&A + system tools only).",
-    );
-    return { toolIds: [], tools: [] };
-  }
 
   const client = elevenClient();
 
-  const headerValue = (await workspaceSecretLocator(secret)) ?? secret;
+  const requests: { name: string; build: () => Promise<ElevenLabs.ToolRequestModel> }[] = [];
+
+  // Our own webhook tools need the callback URL and shared secret. Custom
+  // actions point at the customer's own API and need neither, so they are still
+  // created when ours cannot be.
+  if (baseUrl && secret) {
+    const headerValue = (await workspaceSecretLocator(secret)) ?? secret;
+    for (const spec of webhookToolSpecs(capabilities)) {
+      requests.push({
+        name: spec.name,
+        build: async () => toToolRequest(spec, baseUrl, headerValue),
+      });
+    }
+  } else {
+    console.warn(
+      "[agent-tools] APP_BASE_URL or AGENT_WEBHOOK_SECRET unset - agent gets no server tools (Q&A + system tools only).",
+    );
+  }
+
+  for (const tool of customTools) {
+    requests.push({
+      name: tool.name,
+      build: async () => {
+        // The header value lives in a workspace secret; only its id is stored
+        // on the assistant, so the credential is never in our database.
+        const auth = tool.authSecretId ? { secretId: tool.authSecretId } : undefined;
+        return toCustomToolRequest(tool, auth);
+      },
+    });
+  }
+
+  if (requests.length === 0) return { toolIds: [], tools: [] };
 
   const created = await Promise.all(
-    webhookToolSpecs(capabilities).map(async (spec) => {
+    requests.map(async ({ name, build }) => {
       try {
-        const t = await client.conversationalAi.tools.create(
-          toToolRequest(spec, baseUrl, headerValue),
-        );
-        return { id: t.id, name: spec.name };
+        const t = await client.conversationalAi.tools.create(await build());
+        return { id: t.id, name };
       } catch (err) {
-        console.error("[agent-tools] tool create failed", spec.name, err);
+        console.error("[agent-tools] tool create failed", name, err);
         return null;
       }
     }),

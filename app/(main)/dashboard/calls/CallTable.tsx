@@ -46,6 +46,14 @@ export function CallTable({
                   <span className="truncate">{c.assistant}</span>
                 </>
               )}
+              {/* The accuracy audit wants a person to read this one. Last in the
+                  row and colour-coded, so a clean list stays quiet and a flagged
+                  call is findable at a glance. */}
+              {c.needsReview && (
+                <span className="ml-auto shrink-0 rounded-full bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-700">
+                  {t.calls.needsReview}
+                </span>
+              )}
             </div>
           </>
         );

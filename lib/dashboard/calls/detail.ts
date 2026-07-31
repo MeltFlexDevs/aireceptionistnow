@@ -6,7 +6,7 @@ import { dateTimeFmt, fmtDuration, isLiveStatus, normalizeDirection, statusLabel
 import type { CallActionItem, CallDetail, CallTurn } from "./types";
 
 const SELECT =
-  "id,twilio_call_sid,from_number,to_number,direction,status,started_at,duration_seconds,outcome,sentiment,summary,recording_url,owner_id,assistant:assistants!assistant_id(name),phone_number:phone_numbers(assistant:assistants(name,owner_id))";
+  "id,twilio_call_sid,from_number,to_number,direction,status,started_at,duration_seconds,outcome,sentiment,summary,needs_review,review_claims,recording_url,owner_id,assistant:assistants!assistant_id(name),phone_number:phone_numbers(assistant:assistants(name,owner_id))";
 
 export async function getCallDetail(
   id: string,
@@ -73,6 +73,10 @@ export async function getCallDetail(
     assistant: assistantName(c),
     recordingUrl: str(c.recording_url) || null,
     isLive: isLiveStatus(status),
+    needsReview: c.needs_review === true,
+    reviewClaims: Array.isArray(c.review_claims)
+      ? (c.review_claims as unknown[]).filter((x): x is string => typeof x === "string")
+      : [],
     turns,
     actions,
   };

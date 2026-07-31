@@ -1,5 +1,6 @@
 "use server";
 
+import { lookup } from "node:dns/promises";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
@@ -31,6 +32,8 @@ import {
 } from "@/lib/call-engine/elevenlabs";
 import { pickDemoCallerId } from "@/lib/call-engine/demo-caller";
 import { syncAssistantAgent, deleteAssistantAgent } from "@/lib/call-engine/agent/sync";
+import { checkToolUrl, isBlockedHost } from "@/lib/call-engine/agent/custom-tools";
+import { storeWorkspaceSecret } from "@/lib/call-engine/agent/tools";
 import { buildAssistantPatch } from "@/lib/dashboard/assistant-patch";
 import { getDictionary } from "@/lib/i18n/server";
 import { ok, fail, type ActionState } from "@/lib/dashboard/action-state";
@@ -50,6 +53,64 @@ function libVoiceName(encoded: string | undefined, lang: string): string {
     }
   }
   return `Voice (${lang})`;
+}
+
+/**
+ * Save-time checks for the business's own action endpoints.
+ *
+ * Two jobs. First, resolve each hostname and refuse one that lands on a private
+ * or link-local address - `checkToolUrl` already rejects a literal address, this
+ * catches `internal.mycompany.com` pointing at 10.0.0.5. Be clear about the
+ * limit: ElevenLabs makes the actual request, not us, so this is validation at
+ * save time and NOT a runtime SSRF control. It stops mistakes, not an attacker
+ * who controls DNS.
+ *
+ * Second, exchange each submitted auth header value for an ElevenLabs workspace
+ * secret, so the credential is never written to our database - only the id is.
+ */
+async function resolveCustomToolSecrets(
+  formData: FormData,
+): Promise<{ ok: true; secrets: Record<string, string> } | { ok: false; error: string }> {
+  const keys = String(formData.get("ct_keys") ?? "")
+    .split(",")
+    .map((k) => k.trim())
+    .filter((k) => /^[a-z0-9]{1,16}$/.test(k));
+  if (keys.length === 0) return { ok: true, secrets: {} };
+
+  const a = (await getDictionary()).assistants;
+  const secrets: Record<string, string> = {};
+
+  for (const key of keys) {
+    const rawUrl = String(formData.get(`ct_${key}_url`) ?? "").trim();
+    if (!rawUrl) continue;
+
+    const checked = checkToolUrl(rawUrl);
+    if (!checked.ok) {
+      return { ok: false, error: a.customToolBadUrl.replace("{url}", rawUrl) };
+    }
+
+    const host = new URL(checked.url).hostname;
+    try {
+      const addresses = await lookup(host, { all: true });
+      if (addresses.some((addr) => isBlockedHost(addr.address))) {
+        return { ok: false, error: a.customToolPrivateHost.replace("{host}", host) };
+      }
+    } catch {
+      // A hostname that does not resolve here may still resolve from
+      // ElevenLabs' network (split-horizon DNS, a very new record). Warn rather
+      // than block: a false refusal here is a support ticket, and the endpoint
+      // failing is visible on the first test call anyway.
+      console.warn("[assistant] custom action host did not resolve at save time", host);
+    }
+
+    const value = String(formData.get(`ct_${key}_auth_value`) ?? "").trim();
+    if (!value) continue;
+    const locator = await storeWorkspaceSecret("custom-action", value);
+    if (!locator) return { ok: false, error: a.customToolSecretFailed };
+    secrets[key] = locator.secretId;
+  }
+
+  return { ok: true, secrets };
 }
 
 async function requireAssistantOwner(assistantId: string): Promise<void> {
@@ -137,6 +198,12 @@ export async function updateAssistantAction(
   if (!existing) return fail(a.saveFailed);
   const knowledge = readKnowledge(existing.knowledge);
 
+  // Validate endpoints and stash credentials before anything is written, so a
+  // bad URL fails the save outright rather than leaving a half-configured
+  // action the receptionist would then try to call on a live line.
+  const toolSecrets = await resolveCustomToolSecrets(formData);
+  if (!toolSecrets.ok) return fail(toolSecrets.error);
+
   // Patch, not rebuild: only sections this submit actually carried change.
   // See lib/dashboard/assistant-patch.ts and its regression suite.
   const { top, routing } = buildAssistantPatch(
@@ -154,6 +221,7 @@ export async function updateAssistantAction(
       crmIds: integrations.filter((c) => c.type === "crm").map((c) => c.id),
     },
     voiceByLanguage,
+    toolSecrets.secrets,
   );
 
   try {

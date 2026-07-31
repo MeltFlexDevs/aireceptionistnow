@@ -107,6 +107,19 @@ export const nlHome: HomeCopy = {
     ],
   },
 
+  capabilities: {
+    heading: "Wat het echt doet",
+    sub: "Geen keuzemenu met een mooiere stem. Dit doet het in een echt gesprek - en dit gebeurt er als het niet lukt.",
+    items: [
+      { title: "Verbindt door naar de juiste persoon", desc: "Tot vijf bestemmingen - receptie, facturatie, de bereikbaarheidsdienst - elk met eigen tijden. Het kiest degene die past bij wat de beller nodig heeft en weet wie er op dat moment echt bereikbaar is." },
+      { title: "Schakelt op voordat je de beller kwijt bent", desc: "Het biedt een mens aan zodra iemand geïrriteerd raakt, zich heeft moeten herhalen of over een noodgeval begint. Zonder dat erom gevraagd hoeft te worden. Voeg je eigen situaties toe: een gesprongen leiding, iemand die dreigt op te zeggen." },
+      { title: "Belt je wanneer het ertoe doet", desc: "Een dringend bericht krijg je meteen per sms en, als je dat wilt, belt de receptionist je en noemt wie er belde, het nummer en het probleem. Stel een terugbeltermijn in en die belooft hij hardop." },
+      { title: "Kijkt in je eigen systemen", desc: "Wijs het naar je API en het kan midden in het gesprek een order opzoeken, voorraad checken of je echte prijzen noemen, in plaats van te gokken of een bericht achter te laten dat jij later moet afhandelen." },
+      { title: "Verzint niets", desc: "Noem de onderwerpen die het nooit mag beantwoorden en het zegt dat gewoon in plaats van te gokken. Geef het formuleringen die exact moeten kloppen en het gebruikt die van jou. Na elk gesprek vergelijkt het wat het zei met wat jij hebt aangeleverd en markeert alles wat het niet kon onderbouwen. En vraagt een beller ronduit of het een AI is, dan zegt het dat." },
+      { title: "Herkent je vaste klanten", desc: "Wie eerder belde wordt bij naam begroet en hoeft niet opnieuw te vertellen wat al bekend is. Eén schakelaar zet het uit als je dat liever hebt." },
+    ],
+  },
+
   faq: {
     heading: "Veelgestelde vragen",
     items: [
@@ -132,7 +145,7 @@ export const nlHome: HomeCopy = {
       },
       {
         q: "Kan de AI afspraken inplannen en koppelen met mijn agenda en CRM?",
-        a: "Ja. AI Receptionist Now plant afspraken tijdens het gesprek in en koppelt rechtstreeks met Google Calendar, Outlook, HubSpot, Salesforce en Calendly, en via Zapier met duizenden andere apps. Maatwerkkoppelingen zijn mogelijk via onze open API, zodat gegevens van bellers rechtstreeks in uw bestaande tools terechtkomen.",
+        a: "Ja. Het plant tijdens het gesprek in Google Agenda, Microsoft Agenda of Cal.com, controleert eerst of het tijdslot vrij is waar de agenda dat ondersteunt, en stuurt de beller een bevestiging per sms. Naast agenda's kun je het naar je eigen API wijzen, zodat het midden in het gesprek een order opzoekt of voorraad checkt, en elke samenvatting en transcriptie kan via een webhook naar je CRM.",
       },
       {
         q: "Welke talen ondersteunt de AI-receptioniste?",

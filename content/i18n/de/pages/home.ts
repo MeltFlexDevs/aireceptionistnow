@@ -105,6 +105,19 @@ export const deHome: HomeCopy = {
     ],
   },
 
+  capabilities: {
+    heading: "Was sie tatsächlich kann",
+    sub: "Kein Telefonmenü mit schönerer Stimme. Das kann sie im echten Gespräch - und das passiert, wenn sie nicht weiterkommt.",
+    items: [
+      { title: "Verbindet zur richtigen Person", desc: "Bis zu fünf Ziele - Empfang, Buchhaltung, Bereitschaftsdienst - jeweils mit eigenen Zeiten. Sie wählt das passende Ziel für das Anliegen und weiß, wer gerade wirklich erreichbar ist." },
+      { title: "Eskaliert, bevor der Anrufer weg ist", desc: "Sie bietet einen Menschen an, sobald jemand verärgert ist, sich wiederholen musste oder von einem Notfall spricht - ohne dass man danach fragen muss. Eigene Auslöser lassen sich ergänzen: ein Rohrbruch, eine angedrohte Kündigung." },
+      { title: "Ruft Sie an, wenn es darauf ankommt", desc: "Eine dringende Nachricht kommt sofort per SMS, und auf Wunsch ruft die Rezeption Sie an und nennt Anrufer, Nummer und Anliegen. Legen Sie ein Rückrufversprechen fest, sagt sie es dem Anrufer laut zu." },
+      { title: "Liest aus Ihren eigenen Systemen", desc: "Zeigen Sie ihr Ihre API, und sie schlägt mitten im Gespräch eine Bestellung nach, prüft den Lagerbestand oder nennt Ihre echten Preise - statt zu raten oder eine Nachricht zu hinterlassen, die Sie später beantworten müssen." },
+      { title: "Erfindet nichts", desc: "Nennen Sie die Themen, die sie nie beantworten darf, und sie sagt das offen, statt zu raten. Geben Sie ihr Formulierungen, die exakt stimmen müssen, verwendet sie Ihre. Nach jedem Anruf prüft sie das Gesagte gegen Ihre Angaben und markiert alles, was nicht gedeckt war. Und fragt ein Anrufer direkt, ob er mit einer KI spricht, sagt sie es ihm." },
+      { title: "Erkennt Ihre Stammkunden", desc: "Wer schon einmal angerufen hat, wird mit Namen begrüßt und muss nicht erneut erzählen, was er bereits gesagt hat. Ein Schalter deaktiviert das, wenn Sie es nicht möchten." },
+    ],
+  },
+
   faq: {
     heading: "Häufig gestellte Fragen",
     items: [
@@ -130,7 +143,7 @@ export const deHome: HomeCopy = {
       },
       {
         q: "Kann sie Termine buchen und sich mit Kalender und CRM verbinden?",
-        a: "Ja. AI Receptionist Now bucht Termine direkt im Gespräch und lässt sich nativ mit Google Calendar, Outlook, HubSpot, Salesforce und Calendly verbinden, über Zapier außerdem mit tausenden weiteren Anwendungen. Eigene Anbindungen sind über unsere offene API möglich, sodass Anruferdaten direkt in Ihre bestehenden Tools fließen.",
+        a: "Ja. Sie bucht direkt im Gespräch in Google Calendar, Microsoft Calendar oder Cal.com, prüft vorher die Verfügbarkeit, sofern der Kalender das unterstützt, und schickt dem Anrufer eine Bestätigung per SMS. Über Kalender hinaus können Sie sie auf Ihre eigene API zeigen lassen, sodass sie mitten im Gespräch eine Bestellung nachschlägt oder den Lagerbestand prüft; jede Anrufzusammenfassung und jedes Transkript lässt sich per Webhook an Ihr CRM übergeben.",
       },
       {
         q: "Welche Sprachen unterstützt der KI-Telefonassistent?",

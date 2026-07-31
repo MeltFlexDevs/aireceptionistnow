@@ -13,6 +13,8 @@ export interface LangOption {
 interface Props {
   defaultSpeed: number;
   defaultStability: number;
+  /** "fast" (flash models) or "natural" (v3, warmer but slower to speak). */
+  defaultTier: string;
   voiceByLanguage: Record<string, string>;
   languages: LangOption[];
 }
@@ -64,7 +66,13 @@ function Slider({
   );
 }
 
-export function AdvancedVoiceSettings({ defaultSpeed, defaultStability, voiceByLanguage, languages }: Props) {
+export function AdvancedVoiceSettings({
+  defaultSpeed,
+  defaultStability,
+  defaultTier,
+  voiceByLanguage,
+  languages,
+}: Props) {
   const t = useT();
   const byCode = new Map(languages.map((l) => [l.code, l]));
   const [rows, setRows] = useState<string[]>(() =>
@@ -91,6 +99,22 @@ export function AdvancedVoiceSettings({ defaultSpeed, defaultStability, voiceByL
           defaultValue={defaultStability}
           format={(v) => `${Math.round(v * 100)}%`}
         />
+      </div>
+
+      <div>
+        <label htmlFor="voice_tier" className="text-sm font-medium text-neutral-700">
+          {t.assistants.voiceTier}
+        </label>
+        <select
+          id="voice_tier"
+          name="voice_tier"
+          defaultValue={defaultTier === "natural" ? "natural" : "fast"}
+          className="mt-2 w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition-colors focus:border-neutral-900"
+        >
+          <option value="fast">{t.assistants.voiceTierFast}</option>
+          <option value="natural">{t.assistants.voiceTierNatural}</option>
+        </select>
+        <p className="mt-1 text-xs text-neutral-400">{t.assistants.voiceTierHint}</p>
       </div>
 
       <div className="border-t border-neutral-100 pt-5">

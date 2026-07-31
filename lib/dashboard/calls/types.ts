@@ -16,6 +16,8 @@ export interface CallLogRow {
   outcome: string | null;
   assistant: string | null;
   source: CallSource;
+  /** The post-call accuracy audit flagged this call for a human read. */
+  needsReview: boolean;
 }
 
 export interface CallFilters {
@@ -62,6 +64,13 @@ export interface CallDetail {
   assistant: string | null;
   recordingUrl: string | null;
   isLive: boolean;
+  /** True when the accuracy audit wants a person to read this call. */
+  needsReview: boolean;
+  /**
+   * What the assistant asserted that the knowledge base does not back up.
+   * Each entry is also a gap worth filling - see CallSummary.unsupportedClaims.
+   */
+  reviewClaims: string[];
   turns: CallTurn[];
   actions: CallActionItem[];
 }

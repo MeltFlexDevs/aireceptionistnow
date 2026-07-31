@@ -14,7 +14,9 @@ import { NUMBER_COUNTRIES } from "@/lib/number-pricing";
 import { currentUserId } from "@/lib/auth";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { ownerTimezone } from "@/lib/dashboard/timezone";
-import { describeTransferHours, parseTransferHours } from "@/lib/call-engine/transfer-hours";
+import { describeEscalation, parseEscalation } from "@/lib/call-engine/escalation";
+import { hasGuardrails, parseDisclosure, parseGuardrails } from "@/lib/call-engine/policy";
+import { parseCustomTools } from "@/lib/call-engine/agent/custom-tools";
 import {
   buildSetupItems,
   greetingWordCount,
@@ -22,7 +24,8 @@ import {
   voiceName,
   type SetupKey,
 } from "@/lib/dashboard/assistant-setup";
-import { TransferHoursFields } from "../TransferHoursFields";
+import { EscalationFields } from "../EscalationFields";
+import { CustomToolFields } from "../CustomToolFields";
 import { SECTION } from "@/lib/dashboard/assistant-patch";
 import { CARD, SECTION_HEADING } from "../../components/card";
 import { AssistantPowerToggle } from "../../components/AssistantPowerToggle";
@@ -36,7 +39,7 @@ import { TestCall, UnlinkNumber, ReassignNumber } from "../HeroNumberActions";
 import { GetNumberForm } from "../GetNumberForm";
 import { DeleteAssistant } from "../DeleteAssistant";
 import { AiAvatar } from "@/app/(main)/onboarding/AiAvatar";
-import { Phone, Calendar, Sparkle, Check } from "../../icons";
+import { Phone, Calendar, Sparkle, Shield, Plug, Check } from "../../icons";
 
 export const dynamic = "force-dynamic";
 
@@ -120,11 +123,18 @@ export default async function AssistantSettingsPage({
   const emailCfg =
     (assistant.routing as { emailTranscripts?: { enabled?: boolean; to?: string } })
       ?.emailTranscripts ?? {};
-  const transferTo = String((assistant.routing as { transferTo?: string })?.transferTo ?? "");
   const smsAlerts = (assistant.routing as { smsAlerts?: boolean })?.smsAlerts ?? true;
-  const transferHours = parseTransferHours(
-    (assistant.routing as Record<string, unknown>)?.transferHours,
-  );
+  // One list of named destinations. A pre-escalation assistant still has only
+  // routing.transferTo, which parseEscalation synthesizes into a single
+  // destination - so this reads the same either way. See lib/call-engine/escalation.ts.
+  const escalation = parseEscalation(assistant.routing);
+  // Everything outside this page still keys off the legacy single number: the
+  // setup checklist, the test-call button, onboarding. The patch layer keeps it
+  // mirrored to the first destination on every save.
+  const transferTo = escalation.targets[0]?.number ?? "";
+  const guardrails = parseGuardrails(assistant.routing);
+  const customTools = parseCustomTools(assistant.routing);
+  const disclosure = parseDisclosure(assistant.routing);
   // accountTimezone (resolved in the batch above) is only a seed for a schedule
   // that has none yet - once saved, the timezone travels inside
   // routing.transferHours, because the call-start webhook resolves a
@@ -406,43 +416,49 @@ export default async function AssistantSettingsPage({
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <TopicModal
           assistantId={assistant.id}
-          section={SECTION.alerts}
+          section={SECTION.escalation}
           icon={<Phone className="h-6 w-6" />}
-          title={a.topicTransferTitle}
-          subtitle={a.topicTransferSub}
-          summary={
-            transferHours
-              ? `${formatPhone(transferTo)} · ${describeTransferHours(transferHours)}`
-              : formatPhone(transferTo)
-          }
+          title={a.topicEscalationTitle}
+          subtitle={a.topicEscalationSub}
+          summary={describeEscalation(escalation) || formatPhone(transferTo)}
           done={isDone("transfer")}
-          todoLabel={a.transferTodo}
+          todoLabel={a.escalationTodo}
         >
-          <div>
-            <label htmlFor="transfer_to" className={labelCls}>
-              {a.personalNumber}
-            </label>
-            <input
-              id="transfer_to"
-              name="transfer_to"
-              defaultValue={transferTo}
-              placeholder="+1 415 555 0199"
-              className={field}
-            />
-            <p className="mt-1.5 text-xs text-neutral-400">{a.forwardedNote}</p>
-          </div>
-          <label className={toggleRow}>
-            <span>
-              <span className="block text-sm font-medium text-neutral-800">{a.textAlerts}</span>
-              <span className="block text-xs text-neutral-400">{a.textAlertsSub}</span>
-            </span>
-            <input type="checkbox" name="sms_alerts" defaultChecked={smsAlerts} className="peer sr-only" />
-            <span className={toggle} />
-          </label>
-          <TransferHoursFields
-            hours={transferHours}
+          {/* The SMS toggle lives in the alerts section, which this modal also
+              owns. The alerts branch guards the legacy transfer_to / hours
+              fields on their own presence, so posting the marker without them
+              cannot wipe a destination - see lib/dashboard/assistant-patch.ts. */}
+          <input type="hidden" name={SECTION.alerts} value="1" />
+
+          <EscalationFields
+            escalation={escalation}
             fallbackTimezone={accountTimezone}
             labels={{
+              destinations: a.escDestinations,
+              destinationsSub: a.escDestinationsSub,
+              add: a.escAdd,
+              remove: a.escRemove,
+              name: a.escName,
+              namePlaceholder: a.escNamePlaceholder,
+              number: a.escNumber,
+              when: a.escWhen,
+              whenPlaceholder: a.escWhenPlaceholder,
+              handoff: a.escHandoff,
+              handoffDefault: a.escHandoffDefault,
+              handoffWarm: a.escHandoffWarm,
+              handoffCold: a.escHandoffCold,
+              empty: a.escEmpty,
+              triggers: a.escTriggers,
+              triggersSub: a.escTriggersSub,
+              triggersPlaceholder: a.escTriggersPlaceholder,
+              sla: a.escSla,
+              slaSub: a.escSlaSub,
+              page: a.escPage,
+              pageSub: a.escPageSub,
+              pageNumber: a.escPageNumber,
+              pageNumberSub: a.escPageNumberSub,
+            }}
+            hoursLabels={{
               scheduleTitle: a.transferScheduleTitle,
               scheduleSub: a.transferScheduleSub,
               alwaysLabel: a.transferAlways,
@@ -454,6 +470,15 @@ export default async function AssistantSettingsPage({
               days: weekdayLabels,
             }}
           />
+
+          <label className={`${toggleRow} border-t-neutral-100`}>
+            <span>
+              <span className="block text-sm font-medium text-neutral-800">{a.textAlerts}</span>
+              <span className="block text-xs text-neutral-400">{a.textAlertsSub}</span>
+            </span>
+            <input type="checkbox" name="sms_alerts" defaultChecked={smsAlerts} className="peer sr-only" />
+            <span className={toggle} />
+          </label>
         </TopicModal>
 
         <TopicModal
@@ -543,6 +568,7 @@ export default async function AssistantSettingsPage({
             <AdvancedVoiceSettings
               defaultSpeed={typeof voiceCfg.speed === "number" ? voiceCfg.speed : 1}
               defaultStability={typeof voiceCfg.stability === "number" ? voiceCfg.stability : 0.5}
+              defaultTier={String((assistant.routing as { voiceTier?: string })?.voiceTier ?? "fast")}
               voiceByLanguage={voiceByLanguage}
               languages={voiceLanguages}
             />
@@ -578,6 +604,105 @@ export default async function AssistantSettingsPage({
               />
             </div>
           </div>
+        </TopicModal>
+
+        <TopicModal
+          assistantId={assistant.id}
+          section={SECTION.guardrails}
+          icon={<Shield className="h-6 w-6" />}
+          title={a.topicGuardrailsTitle}
+          subtitle={a.topicGuardrailsSub}
+          summary={hasGuardrails(guardrails) ? a.guardrailsConfigured : a.guardrailsNone}
+          done={hasGuardrails(guardrails)}
+          todoLabel={a.guardrailsTodo}
+        >
+          <div>
+            <label htmlFor="guardrail_never" className={labelCls}>
+              {a.guardrailNever}
+            </label>
+            <textarea
+              id="guardrail_never"
+              name="guardrail_never"
+              rows={3}
+              defaultValue={guardrails.neverDiscuss.join("\n")}
+              placeholder={a.guardrailNeverPlaceholder}
+              className={`${field} resize-y`}
+            />
+            <p className="mt-1.5 text-xs text-neutral-400">{a.guardrailNeverSub}</p>
+          </div>
+
+          <div>
+            <label htmlFor="guardrail_escalate" className={labelCls}>
+              {a.guardrailEscalate}
+            </label>
+            <textarea
+              id="guardrail_escalate"
+              name="guardrail_escalate"
+              rows={2}
+              defaultValue={guardrails.alwaysEscalate.join("\n")}
+              placeholder={a.guardrailEscalatePlaceholder}
+              className={`${field} resize-y`}
+            />
+            <p className="mt-1.5 text-xs text-neutral-400">{a.guardrailEscalateSub}</p>
+          </div>
+
+          <div className="border-t border-neutral-100 pt-4">
+            <label htmlFor="disclosure" className={labelCls}>
+              {a.disclosureLabel}
+            </label>
+            <select
+              id="disclosure"
+              name="disclosure"
+              defaultValue={disclosure}
+              className={field}
+            >
+              <option value="if_asked">{a.disclosureIfAsked}</option>
+              <option value="upfront">{a.disclosureUpfront}</option>
+              <option value="deflect">{a.disclosureDeflect}</option>
+            </select>
+            <p className="mt-1.5 text-xs text-neutral-400">{a.disclosureNote}</p>
+          </div>
+        </TopicModal>
+
+        <TopicModal
+          assistantId={assistant.id}
+          section={SECTION.customTools}
+          icon={<Plug className="h-6 w-6" />}
+          title={a.topicCustomToolsTitle}
+          subtitle={a.topicCustomToolsSub}
+          summary={
+            customTools.length
+              ? customTools.map((tool) => tool.name).join(", ")
+              : a.customToolsNone
+          }
+          done={customTools.length > 0}
+          todoLabel={a.customToolsTodo}
+        >
+          <CustomToolFields
+            tools={customTools}
+            labels={{
+              intro: a.customToolIntro,
+              empty: a.customToolsNone,
+              add: a.customToolAdd,
+              remove: a.customToolRemove,
+              name: a.customToolName,
+              nameHint: a.customToolNameHint,
+              description: a.customToolDescription,
+              descriptionHint: a.customToolDescriptionHint,
+              url: a.customToolUrl,
+              method: a.customToolMethod,
+              params: a.customToolParams,
+              paramsHint: a.customToolParamsHint,
+              paramsPlaceholder: a.customToolParamsPlaceholder,
+              timeout: a.customToolTimeout,
+              timeoutHint: a.customToolTimeoutHint,
+              authHeader: a.customToolAuthHeader,
+              authValue: a.customToolAuthValue,
+              authValueSaved: a.customToolAuthValueSaved,
+              authValueHint: a.customToolAuthValueHint,
+              enabled: a.customToolEnabled,
+            }}
+          />
         </TopicModal>
         </div>
       </section>

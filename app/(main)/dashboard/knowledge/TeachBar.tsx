@@ -34,7 +34,15 @@ function WebsiteSubmit() {
  * action creates one on the first teach rather than dead-ending on a
  * "create an organization" step.
  */
-export function TeachBar({ orgId, notes }: { orgId: string; notes: string }) {
+export function TeachBar({
+  orgId,
+  notes,
+  verified,
+}: {
+  orgId: string;
+  notes: string;
+  verified: string;
+}) {
   const t = useT();
   const k = t.knowledge;
   const [siteState, siteAction] = useActionState<ActionState, FormData>(
@@ -67,7 +75,7 @@ export function TeachBar({ orgId, notes }: { orgId: string; notes: string }) {
           <input type="hidden" name="id" value={orgId} />
           <UploadDropzone />
         </form>
-        <NotesModal orgId={orgId} notes={notes} />
+        <NotesModal orgId={orgId} notes={notes} verified={verified} />
       </div>
       <SavePill state={pdfState} />
     </div>

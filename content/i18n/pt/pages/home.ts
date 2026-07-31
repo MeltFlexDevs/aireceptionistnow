@@ -105,6 +105,19 @@ export const ptHome: HomeCopy = {
     ],
   },
 
+  capabilities: {
+    heading: "O que faz de facto",
+    sub: "Não é um menu telefónico com uma voz mais bonita. É isto que faz numa chamada a sério - e o que acontece quando não consegue.",
+    items: [
+      { title: "Encaminha para a pessoa certa", desc: "Até cinco destinos - receção, faturação, o técnico de prevenção - cada um com o seu horário. Escolhe o que corresponde ao que quem liga precisa e sabe quem está mesmo disponível naquele momento." },
+      { title: "Escala antes de perderes a chamada", desc: "Oferece uma pessoa assim que alguém fica irritado, teve de se repetir ou fala numa emergência. Sem esperar que lho peçam. Podes acrescentar os teus casos: um cano rebentado, alguém que ameaça cancelar." },
+      { title: "Liga-te quando é preciso", desc: "Um recado urgente chega-te logo por SMS e, se quiseres, a rececionista liga-te e diz quem ligou, o número e o problema. Define um prazo de resposta e ela promete-o em voz alta." },
+      { title: "Consulta os teus próprios sistemas", desc: "Aponta-a para a tua API e consegue procurar uma encomenda, verificar stock ou dizer os teus preços reais a meio da chamada, em vez de adivinhar ou deixar um recado que tens de tratar depois." },
+      { title: "Não inventa nada", desc: "Indica os assuntos a que nunca deve responder e ela di-lo claramente em vez de adivinhar. Dá-lhe as formulações que têm de ser exatas e usará as tuas. Depois de cada chamada compara o que disse com o que lhe deste e assinala o que não conseguiu sustentar. E se quem liga perguntar diretamente se está a falar com uma IA, ela diz-lhe." },
+      { title: "Reconhece os clientes habituais", desc: "Quem já ligou é tratado pelo nome e não tem de repetir o que já contou. Um botão desliga isto, se preferires." },
+    ],
+  },
+
   faq: {
     heading: "Perguntas frequentes",
     items: [
@@ -130,7 +143,7 @@ export const ptHome: HomeCopy = {
       },
       {
         q: "Consegue agendar marcações e integrar-se com a minha agenda e o meu CRM?",
-        a: "Sim. O AI Receptionist Now agenda marcações durante a chamada e integra-se nativamente com Google Calendar, Outlook, HubSpot, Salesforce e Calendly, além de milhares de aplicações através do Zapier. Estão disponíveis integrações personalizadas através da nossa API aberta, para que os dados de quem liga cheguem diretamente às ferramentas que já utiliza.",
+        a: "Sim. Agenda durante a chamada no Google Calendar, Microsoft Calendar ou Cal.com, verifica primeiro se o horário está livre quando o calendário o permite, e envia um SMS de confirmação a quem ligou. Para além dos calendários podes apontá-la à tua própria API, para procurar uma encomenda ou verificar stock a meio da chamada, e cada resumo e transcrição pode seguir para o teu CRM por webhook.",
       },
       {
         q: "Que idiomas suporta a rececionista com IA?",

@@ -1,5 +1,6 @@
 import { getGemini } from "../llm/gemini";
 import { getEnv } from "../env";
+import { renderKnowledgeMarkdown } from "../../knowledge/sources";
 import { languageFromPhone, languageName } from "../voice/phone-language";
 import type {
   CallAction,
@@ -7,6 +8,11 @@ import type {
   NumberConfig,
   TranscriptTurn,
 } from "../types";
+
+/** How much of the knowledge base the accuracy audit gets to see. */
+const KNOWLEDGE_DIGEST_CHARS = 12_000;
+/** A long list is noise; the first few are what the operator will act on. */
+const MAX_CLAIMS = 8;
 
 const SUMMARY_SCHEMA = {
   type: "object",
@@ -25,8 +31,27 @@ const SUMMARY_SCHEMA = {
     },
     action_items: { type: "array", items: { type: "string" } },
     tags: { type: "array", items: { type: "string" } },
+    unsupported_claims: {
+      type: "array",
+      items: { type: "string" },
+      description:
+        "Specific factual claims the assistant made to the caller that the business information does not support. Quote or paraphrase each one. Empty if everything it stated was backed.",
+    },
+    needs_review: {
+      type: "boolean",
+      description:
+        "True if a person at the business should read this call - an unsupported claim, an angry caller, or a promise that may not be kept.",
+    },
   },
-  required: ["summary", "outcome", "sentiment", "action_items", "tags"],
+  required: [
+    "summary",
+    "outcome",
+    "sentiment",
+    "action_items",
+    "tags",
+    "unsupported_claims",
+    "needs_review",
+  ],
 } as const;
 
 interface RawSummary {
@@ -35,6 +60,8 @@ interface RawSummary {
   sentiment: CallSummary["sentiment"];
   action_items: string[];
   tags: string[];
+  unsupported_claims: string[];
+  needs_review: boolean;
 }
 
 export async function summarizeCall(
@@ -50,6 +77,8 @@ export async function summarizeCall(
       sentiment: "neutral",
       actionItems: [],
       tags: [],
+      unsupportedClaims: [],
+      needsReview: false,
     };
   }
 
@@ -76,22 +105,50 @@ export async function summarizeCall(
     "'resolved' if the caller's question was answered. Use 'abandoned' ONLY when the " +
     "caller hung up before anything was accomplished - never for a call where the " +
     "assistant actually helped. Also judge the caller's sentiment. " +
+    // The groundedness pass. Folded into the same call rather than a second
+    // one: it needs exactly the same transcript, and a call summary already
+    // costs one Gemini round trip in the background.
+    "You ALSO audit the assistant for accuracy. Compare every factual statement it " +
+    "made - prices, hours, availability, what is included, policies, addresses, " +
+    "names - against the business information you are given. List in " +
+    '"unsupported_claims" anything it stated as fact that the business information ' +
+    "does not back up. Judge only what it ASSERTED: questions, acknowledgements, " +
+    "generic pleasantries, and anything it explicitly said it could not confirm are " +
+    "never unsupported claims, and neither is a detail the CALLER supplied. If the " +
+    "business information is empty, only flag statements that are specific and " +
+    "checkable rather than everything it said. " +
     langDirective +
     ` Keep the "outcome" and "sentiment" values as the allowed English enum values.`;
+
+  // Trimmed hard: this is a background summarization, but the knowledge base can
+  // run to tens of thousands of characters and the audit only needs the facts an
+  // answer would have been drawn from.
+  const knowledge = renderKnowledgeMarkdown(config.knowledge).slice(0, KNOWLEDGE_DIGEST_CHARS);
   const prompt =
     `Call for ${config.businessName} on the "${config.label}" line.\n\n` +
+    `Business information the assistant was given:\n${knowledge || "(none)"}\n\n` +
     `Transcript:\n${transcript}\n\n` +
     `Actions the assistant took:\n${actionsBlock}\n\n` +
     `Produce the JSON summary.`;
 
   const raw = await summarizeWithGemini(system, prompt);
 
+  const unsupportedClaims = (raw.unsupported_claims ?? []).slice(0, MAX_CLAIMS);
   return {
     summary: raw.summary ?? "",
     outcome: raw.outcome ?? "resolved",
     sentiment: raw.sentiment ?? "neutral",
     actionItems: raw.action_items ?? [],
     tags: raw.tags ?? [],
+    unsupportedClaims,
+    // An unsupported claim or a caller who left angry always warrants a read,
+    // whatever the model decided - those are the two cases where staying quiet
+    // costs the business a customer.
+    needsReview:
+      raw.needs_review === true ||
+      unsupportedClaims.length > 0 ||
+      raw.sentiment === "angry" ||
+      raw.sentiment === "frustrated",
   };
 }
 
@@ -141,7 +198,10 @@ async function summarizeWithGemini(system: string, prompt: string): Promise<RawS
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     config: {
       systemInstruction: system,
-      maxOutputTokens: 600,
+      // Raised from 600 for the accuracy audit: a truncated response is not
+      // valid JSON, and parseSummary rightly throws rather than persisting a
+      // half-summary marked "resolved".
+      maxOutputTokens: 900,
       thinkingConfig: { thinkingBudget: 0 },
       responseMimeType: "application/json",
       responseJsonSchema: SUMMARY_SCHEMA,

@@ -106,6 +106,19 @@ export const esHome: HomeCopy = {
     ],
   },
 
+  capabilities: {
+    heading: "Lo que hace de verdad",
+    sub: "No es un menú telefónico con mejor voz. Esto es lo que hace en una llamada real, y qué pasa cuando no puede.",
+    items: [
+      { title: "Pasa la llamada a quien toca", desc: "Hasta cinco destinos - recepción, facturación, el técnico de guardia - cada uno con su horario. Elige el que encaja con lo que necesita quien llama, y sabe quién está realmente disponible en ese momento." },
+      { title: "Escala antes de que pierdas la llamada", desc: "Ofrece una persona en cuanto alguien se enfada, ha tenido que repetirse o dice que es urgente. No espera a que se lo pidan. Puedes añadir tus propios casos: una tubería rota, alguien que amenaza con darse de baja." },
+      { title: "Te llama cuando importa", desc: "Un recado urgente te llega por SMS al momento y, si quieres, la recepcionista te llama y te dice quién ha llamado, su número y el problema. Fija un plazo de devolución de llamada y lo promete en voz alta." },
+      { title: "Consulta tus propios sistemas", desc: "Apúntala a tu API y podrá consultar un pedido, mirar el stock o dar tus precios reales durante la llamada, en vez de adivinar o dejarte un recado que tendrás que responder después." },
+      { title: "No se inventa nada", desc: "Indica los temas que nunca debe responder y lo dirá con claridad en vez de adivinar. Dale las respuestas que deben ser exactas y usará las tuyas. Tras cada llamada compara lo que dijo con lo que le contaste y marca lo que no pudo respaldar. Y si alguien pregunta directamente si habla con una IA, se lo dice." },
+      { title: "Reconoce a los de siempre", desc: "A quien ya ha llamado antes le saluda por su nombre y no le vuelve a pedir lo que ya contó. Un interruptor lo desactiva si prefieres que no lo haga." },
+    ],
+  },
+
   faq: {
     heading: "Preguntas frecuentes",
     items: [
@@ -131,7 +144,7 @@ export const esHome: HomeCopy = {
       },
       {
         q: "¿Puede agendar citas e integrarse con mi calendario y mi CRM?",
-        a: "Sí. AI Receptionist Now agenda citas durante la llamada y se integra de forma nativa con Google Calendar, Outlook, HubSpot, Salesforce y Calendly, además de con miles de aplicaciones a través de Zapier. También ofrecemos integraciones a medida mediante nuestra API abierta, de modo que los datos de cada llamada llegan directamente a las herramientas que ya utiliza.",
+        a: "Sí. Agenda durante la llamada en Google Calendar, Microsoft Calendar o Cal.com, comprueba antes que el hueco esté libre cuando el calendario lo permite, y envía un SMS de confirmación a quien llama. Más allá de los calendarios, puedes apuntarla a tu propia API para que consulte un pedido o el stock en plena llamada, y cada resumen y transcripción se puede enviar a tu CRM por webhook.",
       },
       {
         q: "¿Qué idiomas admite el recepcionista con IA?",
