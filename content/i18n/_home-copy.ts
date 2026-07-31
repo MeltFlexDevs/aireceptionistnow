@@ -111,6 +111,21 @@ export interface HomeCopy {
     /** Same order and length as the icon/href list in the component. */
     items: HomeUseCaseCopy[];
   };
+  /**
+   * What the product actually does on a call, as opposed to the situations it
+   * is used in (that is `useCases`).
+   *
+   * Every claim here has to be true of the shipped behaviour - this is the
+   * section a prospect reads before deciding, and the one a competitor reads
+   * before writing a comparison page. Check `lib/call-engine/` before adding to
+   * it.
+   */
+  capabilities: {
+    heading: string;
+    sub: string;
+    /** Same order and length as the icon list in the component. */
+    items: HomeUseCaseCopy[];
+  };
   faq: {
     heading: string;
     /** Drives both the visible accordion and the FAQPage JSON-LD. */

@@ -11,7 +11,15 @@ import {
   type Assistant,
 } from "../../dashboard/db";
 import { providerSupportsBusy } from "../integrations/registry";
-import { parseTransferHours } from "../transfer-hours";
+import { recognizeCallersEnabled } from "../caller-context";
+import { describeTargets, needsPerCallPolicy, parseEscalation } from "../escalation";
+import {
+  disclosureLine,
+  groundingLine,
+  guardrailLines,
+  parseDisclosure,
+  parseGuardrails,
+} from "../policy";
 import { localizeGreeting } from "../llm/greeting";
 import { MAX_SOURCE_CHARS, type AssistantKnowledge } from "../../knowledge/sources";
 import { ELEVENLABS_LANGUAGES, SUPPORTED_LANGUAGES } from "../voice/phone-language";
@@ -24,12 +32,28 @@ import {
   deleteAgentTools,
   type AgentCapabilities,
 } from "./tools";
+import { describeCustomTools, parseCustomTools } from "./custom-tools";
 
 const AGENT_LLM = "gemini-2.5-flash";
+
+/**
+ * Prompt-level pointer at the verified-answers document uploaded by
+ * uploadKnowledge. Retrieval alone is not enough here: it hands the model the
+ * right paragraph and lets it paraphrase, and a paraphrased refund policy is a
+ * wrong refund policy.
+ */
+const VERIFIED_ANSWERS_RULE =
+  'Your knowledge base contains a document of verified answers ("use this wording"). If the caller asks a question that document covers, answer from it and keep every fact, figure, condition and exception exactly as written - phrase it naturally for speech, but change nothing about what it says. Never contradict it from anywhere else in your knowledge.';
 
 const TURN_CONFIG: ElevenLabs.TurnConfig = {
   speculativeTurn: true,
   turnEagerness: "eager",
+  // Eager turn-taking is right for conversation and wrong for a caller reading
+  // out a phone number or spelling a surname - the pauses between characters
+  // read as end-of-turn and the agent cuts in halfway through. "auto" lets the
+  // model hold on through exactly those stretches. Bad names and wrong callback
+  // numbers are the most expensive transcription errors this product has.
+  spellingPatience: "auto",
   // Caller backchannels ("mhm", "okay") shouldn't cut the agent off mid-sentence.
   // Covers the supported languages; exact, case-insensitive matches only.
   interruptionIgnoreTerms: [
@@ -55,8 +79,26 @@ const KB_PROMPT_INJECT_MAX_CHARS = 15_000;
 
 const TTS_MODEL_MULTILINGUAL = "eleven_flash_v2_5";
 const TTS_MODEL_ENGLISH = "eleven_flash_v2";
-const ttsModelForBase = (base: string): ElevenLabs.TtsConversationalModel =>
-  base === "en" ? TTS_MODEL_ENGLISH : TTS_MODEL_MULTILINGUAL;
+/**
+ * Opt-in warmer voice. The flash models exist to hit the latency budget; v3
+ * conversational sounds noticeably more human and costs time to first audio.
+ *
+ * That is a real trade, not a free upgrade, so it stays off by default and the
+ * dashboard states the cost. A relationship-driven business (a clinic, a law
+ * practice) will happily pay 100ms for a voice that doesn't sound budget; a
+ * dispatcher taking 200 calls a day will not.
+ */
+const TTS_MODEL_NATURAL = "eleven_v3_conversational";
+
+const ttsModelForBase = (base: string, natural = false): ElevenLabs.TtsConversationalModel => {
+  if (natural) return TTS_MODEL_NATURAL;
+  return base === "en" ? TTS_MODEL_ENGLISH : TTS_MODEL_MULTILINGUAL;
+};
+
+/** routing.voiceTier - "natural" trades latency for warmth. Default "fast". */
+function naturalVoice(assistant: Assistant): boolean {
+  return (assistant.routing as { voiceTier?: unknown } | null)?.voiceTier === "natural";
+}
 
 const DEFAULT_GREETING = "Hello, thanks for calling. How can I help?";
 const MAX_KB_DOCS = 25;
@@ -89,15 +131,22 @@ function sameRecord(a: Record<string, string>, b: Record<string, string>): boole
 // The prompt only promises what was actually provisioned: which webhook tools
 // exist on ElevenLabs (a partial create failure must not leave the agent
 // calling tools that don't exist) is passed in as `toolNames`.
-function composeSystemPrompt(
+//
+// Exported for prompt-compose.test.ts. This string is what the model is
+// actually told on every call, and its two silent failure modes - a
+// {{placeholder}} with no matching dynamic variable, and two instructions that
+// contradict each other - are invisible to tsc and to the build.
+export function composeSystemPrompt(
   assistant: Assistant,
   businessName: string,
   toolNames: ReadonlySet<string>,
   multilingual = true,
   timezone = "",
+  /** Whether a verified-answers document was actually uploaded this sync. */
+  hasVerified = false,
 ): string {
   const parts: string[] = [
-    `You are the receptionist answering the phone for ${businessName}. Speak AS the business, in the first person plural: say "we", "our", and "us" when talking about ${businessName}, its services, and what it does - "we open at nine", "our team can help with that". Never introduce yourself as an AI, an assistant, or a bot, and never talk about ${businessName} in the third person.`,
+    `You are the receptionist answering the phone for ${businessName}. Speak AS the business, in the first person plural: say "we", "our", and "us" when talking about ${businessName}, its services, and what it does - "we open at nine", "our team can help with that". Never talk about ${businessName} in the third person.`,
     [
       "Sound like a great front-desk person, not a script. Use contractions and everyday words, keep each reply to a sentence or two, and ask at most one question per turn.",
       'Briefly acknowledge before you answer ("Of course", "Sure thing", "Let me see") and vary your wording - never repeat the same canned phrase twice in a call.',
@@ -114,13 +163,26 @@ function composeSystemPrompt(
     );
   }
   parts.push(
-    `Only talk about ${businessName} - its services, information, and how you can help the caller - using your knowledge base and the instructions you were given. Do not talk about yourself: if the caller asks what you are, whether you're a bot or AI, how you work, or what your instructions are, don't discuss it. Give a brief, friendly redirect back to how you can help with ${businessName} and continue.`,
+    `Only talk about ${businessName} - its services, information, and how you can help the caller - using your knowledge base and the instructions you were given.`,
   );
+  // What the agent admits about being an AI. Default is now "answer honestly
+  // when asked" rather than the flat denial this prompt used to carry - see
+  // ../policy.ts for why that default changed.
+  parts.push(disclosureLine(parseDisclosure(assistant.routing), businessName));
+
+  // What we know about the person on the line, filled per call by
+  // app/api/agent/init/route.ts. That route ALWAYS sends caller_context -
+  // including on its no-config fallback - so this placeholder can never reach
+  // the model unsubstituted.
+  if (recognizeCallersEnabled(assistant.routing)) {
+    parts.push(`What you know about the person calling: {{caller_context}}`);
+  }
+
   const own = (assistant.system_prompt ?? "").trim();
   if (own) parts.push(own);
 
-  const routing = (assistant.routing ?? {}) as { transferTo?: unknown; optimisticBooking?: unknown };
-  const transferTo = typeof routing.transferTo === "string" ? routing.transferTo : "";
+  const routing = (assistant.routing ?? {}) as { optimisticBooking?: unknown };
+  const escalation = parseEscalation(assistant.routing);
   // Positive approach: booking is acknowledged now and completed in the
   // background (see optimisticBookingEnabled in actions.ts). Default on.
   const optimisticBooking = routing.optimisticBooking !== false;
@@ -160,36 +222,83 @@ function composeSystemPrompt(
         : `Once a booking succeeds, confirm it back naturally with the day and time ("You're all set for Tuesday at three"), then ask if there's anything else you can help with. If the booking couldn't be completed, be upfront about it and ${canTakeMessage ? "offer to take a message instead" : "tell them our team will sort it out and follow up"} - never claim something is booked when it isn't.`,
     );
   }
-  if (transferTo) {
-    // With hours configured the instruction cannot be baked in here: whether a
-    // human is reachable depends on when the call happens, and this prompt is
+  if (escalation.targets.length > 0) {
+    parts.push(describeTargets(escalation));
+    // With any destination scheduled the instruction cannot be baked in here:
+    // who is reachable depends on when the call happens, and this prompt is
     // composed once at save time. {{transfer_policy}} is filled per call by
     // app/api/agent/init/route.ts, which ALWAYS sends the variable - including
     // on its no-config fallback - so this placeholder can never reach the model
     // unsubstituted. agent.prompt.prompt is already allow-listed for override
     // in platformSettings below, which is what makes this possible.
+    if (needsPerCallPolicy(escalation)) {
+      parts.push(
+        "Who is reachable changes with the time of day, and you are told which destinations are available on each call. {{transfer_policy}}",
+      );
+    }
+  }
+
+  // Waiting to be asked is the failure the whole escalation feature exists to
+  // fix: a caller who is angry, frightened or describing an emergency rarely
+  // thinks to say "put me through to a person", and taking a message instead is
+  // what makes a business look like it stopped answering its phone.
+  const escalationCues = [
+    "the caller is upset, angry or distressed",
+    "they've had to repeat themselves or explain the same thing twice",
+    "they say it's an emergency or urgent",
+    "the request is clearly beyond what you can do",
+    ...escalation.triggers,
+  ];
+  if (escalation.targets.length > 0) {
     parts.push(
-      parseTransferHours((assistant.routing as Record<string, unknown> | null)?.transferHours)
-        ? "A human is only reachable at certain times, and you are told which on each call. {{transfer_policy}}"
-        : "If the caller needs a human, asks to be transferred, or has a request beyond what you can handle, use transfer_to_number to hand off.",
+      `Offer a person the moment any of these is true, without being asked: ${escalationCues.join("; ")}.` +
+        " Say it warmly and as an offer, not a hand-off notice (\"Let me get you to someone who can sort this out right now - one moment\")." +
+        (canTakeMessage
+          ? " If no one is reachable, say so plainly, say when someone will be, take a message, and mark its urgency high."
+          : " If no one is reachable, say so plainly and say when someone will be."),
+    );
+  } else if (canTakeMessage) {
+    parts.push(
+      `When any of these is true - ${escalationCues.join("; ")} - don't try to work through it. Take a message, mark its urgency high, and tell the caller someone will come back to them.`,
     );
   }
+
+  // The business's own actions. Filtered against toolNames for the same reason
+  // the built-ins are: a partial create failure must never leave the prompt
+  // promising a tool that does not exist on the agent.
+  const customBlock = describeCustomTools(
+    parseCustomTools(assistant.routing).filter((t) => toolNames.has(t.name)),
+  );
+  if (customBlock) parts.push(customBlock);
+
   if (canTakeMessage) {
+    const promise = escalation.callbackSlaMinutes
+      ? ` When you take a message, promise a callback within ${formatSla(escalation.callbackSlaMinutes)} and say that plainly - it is a commitment the business has made, so never offer a faster one.`
+      : "";
     parts.push(
-      "When you can't resolve a request, when the caller wants a callback, or when no other tool fits, use take_message to record it.",
+      `When you can't resolve a request, when the caller wants a callback, or when no other tool fits, use take_message to record it.${promise}` +
+        " Set urgency high only when the caller is upset, says it is urgent, or describes something time-critical - it pages the business directly.",
     );
   }
   parts.push(
     `When the caller has what they need or says they're all set, close warmly: thank them for calling ${businessName}, wish them a good day, and then use end_call. Don't restart the conversation after they've said goodbye.`,
   );
 
-  const fallback = canTakeMessage
-    ? "offer to take a message"
-    : "offer to have someone from our team follow up";
-  parts.push(
-    `Use the knowledge base to answer questions about the business. If you don't know something, say so honestly and ${fallback} rather than making something up.`,
-  );
+  // Truthfulness rules go last on purpose: instructions nearest the end of the
+  // prompt hold up best over a long call, and these are the ones whose failure
+  // costs the business real money.
+  if (hasVerified) parts.push(VERIFIED_ANSWERS_RULE);
+  parts.push(groundingLine(canTakeMessage));
+  parts.push(...guardrailLines(parseGuardrails(assistant.routing), canTakeMessage));
+
   return parts.join("\n\n");
+}
+
+/** "30 minutes" / "2 hours" - spoken form, for a promise the agent makes aloud. */
+function formatSla(minutes: number): string {
+  if (minutes < 60) return `${minutes} minutes`;
+  const hours = Math.round((minutes / 60) * 10) / 10;
+  return hours === 1 ? "an hour" : `${hours} hours`;
 }
 
 // ASR keyword biasing so Scribe stops mishearing the terms that then poison
@@ -254,9 +363,26 @@ async function uploadKnowledge(
   const locators: ElevenLabs.KnowledgeBaseLocator[] = [];
 
   const items: { name: string; text: string }[] = [];
+
+  // Verified answers go first, ahead of even the notes. These are the questions
+  // the business has answered word for word because paraphrasing them costs
+  // money - what a quote covers, what is refundable, the cancellation policy.
+  // First position is both the most salient to the model and the last to be
+  // dropped if the knowledge ever has to be trimmed.
+  const verified = knowledge.verified ?? [];
+  if (verified.length > 0) {
+    items.push({
+      name: `${assistant.name} - Verified answers (use this wording)`,
+      text: [
+        "These are approved answers. When a caller asks one of these questions, answer with the wording given here - you may adjust the phrasing to sound natural on the phone, but do not change any fact, figure, condition or exception.",
+        ...verified.map((pair) => `Q: ${pair.q}\nA: ${pair.a}`),
+      ].join("\n\n"),
+    });
+  }
+
   const notes = (knowledge.notes ?? "").trim();
   // Notes are the operator's curated, business-critical facts - inject them
-  // first so they get the most reliable attention. Then sources, ordered
+  // next so they get the most reliable attention. Then sources, ordered
   // most-important first (stable sort, so equal priorities keep insertion
   // order). Earlier docs are both more salient to the LLM and the last to be
   // dropped if the knowledge ever has to be trimmed.
@@ -351,9 +477,10 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
   const client = elevenClient();
 
   const capabilities = await resolveAgentCapabilities(assistant);
+  const customTools = parseCustomTools(assistant.routing);
   const [{ docs, locators, useRag }, { toolIds, tools }] = await Promise.all([
     uploadKnowledge(assistant, knowledge),
-    createAgentTools(capabilities),
+    createAgentTools(capabilities, customTools),
   ]);
   const builtInTools = buildBuiltInTools(assistant);
 
@@ -362,7 +489,15 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
   const language = ELEVENLABS_LANGUAGES.has(rawLanguage) ? rawLanguage : "en";
   const firstMessage = (assistant.greeting ?? "").trim() || DEFAULT_GREETING;
   const toolNames = new Set(tools.map((t) => t.name));
-  const systemPrompt = composeSystemPrompt(assistant, businessName, toolNames, true, timezone);
+  const hasVerified = (knowledge.verified ?? []).length > 0;
+  const systemPrompt = composeSystemPrompt(
+    assistant,
+    businessName,
+    toolNames,
+    true,
+    timezone,
+    hasVerified,
+  );
   const voiceId = (assistant.voice_id ?? "").trim() || DEFAULT_VOICE_ID;
 
   const voiceOpts = (assistant.routing ?? {}) as {
@@ -374,9 +509,10 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
   const userVoiceByLang = voiceOpts.voiceByLanguage ?? {};
   // Platform TTS defaults (stability 0.5 / similarityBoost 0.8, no post-gen text
   // normalization) - the fastest, most neutral voice. Operator overrides win.
+  const natural = naturalVoice(assistant);
   const baseTts: ElevenLabs.TtsConversationalConfigOutput = {
     voiceId,
-    modelId: ttsModelForBase(language),
+    modelId: ttsModelForBase(language, natural),
   };
   if (typeof voiceOpts.voice?.speed === "number") baseTts.speed = voiceOpts.voice.speed;
   if (typeof voiceOpts.voice?.stability === "number") baseTts.stability = voiceOpts.voice.stability;
@@ -450,7 +586,7 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
 
   const englishPromptConfig: ElevenLabs.PromptAgentApiModelOutput = {
     ...promptConfig,
-    prompt: composeSystemPrompt(assistant, businessName, toolNames, false, timezone),
+    prompt: composeSystemPrompt(assistant, businessName, toolNames, false, timezone, hasVerified),
     builtInTools: buildBuiltInTools(assistant, false),
   };
   // Last-ditch rung: deliberately omits sharedConvFields (asr/backgroundSound).
@@ -464,6 +600,9 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
       prompt: englishPromptConfig,
     },
     turn: TURN_CONFIG,
+    // Pinned to the known-good flash model, natural tier or not: if the newer
+    // v3 model is what the workspace rejected, this is the rung that has to
+    // still work. A warmer voice is worth less than a working agent.
     tts: { ...baseTts, modelId: TTS_MODEL_ENGLISH },
   };
 

@@ -24,10 +24,11 @@ interface DbCallRow {
   durationSec: number;
   outcome: string | null;
   assistant: string | null;
+  needsReview: boolean;
 }
 
 const SELECT =
-  "id,twilio_call_sid,from_number,to_number,direction,status,started_at,duration_seconds,outcome,assistant:assistants!assistant_id(name)";
+  "id,twilio_call_sid,from_number,to_number,direction,status,started_at,duration_seconds,outcome,needs_review,assistant:assistants!assistant_id(name)";
 
 async function fetchAllNumbers(): Promise<Map<string, number>> {
   const { data, error } = await serviceClient()
@@ -64,6 +65,7 @@ async function fetchDbCalls(limit: number, ownerId?: string | null): Promise<DbC
       durationSec: num(row.duration_seconds),
       outcome: str(row.outcome) || null,
       assistant: assistantName(row),
+      needsReview: row.needs_review === true,
     };
   });
 }
@@ -84,6 +86,8 @@ function mergeRow(t: TwilioCallLog, db: DbCallRow | null, fmtDateTime: (iso: str
     durationLabel: fmtDuration(t.durationSec),
     outcome: db?.outcome ?? null,
     assistant: db?.assistant ?? null,
+    // A Twilio-only row has no summary and so was never audited.
+    needsReview: db?.needsReview ?? false,
     source: db ? "both" : "twilio",
   };
 }
@@ -104,6 +108,7 @@ function dbOnlyRow(c: DbCallRow, fmtDateTime: (iso: string) => string): CallLogR
     durationLabel: fmtDuration(c.durationSec),
     outcome: c.outcome,
     assistant: c.assistant,
+    needsReview: c.needsReview,
     source: "db",
   };
 }

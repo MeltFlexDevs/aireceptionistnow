@@ -105,6 +105,19 @@ export const itHome: HomeCopy = {
     ],
   },
 
+  capabilities: {
+    heading: "Cosa fa davvero",
+    sub: "Non è un menu telefonico con una voce più bella. Ecco cosa fa in una chiamata vera - e cosa succede quando non ce la fa.",
+    items: [
+      { title: "Porta le persone alla persona giusta", desc: "Fino a cinque destinazioni - reception, amministrazione, il reperibile - ognuna con i suoi orari. Sceglie quella adatta a ciò che serve a chi chiama e sa chi è davvero raggiungibile in quel momento." },
+      { title: "Passa a una persona prima che tu perda la chiamata", desc: "Offre una persona nel momento in cui qualcuno si innervosisce, ha dovuto ripetersi o parla di un'emergenza. Senza aspettare che glielo chiedano. Puoi aggiungere i tuoi casi: un tubo rotto, qualcuno che minaccia di disdire." },
+      { title: "Ti chiama quando conta", desc: "Un messaggio urgente ti arriva subito via SMS e, se vuoi, la receptionist ti telefona e ti dice chi ha chiamato, il numero e il problema. Imposta un tempo di richiamata e lo promette ad alta voce." },
+      { title: "Consulta i tuoi sistemi", desc: "Indicale la tua API e potrà cercare un ordine, controllare la disponibilità o dire i tuoi prezzi reali durante la chiamata, invece di tirare a indovinare o lasciarti un messaggio da gestire dopo." },
+      { title: "Non si inventa niente", desc: "Indica gli argomenti a cui non deve mai rispondere e lo dirà chiaramente invece di indovinare. Dalle le formulazioni che devono essere esatte e userà le tue. Dopo ogni chiamata confronta quello che ha detto con quello che le hai fornito e segnala ciò che non ha potuto sostenere. E se chi chiama domanda apertamente se sta parlando con un'IA, glielo dice." },
+      { title: "Riconosce i clienti abituali", desc: "Chi ha già chiamato viene salutato per nome e non deve ripetere quello che ti ha già detto. Un interruttore lo disattiva se preferisci di no." },
+    ],
+  },
+
   faq: {
     heading: "Domande frequenti",
     items: [
@@ -130,7 +143,7 @@ export const itHome: HomeCopy = {
       },
       {
         q: "Può fissare appuntamenti e integrarsi con il mio calendario e il mio CRM?",
-        a: "Sì. AI Receptionist Now fissa gli appuntamenti durante la chiamata e si integra in modo nativo con Google Calendar, Outlook, HubSpot, Salesforce e Calendly, oltre a migliaia di applicazioni tramite Zapier. Le integrazioni personalizzate sono disponibili tramite la nostra API aperta, così i dati di chi chiama arrivano direttamente negli strumenti che usa già.",
+        a: "Sì. Fissa l'appuntamento durante la chiamata su Google Calendar, Microsoft Calendar o Cal.com, verifica prima che lo slot sia libero dove il calendario lo consente e manda a chi chiama un SMS di conferma. Oltre ai calendari puoi indicarle la tua API, così cerca un ordine o controlla la disponibilità durante la chiamata, e ogni riepilogo e trascrizione può essere inviato al tuo CRM tramite webhook.",
       },
       {
         q: "Quali lingue supporta il receptionist con IA?",

@@ -108,6 +108,19 @@ export const skHome: HomeCopy = {
     ],
   },
 
+  capabilities: {
+    heading: "Čo naozaj dokáže",
+    sub: "Nie je to telefónne menu s krajším hlasom. Toto zvládne v skutočnom hovore - a toto sa stane, keď to nezvládne.",
+    items: [
+      { title: "Prepojí na správneho človeka", desc: "Až päť cieľov - recepcia, fakturácia, pohotovostný technik - každý s vlastnými hodinami. Vyberie ten, ktorý sedí na to, čo volajúci potrebuje, a vie, kto je práve naozaj dostupný." },
+      { title: "Eskaluje skôr, než o volajúceho prídete", desc: "Ponúkne človeka vo chvíli, keď je niekto nahnevaný, musel sa opakovať alebo hovorí o núdzi. Nečaká, kým ho o to požiadajú. Vlastné situácie si doplníte: prasknuté potrubie, hrozba zrušenia zmluvy." },
+      { title: "Zavolá vám, keď na tom záleží", desc: "Naliehavý odkaz vám okamžite príde SMS-kou a ak chcete, recepcia vám zavolá a povie, kto volal, jeho číslo a o čo ide. Nastavte lehotu na spätné volanie a ona ju volajúcemu nahlas sľúbi." },
+      { title: "Číta z vašich vlastných systémov", desc: "Nasmerujte ju na svoje API a počas hovoru dohľadá objednávku, skontroluje sklad alebo povie vaše skutočné ceny - namiesto hádania alebo odkazu, ktorý budete musieť vybaviť neskôr." },
+      { title: "Nič si nevymýšľa", desc: "Určte témy, na ktoré nikdy nesmie odpovedať, a ona to povie na rovinu namiesto hádania. Dajte jej formulácie, ktoré musia sedieť presne, a použije tie vaše. Po každom hovore porovná, čo povedala, s tým, čo ste jej zadali, a označí všetko, čo nevedela podložiť. A ak sa volajúci priamo spýta, či hovorí s AI, povie mu to." },
+      { title: "Pozná vašich stálych zákazníkov", desc: "Kto už volal, dostane pozdrav menom a nemusí znova hovoriť to, čo už povedal. Jedným prepínačom to vypnete, ak to tak nechcete." },
+    ],
+  },
+
   faq: {
     heading: "Často kladené otázky",
     items: [
@@ -133,7 +146,7 @@ export const skHome: HomeCopy = {
       },
       {
         q: "Dokáže objednávať termíny a prepojiť sa s mojím kalendárom a CRM?",
-        a: "Áno. AI Receptionist Now objednáva termíny priamo počas hovoru a natívne sa prepojí s Google Calendar, Outlook, HubSpot, Salesforce a Calendly, plus s tisíckami aplikácií cez Zapier. Vlastné integrácie sú možné cez naše otvorené API, takže údaje o volajúcich putujú rovno do nástrojov, ktoré už používate.",
+        a: "Áno. Termín objedná priamo počas hovoru do Google Calendar, Microsoft Calendar alebo Cal.com, najprv overí, či je termín voľný, ak to kalendár podporuje, a volajúcemu pošle potvrdenie SMS-kou. Okrem kalendárov ju môžete nasmerovať na vlastné API, aby počas hovoru dohľadala objednávku alebo skontrolovala sklad, a každé zhrnutie hovoru aj prepis sa dá odoslať do vášho CRM cez webhook.",
       },
       {
         q: "Aké jazyky AI recepcia podporuje?",

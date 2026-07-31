@@ -36,6 +36,15 @@ export interface Latency {
   p95Ms: number;
   targetMs: number;
   spark: number[];
+  /**
+   * The slow tail has drifted far enough past target to be audible.
+   *
+   * Latency is the one quality signal that degrades silently: every call still
+   * completes, the summaries still read fine, and the only symptom is that
+   * callers start talking over an assistant that is half a second late. Median
+   * hides it - the tail is where a caller notices - so this watches p95.
+   */
+  degraded: boolean;
 }
 export interface MonthUsage {
   callsThisMonth: number;
@@ -157,15 +166,23 @@ function percentile(xs: number[], p: number): number {
   const s = [...xs].sort((a, b) => a - b);
   return s[Math.min(s.length - 1, Math.floor((p / 100) * s.length))];
 }
+/** p95 above this multiple of target is a regression worth surfacing. */
+const LATENCY_DEGRADED_FACTOR = 1.5;
+/** Below this many measured calls, p95 is one bad call, not a trend. */
+const LATENCY_MIN_SAMPLE = 5;
+
 function latencyFrom(calls: CallRow[]): Latency {
   const vals = calls
     .map((c) => c.median_latency_ms)
     .filter((v): v is number => typeof v === "number" && v > 0);
+  const targetMs = 800;
+  const p95Ms = percentile(vals, 95);
   return {
     medianMs: median(vals),
-    p95Ms: percentile(vals, 95),
-    targetMs: 800,
+    p95Ms,
+    targetMs,
     spark: vals.slice(0, 7).reverse(),
+    degraded: vals.length >= LATENCY_MIN_SAMPLE && p95Ms > targetMs * LATENCY_DEGRADED_FACTOR,
   };
 }
 function pctDelta(recent: number, prior: number): number {

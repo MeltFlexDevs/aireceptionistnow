@@ -102,6 +102,10 @@ export const Sparkle = ({ className = base }: IconProps) => (
   <Stroke className={className}><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.4 2.4M15.3 15.3l2.4 2.4M17.7 6.3l-2.4 2.4M8.7 15.3l-2.4 2.4" /></Stroke>
 );
 
+export const Shield = ({ className = base }: IconProps) => (
+  <Stroke className={className}><path d="M12 3l7 3v5.5c0 4.4-2.9 8.3-7 9.5-4.1-1.2-7-5.1-7-9.5V6l7-3Z" /><path d="M9.5 12l1.8 1.8 3.4-3.6" /></Stroke>
+);
+
 export const Download = ({ className = base }: IconProps) => (
   <Stroke className={className}><path d="M12 4v11M8 11l4 4 4-4M4 20h16" /></Stroke>
 );

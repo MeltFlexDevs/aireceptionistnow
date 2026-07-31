@@ -20,6 +20,7 @@ import { parsePdfMarkdown } from "@/lib/knowledge/pdf";
 import { summarizeSourceMarkdown } from "@/lib/dashboard/ai-knowledge";
 import {
   addSource,
+  parseVerifiedLines,
   readKnowledge,
   removeSource,
   MAX_SOURCE_CHARS,
@@ -128,6 +129,12 @@ export async function updateKnowledgeNotesAction(
     const org = await ensureActiveOrganization(String(formData.get("id") ?? ""));
     const knowledge = readKnowledge(org.knowledge);
     knowledge.notes = String(formData.get("knowledge_notes") ?? "").trim();
+    // Guarded on presence, not on the submit: an older form that carries only
+    // the notes must not wipe the verified answers. Same rule as the assistant
+    // patch layer - see lib/dashboard/assistant-patch.ts.
+    if (formData.has("knowledge_verified")) {
+      knowledge.verified = parseVerifiedLines(String(formData.get("knowledge_verified") ?? ""));
+    }
     await saveKnowledge(org.id, { ...knowledge });
     return ok(t.knowledge.saved);
   });

@@ -47,6 +47,14 @@ export interface NumberConfig {
   knowledge: Record<string, unknown>; // hours, services, pricing, FAQs
   routing: Record<string, unknown>; // transfer targets, business hours
   integrations: IntegrationConfig[];
+  /**
+   * The ElevenLabs agent and phone-number ids behind this line. Carried so an
+   * urgent message can ring the business back on its OWN number - a page from a
+   * stranger's caller ID at 3am gets ignored, which defeats the point.
+   * Empty when the number was never fully provisioned; paging then no-ops.
+   */
+  agentId: string;
+  agentPhoneNumberId: string;
 }
 
 // ── Tool / action payloads ──────────────────────────────────────────────────
@@ -86,4 +94,18 @@ export interface CallSummary {
   sentiment: Sentiment;
   actionItems: string[];
   tags: string[];
+  /**
+   * Things the assistant told the caller that the knowledge base does not
+   * actually support - a made-up price, an invented policy, an opening time
+   * nobody configured.
+   *
+   * The point is not to stop a hallucination (that ship has sailed by the time
+   * a call is summarized) but to make it VISIBLE. Without this the failure mode
+   * is silent: the caller is told something wrong, hangs up happy, and the
+   * business never finds out. Each entry is a gap in the knowledge base, which
+   * is where the dashboard points the operator next.
+   */
+  unsupportedClaims: string[];
+  /** True when a human should read this call. Drives the dashboard flag. */
+  needsReview: boolean;
 }

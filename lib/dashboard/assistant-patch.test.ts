@@ -353,3 +353,201 @@ test("clearing the transfer number keeps the hours for when it comes back", () =
   assert.equal(patch.routing.transferTo, undefined);
   assert.ok(patch.routing.transferHours, "schedule is not collateral damage");
 });
+
+// ── Escalation destinations ─────────────────────────────────────────────────
+// The same hazard again, and worse: this section owns the ONLY way a caller
+// reaches a person. A save that silently drops a destination takes the
+// receptionist's safety net away without telling anybody.
+
+function escForm(extra: Record<string, string>): FormData {
+  return fd({ id: "a1", [SECTION.escalation]: "1", esc_keys: "r0", ...extra });
+}
+
+test("an escalation form with no destinations clears the legacy number too", () => {
+  const patch = buildAssistantPatch(escForm({ esc_keys: "" }), PREV, CTX);
+  assert.deepEqual(patch.routing.escalation, { targets: [] });
+  assert.equal(patch.routing.transferTo, undefined, "mirror must follow the list");
+});
+
+test("a saved destination mirrors onto the legacy transfer number", () => {
+  // The setup checklist, the test-call button and onboarding all still read
+  // routing.transferTo. If the mirror breaks they quietly go stale.
+  const patch = buildAssistantPatch(
+    escForm({ esc_r0_label: "Front desk", esc_r0_number: "+421900000001" }),
+    PREV,
+    CTX,
+  );
+  const esc = patch.routing.escalation as { targets: Record<string, unknown>[] };
+  assert.equal(esc.targets.length, 1);
+  assert.equal(esc.targets[0].label, "Front desk");
+  assert.equal(patch.routing.transferTo, "+421900000001");
+});
+
+test("a row left blank is not stored as a destination", () => {
+  const patch = buildAssistantPatch(
+    escForm({
+      esc_keys: "r0,r1,r2",
+      esc_r0_label: "Front desk",
+      esc_r0_number: "+421900000001",
+      esc_r1_label: "Typed a name then gave up",
+      esc_r1_number: "",
+      esc_r2_label: "Billing",
+      esc_r2_number: "+421900000002",
+    }),
+    PREV,
+    CTX,
+  );
+  const esc = patch.routing.escalation as { targets: { label: string }[] };
+  assert.deepEqual(
+    esc.targets.map((t) => t.label),
+    ["Front desk", "Billing"],
+  );
+});
+
+test("the warm/blind choice stays absent until it is actually made", () => {
+  // "" must not collapse to blind: an unset transfer type leaves the ElevenLabs
+  // platform default alone, which is the only value that provably does not
+  // change how an existing assistant's transfers already behave.
+  const unset = buildAssistantPatch(escForm({ esc_r0_number: "+421900000001" }), PREV, CTX);
+  const a = (unset.routing.escalation as { targets: Record<string, unknown>[] }).targets[0];
+  assert.equal("warm" in a, false);
+
+  const cold = buildAssistantPatch(
+    escForm({ esc_r0_number: "+421900000001", esc_r0_warm: "cold" }),
+    PREV,
+    CTX,
+  );
+  assert.equal((cold.routing.escalation as { targets: { warm: boolean }[] }).targets[0].warm, false);
+
+  const warm = buildAssistantPatch(
+    escForm({ esc_r0_number: "+421900000001", esc_r0_warm: "warm" }),
+    PREV,
+    CTX,
+  );
+  assert.equal((warm.routing.escalation as { targets: { warm: boolean }[] }).targets[0].warm, true);
+});
+
+test("each destination carries its own schedule", () => {
+  const patch = buildAssistantPatch(
+    escForm({
+      esc_keys: "r0,r1",
+      esc_r0_number: "+421900000001",
+      esc_r1_number: "+421900000002",
+      esc_r1_tz: "Europe/Bratislava",
+      esc_r1_day_1: "on",
+      esc_r1_start_1: "18:00",
+      esc_r1_end_1: "07:00",
+    }),
+    PREV,
+    CTX,
+  );
+  const targets = (patch.routing.escalation as { targets: Record<string, unknown>[] }).targets;
+  assert.equal("hours" in targets[0], false, "no schedule means always reachable");
+  assert.deepEqual((targets[1].hours as { days: unknown[] }).days[1], {
+    start: "18:00",
+    end: "07:00",
+  });
+});
+
+test("a form that predates the editor cannot erase the destinations", () => {
+  const prev: PatchPrev = {
+    ...PREV,
+    routing: { ...PREV.routing, escalation: { targets: [{ id: "a", number: "+421900000001" }] } },
+  };
+  // Marker present, esc_keys absent - the guard that stops the rebuild.
+  const patch = buildAssistantPatch(fd({ id: "a1", [SECTION.escalation]: "1" }), prev, CTX);
+  assert.deepEqual(patch.routing.escalation, prev.routing.escalation);
+});
+
+test("an alerts-only form no longer wipes the transfer number", () => {
+  // The escalation editor owns the number now and does not carry transfer_to,
+  // so the alerts section must guard on the field, not on its marker.
+  const patch = buildAssistantPatch(fd({ id: "a1", [SECTION.alerts]: "1" }), PREV, CTX);
+  assert.equal(patch.routing.transferTo, "+14155550199");
+  assert.equal(patch.routing.smsAlerts, false, "the toggle it does own still applies");
+});
+
+// ── Guardrails and disclosure ───────────────────────────────────────────────
+
+test("guardrail lists are split, trimmed and dropped when empty", () => {
+  const set = buildAssistantPatch(
+    fd({
+      id: "a1",
+      [SECTION.guardrails]: "1",
+      guardrail_never: " refund eligibility \n\n exact prices for custom work \n",
+      guardrail_escalate: "anything about a legal dispute",
+    }),
+    PREV,
+    CTX,
+  );
+  assert.deepEqual(set.routing.guardrails, {
+    neverDiscuss: ["refund eligibility", "exact prices for custom work"],
+    alwaysEscalate: ["anything about a legal dispute"],
+  });
+
+  const cleared = buildAssistantPatch(
+    fd({ id: "a1", [SECTION.guardrails]: "1", guardrail_never: "  \n  " }),
+    PREV,
+    CTX,
+  );
+  assert.equal(cleared.routing.guardrails, undefined);
+});
+
+test("the default disclosure mode is stored as absence, not as a value", () => {
+  const back = buildAssistantPatch(
+    fd({ id: "a1", [SECTION.guardrails]: "1", disclosure: "if_asked" }),
+    { ...PREV, routing: { ...PREV.routing, disclosure: "deflect" } },
+    CTX,
+  );
+  assert.equal(back.routing.disclosure, undefined);
+
+  const opted = buildAssistantPatch(
+    fd({ id: "a1", [SECTION.guardrails]: "1", disclosure: "deflect" }),
+    PREV,
+    CTX,
+  );
+  assert.equal(opted.routing.disclosure, "deflect");
+});
+
+test("row keys are addressed by name, so removing one cannot shuffle the others", () => {
+  // The whole reason rows are keyed rather than numbered: dropping the middle
+  // destination must leave the third one's fields - including its schedule -
+  // attached to the third one.
+  const patch = buildAssistantPatch(
+    escForm({
+      esc_keys: "r0,r2",
+      esc_r0_label: "Front desk",
+      esc_r0_number: "+421900000001",
+      esc_r2_label: "On call",
+      esc_r2_number: "+421900000003",
+      esc_r2_tz: "Europe/Bratislava",
+      esc_r2_day_1: "on",
+      esc_r2_start_1: "18:00",
+      esc_r2_end_1: "07:00",
+    }),
+    PREV,
+    CTX,
+  );
+  const targets = (patch.routing.escalation as { targets: Record<string, unknown>[] }).targets;
+  assert.deepEqual(
+    targets.map((t) => t.label),
+    ["Front desk", "On call"],
+  );
+  assert.equal("hours" in targets[0], false, "the schedule belongs to On call, not Front desk");
+  assert.ok(targets[1].hours);
+});
+
+test("a key that is not the shape the editor generates is ignored", () => {
+  // Keys arrive from the client and are interpolated straight into field
+  // lookups, so anything unexpected is dropped rather than trusted.
+  const patch = buildAssistantPatch(
+    escForm({
+      esc_keys: "r0,../evil,r1;drop",
+      esc_r0_number: "+421900000001",
+    }),
+    PREV,
+    CTX,
+  );
+  const targets = (patch.routing.escalation as { targets: { id: string }[] }).targets;
+  assert.deepEqual(targets.map((t) => t.id), ["r0"]);
+});

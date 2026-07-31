@@ -13,88 +13,104 @@ The product is two surfaces:
 
 ## Project status
 
-This repository currently contains the **marketing landing page** (Next.js 16, React 19, Tailwind 4). The dashboard and voice pipeline described below are the product specification and roadmap — they are **not yet implemented in this repo**.
+The landing page, the dashboard and the live call engine are all built and in
+production. What is **not** in this repo is a bespoke media pipeline: the
+realtime audio loop runs on the **ElevenLabs Agents Platform**, and this app
+configures it, feeds it live context, and serves the tools it calls.
 
 | Area | Status |
 |------|--------|
-| Landing page ([app/page.tsx](app/page.tsx)) | ✅ Built |
-| Dashboard | 📋 Specified — not built |
-| Voice pipeline (Twilio + STT + LLM + TTS) | 📋 Specified — not built |
-| Third-party integrations | 📋 Specified — not built |
-
-Sections marked 📋 below describe the intended design so implementation work has a target. Keep this table honest as features land.
+| Marketing site | ✅ Built |
+| Dashboard (assistant, numbers, calls, knowledge, analytics, billing) | ✅ Built |
+| Call engine (agent sync, call-start webhook, tool routes, post-call) | ✅ Built |
+| Integrations (Google, Outlook, Cal.com, CRM webhooks) | ✅ Built |
 
 ---
 
 ## How a call works
 
 ```
-  Caller ──dials──► Twilio number
-                      │
-                      ▼
-            Media Streams (WebSocket, μ-law audio)
-                      │
-        ┌─────────────┴──────────────┐
-        ▼                            ▲
-  Speech-to-text              Text-to-speech
-  (streaming, partial         (ElevenLabs,
-   transcripts)                streamed back)
-        │                            ▲
-        ▼                            │
-   LLM response (Claude) — streamed token-by-token
-        │
-        ▼
-   Side effects: book appointment, look up caller,
-   write call record, fire integrations
+  Caller ──dials──► Twilio number (imported into ElevenLabs)
+                             │
+                             ▼
+              ElevenLabs Agents Platform
+        (ASR → LLM → TTS, turn-taking, barge-in)
+                             │
+    ┌────────────────────────┼─────────────────────────┐
+    ▼                        ▼                         ▼
+ /api/agent/init      tool webhooks             /api/agent/post-call
+ (call start:         check_availability        (transcript, summary,
+  greeting, voice,    book_appointment           accuracy audit, email,
+  language, who is    take_message               CRM push)
+  reachable, who
+  is calling)
 ```
 
-1. A caller dials a number you registered with Twilio.
-2. Twilio opens a **Media Streams** WebSocket and streams raw call audio to the backend.
-3. Audio is transcribed in real time by a streaming **speech-to-text** provider — partial transcripts let the AI start "thinking" before the caller finishes.
-4. The transcript is fed to **Claude**, which generates the reply using the behavior, knowledge, and tools you configured for that number.
-5. The reply is streamed to **ElevenLabs** for **text-to-speech** and the synthesized audio is streamed straight back into the call.
-6. During and after the call, side effects fire: calendar bookings, CRM writes, a stored transcript, and an end-of-call summary.
+1. A caller dials a Twilio number that has been imported into ElevenLabs and
+   pointed at that assistant's agent.
+2. ElevenLabs runs the realtime loop — transcription, the LLM turn, speech
+   synthesis, endpointing and barge-in. We do not touch the audio.
+3. Before the greeting, ElevenLabs calls **`/api/agent/init`**
+   ([route](app/api/agent/init/route.ts)), which resolves the number to its
+   assistant and returns per-call overrides: the greeting and voice in the
+   caller's likely language, which escalation destinations are reachable right
+   now, and what we know about this caller from previous calls.
+4. Mid-call, the agent calls our **tool webhooks** under
+   [`app/api/agent/`](app/api/agent) to check availability, book, take a message,
+   or hit one of the business's own custom actions.
+5. After the call, **`/api/agent/post-call`** stores the transcript, writes an
+   AI summary, audits what the agent said against the knowledge base, emails the
+   recap and pushes to any connected CRM.
+
+The agent itself — prompt, voice, languages, knowledge base, tools, transfer
+destinations — is composed and pushed by
+[`lib/call-engine/agent/sync.ts`](lib/call-engine/agent/sync.ts) whenever the
+assistant is saved.
 
 ### Latency budget
 
-Target: **< ~800 ms** from end-of-caller-speech to start-of-AI-speech. Rough allocation:
+Target: **< ~800 ms** from end-of-caller-speech to start-of-AI-speech. Per-call
+median reply latency is measured from the ElevenLabs turn metrics and charted in
+the dashboard, which warns when the p95 drifts past 1.5× target.
 
-| Stage | Budget |
-|-------|--------|
-| Endpointing (detect caller stopped) | ~150 ms |
-| STT final transcript | ~100 ms |
-| LLM first token (Claude, streamed) | ~300 ms |
-| TTS first audio chunk (ElevenLabs, streamed) | ~150 ms |
-| Network / telephony overhead | ~100 ms |
+What actually holds the budget today:
 
-Design rules that follow from this:
-- **Stream everything.** Never wait for a full transcript, a full LLM response, or a full audio file. STT partials → LLM streaming → TTS streaming → audio out, all overlapped.
-- **Co-locate services.** Keep STT, LLM, and TTS calls in the same region as the telephony media edge.
-- **Barge-in support.** If the caller starts talking while the AI is speaking, stop playback immediately and re-listen.
-- **Cheap, fast paths first.** Use small/fast model tiers for routing and intent, escalate to a larger model only when the turn needs it.
+- **Speculative turns + eager endpointing**, so the LLM starts before turn
+  confidence is final (`TURN_CONFIG` in `agent/sync.ts`).
+- **Flash TTS models** by default; the warmer `eleven_v3_conversational` is an
+  explicit opt-in per assistant, because it costs time to first audio.
+- **Knowledge injected into the prompt** under ~15k characters, which skips the
+  per-turn retrieval hop entirely. Bigger knowledge bases fall back to RAG.
+- **Calendar prefetch** fired from the call-start webhook, so the first
+  availability check answers from one indexed read.
+- **Deferred booking** — the caller is acknowledged immediately and the calendar
+  write finishes in the background.
+- **Soft-timeout fillers** so a slow turn is never dead air, and a
+  `claude-haiku-4-5` backup LLM so a Gemini outage does not drop live calls.
+- **Precomputed per-language greetings and voices** at save time, so no
+  translation or voice lookup ever runs while the phone is ringing.
 
 ---
 
 ## Tech stack
 
-**Current (this repo)**
-- [Next.js 16](https://nextjs.org) (App Router) + React 19
-- TypeScript
-- Tailwind CSS 4
-
-**Planned for the full product**
-- **Telephony:** [Twilio](https://www.twilio.com/) Voice + Media Streams (programmable inbound/outbound numbers, real-time audio)
-- **LLM:** [Anthropic Claude](https://www.anthropic.com/) for conversation, intent, tool calls, and post-call summaries
-- **Voice (TTS):** [ElevenLabs](https://elevenlabs.io/) for natural, low-latency synthesized speech
-- **Speech-to-text:** a streaming STT provider (e.g. Deepgram / Whisper-streaming class)
-- **Realtime transport:** WebSockets for the audio media stream
-- **Persistence:** a database for numbers, configs, call records, transcripts, and analytics
+- **App:** [Next.js 16](https://nextjs.org) (App Router) + React 19, TypeScript, Tailwind CSS 4
+- **Voice:** [ElevenLabs Agents Platform](https://elevenlabs.io/) — ASR, the
+  conversational LLM turn, TTS, turn-taking and transfers
+- **Telephony:** [Twilio](https://www.twilio.com/) numbers, imported into
+  ElevenLabs. Twilio is also used directly for SMS alerts and CNAM.
+- **Agent LLM:** `gemini-2.5-flash`, with `claude-haiku-4-5` as an explicit
+  backup so a single provider outage does not take calls down
+- **Summaries & translation:** Gemini, in the background after the call
+- **Persistence:** Supabase (Postgres + RLS) for numbers, assistants, calls,
+  transcripts, actions and analytics
+- **Billing:** Stripe
 
 ---
 
-## Dashboard 📋
+## Dashboard
 
-The dashboard is where a non-technical user runs the whole thing. It has five core areas.
+The dashboard is where a non-technical user runs the whole thing.
 
 ### 1. Phone numbers
 
@@ -106,30 +122,46 @@ Register and label the numbers the AI answers:
 
 ### 2. AI voice & behavior
 
-Configure the personality of the receptionist per number:
-- **Voice:** pick an ElevenLabs voice, adjust speed/stability, set language.
-- **Greeting:** the opening line the AI says when it picks up.
-- **Behavior / system prompt:** what the AI should do — answer FAQs, qualify leads, book appointments, take messages, route calls.
-- **Knowledge:** business hours, services, pricing, addresses, policies the AI can reference.
-- **Guardrails:** what it must not do, when to escalate to a human, transparency about being an AI.
+Configure the receptionist per assistant:
+- **Voice:** pick an ElevenLabs voice, adjust speed/expressiveness, pin a
+  different voice per language, and choose speed vs warmth (`routing.voiceTier`).
+- **Greeting:** the opening line, auto-translated per caller language at save time.
+- **Behavior / system prompt:** the role it plays, on top of the composed base prompt.
+- **Knowledge:** notes, uploaded documents, scraped pages, plus *verified
+  answers* it must repeat rather than paraphrase.
+- **Reaching a person:** up to five named destinations, each with its own
+  condition and schedule; the situations that trigger an offer of a human
+  without being asked; a callback SLA; and an optional phone page for urgent
+  messages. See [`lib/call-engine/escalation.ts`](lib/call-engine/escalation.ts).
+- **Truthfulness:** subjects it must never answer, subjects that always go
+  straight to a person, and what it says when a caller asks whether it is an AI
+  (honest when asked, by default). See [`lib/call-engine/policy.ts`](lib/call-engine/policy.ts).
+- **Your own systems:** custom actions pointed at the business's own API, so it
+  can look up an order or check stock instead of guessing. See
+  [`lib/call-engine/agent/custom-tools.ts`](lib/call-engine/agent/custom-tools.ts).
 
 ### 3. Integrations
 
 Connect the tools the AI reads from and writes to:
-- **Calendars / meetings:** Google Calendar, Outlook, Calendly — for live appointment booking during the call.
-- **CRMs:** HubSpot, Salesforce — to look up callers and log interactions.
-- **Automation:** Zapier / webhooks for everything else.
-- **API access:** an open REST API for custom integrations.
+- **Calendars:** Google Calendar, Outlook and Cal.com, with per-calendar access
+  levels (none / read availability / write and book). Note that an Outlook grant
+  can book but cannot read busy windows, so it never produces a
+  `check_availability` tool.
+- **CRMs:** outbound webhooks carrying the call summary and transcript.
+- **Custom actions:** the business's own HTTP endpoints, exposed to the agent as
+  tools (see above).
 
-### 4. Analytics & statistics
+### 4. Analytics & call review
 
-Graphs and metrics over the call history:
-- **Call time:** total and average call duration; talk-time trends over day / week / month.
-- **Caller talk ratio:** how much the caller spoke vs the AI (a signal for conversation quality).
-- **Call summaries:** an AI-generated summary of each call — intent, outcome, action items, sentiment.
-- **Volume:** calls per hour/day, peak times, missed vs answered, answer rate.
-- **Outcomes:** appointments booked, leads captured, calls transferred, messages taken.
-- **Per-number breakdown:** filter every metric by phone number / label.
+- **Call summaries:** intent, outcome, action items and sentiment per call.
+- **Accuracy audit:** the same post-call pass compares what the assistant
+  asserted against the knowledge base and flags anything unsupported, so a
+  hallucination is visible instead of silent. Flagged calls are badged in the
+  call list and the claims are listed on the call, with a link to fill the gap
+  in the knowledge base.
+- **Latency:** median and p95 reply latency against an 800 ms target, with a
+  warning when the slow tail drifts.
+- **Volume, outcomes and talk ratio**, with a per-assistant breakdown.
 
 ### 5. Settings & overviews
 
@@ -139,7 +171,7 @@ Graphs and metrics over the call history:
 
 ---
 
-## Getting started (current landing page)
+## Getting started
 
 Install dependencies and run the dev server:
 
@@ -165,32 +197,58 @@ Edit the landing page in [app/page.tsx](app/page.tsx); it hot-reloads on save.
 
 ---
 
-## Environment variables 📋
+## Environment variables
 
-When the voice pipeline lands, it will need provider credentials. Put them in `.env.local` (never commit secrets):
+Put them in `.env.local` (never commit secrets):
 
 ```bash
-# Telephony
+# App
+APP_BASE_URL=                       # public URL ElevenLabs calls our tool webhooks on
+NEXT_PUBLIC_SITE_URL=
+
+# Voice
+ELEVENLABS_API_KEY=
+ELEVENLABS_AGENT_ID=                # the marketing demo agent
+ELEVENLABS_AGENT_PHONE_NUMBER_ID=   # caller ID for demo and test calls
+ELEVENLABS_WEBHOOK_SECRET=          # verifies the post-call webhook signature
+ELEVENLABS_POST_CALL_WEBHOOK_ID=
+ELEVENLABS_HOURLY_CALL_CAP=         # outbound spend guards
+ELEVENLABS_DAILY_CALL_CAP=
+AGENT_WEBHOOK_SECRET=               # shared secret on our own tool routes
+
+# LLM (summaries, translation, greeting localization)
+GEMINI_API_KEY=
+
+# Telephony (numbers, SMS alerts, CNAM)
 TWILIO_ACCOUNT_SID=
 TWILIO_AUTH_TOKEN=
-TWILIO_PHONE_NUMBER=
+TWILIO_SMS_FROM=
 
-# LLM
-ANTHROPIC_API_KEY=
+# Database
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_URL=
+SUPABASE_SERVICE_ROLE_KEY=          # bypasses RLS - server only, never exposed
 
-# Text-to-speech
-ELEVENLABS_API_KEY=
+# Billing
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+NEXT_PUBLIC_STRIPE_PRICE_SOLO_MONTHLY=
+NEXT_PUBLIC_STRIPE_PRICE_SOLO_ANNUAL=
+NEXT_PUBLIC_STRIPE_PRICE_TEAM_MONTHLY=
+NEXT_PUBLIC_STRIPE_PRICE_TEAM_ANNUAL=
 
-# Speech-to-text
-STT_API_KEY=
-
-# App
-DATABASE_URL=
-APP_BASE_URL=          # public URL Twilio webhooks call back into
+# Calendar OAuth
+GOOGLE_OAUTH_CLIENT_ID=
+GOOGLE_OAUTH_CLIENT_SECRET=
+MICROSOFT_OAUTH_CLIENT_ID=
+MICROSOFT_OAUTH_CLIENT_SECRET=
+CALCOM_OAUTH_CLIENT_ID=
+CALCOM_OAUTH_CLIENT_SECRET=
 
 # Post-call summary emails (Resend). Without both, summaries are logged and skipped.
-RESEND_API_KEY=        # from resend.com
-EMAIL_FROM=            # verified sender, e.g. Meltflex Reception <noreply@receptionist.meltflexai.com>
+RESEND_API_KEY=
+EMAIL_FROM=                         # verified sender
 ```
 
 Anything prefixed `NEXT_PUBLIC_` is bundled into the client and is **public** — keep provider keys unprefixed and server-side only.
@@ -202,27 +260,62 @@ Anything prefixed `NEXT_PUBLIC_` is bundled into the client and is **public** �
 ```
 aireceptionistnow/
 ├── app/
-│   ├── layout.tsx        # Root layout, fonts, metadata
-│   ├── page.tsx          # Landing page (built)
-│   └── globals.css
-├── public/               # Static assets (testimonial avatars, etc.)
-├── AGENTS.md             # Notes for AI coding agents working in this repo
-├── next.config.ts
-└── package.json
+│   ├── (main)/
+│   │   ├── dashboard/        # The product UI
+│   │   ├── blog/ answers/    # Marketing + SEO content
+│   │   └── page.tsx          # Landing page
+│   └── api/
+│       ├── agent/            # Call-start webhook, tool routes, post-call
+│       ├── integrations/     # Calendar OAuth connect + callback
+│       └── stripe/ cron/ …
+├── lib/
+│   ├── call-engine/          # Everything the live call touches
+│   │   ├── agent/            # Agent sync, tools, custom tools, context
+│   │   ├── escalation.ts     # Named destinations and when they are reachable
+│   │   ├── policy.ts         # Disclosure and truthfulness guardrails
+│   │   ├── caller-context.ts # Returning-caller recognition
+│   │   ├── paging.ts         # Ringing the business for an urgent message
+│   │   ├── integrations/     # Calendars, CRM, availability snapshots
+│   │   └── summary/          # Post-call summary, accuracy audit, email
+│   ├── dashboard/            # Server-side data access for the UI
+│   ├── knowledge/            # Sources, verified answers, PDF/website ingest
+│   └── i18n/                 # 8 locale dictionaries
+├── supabase/migrations/
+└── AGENTS.md                 # Notes for AI coding agents working in this repo
 ```
 
-Planned additions as the product is built: `app/dashboard/` (dashboard UI), `app/api/` (Twilio webhooks, media-stream WebSocket handler, integration callbacks), and a `lib/` layer for the STT/LLM/TTS pipeline.
+Pure, decision-making modules (`escalation.ts`, `policy.ts`, `transfer-hours.ts`,
+`custom-tools.ts`, `assistant-patch.ts`) are kept free of I/O and have sibling
+`*.test.ts` files. Run them with `npm test`.
 
 ---
 
 ## Roadmap
 
-- [x] Marketing landing page
-- [ ] Auth + account model
-- [ ] Phone number registration (Twilio provisioning)
-- [ ] Real-time voice pipeline (Media Streams → STT → Claude → ElevenLabs)
-- [ ] AI voice & behavior configuration UI
-- [ ] Calendar / CRM integrations
-- [ ] Call records, transcripts, and AI summaries
-- [ ] Analytics dashboard (call time, talk ratio, outcomes)
-- [ ] Daily / monthly overviews and billing
+Shipped:
+
+- [x] Marketing site, auth, billing
+- [x] Number provisioning and routing to a per-assistant ElevenLabs agent
+- [x] Live calls: greeting, multilingual answering, booking, messages, transfer
+- [x] Calendar (Google, Outlook, Cal.com) and CRM webhooks
+- [x] Call records, transcripts, AI summaries and analytics
+- [x] Named escalation destinations, proactive escalation, urgent paging
+- [x] Post-call accuracy audit and operator guardrails
+- [x] Custom actions against the business's own API
+- [x] Returning-caller recognition
+
+Known gaps, stated plainly:
+
+- **Warm transfer is opt-in and unverified against every carrier.** Per
+  destination we can send `conference` or `blind`; unset leaves the ElevenLabs
+  default alone. Worth measuring on a real carrier before promoting it.
+- **Escalation hours are prompt steering, not a platform block.** Built-in tools
+  cannot be overridden per conversation, so the schedule is enforced by what the
+  prompt says on each call. Strong, but not a compliance control.
+- **Custom action URLs are validated at save time, not at call time.**
+  ElevenLabs makes the request, not us, so a host that resolves publicly now and
+  privately later is not covered. See the note at the top of `custom-tools.ts`.
+- **Urgent paging is rate-limited per serverless instance**, so a cold start can
+  allow a second page inside the cooldown window.
+- **No live listen-in or mid-call takeover.** The dashboard shows an in-call
+  indicator only.

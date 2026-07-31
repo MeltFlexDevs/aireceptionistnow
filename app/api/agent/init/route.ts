@@ -6,15 +6,20 @@ import { prefetchAvailability } from "@/lib/call-engine/integrations/availabilit
 import { resolveCalendarsForAccess } from "@/lib/call-engine/integrations/registry";
 import { localizeGreeting } from "@/lib/call-engine/llm/greeting";
 import {
-  TRANSFER_POLICY_OPEN,
-  parseTransferHours,
-  transferPolicyLine,
-} from "@/lib/call-engine/transfer-hours";
+  NO_CALLER_CONTEXT,
+  callerContextLine,
+  recognizeCallersEnabled,
+} from "@/lib/call-engine/caller-context";
+import { escalationPolicyLine, parseEscalation } from "@/lib/call-engine/escalation";
+import { getRepository } from "@/lib/call-engine/persistence/supabase";
+import { TRANSFER_POLICY_OPEN } from "@/lib/call-engine/transfer-hours";
 import { withDeadline } from "@/lib/call-engine/net";
 import { voiceForLanguage, baseLanguage } from "@/lib/call-engine/voice/catalog";
 import { languageFromPhone } from "@/lib/call-engine/voice/phone-language";
 
 const OVERRIDE_BUDGET_MS = 1500;
+/** Recognising a caller is a nicety; it must never make the phone ring longer. */
+const CALLER_LOOKUP_BUDGET_MS = 700;
 
 export const dynamic = "force-dynamic";
 
@@ -81,17 +86,23 @@ export async function POST(req: Request): Promise<Response> {
   }
   // No overrides ⇒ ElevenLabs keeps the agent's configured defaults. Safe fallback.
   //
-  // transfer_policy still has to go out. A prompt synced with transfer hours
-  // contains {{transfer_policy}}, and this path is not rare: an OUTBOUND or test
-  // call arrives with the dialed customer number as called_number, which resolves
-  // to no config at all. Omitting the variable would leave the placeholder
-  // unsubstituted in a live prompt. The permissive value is the right default -
-  // it is exactly the behaviour before hours existed, and stranding a caller who
-  // asks for a human is the worse of the two failures.
+  // EVERY dynamic variable the synced prompt can contain still has to go out. A
+  // prompt synced with transfer hours contains {{transfer_policy}}, one synced
+  // with caller recognition contains {{caller_context}}, and this path is not
+  // rare: an OUTBOUND or test call arrives with the dialed customer number as
+  // called_number, which resolves to no config at all. Omitting a variable would
+  // leave its placeholder unsubstituted in a live prompt.
+  //
+  // The permissive transfer value is the right default - it is exactly the
+  // behaviour before hours existed, and stranding a caller who asks for a human
+  // is the worse of the two failures.
   if (!config) {
     return json({
       type: "conversation_initiation_client_data",
-      dynamic_variables: { transfer_policy: TRANSFER_POLICY_OPEN },
+      dynamic_variables: {
+        transfer_policy: TRANSFER_POLICY_OPEN,
+        caller_context: NO_CALLER_CONTEXT,
+      },
     });
   }
 
@@ -103,6 +114,24 @@ export async function POST(req: Request): Promise<Response> {
       resolveCalendarsForAccess(cfg.integrations, calendarAccessFrom(cfg)),
     ).catch((err) => console.error("[agent/init] calendar prefetch failed", err)),
   );
+
+  // Do we know this caller? Started here, resolved further down, so the lookup
+  // overlaps the greeting/voice work instead of adding a round trip in front of
+  // it. Its own short deadline: recognising a caller is a nicety, and nothing
+  // about it is worth making the phone ring longer. Any failure - slow query,
+  // missing index, DB blip - degrades to "we don't know them".
+  const callerContextPromise = recognizeCallersEnabled(config.routing)
+    ? withDeadline(
+        getRepository()
+          .findCallerContext(config.numberId, callerId)
+          .catch((err) => {
+            console.error("[agent/init] caller lookup failed", err);
+            return null;
+          }),
+        CALLER_LOOKUP_BUDGET_MS,
+        null,
+      )
+    : Promise.resolve(null);
 
   const language = config.multilingual ? languageFromPhone(callerId) : null;
   console.log("[agent/init]", {
@@ -145,13 +174,12 @@ export async function POST(req: Request): Promise<Response> {
     overrides.tts = { voice_id: voiceId };
   }
 
-  // Whether a human can take a hand-off right now. Evaluated per call because
+  const callerContext = callerContextLine(await callerContextPromise, new Date());
+
+  // Which destinations can take a hand-off right now. Evaluated per call because
   // the answer changes with the clock; the synced prompt only carries the
-  // placeholder. Fails open on a malformed schedule - see transfer-hours.ts.
-  const transferHours = parseTransferHours(
-    (config.routing as Record<string, unknown> | null)?.transferHours,
-  );
-  const transferPolicy = transferPolicyLine(transferHours, new Date());
+  // placeholder. Fails open on a malformed schedule - see escalation.ts.
+  const transferPolicy = escalationPolicyLine(parseEscalation(config.routing), new Date());
 
   return json({
     type: "conversation_initiation_client_data",
@@ -161,6 +189,7 @@ export async function POST(req: Request): Promise<Response> {
       to_number: config.e164,
       from_number: callerId,
       transfer_policy: transferPolicy,
+      caller_context: callerContext,
     },
     conversation_config_override: overrides,
   });

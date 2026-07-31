@@ -105,6 +105,19 @@ export const enHome: HomeCopy = {
     ],
   },
 
+  capabilities: {
+    heading: "What it actually does",
+    sub: "Not a phone menu with a nicer voice. Here is what it can do on a real call - and what happens when it can't.",
+    items: [
+      { title: "Gets people to the right person", desc: "Set up to five destinations - front desk, billing, the on-call engineer - each with its own hours. It picks the one that fits what the caller needs, and it knows who is actually reachable right now." },
+      { title: "Escalates before you lose the caller", desc: "It offers a person the moment someone is upset, has had to repeat themselves, or says it's an emergency. It doesn't wait to be asked. Add your own triggers: a burst pipe, someone threatening to cancel." },
+      { title: "Rings you when it matters", desc: "An urgent message texts you straight away, and if you want it to, the receptionist calls you and reads out who rang, their number and the problem. Set a callback window and it promises that out loud." },
+      { title: "Reads from your own systems", desc: "Point it at your API and it can look up an order, check stock or quote your real pricing mid-call, instead of guessing or taking a message you have to answer later." },
+      { title: "Doesn't make things up", desc: "Name the subjects it must never answer and it says so plainly instead of guessing. Give it wording that has to be exact and it uses yours. After every call it checks what it said against what you told it and flags anything it couldn't back up. And if a caller asks outright whether they're talking to an AI, it tells them." },
+      { title: "Remembers who's called before", desc: "A returning caller is greeted by name and isn't asked again for what they already told you. One switch turns it off if you'd rather it didn't." },
+    ],
+  },
+
   faq: {
     heading: "Frequently Asked Questions",
     items: [
@@ -130,7 +143,7 @@ export const enHome: HomeCopy = {
       },
       {
         q: "Can it book appointments and integrate with my calendar and CRM?",
-        a: "Yes. AI Receptionist books appointments during the call and integrates natively with Google Calendar, Outlook, HubSpot, Salesforce, and Calendly, plus thousands of apps through Zapier. Custom integrations are available via our open API, so caller data flows straight into the tools you already use.",
+        a: "Yes. It books during the call into Google Calendar, Microsoft Calendar or Cal.com, checks the slot is free first where the calendar supports it, and texts the caller a confirmation. Beyond calendars you can point it at your own API, so it can look up an order or check stock mid-call, and every call summary and transcript can be pushed to your CRM by webhook.",
       },
       {
         q: "What languages does the AI receptionist support?",

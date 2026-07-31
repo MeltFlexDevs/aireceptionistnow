@@ -425,6 +425,20 @@ async function OverviewBody({ t, month }: { t: Dictionary; month: boolean }) {
   return (
     <div className={`rise flex flex-col gap-3 ${CAP}`}>
       {statusBand}
+      {/* Latency is the one quality problem that never announces itself: calls
+          still complete, summaries still read fine, and the only symptom is
+          callers talking over a receptionist that answers late. Say it out loud
+          when the slow tail drifts, rather than burying it in a chart. */}
+      {data.latency.degraded && (
+        <div className="shape-card flex shrink-0 flex-wrap items-center gap-x-2 gap-y-1 border border-amber-200 bg-amber-50 px-5 py-3 text-sm text-amber-800">
+          <span className="font-medium">{o.latencySlowTitle}</span>
+          <span>
+            {o.latencySlowBody
+              .replace("{p95}", `${(data.latency.p95Ms / 1000).toFixed(1)}s`)
+              .replace("{target}", `${(data.latency.targetMs / 1000).toFixed(1)}s`)}
+          </span>
+        </div>
+      )}
       {rangeToggle}
       {tiles}
       <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-3">

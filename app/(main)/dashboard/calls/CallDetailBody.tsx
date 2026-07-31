@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 import type { CallDetail } from "@/lib/dashboard/calls";
 import { formatPhone } from "@/lib/call-engine/voice/phone-language";
 import { getDictionary } from "@/lib/i18n/server";
@@ -153,6 +154,37 @@ export async function CallDetailBody({
           <p className={summaryCls}>{summaryText}</p>
         )}
       </Section>
+      {/* Sits directly under the summary, above the actions: if the assistant
+          told this caller something the knowledge base does not support, that is
+          the most important thing on the page. Each claim is also a gap to fill,
+          which is what the link at the bottom is for. */}
+      {call.needsReview && (
+        <Section title={d.reviewTitle}>
+          {call.reviewClaims.length > 0 ? (
+            <>
+              <p className={summaryCls}>{d.reviewClaimsIntro}</p>
+              <ul className="mt-2 space-y-1.5">
+                {call.reviewClaims.map((claim, i) => (
+                  <li
+                    key={i}
+                    className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900"
+                  >
+                    <TranslatedText text={claim} className="text-sm text-amber-900" />
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/dashboard/knowledge"
+                className="mt-2.5 inline-block text-sm font-medium text-neutral-900 underline underline-offset-2"
+              >
+                {d.reviewFixKnowledge}
+              </Link>
+            </>
+          ) : (
+            <p className={summaryCls}>{d.reviewGeneric}</p>
+          )}
+        </Section>
+      )}
       <Section title={d.actions}>
         <ActionItems actions={call.actions} />
       </Section>

@@ -50,10 +50,12 @@ function RemoveButton({ orgId, sourceId }: { orgId: string; sourceId: string }) 
 export function SourceList({
   orgId,
   notes,
+  verified,
   rows,
 }: {
   orgId: string;
   notes: string;
+  verified: string;
   rows: SourceRow[];
 }) {
   const t = useT();
@@ -77,6 +79,7 @@ export function SourceList({
           <NotesModal
             orgId={orgId}
             notes={notes}
+            verified={verified}
             trigger={(open) => (
               <button
                 type="button"

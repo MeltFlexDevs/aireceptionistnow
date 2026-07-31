@@ -15,10 +15,13 @@ import { updateKnowledgeNotesAction } from "./actions";
 export function NotesModal({
   orgId,
   notes,
+  verified,
   trigger,
 }: {
   orgId: string;
   notes: string;
+  /** Approved question/answer pairs, in the `Q:` / `A:` textarea format. */
+  verified: string;
   /** Override the default button, e.g. the "Edit" link on the notes row. */
   trigger?: (open: () => void) => React.ReactNode;
 }) {
@@ -83,14 +86,33 @@ export function NotesModal({
           </div>
 
           {/* Only the body scrolls. */}
-          <div className="mt-3 min-h-0 flex-1 overflow-y-auto">
+          <div className="mt-3 min-h-0 flex-1 space-y-4 overflow-y-auto">
             <textarea
               name="knowledge_notes"
-              rows={10}
+              rows={8}
               defaultValue={notes}
               placeholder={k.notesPlaceholder}
               className="w-full resize-y rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm leading-relaxed text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-neutral-900"
             />
+
+            {/* The handful of answers that must come out right every time. Kept
+                separate from the notes because they are treated differently on
+                a call: the agent is told to keep this wording, not summarize
+                it. See uploadKnowledge in lib/call-engine/agent/sync.ts. */}
+            <div className="border-t border-neutral-100 pt-4">
+              <h3 className="text-sm font-medium text-neutral-900">
+                {k.verifiedTitle}
+                <OptionalMark />
+              </h3>
+              <p className="mt-0.5 mb-2 text-xs leading-relaxed text-neutral-500">{k.verifiedHint}</p>
+              <textarea
+                name="knowledge_verified"
+                rows={6}
+                defaultValue={verified}
+                placeholder={k.verifiedPlaceholder}
+                className="w-full resize-y rounded-lg border border-neutral-200 bg-white px-3 py-2 font-mono text-xs leading-relaxed text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-neutral-900"
+              />
+            </div>
           </div>
 
           <div className="mt-3 flex shrink-0 items-center justify-end gap-3">

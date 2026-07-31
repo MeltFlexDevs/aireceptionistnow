@@ -4,15 +4,26 @@ import { mergeKnowledge } from "../../knowledge/sources";
 import { accountKnowledgeNotes, type AccountSettings } from "../../dashboard/account";
 import type {
   CallAction,
+  CallSummary,
   IntegrationConfig,
   NumberConfig,
   TranscriptTurn,
 } from "../types";
 import type {
   AgentCallInput,
+  CallerContext,
   CallRepository,
   FinalizeCallInput,
 } from "./types";
+
+/**
+ * How far back a caller is still "someone we know". Long enough to cover a
+ * seasonal customer, short enough that greeting a stranger by a previous
+ * occupant's name is unlikely.
+ */
+const CALLER_HISTORY_DAYS = 90;
+/** Enough of the last call to be useful, short enough not to steer the model. */
+const CALLER_SUMMARY_CHARS = 400;
 
 // Service-role client - bypasses RLS. Server-side only; never expose this key.
 let client: SupabaseClient | null = null;
@@ -43,7 +54,7 @@ export class SupabaseCallRepository implements CallRepository {
     const { data: num, error } = await db()
       .from("phone_numbers")
       .select(
-        "id, e164, assistant:assistants(owner_id, name, greeting, system_prompt, voice_id, language, elevenlabs_multilingual, knowledge, routing, organization:organizations(name, knowledge))",
+        "id, e164, elevenlabs_phone_number_id, assistant:assistants(owner_id, name, greeting, system_prompt, voice_id, language, elevenlabs_multilingual, elevenlabs_agent_id, knowledge, routing, organization:organizations(name, knowledge))",
       )
       .eq("e164", toE164)
       .eq("enabled", true)
@@ -109,6 +120,54 @@ export class SupabaseCallRepository implements CallRepository {
       knowledge,
       routing: (cfg.routing as Record<string, unknown>) ?? {},
       integrations: (integrations ?? []).map(mapIntegration),
+      agentId: String(cfg.elevenlabs_agent_id ?? ""),
+      agentPhoneNumberId: String(num.elevenlabs_phone_number_id ?? ""),
+    };
+  }
+
+  async findCallerContext(
+    numberId: string,
+    fromNumber: string,
+  ): Promise<CallerContext | null> {
+    if (!numberId || !fromNumber) return null;
+    const since = new Date(Date.now() - CALLER_HISTORY_DAYS * 86_400_000).toISOString();
+
+    // One round trip: the last inbound call plus its actions, embedded. The
+    // caller is on the line, so a second query for the name is not affordable.
+    const { data, error } = await db()
+      .from("calls")
+      .select("started_at,summary,call_actions(type,payload)")
+      .eq("phone_number_id", numberId)
+      .eq("from_number", fromNumber)
+      .eq("direction", "inbound")
+      .gte("started_at", since)
+      .order("started_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) return null;
+
+    const row = data as unknown as Record<string, unknown>;
+    const actions = Array.isArray(row.call_actions)
+      ? (row.call_actions as { type?: string; payload?: Record<string, unknown> }[])
+      : [];
+
+    // A booking names the attendee; a message names the caller. Either is the
+    // same person on the other end of this number.
+    let name = "";
+    for (const a of actions) {
+      const p = a.payload ?? {};
+      const candidate = a.type === "booking" ? p.attendee_name : p.caller_name;
+      if (typeof candidate === "string" && candidate.trim()) {
+        name = candidate.trim().slice(0, 80);
+        break;
+      }
+    }
+
+    return {
+      name,
+      lastSummary: String(row.summary ?? "").slice(0, CALLER_SUMMARY_CHARS),
+      lastAt: String(row.started_at ?? ""),
     };
   }
 
@@ -220,20 +279,17 @@ export class SupabaseCallRepository implements CallRepository {
     if (error) throw error;
   }
 
-  async saveSummary(
-    callId: string,
-    summary: {
-      summary: string;
-      outcome: string;
-      sentiment: string;
-    },
-  ): Promise<void> {
+  async saveSummary(callId: string, summary: CallSummary): Promise<void> {
     const { error } = await db()
       .from("calls")
       .update({
         summary: summary.summary,
         outcome: summary.outcome,
         sentiment: summary.sentiment,
+        // Always written, including `false` and `[]`: that is what marks the
+        // call as audited and clean, as opposed to predating the audit (null).
+        needs_review: summary.needsReview,
+        review_claims: summary.unsupportedClaims,
       })
       .eq("id", callId);
     if (error) throw error;

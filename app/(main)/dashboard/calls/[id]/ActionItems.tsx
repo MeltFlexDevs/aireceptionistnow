@@ -96,7 +96,12 @@ function MessageDetail({
   const message = str(payload.message);
   const who = str(payload.caller_name);
   const callback = str(payload.callback_number);
-  const urgent = str(payload.urgency).toLowerCase() === "urgent";
+  // The take_message tool's enum is low | normal | high (see
+  // lib/call-engine/agent/tools.ts) - this compared against "urgent", a value
+  // the agent has never been able to send, so the badge never once rendered.
+  // "urgent" stays accepted for any row written before the enum existed.
+  const urgency = str(payload.urgency).toLowerCase();
+  const urgent = urgency === "high" || urgency === "urgent";
   if (!message && !who && !callback) return null;
   return (
     <div className="mt-1.5 space-y-0.5">
