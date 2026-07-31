@@ -7,6 +7,14 @@ export type FaqItem = { q: string; a: string };
 export type Answer = {
   slug: string;
   question: string;
+  /**
+   * SERP <title>, when the natural question is too long to render as one.
+   * Google shows roughly 60 characters, and a question phrased for a human
+   * reading the H1 ("What's the difference between a virtual receptionist and
+   * an answering service?" - 78 chars) gets truncated mid-phrase in results.
+   * The H1 always stays `question`; only the title tag changes.
+   */
+  metaTitle?: string;
   shortAnswer: string;
   description: string;
   keywords: string[];
@@ -43,7 +51,8 @@ const defs: Answer[] = [
       "can-an-ai-receptionist-handle-emergency-calls",
       "ai-receptionist-vs-ivr",
       "use-existing-phone-number-with-ai-receptionist",
-    ],
+          "can-an-ai-receptionist-block-spam-calls",
+],
     faqs: [
       {
         q: "How does an AI receptionist decide when to transfer?",
@@ -149,6 +158,7 @@ const defs: Answer[] = [
   {
     slug: "use-existing-phone-number-with-ai-receptionist",
     question: "Can I use my existing business phone number with an AI receptionist?",
+    metaTitle: "Can an AI Receptionist Use My Existing Number?",
     shortAnswer:
       "Yes. You keep your existing number and forward calls to the AI receptionist: either all calls, or only the ones you would otherwise miss (after hours, when you are busy, or unanswered after a few rings). You do not have to port your number or print new cards.",
     description:
@@ -530,7 +540,8 @@ const defs: Answer[] = [
       "can-an-ai-receptionist-transfer-calls-to-a-human",
       "can-an-ai-receptionist-handle-multiple-locations",
       "use-existing-phone-number-with-ai-receptionist",
-    ],
+          "can-an-ai-receptionist-block-spam-calls",
+],
     faqs: [
       {
         q: "How many calls can an AI receptionist take at the same time?",
@@ -731,6 +742,7 @@ const defs: Answer[] = [
   {
     slug: "what-happens-if-an-ai-receptionist-cant-answer",
     question: "What happens when an AI receptionist can't answer a question?",
+    metaTitle: "When an AI Receptionist Can't Answer a Question",
     shortAnswer:
       "When an AI receptionist hits a question it cannot answer, a good one does not bluff. It says so plainly, then captures the caller's details, books a callback, or transfers to a person, depending on the rules you set. The worst thing it can do is invent an answer, so test that it does not.",
     description:
@@ -865,6 +877,7 @@ const defs: Answer[] = [
   {
     slug: "train-ai-receptionist-on-my-business",
     question: "Can I train an AI receptionist on my own business information?",
+    metaTitle: "Can I Train an AI Receptionist on My Business?",
     shortAnswer:
       "Yes. You give it your business details, hours, services, prices, policies, and the questions customers ask most, and it answers callers from that, in your own words. You do not write code or train a model; you fill in instructions and a knowledge base, then refine them as you listen to real calls.",
     description:
@@ -1025,7 +1038,8 @@ const defs: Answer[] = [
       "what-happens-if-an-ai-receptionist-cant-answer",
       "what-languages-can-an-ai-receptionist-speak",
       "ai-receptionist-vs-ivr",
-    ],
+          "can-an-ai-receptionist-block-spam-calls",
+],
     faqs: [
       {
         q: "Can callers tell it's an AI?",
@@ -1122,6 +1136,7 @@ const defs: Answer[] = [
     slug: "virtual-receptionist-vs-answering-service",
     question:
       "What's the difference between a virtual receptionist and an answering service?",
+    metaTitle: "Virtual Receptionist vs Answering Service",
     shortAnswer:
       "An answering service takes messages: a shared call-center agent picks up in your business name, notes who called and why, and relays it to you. A virtual receptionist is a remote human who works like your front desk: booking appointments, answering questions about your business, and transferring calls. The receptionist completes more per call and costs more per minute.",
     description:

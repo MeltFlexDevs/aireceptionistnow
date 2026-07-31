@@ -60,12 +60,29 @@ const breadcrumbJsonLd = {
   ],
 };
 
+// Built from the same `details.faqs` the page renders, so the markup can never
+// promise an answer the visitor does not see. Omitted entirely when a locale has
+// no details block rather than falling back to the English questions.
+const faqJsonLd = enPricing.details && {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: enPricing.details.faqs.map((f) => ({
+    "@type": "Question",
+    name: f.q,
+    acceptedAnswer: { "@type": "Answer", text: f.a },
+  })),
+};
+
 export default function PricingPage() {
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify([softwareJsonLd, breadcrumbJsonLd]) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            [softwareJsonLd, breadcrumbJsonLd, faqJsonLd].filter(Boolean),
+          ),
+        }}
       />
       <PricingClient localeOptions={localeOptions("pricing", "en")} copy={enPricing} />
     </>

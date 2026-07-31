@@ -32,7 +32,9 @@ export async function generateMetadata({
   if (!a) return {};
   const url = `${siteUrl}/answers/${a.slug}`;
   return {
-    title: { absolute: a.question },
+    // metaTitle only exists where the question is too long to survive the SERP
+    // truncation; everywhere else the question IS the best title.
+    title: { absolute: a.metaTitle ?? a.question },
     description: a.description,
     keywords: a.keywords,
     authors: [{ name: getAuthor(a.author).name }],

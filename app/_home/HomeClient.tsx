@@ -178,6 +178,7 @@ export default function Home({
   nav = EN_NAV_HREFS,
   locale = "en",
   relatedResources,
+  industryBrief,
 }: {
   localeOptions?: LocaleOption[];
   copy?: HomeCopy;
@@ -188,6 +189,15 @@ export default function Home({
   // passes nothing (so it is unchanged); industry landing pages pass a
   // "Related resources" block so they are no longer editorial dead-ends.
   relatedResources?: ReactNode;
+  // Optional industry-specific editorial block rendered directly under the hero.
+  // The home page passes nothing. Industry landing pages pass one because they
+  // are otherwise this exact component with four strings swapped: measured on
+  // the built HTML, 79% of every industry page's text also appeared on the home
+  // page and only 15% of /dentists was unique to it, which is duplicate-content
+  // territory for eight pages that carry the highest sitemap priority on the
+  // site. This slot sits high on purpose - unique prose above the cloned
+  // sections, not buried near the footer like relatedResources.
+  industryBrief?: ReactNode;
 } = {}) {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [phone, setPhone] = useState("");
@@ -643,6 +653,8 @@ export default function Home({
         </div>
 
       </section>
+
+      {industryBrief}
 
       <section className="lp-section" style={{ padding: "100px 0" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
