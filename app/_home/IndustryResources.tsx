@@ -9,7 +9,26 @@ import { INDUSTRY_MENU, type IndustrySlug } from "@/lib/marketing/industries";
 // real published slugs; kept as curated data here so the anchor text is written
 // for the industry rather than reusing generic post titles.
 
-type ResourceLink = { href: string; label: string; kind: "Guide" | "Answer" };
+type ResourceLink = {
+  href: string;
+  label: string;
+  kind: "Guide" | "Answer" | "Tool";
+};
+
+// Appended to every industry's list below. /missed-call-calculator is the site's
+// only interactive asset and the most linkable thing on it, but it had just
+// three inbound internal links and sat one hop from nothing - these eight put it
+// on the highest-priority pages we publish, with anchor text per industry.
+const CALCULATOR: Record<IndustrySlug, string> = {
+  dentists: "Work out what missed patient calls cost you",
+  restaurants: "Work out what a missed booking costs you",
+  ecommerce: "Work out what missed support calls cost you",
+  "law-firms": "Work out what one missed enquiry costs you",
+  "home-services": "Work out what a missed job call costs you",
+  "property-management": "Work out what missed tenant calls cost you",
+  medical: "Work out what missed patient calls cost you",
+  "real-estate": "Work out what a missed buyer call costs you",
+};
 
 const RESOURCES: Record<IndustrySlug, ResourceLink[]> = {
   dentists: [
@@ -67,7 +86,10 @@ const RESOURCES: Record<IndustrySlug, ResourceLink[]> = {
 };
 
 export function IndustryResources({ slug }: { slug: IndustrySlug }) {
-  const links = RESOURCES[slug];
+  const links: ResourceLink[] = [
+    ...RESOURCES[slug],
+    { href: "/missed-call-calculator", label: CALCULATOR[slug], kind: "Tool" },
+  ];
   const label = INDUSTRY_MENU.find((i) => i.slug === slug)?.label ?? "your industry";
 
   return (
@@ -87,7 +109,9 @@ export function IndustryResources({ slug }: { slug: IndustrySlug }) {
               className="flex items-center justify-between gap-3 border border-[#e5e5e5] px-[18px] py-3.5 transition-colors hover:border-[#1D1D1D] hover:bg-[#fafafa]"
             >
               <span className="text-[15px] text-[#1D1D1D]">{l.label}</span>
-              <span className="shrink-0 text-[11px] font-medium tracking-[0.06em] text-[#999] uppercase">
+              {/* #999 on white is 2.84:1 and this is 11px, so it failed WCAG AA
+                  on all eight industry pages (4 badges each). #6f6f6f is 5.03:1. */}
+              <span className="shrink-0 text-[11px] font-medium tracking-[0.06em] text-[#6f6f6f] uppercase">
                 {l.kind}
               </span>
             </Link>

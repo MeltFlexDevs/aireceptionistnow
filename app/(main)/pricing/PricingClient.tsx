@@ -60,7 +60,7 @@ const sectionLabel: React.CSSProperties = {
   fontWeight: 400,
   textTransform: "uppercase",
   letterSpacing: "0.08em",
-  color: "#aaa",
+  color: "#6f6f6f",
   margin: "0 0 14px",
 };
 
@@ -150,15 +150,15 @@ function PlanCard({
           </span>
         ) : null}
       </div>
-      <p style={{ marginTop: "6px", fontSize: "14px", fontWeight: 300, color: "#888" }}>{planCopy.tagline}</p>
+      <p style={{ marginTop: "6px", fontSize: "14px", fontWeight: 300, color: "#6f6f6f" }}>{planCopy.tagline}</p>
 
       <div style={{ marginTop: "24px", display: "flex", alignItems: "flex-end", gap: "6px" }}>
         <span style={{ fontSize: "46px", fontWeight: 300, letterSpacing: "-0.03em", color: "#1D1D1D", lineHeight: 1 }}>
           {eur(perMonth)}
         </span>
-        <span style={{ marginBottom: "5px", fontSize: "14px", fontWeight: 300, color: "#888" }}>{copy.perMonth}</span>
+        <span style={{ marginBottom: "5px", fontSize: "14px", fontWeight: 300, color: "#6f6f6f" }}>{copy.perMonth}</span>
       </div>
-      <p style={{ marginTop: "8px", height: "16px", fontSize: "12px", fontWeight: 300, color: "#aaa" }}>
+      <p style={{ marginTop: "8px", height: "16px", fontSize: "12px", fontWeight: 300, color: "#6f6f6f" }}>
         {cycle === "annual"
           ? copy.billedYearlyTemplate.replace("{total}", eur2(annualTotal))
           : copy.billedMonthly}
@@ -286,7 +286,7 @@ export default function PricingClient({ localeOptions = [], copy = enPricing, ui
               padding: "6px 14px",
               fontSize: "12px",
               fontWeight: 300,
-              color: "#888",
+              color: "#6f6f6f",
             }}
           >
             <span style={{ color: "#1D1D1D", display: "flex" }}><CheckIcon /></span>
@@ -306,7 +306,7 @@ export default function PricingClient({ localeOptions = [], copy = enPricing, ui
           >
             {copy.h1}
           </h1>
-          <p style={{ maxWidth: "520px", margin: "16px auto 0", fontSize: "15px", fontWeight: 300, color: "#888", lineHeight: 1.6 }}>
+          <p style={{ maxWidth: "520px", margin: "16px auto 0", fontSize: "15px", fontWeight: 300, color: "#6f6f6f", lineHeight: 1.6 }}>
             {copy.sub}
           </p>
 
@@ -409,10 +409,73 @@ export default function PricingClient({ localeOptions = [], copy = enPricing, ui
             ))}
           </div>
 
-          <p style={{ marginTop: "40px", fontSize: "13px", fontWeight: 300, color: "#aaa" }}>
+          {/* #aaa on white is 2.32:1. This is the fine print that states the
+              billing terms, so it is the last text on the page that should be
+              hard to read. #6f6f6f is 5.03:1. */}
+          <p style={{ marginTop: "40px", fontSize: "13px", fontWeight: 300, color: "#6f6f6f" }}>
             {copy.vatNote}
           </p>
         </section>
+
+        {/* English-only for now: `details` is unset for every other locale so
+            those pages stay in one language rather than half-translated. */}
+        {copy.details && (
+          <section
+            style={{ maxWidth: "820px", margin: "0 auto", padding: "100px 24px 0", textAlign: "left" }}
+          >
+            <h2 style={{ fontSize: "clamp(26px, 3.2vw, 34px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#1D1D1D", margin: "0 0 24px" }}>
+              {copy.details.heading}
+            </h2>
+            {copy.details.body.map((p) => (
+              <p key={p.slice(0, 40)} style={{ fontSize: "16px", lineHeight: 1.75, color: "#4a4a4a", margin: "0 0 18px" }}>
+                {p}
+              </p>
+            ))}
+
+            <h2 style={{ fontSize: "clamp(24px, 3vw, 30px)", fontWeight: 300, letterSpacing: "-0.025em", color: "#1D1D1D", margin: "64px 0 8px" }}>
+              {copy.details.faqHeading}
+            </h2>
+            <dl style={{ margin: 0 }}>
+              {copy.details.faqs.map((f) => (
+                <div key={f.q} style={{ borderTop: "1px solid #e5e5e5", padding: "22px 0" }}>
+                  <dt style={{ fontSize: "17px", fontWeight: 400, color: "#1D1D1D", letterSpacing: "-0.01em", marginBottom: "8px" }}>
+                    {f.q}
+                  </dt>
+                  <dd style={{ margin: 0, fontSize: "16px", lineHeight: 1.75, color: "#4a4a4a" }}>
+                    {f.a}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+
+            {/* Three blog posts target the same pricing queries as this page and
+                each already links here. These links close the loop the other way
+                so the cluster points at one commercial page instead of competing
+                with it, and give the calculator a route in from the money page. */}
+            <div style={{ borderTop: "1px solid #e5e5e5", paddingTop: "28px", marginTop: "8px" }}>
+              <p style={{ fontSize: "11px", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", color: "#1D1D1D", margin: "0 0 14px" }}>
+                Before you decide
+              </p>
+              <ul style={{ display: "grid", gap: "10px", margin: 0, padding: 0, listStyle: "none" }}>
+                {[
+                  { href: "/missed-call-calculator", label: "Work out what your missed calls are already costing" },
+                  { href: "/blog/ai-receptionist-pricing", label: "AI receptionist pricing: how the market actually charges" },
+                  { href: "/blog/answering-service-cost", label: "What an answering service costs, per model" },
+                  { href: "/blog/virtual-receptionist-pricing", label: "Virtual receptionist pricing compared" },
+                ].map((l) => (
+                  <li key={l.href}>
+                    <a
+                      href={l.href}
+                      style={{ fontSize: "15px", color: "#4a4a4a", textDecoration: "underline", textDecorationColor: "#ddd", textUnderlineOffset: "4px" }}
+                    >
+                      {l.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        )}
       </main>
       <SiteFooter />
     </>

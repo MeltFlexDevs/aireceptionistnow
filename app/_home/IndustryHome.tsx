@@ -3,6 +3,7 @@ import { siteUrl } from "@/lib/site";
 import HomeClient from "./HomeClient";
 import { industryHomeCopy, INDUSTRY_CONTENT } from "./industry-content";
 import { IndustryResources } from "./IndustryResources";
+import { IndustryBrief } from "./IndustryBrief";
 
 // An industry landing page IS the home page with its prose swapped: the same
 // HomeClient, the same layout, fed an industry-specific copy object. Rendered
@@ -50,6 +51,7 @@ export function IndustryHome({ slug }: { slug: IndustrySlug }) {
       <HomeClient
         copy={industryHomeCopy(slug)}
         localeOptions={[]}
+        industryBrief={<IndustryBrief slug={slug} />}
         relatedResources={<IndustryResources slug={slug} />}
       />
     </>

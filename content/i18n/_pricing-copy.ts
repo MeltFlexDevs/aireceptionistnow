@@ -56,4 +56,34 @@ export interface PricingCopy {
   vatNote: string;
   /** Keyed by plan id from lib/plans.ts. */
   plans: Record<string, PricingPlanCopy>;
+  /**
+   * Prose below the plan grid explaining how the billing model actually works,
+   * plus the questions buyers ask before paying.
+   *
+   * OPTIONAL ON PURPOSE. Measured on the built HTML, /pricing was the thinnest
+   * page on the site (155 visible words) while being one of its highest-intent
+   * commercial pages, and three blog posts outrank it on its own terms. This
+   * fixes that for English.
+   *
+   * It stays optional because all seven locales publish pricing: making it
+   * required would either break their build or force English prose onto
+   * /de/pricing and friends. Mixed-language content on hreflang-clustered URLs
+   * is a ranking liability we have already had to fix once. A locale renders
+   * this section only once someone writes it in that language - until then the
+   * locale page is shorter, which is strictly better than being bilingual.
+   *
+   * FACTUAL SCOPE: same rule as metaDescription. Every number here must be
+   * checkable against PLANS in lib/plans.ts. There is no free plan.
+   */
+  details?: PricingDetails;
+}
+
+export interface PricingDetails {
+  /** H2 above the explanatory prose. */
+  heading: string;
+  /** How the minute-based model works, 2-4 short paragraphs. */
+  body: string[];
+  /** Feeds both the on-page accordion and the FAQPage JSON-LD. */
+  faqHeading: string;
+  faqs: { q: string; a: string }[];
 }

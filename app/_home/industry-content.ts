@@ -26,11 +26,37 @@ type IndustryOverrides = {
   footerCta?: Partial<HomeCopy["footerCta"]>;
 };
 
+/**
+ * The block of prose that exists ONLY on this industry's page, rendered under
+ * the hero by IndustryBrief.
+ *
+ * Why it is required rather than optional: the override slots above only swap an
+ * H1, a subtitle, an FAQ, and a closing CTA, which measured out at 79% of each
+ * industry page's text being identical to the home page and roughly 70% to every
+ * other industry page. A required field makes it a compile error to add a ninth
+ * industry that is just the home page with a new H1.
+ *
+ * Ground every sentence in behaviour the product actually has (answering,
+ * booking into the connected calendar, transfer rules, languages, EU hosting).
+ * Do not invent statistics - no "X% of callers hang up" figures.
+ */
+export type IndustryBrief = {
+  /** H2. Name the vertical explicitly, do not reuse the home page's phrasing. */
+  heading: string;
+  /** 2-3 sentences on how the phone actually behaves in this business. */
+  intro: string;
+  /** The call types this vertical really gets, and what happens on each. */
+  callTypes: { name: string; detail: string }[];
+  /** What it costs this specific business when those calls go unanswered. */
+  stakes: { heading: string; body: string };
+};
+
 export type IndustryContent = {
   /** <title> (absolute, brand suffix added here so it fits ~60 chars). */
   title: string;
   description: string;
   keywords: string[];
+  brief: IndustryBrief;
   overrides: IndustryOverrides;
 };
 
@@ -49,6 +75,42 @@ export const INDUSTRY_CONTENT: Record<IndustrySlug, IndustryContent> = {
       "HIPAA-ready dental phone AI",
       "multilingual dental receptionist",
     ],
+    brief: {
+      heading: "The calls a dental practice actually gets",
+      intro:
+        "A dental phone does not ring evenly. It spikes at opening, goes quiet while the front desk is chairside, and then fills with the calls nobody is there to take: the 9 p.m. toothache, the Saturday broken crown, the new patient who found you on a map and will call the next practice if nobody picks up. The AI answers all of them on the first ring, at any hour, without the front desk leaving a patient.",
+      callTypes: [
+        {
+          name: "New patient enquiries",
+          detail:
+            "It takes the name, the reason for the visit, and the insurance situation, then offers real openings from your connected calendar and books the exam during the call. Google Calendar, Outlook or Microsoft 365, and Calendly sync both ways, so the slot is gone the moment it is taken and you do not double-book.",
+        },
+        {
+          name: "After-hours pain calls",
+          detail:
+            "It asks the screening questions you wrote, not clinical ones of its own. True emergencies go where your on-call rules say they go; the rest get an urgent slot the next working morning and a text confirming it. The AI does not diagnose and will say so.",
+        },
+        {
+          name: "Reschedules and cancellations",
+          detail:
+            "It moves or releases the appointment in the calendar during the call, which is the difference between a gap you can refill and a chair sitting empty because the voicemail was not checked until Monday.",
+        },
+        {
+          name: "Insurance and price questions",
+          detail:
+            "It answers from the brief you gave it about your plans, fees, and payment options. When a question falls outside what you briefed it on, it says it does not know and follows your rule: take a message or transfer to a human.",
+        },
+        {
+          name: "Calls in another language",
+          detail:
+            "It speaks 25+ languages and switches to the caller's without being asked, which matters for practices whose patient list does not all share one first language.",
+        },
+      ],
+      stakes: {
+        heading: "Why an unanswered dental call is expensive",
+        body: "A missed new-patient call is not a lost appointment, it is a lost patient relationship, and a dental patient is a recurring one: exams, hygiene visits, and whatever treatment follows over years. The caller who reaches voicemail at 9 p.m. rarely calls back in the morning, because by then they have already reached a practice that answered. Every call is transcribed, summarised, and sent to you afterwards, so you can see exactly which enquiries came in overnight and what was promised.",
+      },
+    },
     overrides: {
       metaDescription:
         "AI Receptionist Now answers your dental practice's calls 24/7, books new patients, and triages after-hours emergencies to your rules.",
@@ -66,7 +128,7 @@ export const INDUSTRY_CONTENT: Record<IndustrySlug, IndustryContent> = {
           { q: "Can it handle a real dental emergency?", a: "The AI is not a clinician and does not diagnose. It asks the screening questions you define, directs true emergencies to appropriate care per your rules, and books urgent slots for cases that can wait. You decide exactly how it triages and when it escalates to a human." },
           { q: "Will it book directly into the software my front desk uses?", a: "It books into your calendar during the call with two-way sync for Google Calendar, Outlook or Microsoft 365, and Calendly. It also connects to HubSpot, Salesforce, and thousands of apps through Zapier, so bookings and lead details flow where your team already works." },
           { q: "What happens when it does not know the answer?", a: "It admits when it does not know rather than guessing, then follows your rules: take a message or transfer to a human. You brief it on your hours, services, prices, and FAQs up front, so it answers the common questions accurately and hands off the rest." },
-          { q: "Can it answer more than one patient at a time?", a: "Yes. It answers unlimited calls at once, so there is no busy signal and no hold queue. That covers overflow when the front desk is chairside and every call that comes in after hours or on weekends." },
+          { q: "Can it answer more than one patient at a time?", a: "On the Team plan it handles three calls at the same time; Solo answers one at a time. Either way there is no hold queue and no front desk to interrupt, so overflow while a nurse is chairside and every call that arrives after hours or at the weekend gets picked up rather than going to voicemail." },
           { q: "How long does setup take and what does it cost?", a: "It is self-serve with no code and goes live in about 10 minutes after you brief it on your practice. It is free to start with no card. The Solo plan is EUR 99 per month for 1,000 talk minutes then EUR 0.09 per extra minute with one phone number, and Team is EUR 299 per month for 3,000 minutes, three numbers, and outbound calls." },
         ],
       },
@@ -91,6 +153,42 @@ export const INDUSTRY_CONTENT: Record<IndustrySlug, IndustryContent> = {
       "multilingual restaurant phone",
       "after-hours restaurant calls",
     ],
+    brief: {
+      heading: "What the phone does to a restaurant service",
+      intro:
+        "The phone rings hardest exactly when nobody can answer it. Seven to nine, every table turning, and the handset is behind the pass with a queue of people waiting to be seated. So the calls stack up, ring out, and the table that wanted a booking for Friday goes to whoever picked up instead. The AI answers on the first ring through all of it, and on Team it handles three calls at the same time, so the rush does not push callers to voicemail.",
+      callTypes: [
+        {
+          name: "Reservations during service",
+          detail:
+            "It takes the party size, the date, the time, and the name, checks the connected calendar, and confirms in the same call. On the Team plan three of those conversations can run at once, which covers the overlapping calls that arrive in the same few minutes of a service.",
+        },
+        {
+          name: "To-go and collection orders",
+          detail:
+            "It takes the order, repeats it back, and sends it to you as a written summary the moment the call ends. No mishearing over kitchen noise and no order pad that walked off.",
+        },
+        {
+          name: "Opening hours and the same four questions",
+          detail:
+            "Do you do gluten free, is there parking, are dogs allowed, are you open on the bank holiday. It answers from what you briefed it on, in the caller's language, and stops those calls from interrupting service at all.",
+        },
+        {
+          name: "Catering and private hire",
+          detail:
+            "These are your highest-value calls and the easiest to lose to a voicemail. It qualifies the enquiry, captures the date, headcount, and budget, and pushes the lead into HubSpot, Salesforce, or anywhere else via Zapier so someone follows up while the caller is still interested.",
+        },
+        {
+          name: "Calls after you close",
+          detail:
+            "Someone who calls at 11 p.m. to book next weekend is a booking, not a nuisance. The AI answers at that hour exactly as it does at noon.",
+        },
+      ],
+      stakes: {
+        heading: "The cost is a table, not a call",
+        body: "A restaurant's missed call has an obvious price: a cover that stays empty on your busiest night. Diners do not leave voicemails and they do not call twice - they call the next place on the list, and if that one answers, you have lost the booking and possibly the repeat customer behind it. Because the calls you miss are concentrated in the hours you are fullest, the ones going unanswered are disproportionately the valuable ones.",
+      },
+    },
     overrides: {
       metaDescription:
         "AI Receptionist Now answers your restaurant's calls 24/7, books reservations and to-go orders, and sends the details to your host stand.",
@@ -133,6 +231,42 @@ export const INDUSTRY_CONTENT: Record<IndustrySlug, IndustryContent> = {
       "24/7 buyer support line",
       "multilingual ecommerce support",
     ],
+    brief: {
+      heading: "Phone support for a shop that never closes",
+      intro:
+        "An online store trades around the clock but staffs a helpdesk during office hours, and the phone number on the contact page is the gap between the two. The calls that arrive outside those hours are rarely browsing questions. They are people who have already paid and want to know where their parcel is, or people about to pay who have one question first.",
+      callTypes: [
+        {
+          name: "Where is my order",
+          detail:
+            "The single highest-volume call in e-commerce and the one that least needs a human. It takes the order number and the details you briefed it on, gives the caller a straight answer, and logs the contact so your helpdesk sees it.",
+        },
+        {
+          name: "Returns, refunds, and exchanges",
+          detail:
+            "It walks the caller through your actual returns policy rather than a generic one, because you brief it on your windows, conditions, and who pays return postage. Anything outside the policy gets escalated to a human on your rules instead of being improvised.",
+        },
+        {
+          name: "Pre-sale questions",
+          detail:
+            "Sizing, stock, compatibility, delivery dates. These calls come from people holding a full basket, so answering them at 10 p.m. is the difference between a completed checkout and an abandoned one.",
+        },
+        {
+          name: "Peak and promotion spikes",
+          detail:
+            "Black Friday, a launch, a piece of press coverage: volume multiplies without warning. The AI answers around the clock without extra seats to hire, and on Team it takes three calls concurrently, so a good day does not turn into an unreachable one.",
+        },
+        {
+          name: "Cross-border customers",
+          detail:
+            "If you ship internationally, your callers do not all speak your language. It handles 25+ of them, and the service is EU-hosted and GDPR-first, which matters when the caller is giving out an order number and an address.",
+        },
+      ],
+      stakes: {
+        heading: "Every unanswered call is a support ticket you still pay for",
+        body: "The call you miss does not disappear. It becomes an email, a live-chat session, a chargeback dispute, or a one-star review about being unreachable - each of which costs more to resolve than the ninety seconds the phone call would have taken. Worse, an unanswered phone number on a checkout page is a trust signal in the wrong direction: shoppers use it to judge whether you are a real business before they hand over a card.",
+      },
+    },
     overrides: {
       metaDescription:
         "AI Receptionist Now answers your online store's calls 24/7, handles order status, returns, and shipping questions, and captures every buyer.",
@@ -175,6 +309,42 @@ export const INDUSTRY_CONTENT: Record<IndustrySlug, IndustryContent> = {
       "law firm appointment booking",
       "legal lead capture",
     ],
+    brief: {
+      heading: "Why legal intake calls do not wait",
+      intro:
+        "People do not ring a solicitor casually. They ring after the accident, after the letter arrives, after they are dismissed - and they ring several firms in one sitting until somebody picks up. In legal work the firm that answers first is very often the firm that gets instructed, which makes the phone an intake channel rather than a convenience.",
+      callTypes: [
+        {
+          name: "First-time enquiries",
+          detail:
+            "It captures the caller's name, contact details, the matter type, and the timeline in a structured form, then books the consultation into your connected calendar during the call. The intake arrives as a written summary rather than three lines on a message pad.",
+        },
+        {
+          name: "Conflict-safe screening",
+          detail:
+            "It asks the qualifying questions you define and nothing more. It gives no legal advice, no view on the merits, and no estimate of what a claim is worth - it says that a solicitor will cover that, and books the time for it.",
+        },
+        {
+          name: "Urgent matters out of hours",
+          detail:
+            "Custody, arrest, an injunction, a deadline tomorrow. Your escalation rules decide what constitutes urgent and who gets woken up; everything else is captured properly and waiting when the office opens.",
+        },
+        {
+          name: "Existing client calls",
+          detail:
+            "Callers chasing a case update are routed by your rules to the right person or taken as a message with the matter reference, so fee earners are not interrupted mid-drafting by calls a message would have covered.",
+        },
+        {
+          name: "Confidentiality",
+          detail:
+            "Calls are encrypted, EU-hosted, and never sold or used to train external models. You set what the AI may and may not discuss on the phone.",
+        },
+      ],
+      stakes: {
+        heading: "The cost of a missed call is a whole matter",
+        body: "A missed enquiry in most businesses costs one transaction. In a law firm it costs the entire matter, and the fee that would have come with it - which is why an unanswered intake call is among the most expensive things a phone can do. Callers with a legal problem are usually distressed, usually shopping several firms in an afternoon, and almost never leave a voicemail. Every call the AI takes is transcribed and summarised, so you can see precisely what the enquiry was and how quickly it was picked up.",
+      },
+    },
     overrides: {
       metaDescription:
         "AI Receptionist Now answers your law firm's calls 24/7, screens by practice area, takes client intake, and books consultations into your calendar.",
@@ -217,6 +387,42 @@ export const INDUSTRY_CONTENT: Record<IndustrySlug, IndustryContent> = {
       "roofer lead capture",
       "AI phone agent for contractors",
     ],
+    brief: {
+      heading: "You cannot answer the phone with both hands in a boiler",
+      intro:
+        "Home services has a structural problem no amount of discipline fixes: the work and the phone need the same person at the same time. You are under a sink, on a roof, or driving between jobs, and that is exactly when the calls come. Voicemail does not solve it either, because a homeowner with water coming through a ceiling does not leave a message - they ring the next van on the list.",
+      callTypes: [
+        {
+          name: "Emergency call-outs",
+          detail:
+            "Burst pipe, no heating, dead consumer unit. It asks your triage questions, works out whether this is a today job or a next-week job, and follows your escalation rule - straight through to your mobile for genuine emergencies, booked in for everything else.",
+        },
+        {
+          name: "Quote requests",
+          detail:
+            "It captures the job type, the address, the access details, and the timeline, then either books the survey into your calendar or hands you a qualified lead with enough detail to price it without a second call.",
+        },
+        {
+          name: "Calls while you are on a job",
+          detail:
+            "Every call is answered on the first ring while your hands are full, so the third caller of the afternoon gets the same treatment as the first instead of ringing out while you are mid-repair. On Team, three can be handled at the same time.",
+        },
+        {
+          name: "Time-wasters and cold sales calls",
+          detail:
+            "It screens on your criteria - outside your service area, a job you do not take, an obvious sales call - so what reaches your phone is work rather than noise.",
+        },
+        {
+          name: "Evenings and weekends",
+          detail:
+            "Most home emergencies happen outside working hours, which is when most of your competitors are on voicemail. Answering at 8 p.m. on a Sunday is the whole advantage.",
+        },
+      ],
+      stakes: {
+        heading: "One missed call is often one whole job",
+        body: "For a trade, the arithmetic is brutally simple: a missed call is usually a missed job, and a job is worth hundreds or thousands rather than a few pounds. Miss two a week and the lost revenue dwarfs anything the phone system costs. Emergency callers in particular are ringing down a list and stop at the first person who answers, so the value of picking up is highest exactly when you are least able to. After each call you get a text and an email with who rang, what they need, and what was promised.",
+      },
+    },
     overrides: {
       metaDescription:
         "AI Receptionist Now answers your calls 24/7 while you are on the tools, qualifies the job, books it into your calendar, and texts you the details.",
@@ -232,7 +438,7 @@ export const INDUSTRY_CONTENT: Record<IndustrySlug, IndustryContent> = {
         items: [
           { q: "Can it handle emergency calls like a burst pipe or no heat?", a: "Yes. You set the escalation rules, and it flags urgent calls as emergencies, captures the address and problem, and either transfers to a human or notifies your on-call tech per those rules. It also texts you the job summary right away so you can dispatch. It routes and escalates the call, it does not send a truck itself." },
           { q: "How does it book jobs into my schedule?", a: "It books appointments straight into your calendar during the call, with two-way sync to Google Calendar, Outlook or Microsoft 365, and Calendly. Your schedule stays accurate with no double-entry, and you get a transcript and summary after every call." },
-          { q: "What happens when several people call during a busy spell?", a: "It answers unlimited calls at once, so a seasonal rush all gets through in parallel. There is no busy signal and no hold queue, whether it is overflow during the day or the first cold snap of the season." },
+          { q: "What happens when several people call during a busy spell?", a: "The Team plan answers three calls concurrently and Solo answers one at a time, so a cold snap that lights up the phone is handled without anyone sitting in a hold queue. Calls are answered around the clock, which is when most of that overflow actually arrives." },
           { q: "What if a caller asks something it does not know?", a: "It admits when it does not know rather than bluffing. You brief it on your hours, services, prices, and FAQs, and you set the rules for when it transfers to a human or takes a message." },
           { q: "How long does it take to set up?", a: "It is self-serve with no code and goes live in about 10 minutes. You brief it on your business: hours, services, prices, common questions, and your escalation rules for emergencies and after-hours." },
           { q: "What does it cost?", a: "You can start free with no card. The Solo plan is EUR 99 per month for 1,000 talk minutes, then EUR 0.09 per extra minute, with one phone number. The Team plan is EUR 299 per month for 3,000 minutes, three numbers, plus outbound calls and campaigns." },
@@ -259,6 +465,42 @@ export const INDUSTRY_CONTENT: Record<IndustrySlug, IndustryContent> = {
       "showing scheduling automation",
       "multilingual tenant support",
     ],
+    brief: {
+      heading: "Two phone lines in one: tenants and prospects",
+      intro:
+        "Property management is unusual in that the same number carries two completely different jobs. One is maintenance - inbound, unpredictable, occasionally urgent at three in the morning. The other is leasing - time-sensitive enquiries about a listing where the first agent to respond usually gets the viewing. Handled by the same overloaded office phone, both suffer.",
+      callTypes: [
+        {
+          name: "Emergency maintenance",
+          detail:
+            "Flooding, no heat, no power, a lock-out, anything with a safety dimension. It runs your triage script, decides against your definitions rather than its own, and escalates to the on-call contractor or manager the way you specified. It never tells a tenant to wait when your rules say otherwise.",
+        },
+        {
+          name: "Routine repair reports",
+          detail:
+            "A dripping tap at 9 p.m. does not need waking anyone. It logs the unit, the issue, and the access arrangements, and the ticket is on the desk in the morning as a written summary rather than a half-audible voicemail.",
+        },
+        {
+          name: "Leasing enquiries and viewings",
+          detail:
+            "It answers questions about the listing you briefed it on - rent, availability, deposit, pets, parking - qualifies the prospect, and books the viewing into your connected calendar during the call, while they are still interested.",
+        },
+        {
+          name: "Rent and account questions",
+          detail:
+            "Payment dates, how to pay, where a statement went. Routine questions get answered; anything account-specific or sensitive follows your rule to transfer or take a message.",
+        },
+        {
+          name: "Tenants who do not share your first language",
+          detail:
+            "It handles 25+ languages, which in mixed residential blocks is often the difference between a clear repair report and a confused one that costs a wasted contractor visit.",
+        },
+      ],
+      stakes: {
+        heading: "Voids and emergencies are the two expensive failures",
+        body: "The leasing call you miss becomes a longer void, and a void is measured in whole months of rent - by far the most expensive outcome in the business. The maintenance call you miss is worse in a different way: a small leak that waited until Monday is a ceiling repair, and a genuine emergency that sat in a voicemail box is a liability problem as much as a maintenance one. Answering both reliably at 3 a.m. is not a convenience, it is risk management.",
+      },
+    },
     overrides: {
       metaDescription:
         "AI Receptionist Now answers tenant maintenance calls 24/7, triages emergencies, books showings, and captures leasing leads across your portfolio.",
@@ -301,6 +543,42 @@ export const INDUSTRY_CONTENT: Record<IndustrySlug, IndustryContent> = {
       "HIPAA-ready medical phone AI",
       "24/7 medical call answering",
     ],
+    brief: {
+      heading: "A clinic phone line that never sends a patient to voicemail",
+      intro:
+        "Patients ring a practice when something is wrong, and they ring at the times that suit their symptoms rather than your opening hours. Meanwhile reception is with a patient at the desk, and the line backs up. The result is the familiar one: an engaged tone in the morning, voicemail in the evening, and a queue of callbacks nobody has time to make.",
+      callTypes: [
+        {
+          name: "Appointment booking and rescheduling",
+          detail:
+            "It offers genuine openings from your connected calendar and confirms during the call, with two-way sync to Google Calendar, Outlook or Microsoft 365, and Calendly. Cancellations release the slot immediately, which is the only reliable way to refill it.",
+        },
+        {
+          name: "Out-of-hours calls",
+          detail:
+            "It follows your protocol exactly: which symptoms mean call emergency services now, which mean the on-call clinician, which mean an urgent slot tomorrow. The AI is not a clinician, does not triage on its own judgement, and does not diagnose - it applies the rules you wrote and says so plainly.",
+        },
+        {
+          name: "Repeat prescriptions and admin",
+          detail:
+            "The high-volume, low-complexity calls that consume most of reception's day. It captures the request and routes it, so the desk is free for patients who are physically present.",
+        },
+        {
+          name: "Results and records enquiries",
+          detail:
+            "It does not read results out. It confirms identity to your rules and either books the call with a clinician or takes a message, because this is precisely the category where an AI should hand off.",
+        },
+        {
+          name: "Confidentiality and hosting",
+          detail:
+            "HIPAA-ready and GDPR-first, EU-hosted, encrypted, and never used to train external models. You define what may be discussed on the phone at all.",
+        },
+      ],
+      stakes: {
+        heading: "Unreachable is a clinical problem, not just an admin one",
+        body: "When a practice is hard to reach, patients do not simply try later. They delay care, they present at A&E instead, or they move to a practice whose phone is answered - and the ones most affected are usually those who most need continuity. On the operational side, an unfilled cancellation is a clinician sitting idle in a slot somebody else was waiting weeks for. Every call is transcribed and summarised so you can audit what was said and what was promised.",
+      },
+    },
     overrides: {
       metaDescription:
         "AI Receptionist Now answers your practice's calls 24/7, schedules patients into your calendar, and routes after-hours and urgent calls to your protocols.",
@@ -318,7 +596,7 @@ export const INDUSTRY_CONTENT: Record<IndustrySlug, IndustryContent> = {
           { q: "What does it do with a medical emergency?", a: "It is not a clinician and never gives medical advice. You define the protocol: callers describing an emergency are told to hang up and call 911, or are routed to your on-call line - exactly as your practice specifies. Everything else follows your triage rules, with a message or transfer when it is unsure." },
           { q: "Can it schedule patients into the system we already use?", a: "It books into your calendar during the call with two-way sync for Google Calendar, Outlook or Microsoft 365, and Calendly, so slots never double-book. Patient details and messages can also flow to your CRM or thousands of apps through Zapier." },
           { q: "Can it handle refill requests and results calls?", a: "It takes structured messages for refills, results, and callback requests and routes them to the right inbox or staff member by your rules. It does not access medical records or give clinical information - it captures the request accurately so your team can act on it." },
-          { q: "Can it answer several patients at once, even at lunch or after hours?", a: "Yes. It answers unlimited simultaneous calls, so there is no busy signal at peak times, and it covers lunch hours, evenings, weekends, and holidays identically. Patients who would have hit voicemail get answered and scheduled instead." },
+          { q: "Can it answer several patients at once, even at lunch or after hours?", a: "The Team plan takes three calls at the same time and Solo takes one, and both cover lunch hours, evenings, weekends, and holidays identically. Patients who would have reached voicemail get answered and scheduled instead, which is where most of the benefit comes from." },
           { q: "How long does setup take and what does it cost?", a: "Setup is self-serve with no code and typically live in about 10 minutes after you brief it on your practice, hours, and protocols. You can start free with no card. The Solo plan is EUR 99 per month for 1,000 talk minutes, and Team is EUR 299 per month for 3,000 minutes and three numbers." },
         ],
       },
@@ -343,6 +621,42 @@ export const INDUSTRY_CONTENT: Record<IndustrySlug, IndustryContent> = {
       "after-hours real estate calls",
       "24/7 answering service real estate",
     ],
+    brief: {
+      heading: "The buyer who calls about your listing is calling three agents",
+      intro:
+        "Property enquiries arrive at the worst possible moment - while you are mid-viewing, driving between appointments, or sitting in a valuation you cannot walk out of. They also arrive in the evening and at the weekend, because that is when people browse listings. The caller who cannot reach you has the next agent's number open in another tab, and the enquiry is not exclusively yours until somebody answers it.",
+      callTypes: [
+        {
+          name: "Listing enquiries",
+          detail:
+            "It answers on the details you briefed it on - asking price, square footage, chain position, service charge, EPC, what is included - rather than reciting the portal blurb back at the caller, and captures who is asking.",
+        },
+        {
+          name: "Viewing bookings",
+          detail:
+            "It books the viewing into your connected calendar during the call. A viewing booked while the caller is still enthusiastic converts very differently from one arranged two days later after a callback.",
+        },
+        {
+          name: "Buyer qualification",
+          detail:
+            "It asks the questions you would: budget, mortgage in principle, cash or chain, timescale, whether they have a property to sell. That arrives as a written summary, so you know before you get in the car whether the viewing is worth the trip.",
+        },
+        {
+          name: "Vendor and valuation enquiries",
+          detail:
+            "Your highest-value inbound call. It captures the address, the reason for moving, and the timeline, books the valuation, and pushes the lead into your CRM through HubSpot, Salesforce, or Zapier so nothing dies in a notebook.",
+        },
+        {
+          name: "Evenings and weekends",
+          detail:
+            "Most property browsing happens outside office hours, and so do most enquiries. The AI answers at 9 p.m. on a Sunday exactly as it does on a Tuesday morning.",
+        },
+      ],
+      stakes: {
+        heading: "One instruction pays for years of answered calls",
+        body: "The economics here are lopsided in an unusual way: a single missed vendor call can cost an entire instruction and the commission attached to it, which is worth more than a phone system costs over years. Buyers are equally unforgiving - they are ringing several agents about several properties in one evening and they stop at whoever picks up. Because your competitors are largely on voicemail after six, the hours you currently miss are the ones with the least competition for attention.",
+      },
+    },
     overrides: {
       metaDescription:
         "AI Receptionist Now answers buyer and seller calls 24/7, qualifies every lead, books showings into your calendar, and texts you a summary after each call.",
@@ -360,7 +674,7 @@ export const INDUSTRY_CONTENT: Record<IndustrySlug, IndustryContent> = {
           { q: "Will callers know they are talking to an AI?", a: "You decide how it introduces itself, and a brief disclosure up front is the honest default. Voices are natural enough that short inquiry calls flow normally, and callers who want a human can be transferred to you or your team on your rules." },
           { q: "How does it qualify a buyer or seller lead?", a: "You define the intake questions - timeline, financing readiness, area, price range for buyers; address and timeline for sellers - and it asks them conversationally, then texts and emails you the structured answers. Leads can flow into HubSpot, Salesforce, or your CRM via Zapier." },
           { q: "Is it safe to use under fair housing rules?", a: "You control the script, and the safe configuration is factual intake only: availability, timing, financing readiness, and contact details. It does not steer callers toward or away from neighborhoods or answer questions your compliance rules exclude, and you can review every transcript." },
-          { q: "What happens when I am with a client and two calls come in?", a: "It answers unlimited calls at once, so both callers get through - no voicemail, no busy signal. Urgent calls can be transferred to you live per your rules, and everything else arrives as a transcript and summary you can act on between appointments." },
+          { q: "What happens when I am with a client and two calls come in?", a: "On the Team plan both are answered at once, since it handles three concurrent calls; Solo takes them one at a time. Neither sends the caller to voicemail while you are in a viewing. Urgent calls can be transferred to you live per your rules, and everything else arrives as a transcript and summary you can act on between appointments." },
           { q: "How long does setup take and what does it cost?", a: "It is self-serve with no code and usually live in about 10 minutes: brief it on your listings focus, service area, and intake questions, and forward your existing number. You can start free with no card. The Solo plan is EUR 99 per month, and Team is EUR 299 per month." },
         ],
       },

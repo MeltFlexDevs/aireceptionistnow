@@ -37,7 +37,10 @@ export async function generateMetadata({
   const description = `${a.name} is ${a.role.replace(/^Co-Founder, /, "co-founder of ")}. Articles and guides on AI phone reception, call handling, and appointment booking.`;
 
   return {
-    title: { absolute: `${a.name} - ${a.role} | ${siteName}` },
+    // a.role already ends in the brand ("Co-Founder, AI Receptionist Now"), so
+    // the usual " | {siteName}" suffix repeats it and pushes the title past the
+    // ~60 chars Google renders. absolute keeps the suffix off.
+    title: { absolute: `${a.name} - ${a.role}` },
     description,
     alternates: { canonical: url },
     openGraph: {
