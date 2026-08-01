@@ -22,7 +22,7 @@ export const meta = {
   slug: "24-7-ai-receptionist",
   title: "24/7 AI Receptionist: What Always-On Coverage Actually Means",
   description:
-    "Every AI receptionist claims 24/7. What round-the-clock coverage really requires - uptime, simultaneous calls, escalation, holidays - and how to check the claim before you buy.",
+    "Every AI receptionist claims 24/7. What round-the-clock coverage really requires - uptime, simultaneous calls, escalation - and how to verify it.",
   date: "2026-07-20",
   updated: "2026-07-20",
   readingTime: "11 min read",

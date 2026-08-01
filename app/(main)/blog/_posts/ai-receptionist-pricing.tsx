@@ -22,7 +22,7 @@ export const meta = {
   slug: "ai-receptionist-pricing",
   title: "AI Receptionist Pricing: What It Actually Costs (2026)",
   description:
-    "A transparent 2026 breakdown of AI receptionist pricing: real price ranges, the four pricing models, hidden fees, and how to compare pricing plans across vendors like-for-like.",
+    "A transparent 2026 breakdown of AI receptionist pricing: real price ranges, the four pricing models, hidden fees, and how to compare vendors.",
   date: "2026-06-27",
   updated: "2026-07-21",
   readingTime: "10 min read",
@@ -38,10 +38,9 @@ export const meta = {
   keywords: [
     "AI receptionist pricing",
     "AI receptionist cost",
-    "virtual receptionist pricing",
     "how much does an AI receptionist cost",
     "AI answering service pricing",
-    "virtual receptionist cost",
+    "AI receptionist monthly cost",
     "compare AI receptionist pricing plans",
     "AI receptionist plan comparison",
     "multilingual AI receptionist pricing",

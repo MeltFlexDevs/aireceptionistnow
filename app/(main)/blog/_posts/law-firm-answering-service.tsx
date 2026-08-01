@@ -40,8 +40,6 @@ export const meta = {
     "answering service for lawyers",
     "answering service for attorneys",
     "legal intake answering service",
-    "AI receptionist for law firms",
-    "AI receptionist for lawyers",
     "after-hours legal intake",
     "24/7 attorney answering service",
   ],

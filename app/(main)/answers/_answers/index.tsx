@@ -403,7 +403,7 @@ const defs: Answer[] = [
     shortAnswer:
       "An IVR is a menu (\"press 1 for sales\") that routes callers down fixed paths. An AI receptionist actually talks: it understands what a caller says in plain language, answers questions, books appointments, and transfers when needed. An IVR sorts calls; an AI receptionist handles them.",
     description:
-      "An IVR is a press-1 menu that routes calls; an AI receptionist understands speech and handles the call: answering, booking, and transferring. The real difference.",
+      "An IVR is a press-1 menu that routes calls. An AI receptionist understands speech and handles the call: answering, booking, and transferring.",
     keywords: [
       "AI receptionist vs IVR",
       "difference between AI receptionist and IVR",
@@ -634,7 +634,7 @@ const defs: Answer[] = [
     shortAnswer:
       "Modern AI receptionists handle multiple languages and dialects - typically 25 or more languages, including English, Spanish, French, and German - and can detect or switch language mid-call. Regional accents and dialects are handled well in major languages, so one setup serves a multilingual customer base without hiring separate staff for each language.",
     description:
-      "AI receptionists handle multiple languages and dialects - 25+ languages including English, Spanish, French and German - and switch mid-call, so one setup serves everyone.",
+      "AI receptionists handle 25+ languages and dialects including English, Spanish, French and German, and switch mid-call, so one setup serves everyone.",
     keywords: [
       "what languages can an AI receptionist speak",
       "can AI receptionists handle multiple languages and dialects",
@@ -746,7 +746,7 @@ const defs: Answer[] = [
     shortAnswer:
       "When an AI receptionist hits a question it cannot answer, a good one does not bluff. It says so plainly, then captures the caller's details, books a callback, or transfers to a person, depending on the rules you set. The worst thing it can do is invent an answer, so test that it does not.",
     description:
-      "When an AI receptionist can't answer, a good one admits it and captures details, books a callback, or transfers, instead of bluffing. How fallback really works.",
+      "When an AI receptionist can't answer, a good one admits it and captures details, books a callback, or transfers, instead of bluffing.",
     keywords: [
       "what happens when an AI receptionist can't answer a question",
       "AI receptionist fallback",
@@ -1022,7 +1022,7 @@ const defs: Answer[] = [
     shortAnswer:
       "Often not, because modern voices sound natural, but whether you tell them is your choice. You can have the AI disclose that it's a virtual assistant, or have it answer naturally. Some regions and professions now require disclosure, so check your local rules and your industry's before you decide.",
     description:
-      "Modern AI voices sound natural, so many callers can't tell, but disclosure is your choice and sometimes legally required. How to handle telling callers it's AI.",
+      "Modern AI voices sound natural, so many callers can't tell, but disclosure is your choice and sometimes legally required.",
     keywords: [
       "do callers know they're talking to an AI",
       "should an AI receptionist tell callers it's AI",

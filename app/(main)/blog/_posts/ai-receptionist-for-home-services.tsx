@@ -21,7 +21,10 @@ import {
 
 export const meta = {
   slug: "ai-receptionist-for-home-services",
-  title: "AI Receptionist for Home Services: Never Miss a Job Call",
+  // Informational framing on purpose: /home-services is the commercial page and
+  // owns the exact "AI Receptionist for Home Services" term. Leading with the
+  // same phrase here made the two compete for one slot.
+  title: "Do Home Service Businesses Need an AI Receptionist?",
   description:
     "Why home service businesses lose their best jobs to missed calls - and how an AI receptionist books them instead. Costs, setup, and honest limits.",
   date: "2026-07-04",
@@ -36,7 +39,7 @@ export const meta = {
   heroCredit: "Photo by Jimmy Nilsson Masth on Unsplash",
   heroCreditUrl: "https://unsplash.com/photos/UovTD1dG-lA",
   keywords: [
-    "AI receptionist for home services",
+    "do home service businesses need an AI receptionist",
     "AI answering service for contractors",
     "answering service for home service business",
     "AI receptionist for plumbers",

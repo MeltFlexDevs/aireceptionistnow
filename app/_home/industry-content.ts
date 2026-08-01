@@ -67,7 +67,7 @@ export const INDUSTRY_CONTENT: Record<IndustrySlug, IndustryContent> = {
       "A 24/7 AI phone receptionist for dental practices. It books new patients into your calendar and triages after-hours toothache calls to your on-call rules.",
     keywords: [
       "AI receptionist for dentists",
-      "dental answering service",
+      "AI receptionist for dental practices",
       "dental appointment scheduling",
       "after-hours dental emergency line",
       "new patient booking",
@@ -271,7 +271,7 @@ export const INDUSTRY_CONTENT: Record<IndustrySlug, IndustryContent> = {
       metaDescription:
         "AI Receptionist Now answers your online store's calls 24/7, handles order status, returns, and shipping questions, and captures every buyer.",
       hero: {
-        h1: "AI Support Line That Answers Every Store Call 24/7",
+        h1: "AI Receptionist for E-commerce That Answers Every Call 24/7",
         usersTagline: "Every buyer call answered 24/7.",
       },
       useCases: {
@@ -301,8 +301,8 @@ export const INDUSTRY_CONTENT: Record<IndustrySlug, IndustryContent> = {
       "AI phone receptionist for law firms. Answers calls 24/7, screens by practice area, takes client intake, and books consultations into your calendar.",
     keywords: [
       "ai receptionist for law firms",
-      "legal intake answering service",
-      "24/7 attorney answering service",
+      "AI receptionist for attorneys",
+      "AI legal intake receptionist",
       "law firm virtual receptionist",
       "legal client intake automation",
       "after hours legal answering service",
@@ -380,7 +380,7 @@ export const INDUSTRY_CONTENT: Record<IndustrySlug, IndustryContent> = {
     keywords: [
       "AI receptionist for home services",
       "24/7 call answering for plumbers",
-      "HVAC answering service",
+      "AI receptionist for HVAC companies",
       "electrician call answering",
       "after-hours emergency intake",
       "trades appointment booking",
@@ -457,8 +457,8 @@ export const INDUSTRY_CONTENT: Record<IndustrySlug, IndustryContent> = {
       "An AI phone agent for property managers that answers tenant maintenance calls 24/7, triages emergencies, books showings, and captures leasing leads.",
     keywords: [
       "AI receptionist for property management",
-      "property management answering service",
-      "tenant maintenance call answering",
+      "AI receptionist for landlords",
+      "AI leasing office receptionist",
       "after-hours property management calls",
       "leasing inquiry answering service",
       "maintenance emergency triage line",
@@ -534,11 +534,11 @@ export const INDUSTRY_CONTENT: Record<IndustrySlug, IndustryContent> = {
     description:
       "A 24/7 AI medical answering service for clinics and private practices. It schedules patients, covers after-hours calls, and escalates urgent cases to your rules.",
     keywords: [
-      "medical answering service",
+      "AI receptionist for medical practices",
       "AI receptionist for medical office",
-      "answering service for doctors",
+      "AI receptionist for doctors",
       "after-hours answering service medical",
-      "clinic answering service",
+      "AI receptionist for clinics",
       "patient appointment scheduling AI",
       "HIPAA-ready medical phone AI",
       "24/7 medical call answering",

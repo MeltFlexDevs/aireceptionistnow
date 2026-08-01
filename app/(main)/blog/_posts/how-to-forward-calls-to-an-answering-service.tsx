@@ -23,7 +23,7 @@ export const meta = {
   slug: "how-to-forward-calls-to-an-answering-service",
   title: "How to Forward Calls to an Answering Service (Carrier Codes)",
   description:
-    "Step-by-step call forwarding setup for an answering service or AI receptionist: the four forwarding rules, carrier codes for Verizon, AT&T and T-Mobile, and how to test it.",
+    "Step-by-step call forwarding setup for an answering service or AI receptionist: the four forwarding rules, carrier codes, and how to test it.",
   date: "2026-07-30",
   updated: "2026-07-30",
   readingTime: "12 min read",

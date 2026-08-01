@@ -21,7 +21,7 @@ import {
 
 export const meta = {
   slug: "do-ai-voices-sound-human-on-the-phone",
-  title: "Do AI Voices Sound Human on the Phone? An Honest 2026 Breakdown",
+  title: "Do AI Voices Sound Human on the Phone? Honest 2026 Guide",
   description:
     "How human do AI voices really sound on the phone in 2026? An honest look at latency, turn-taking, and prosody - and where they still give themselves away.",
   date: "2026-06-29",

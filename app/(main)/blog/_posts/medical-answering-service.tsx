@@ -22,7 +22,7 @@ export const meta = {
   slug: "medical-answering-service",
   title: "Medical Answering Service: 24/7 AI for Clinics (2026)",
   description:
-    "How clinics handle patient calls 24/7 with an AI medical answering service: scheduling, after-hours triage, HIPAA and the BAA question, and what to keep human.",
+    "How clinics handle patient calls 24/7 with an AI medical answering service: scheduling, after-hours triage, and the HIPAA and BAA question.",
   date: "2026-07-20",
   updated: "2026-07-25",
   readingTime: "12 min read",
@@ -36,7 +36,7 @@ export const meta = {
   heroCredit: "Illustration by AI Receptionist Now",
   keywords: [
     "medical answering service",
-    "AI receptionist for medical office",
+    "doctors office answering service",
     "HIPAA compliant answering service",
     "after-hours patient calls",
     "clinic answering service",

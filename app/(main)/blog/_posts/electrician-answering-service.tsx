@@ -22,7 +22,7 @@ export const meta = {
   slug: "electrician-answering-service",
   title: "Electrician Answering Service: Never Lose a Job Call",
   description:
-    "How an electrician answering service triages safety calls, sorts a utility outage from a house problem, books panel and EV charger jobs, and covers after-hours.",
+    "How an electrician answering service triages safety calls, books panel and EV charger jobs, and covers after-hours emergencies.",
   date: "2026-07-28",
   updated: "2026-07-28",
   readingTime: "10 min read",

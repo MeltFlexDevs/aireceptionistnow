@@ -20,9 +20,9 @@ import {
 
 export const meta = {
   slug: "apartment-answering-service",
-  title: "Apartment Answering Service: Leasing Calls and Night Maintenance",
+  title: "Apartment Answering Service: Leasing and Maintenance Calls",
   description:
-    "How an apartment answering service handles two different jobs on one line - after-hours leasing inquiries and resident maintenance emergencies - inside fair housing limits.",
+    "How an apartment answering service handles after-hours leasing inquiries and resident maintenance emergencies, within fair housing limits.",
   date: "2026-07-30",
   updated: "2026-07-30",
   readingTime: "13 min read",

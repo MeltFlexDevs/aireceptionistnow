@@ -22,7 +22,7 @@ export const meta = {
   slug: "cost-of-a-missed-call",
   title: "How Much Does a Missed Call Cost Your Business?",
   description:
-    "What do missed calls cost a small business? A missed call isn't a zero - it's a lead dialling your competitor. Put a real dollar figure on yours, and the cheapest fix.",
+    "What do missed calls cost a small business? A missed call isn't a zero, it's a lead dialling your competitor. Put a real figure on yours.",
   date: "2026-07-13",
   updated: "2026-07-21",
   readingTime: "11 min read",

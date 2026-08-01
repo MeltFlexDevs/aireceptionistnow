@@ -22,7 +22,7 @@ export const meta = {
   slug: "how-to-choose-an-ai-receptionist",
   title: "How to Choose an AI Receptionist: A Buyer's Guide (2026)",
   description:
-    "A vendor-neutral framework for choosing an AI receptionist: the features that matter, the pricing traps, how to run a real demo, and the red flags that should end the call.",
+    "A vendor-neutral framework for choosing an AI receptionist: the features that matter, the pricing traps, and how to run a real demo.",
   date: "2026-06-27",
   updated: "2026-07-21",
   readingTime: "12 min read",

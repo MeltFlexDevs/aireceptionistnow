@@ -20,9 +20,9 @@ import {
 
 export const meta = {
   slug: "how-to-replace-front-desk-receptionist-with-ai",
-  title: "How to Replace a Front Desk Receptionist with AI, Step by Step",
+  title: "How to Replace a Front Desk Receptionist with AI (2026)",
   description:
-    "A practical transition plan for moving front-desk phone work to an AI receptionist: what to automate, what to keep human, and a week-by-week rollout that doesn't drop calls.",
+    "A practical plan for moving front-desk phone work to an AI receptionist: what to automate, what to keep human, and a rollout that drops no calls.",
   date: "2026-07-20",
   updated: "2026-07-20",
   readingTime: "12 min read",

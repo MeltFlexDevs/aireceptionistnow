@@ -20,9 +20,9 @@ import {
 
 export const meta = {
   slug: "how-to-set-up-emergency-call-escalation",
-  title: "How to Set Up Emergency Call Escalation That Actually Wakes Someone",
+  title: "How to Set Up Emergency Call Escalation After Hours",
   description:
-    "A practical guide to after-hours emergency call escalation: writing triggers, building an on-call ladder, acknowledgement timers, the 911 boundary, and how to test it.",
+    "A practical guide to after-hours emergency call escalation: writing triggers, building an on-call ladder, and the 911 boundary.",
   date: "2026-07-30",
   updated: "2026-07-30",
   readingTime: "12 min read",
