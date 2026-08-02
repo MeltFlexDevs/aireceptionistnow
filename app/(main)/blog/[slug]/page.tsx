@@ -3,7 +3,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import SiteHeader from "@/app/components/SiteHeader";
+import SiteFooter from "@/app/components/SiteFooter";
 import { siteUrl, siteName, getAuthor, authorId } from "@/lib/site";
+import {
+  blogAlternatesFor,
+  blogLocaleOptions,
+} from "@/lib/i18n/marketing/blog-nav";
 import { INDUSTRY_MENU } from "@/lib/marketing/industries";
 import { posts, getPost, relatedPosts, formatDate } from "../_posts";
 import { PostToc } from "../_components/post-toc";
@@ -34,7 +40,10 @@ export async function generateMetadata({
     description: post.description,
     keywords: post.keywords,
     authors: [{ name: getAuthor(post.author).name }],
-    alternates: { canonical: url },
+    // Canonical alone until this article is translated somewhere; the cluster
+    // appears by itself once it is. Built from the registry, not the manifest -
+    // see lib/i18n/marketing/blog-nav.ts.
+    alternates: blogAlternatesFor(post.slug, "en"),
     openGraph: {
       title: post.title,
       description: post.description,
@@ -124,6 +133,9 @@ export default async function BlogPostPage({
   ];
 
   return (
+    <div className="flex min-h-svh flex-col">
+      <SiteHeader localeOptions={blogLocaleOptions(post.slug, "en")} />
+      <main className="flex-1 pt-14">
     <div className="min-h-screen bg-white font-light text-[#1D1D1D]">
       <script
         type="application/ld+json"
@@ -297,6 +309,9 @@ export default async function BlogPostPage({
           </aside>
         </div>
       </div>
+    </div>
+      </main>
+      <SiteFooter />
     </div>
   );
 }

@@ -185,11 +185,21 @@ export function VideoEmbed({
   );
 }
 
-export function KeyTakeaways({ items }: { items: ReactNode[] }) {
+// `heading` defaults to English so the 36 English posts call these components
+// exactly as before. Translated posts under content/i18n/{locale}/blog pass the
+// localized heading, injected by scripts/translate-blog.ts from BLOG_COPY.prose
+// rather than translated by the model - one table, no drift between articles.
+export function KeyTakeaways({
+  items,
+  heading = "Key takeaways",
+}: {
+  items: ReactNode[];
+  heading?: string;
+}) {
   return (
     <aside className="mb-10 border-l-2 border-[#1D1D1D] bg-[#fafafa] px-6 py-5">
       <p className="mb-3 text-[10px] font-semibold tracking-[0.08em] text-[#999] uppercase">
-        Key takeaways
+        {heading}
       </p>
       <ul className="space-y-2 text-[15px] leading-[1.7] font-light text-[#444]">
         {items.map((item, i) => (
@@ -256,10 +266,16 @@ export function Table({
 
 export type FaqItem = { q: string; a: string };
 
-export function FAQList({ items }: { items: FaqItem[] }) {
+export function FAQList({
+  items,
+  heading = "Frequently asked questions",
+}: {
+  items: FaqItem[];
+  heading?: string;
+}) {
   return (
     <section className="mt-12">
-      <H2 id="faq">Frequently asked questions</H2>
+      <H2 id="faq">{heading}</H2>
       <div className="border-t border-[#e5e5e5]">
         {items.map((item) => (
           <details key={item.q} className="group border-b border-[#e5e5e5] py-4">
@@ -288,11 +304,17 @@ export type Source = {
   nofollow?: boolean;
 };
 
-export function Sources({ sources }: { sources: Source[] }) {
+export function Sources({
+  sources,
+  heading = "Sources",
+}: {
+  sources: Source[];
+  heading?: string;
+}) {
   return (
     <section className="mt-14 border-t border-[#e5e5e5] pt-8">
       <h2 className="mb-4 text-[11px] font-medium tracking-[0.06em] text-[#999] uppercase">
-        Sources
+        {heading}
       </h2>
       <ol className="list-decimal space-y-1.5 pl-6 text-[14px] leading-6 font-light text-[#666] marker:text-[#bbb]">
         {sources.map((s) => (

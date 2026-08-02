@@ -1,5 +1,5 @@
 import type { PageId } from "@/content/i18n/_types";
-import { pageIdToPath } from "./ids";
+import { localizedPageIdToPath, pageIdToPath } from "./ids";
 import type { ContentLocale } from "./locales";
 import { isPublished } from "./manifest";
 import { EN_NAV_HREFS, type NavHrefs } from "./nav";
@@ -12,11 +12,10 @@ import { EN_NAV_HREFS, type NavHrefs } from "./nav";
  * in-content links must go through here rather than hardcoding `/${locale}/...`.
  */
 export function localizedHref(locale: ContentLocale, pageId: PageId): string {
-  const path = pageIdToPath(pageId);
-  if (locale === "en") return path;
+  if (locale === "en") return pageIdToPath(pageId);
   return isPublished(locale, pageId)
-    ? `/${locale}${path === "/" ? "" : path}`
-    : path;
+    ? localizedPageIdToPath(locale, pageId)
+    : pageIdToPath(pageId);
 }
 
 /**

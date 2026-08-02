@@ -12,7 +12,18 @@ const DEFAULT_CYCLE = "monthly" as const;
 
 const FONT = "var(--font-inter), Inter, -apple-system, BlinkMacSystemFont, sans-serif";
 
-export function BlogCtaCard() {
+// Type-only import: no content module is pulled into the client bundle, the
+// localized page passes the four strings down as plain props.
+type CtaCopy = import("@/content/i18n/_blog-copy").BlogCopy["cta"];
+
+const EN_CTA: CtaCopy = {
+  headline: "Never miss a call again",
+  body: "An AI receptionist that answers 24/7, books appointments, and texts you the summary. Live in 10 minutes.",
+  button: "Start now",
+  busy: "Starting…",
+};
+
+export function BlogCtaCard({ copy = EN_CTA }: { copy?: CtaCopy }) {
   const { open } = useAuthDialog();
   const [busy, setBusy] = useState(false);
 
@@ -55,11 +66,10 @@ export function BlogCtaCard() {
       </div>
       <div className="px-6 py-8 text-center">
         <p className="text-[15px] leading-[1.35] font-semibold tracking-[0.04em] text-white uppercase" style={{ fontFamily: FONT }}>
-          Never miss a call again
+          {copy.headline}
         </p>
         <p className="mt-3 text-[13px] leading-[1.6] font-light text-white/55" style={{ fontFamily: FONT }}>
-          An AI receptionist that answers 24/7, books appointments, and texts
-          you the summary. Live in 10 minutes.
+          {copy.body}
         </p>
         <button
           type="button"
@@ -68,7 +78,13 @@ export function BlogCtaCard() {
           className="mt-6 inline-flex items-center gap-1.5 rounded-full bg-white px-6 py-2.5 text-[12px] font-medium tracking-[0.08em] text-[#1D1D1D] uppercase transition-colors hover:bg-white/90 disabled:opacity-70"
           style={{ fontFamily: FONT }}
         >
-          {busy ? "Starting…" : <>Start now <span aria-hidden="true">→</span></>}
+          {busy ? (
+            copy.busy
+          ) : (
+            <>
+              {copy.button} <span aria-hidden="true">→</span>
+            </>
+          )}
         </button>
       </div>
     </div>

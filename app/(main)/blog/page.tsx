@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
+import SiteHeader from "@/app/components/SiteHeader";
+import SiteFooter from "@/app/components/SiteFooter";
 import { siteUrl, siteName, getAuthor } from "@/lib/site";
+import { alternatesFor } from "@/lib/i18n/marketing/alternates";
+import { localeOptions } from "@/lib/i18n/marketing/switcher";
 import { posts, formatDate } from "./_posts";
 
 const description =
@@ -12,7 +16,9 @@ export const metadata: Metadata = {
   // Descriptive title link (the bare "Blog | brand" said nothing about the topic).
   title: { absolute: "AI Receptionist Blog & Guides | AI Receptionist Now" },
   description,
-  alternates: { canonical: `${siteUrl}/blog` },
+  // Emits the canonical alone while no locale's blog section is reviewed, and
+  // starts emitting the full hreflang cluster on the commit that approves one.
+  alternates: alternatesFor("blog", "en"),
   openGraph: {
     title: `Blog · ${siteName}`,
     description,
@@ -57,6 +63,9 @@ export default function BlogPage() {
   ];
 
   return (
+    <div className="flex min-h-svh flex-col">
+      <SiteHeader localeOptions={localeOptions("blog", "en")} />
+      <main className="flex-1 pt-14">
     <div className="min-h-screen bg-white font-light text-[#1D1D1D]">
       <script
         type="application/ld+json"
@@ -140,6 +149,9 @@ export default function BlogPage() {
           />
         </a>
       </div>
+    </div>
+      </main>
+      <SiteFooter />
     </div>
   );
 }

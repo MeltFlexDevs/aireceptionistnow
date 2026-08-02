@@ -1,6 +1,6 @@
 import type { PageId } from "@/content/i18n/_types";
 import { LOCALES } from "@/lib/i18n/config";
-import { pageIdToPath } from "./ids";
+import { localizedPageIdToPath, pageIdToPath } from "./ids";
 import type { ContentLocale } from "./locales";
 import { localesFor } from "./manifest";
 
@@ -40,7 +40,6 @@ export function localeOptions(
   const translated = localesFor(pageId);
   if (translated.length === 0) return [];
 
-  const path = pageIdToPath(pageId);
   const build = (locale: ContentLocale, href: string): LocaleOption => ({
     locale,
     label: META[locale]?.label ?? locale.toUpperCase(),
@@ -49,10 +48,13 @@ export function localeOptions(
     current: current === locale,
   });
 
+  // Localized slugs mean each option's href is computed, not the English path
+  // with a prefix glued on: the German entry for this article points at
+  // /de/blog/telefonservice-zahnarztpraxis.
   return [
-    build("en", path),
+    build("en", pageIdToPath(pageId)),
     ...translated.map((locale) =>
-      build(locale, `/${locale}${path === "/" ? "" : path}`),
+      build(locale, localizedPageIdToPath(locale, pageId)),
     ),
   ];
 }

@@ -1,6 +1,10 @@
 import type { MetadataRoute } from "next";
 import { siteUrl, authors, authorKeys } from "@/lib/site";
 import { alternatesFor } from "@/lib/i18n/marketing/alternates";
+import {
+  blogAlternatesFor,
+  blogPostLocales,
+} from "@/lib/i18n/marketing/blog-nav";
 import { localesFor } from "@/lib/i18n/marketing/manifest";
 import type { ContentLocale } from "@/lib/i18n/marketing/locales";
 import { posts } from "./(main)/blog/_posts";
@@ -16,7 +20,7 @@ import { INDUSTRY_MENU } from "@/lib/marketing/industries";
 // alternatesFor keeps the sitemap from ever disagreeing with the per-page
 // canonical/hreflang tags built from the same gate.
 function localizedRoutes(
-  pageId: "home" | "pricing",
+  pageId: "home" | "pricing" | "blog",
   priority: number,
 ): MetadataRoute.Sitemap {
   const cluster = alternatesFor(pageId, "en");
@@ -48,7 +52,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.8,
     },
-    { url: `${siteUrl}/blog`, changeFrequency: "weekly", priority: 0.7 },
+    ...localizedRoutes("blog", 0.7),
     { url: `${siteUrl}/answers`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${siteUrl}/privacy-policy`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${siteUrl}/terms-of-service`, changeFrequency: "yearly", priority: 0.3 },
@@ -69,12 +73,23 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.9,
   }));
 
-  const blogPosts: MetadataRoute.Sitemap = posts.map((post) => ({
-    url: `${siteUrl}/blog/${post.slug}`,
-    lastModified: new Date(`${post.updated}T00:00:00Z`),
-    changeFrequency: "monthly",
-    priority: 0.6,
-  }));
+  // Every language version of an article is its own row carrying the shared
+  // hreflang cluster, which is what Google asks for: the alternates map is
+  // set-identical on every member because all of them come out of the same
+  // blogAlternatesFor call. An article with no translation emits exactly the
+  // one English row it always did.
+  const blogPosts: MetadataRoute.Sitemap = posts.flatMap((post) => {
+    const cluster = blogAlternatesFor(post.slug, "en");
+    const languages = "languages" in cluster ? cluster.languages : undefined;
+    const members: ContentLocale[] = ["en", ...blogPostLocales(post.slug)];
+    return members.map((locale) => ({
+      url: blogAlternatesFor(post.slug, locale).canonical,
+      lastModified: new Date(`${post.updated}T00:00:00Z`),
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+      ...(languages ? { alternates: { languages } } : {}),
+    }));
+  });
 
   const answerPages: MetadataRoute.Sitemap = answers.map((a) => ({
     url: `${siteUrl}/answers/${a.slug}`,

@@ -1,6 +1,6 @@
 import type { PageId } from "@/content/i18n/_types";
 import { siteUrl } from "@/lib/site";
-import { pageIdToPath } from "./ids";
+import { localizedPageIdToPath } from "./ids";
 import type { ContentLocale } from "./locales";
 import { localesFor } from "./manifest";
 
@@ -8,11 +8,9 @@ import { localesFor } from "./manifest";
 // Verified: metadataBase does NOT cross into a sibling root layout, and the
 // only symptom is a buried build warning plus relative hreflang hrefs, which
 // Google ignores. Building them absolutely makes that failure mode impossible.
-function abs(locale: ContentLocale, pageId: PageId): string {
-  const path = pageIdToPath(pageId);
-  const prefixed =
-    locale === "en" ? path : `/${locale}${path === "/" ? "" : path}`;
-  return prefixed === "/" ? siteUrl : `${siteUrl}${prefixed}`;
+export function abs(locale: ContentLocale, pageId: PageId): string {
+  const path = localizedPageIdToPath(locale, pageId);
+  return path === "/" ? siteUrl : `${siteUrl}${path}`;
 }
 
 /**
