@@ -1,0 +1,77 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" role="img" aria-label="The California self-storage lien sequence and what a phone script may say at each stage. Rent goes unpaid; after 14 consecutive days the owner may send a preliminary notice with an itemised statement and a termination date at least 14 days after mailing; the right to use the space then terminates; a notice of lien sale follows stating the amount and a sale date at least 14 days from mailing, with a form the occupant can use to oppose the sale; the sale is then advertised before it happens. At every stage the script may only read the ledger balance and restate the served notice word for word, and must escalate to the manager. It must never invent dates, agree payment plans, or add consequences. Other states set their own sequences.">
+  <rect width="1200" height="630" fill="#faf8ff"/>
+  <rect x="0.5" y="0.5" width="1199" height="629" fill="none" stroke="#ece7f6"/>
+
+  <text x="60" y="58" font-size="26" font-weight="600" fill="#1a1a1a">The call that sits on top of a statute</text>
+  <text x="60" y="88" font-size="16" fill="#8a8398">California&#8217;s lien sequence, and the only things a phone script may say at each stage.</text>
+
+  <!-- ============ TIMELINE ============ -->
+  <line x1="110" y1="196" x2="1120" y2="196" stroke="#d9d2f2" stroke-width="2" stroke-linecap="round"/>
+
+  <g text-anchor="middle">
+    <text x="150" y="152" font-size="13" font-weight="600" fill="#5b3ef0">Day 0</text>
+    <circle cx="150" cy="196" r="9" fill="#5b3ef0"/>
+    <text x="150" y="228" font-size="14" font-weight="500" fill="#1a1a1a">Rent unpaid</text>
+    <text x="150" y="248" font-size="12.5" fill="#5a5468">The clock starts</text>
+
+    <text x="390" y="152" font-size="13" font-weight="600" fill="#5b3ef0">After 14 days</text>
+    <circle cx="390" cy="196" r="9" fill="#5b3ef0"/>
+    <text x="390" y="228" font-size="14" font-weight="500" fill="#1a1a1a">Preliminary notice</text>
+    <text x="390" y="248" font-size="12.5" fill="#5a5468">Itemised sums due, plus a</text>
+    <text x="390" y="266" font-size="12.5" fill="#5a5468">termination date 14+ days out</text>
+
+    <text x="630" y="152" font-size="13" font-weight="600" fill="#5b3ef0">On that date</text>
+    <circle cx="630" cy="196" r="9" fill="#5b3ef0"/>
+    <text x="630" y="228" font-size="14" font-weight="500" fill="#1a1a1a">Occupancy terminates</text>
+    <text x="630" y="248" font-size="12.5" fill="#5a5468">Access may be denied,</text>
+    <text x="630" y="266" font-size="12.5" fill="#5a5468">lien imposed</text>
+
+    <text x="870" y="152" font-size="13" font-weight="600" fill="#5b3ef0">Then 14+ days</text>
+    <circle cx="870" cy="196" r="9" fill="#5b3ef0"/>
+    <text x="870" y="228" font-size="14" font-weight="500" fill="#1a1a1a">Notice of lien sale</text>
+    <text x="870" y="248" font-size="12.5" fill="#5a5468">Amount, sale date, and a form</text>
+    <text x="870" y="266" font-size="12.5" fill="#5a5468">to oppose the sale</text>
+
+    <text x="1090" y="152" font-size="13" font-weight="600" fill="#a49dba">Before sale</text>
+    <circle cx="1090" cy="196" r="9" fill="#a49dba"/>
+    <text x="1090" y="228" font-size="14" font-weight="500" fill="#1a1a1a">Advertised</text>
+    <text x="1090" y="248" font-size="12.5" fill="#5a5468">Then sold</text>
+  </g>
+
+  <line x1="60" y1="310" x2="1140" y2="310" stroke="#ece7f6" stroke-width="1"/>
+
+  <!-- ============ SCRIPT RULES ============ -->
+  <text x="60" y="352" font-size="12" font-weight="600" fill="#5b3ef0" letter-spacing="0.08em">WHAT THE SCRIPT MAY SAY - AT EVERY STAGE ABOVE</text>
+
+  <g>
+    <rect x="60" y="374" width="345" height="150" rx="10" fill="#ffffff" stroke="#e2dcf5" stroke-width="1.5"/>
+    <circle cx="92" cy="406" r="13" fill="#efeafe"/>
+    <path d="M 86 406 l 4 4 l 8 -9" stroke="#5b3ef0" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="116" y="411" font-size="15" font-weight="500" fill="#1a1a1a">Allowed</text>
+    <text x="84" y="443" font-size="13" fill="#5a5468">Read the balance from the ledger</text>
+    <text x="84" y="467" font-size="13" fill="#5a5468">Restate the served notice as written</text>
+    <text x="84" y="491" font-size="13" fill="#5a5468">Take a payment through your channel</text>
+    <text x="84" y="512" font-size="13" fill="#5a5468">Hand the call to the manager</text>
+
+    <rect x="427" y="374" width="345" height="150" rx="10" fill="#ffffff" stroke="#e2dcf5" stroke-width="1.5"/>
+    <circle cx="459" cy="406" r="13" fill="#fdeaea"/>
+    <path d="M 454 401 l 10 10 M 464 401 l -10 10" stroke="#d14343" stroke-width="2.2" stroke-linecap="round"/>
+    <text x="483" y="411" font-size="15" font-weight="500" fill="#1a1a1a">Never</text>
+    <text x="451" y="443" font-size="13" fill="#5a5468">Quote a date not on the notice</text>
+    <text x="451" y="467" font-size="13" fill="#5a5468">Agree a payment plan or extension</text>
+    <text x="451" y="491" font-size="13" fill="#5a5468">Soften or reinterpret the notice</text>
+    <text x="451" y="512" font-size="13" fill="#5a5468">Add pressure, threats or consequences</text>
+
+    <rect x="794" y="374" width="346" height="150" rx="10" fill="#f1edfd"/>
+    <circle cx="826" cy="406" r="13" fill="#e2d9fb"/>
+    <path d="M 826 400 l 0 7 M 826 411 l 0 1" stroke="#5b3ef0" stroke-width="2.4" stroke-linecap="round"/>
+    <text x="850" y="411" font-size="15" font-weight="500" fill="#1a1a1a">Why it matters</text>
+    <text x="818" y="443" font-size="13" fill="#5a5468">An improvised sentence on the phone</text>
+    <text x="818" y="467" font-size="13" fill="#5a5468">is how a lien sale gets challenged.</text>
+    <text x="818" y="491" font-size="13" fill="#5a5468">A recorded, timestamped transcript</text>
+    <text x="818" y="512" font-size="13" fill="#5a5468">is the better witness.</text>
+  </g>
+
+  <text x="60" y="565" font-size="13" fill="#8a8398">Illustrative only, and specific to California (Bus. &amp; Prof. Code &#167;&#167; 21700 et seq.). Every state sets its own notice periods and requirements.</text>
+  <text x="60" y="590" font-size="13" fill="#8a8398">Not legal advice - your counsel and your state&#8217;s statute govern.</text>
+</svg>

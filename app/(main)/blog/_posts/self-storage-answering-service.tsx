@@ -10,6 +10,7 @@ import {
   Ext,
   Internal,
   Callout,
+  Figure,
   KeyTakeaways,
   FAQList,
   Table,
@@ -158,6 +159,14 @@ export default function Body() {
         is unusually short, the service calls are unusually procedural, and one
         category of call sits on top of a state statute.
       </P>
+
+      <Figure
+        src="/blog/self-storage-move-in.webp"
+        alt="A person lifting a cardboard box out of a small rented moving truck parked in front of an open storage unit, boxes already stacked inside, late afternoon light on the drive aisle"
+        width={1376}
+        height={768}
+        caption="The outcome of one four-minute phone call. He had a truck until six and three facilities on a map - the one that answered and could confirm a unit got a tenancy that runs for months."
+      />
 
       <H2 id="call-mix">Six callers, one number</H2>
       <Table
@@ -314,6 +323,15 @@ export default function Body() {
         </Ext>
         . Your state&apos;s sequence will differ; that it exists will not.
       </P>
+      <Figure
+        src="/blog/self-storage-lien-timeline.svg"
+        alt="A timeline of the California self-storage lien sequence - rent unpaid, preliminary notice after 14 days with a termination date at least 14 days out, occupancy terminates, notice of lien sale with a sale date at least 14 days from mailing, advertisement, then sale - beside three cards listing what a phone script may say, what it must never say, and why it matters"
+        width={1200}
+        height={630}
+        caption="California's sequence, as an illustration of the shape every state has. The script's job at every one of these stages is identical: read the ledger, restate the served notice, escalate. Nothing else."
+        credit="Illustration by AI Receptionist Now"
+      />
+
       <P>
         What follows for anyone answering your phone:
       </P>
@@ -361,6 +379,14 @@ export default function Body() {
         tenant, and a gate code handed over at 10 p.m. is access to a hundred
         other people&apos;s property.
       </P>
+      <Figure
+        src="/blog/self-storage-keypad-night.webp"
+        alt="A hand reaching toward an illuminated keypad access pedestal at a storage facility gate after dark, headlights of a waiting vehicle blurred behind the fence"
+        width={1376}
+        height={768}
+        caption="The moment the verification rule earns its keep. Whoever is standing here is usually a tenant with a blocked account - but the script cannot know that, so it checks the record before it says anything."
+      />
+
       <Table
         caption="Access calls: what the script may and may not do"
         head={["Situation", "Script behaviour"]}

@@ -10,6 +10,7 @@ import {
   Ext,
   Internal,
   Callout,
+  Figure,
   KeyTakeaways,
   FAQList,
   Table,
@@ -195,6 +196,14 @@ export default function Body() {
         somebody&apos;s house at 6 a.m.
       </P>
 
+      <Figure
+        src="/blog/home-care-morning-visit.webp"
+        alt="A caregiver in scrubs sitting beside an older woman in an armchair in a bright living room, handing her a mug, a walking frame nearby"
+        width={1376}
+        height={768}
+        caption="This is the visit the whole business is built around - and the reason an unfilled 6 a.m. shift is not an administrative problem. Somebody is waiting for it."
+      />
+
       <H2 id="two-jobs">One line, two completely different callers</H2>
       <Table
         caption="The two call paths on a home care agency's after-hours line"
@@ -227,6 +236,15 @@ export default function Body() {
           ],
         ]}
       />
+      <Figure
+        src="/blog/home-care-call-split.svg"
+        alt="A flow diagram splitting an after-hours home care call into two paths. The caregiver path: capture the call-off, notify the on-call scheduler immediately, work the pre-approved backup list, and call the client if it cannot be filled. The client path: 911 for life-threatening symptoms, on-call nurse for anything clinical, logged for the morning if not, and a human immediately for complaints or abuse allegations"
+        width={1200}
+        height={630}
+        caption="The branch that decides everything. Note which side has four operational steps and which side is mostly a hand-off - that asymmetry is why generic answering services underperform in home care."
+        credit="Illustration by AI Receptionist Now"
+      />
+
       <P>
         Almost every answering service on the market is built for the first
         column. The second column is what an agency actually buys the service
@@ -289,6 +307,14 @@ export default function Body() {
         home care is the unusual case where the missed call is not a lost lead.
         It is a service failure you have already been paid to prevent.
       </P>
+      <Figure
+        src="/blog/home-care-early-scheduler.webp"
+        alt="A person seen from behind at an office desk before dawn, silhouetted against a glowing monitor with a dark blue window beyond, a desk phone and a printed roster on the desk"
+        width={1376}
+        height={768}
+        caption="The on-call scheduler at 5 a.m., covering a shift that starts at 6. Whether this person is working from a captured call-off or from a voicemail they will not hear until 9 is the whole difference between the two setups."
+      />
+
       <H3>The category everyone forgets: clock-in failures</H3>
       <P>
         Since{" "}

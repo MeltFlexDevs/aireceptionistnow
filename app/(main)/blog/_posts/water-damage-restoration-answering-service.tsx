@@ -10,6 +10,7 @@ import {
   Ext,
   Internal,
   Callout,
+  Figure,
   KeyTakeaways,
   FAQList,
   Table,
@@ -168,6 +169,14 @@ export default function Body() {
         call where somebody is looking at water they cannot stop.
       </P>
 
+      <Figure
+        src="/blog/restoration-homeowner-call.webp"
+        alt="A homeowner standing in a dim hallway at night, phone to her ear, looking up at a spreading water stain on the ceiling with a bucket catching drips below"
+        width={1376}
+        height={768}
+        caption="The call your answering setup exists for. She is not comparing vendors or waiting for a callback - she is dialling in order and will stop at the first company that picks up."
+      />
+
       <H2 id="clock">Two clocks are running on every loss call</H2>
       <P>
         Most answering service pages make the speed argument in general terms.
@@ -204,6 +213,15 @@ export default function Body() {
         risk curve rather than a countdown. The direction of the curve is never
         in doubt.
       </P>
+      <Figure
+        src="/blog/restoration-two-clocks.svg"
+        alt="A two-track timeline. The caller's clock: dials the first result, gets no answer and moves to the next company, a competitor is rolling within twenty minutes, authorisation signed within the hour. The building's clock: clean Category 1 water at hour zero, the EPA 24 to 48 hour drying window, then contamination and a growing scope days later"
+        width={1200}
+        height={630}
+        caption="The two clocks, side by side. Most trades only run the top one - restoration is unusual in that the job itself gets worse while the phone rings."
+        credit="Illustration by AI Receptionist Now"
+      />
+
       <Callout>
         The commercial consequence of the second clock is easy to miss: a call
         that rings out at 1 a.m. and gets returned at 8 a.m. is not the same job
@@ -335,6 +353,14 @@ export default function Body() {
         script is smarter, but that it does not get tired at 3 a.m. and skip
         straight to &quot;we&apos;ll be right there.&quot;
       </P>
+
+      <Figure
+        src="/blog/restoration-moisture-reading.webp"
+        alt="A restoration technician kneeling with a handheld moisture meter pressed against damp drywall above a removed baseboard, gloved hands, an air mover running in the background"
+        width={1376}
+        height={768}
+        caption="Everything the estimator does on site depends on what was captured on the phone. A message saying 'water damage, please call back' sends this technician out blind - and often in the wrong truck."
+      />
 
       <H2 id="never-say">Five sentences the script must never say</H2>
       <P>

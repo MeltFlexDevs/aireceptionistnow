@@ -1,0 +1,74 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" role="img" aria-label="How a home care agency's after-hours line splits. An incoming call is identified first as either a caregiver or a client. The caregiver path handles shift call-offs: capture the client, shift and notice, notify the on-call scheduler immediately, work the pre-approved backup list, and tell the client honestly if the visit will be missed. The client and family path asks whether the call is clinical: life-threatening symptoms go to 911, anything else clinical goes to the on-call nurse, and non-clinical requests are logged for the morning. A third bucket - electronic visit verification clock-in failures, pay questions and vendor calls - never reaches the on-call nurse. Complaints and abuse allegations always go straight to a human manager.">
+  <rect width="1200" height="630" fill="#faf8ff"/>
+  <rect x="0.5" y="0.5" width="1199" height="629" fill="none" stroke="#ece7f6"/>
+
+  <text x="60" y="58" font-size="26" font-weight="600" fill="#1a1a1a">One line, two callers</text>
+  <text x="60" y="88" font-size="16" fill="#8a8398">The first question on every after-hours call is which one you have. Everything after it diverges.</text>
+
+  <!-- incoming call -->
+  <rect x="470" y="112" width="260" height="56" rx="10" fill="#1a1a1a"/>
+  <text x="600" y="146" text-anchor="middle" font-size="15" font-weight="500" fill="#ffffff">Call comes in, office closed</text>
+
+  <!-- split arrows -->
+  <g stroke="#bbb3d4" stroke-width="2" fill="none" stroke-linecap="round">
+    <path d="M 600 168 L 600 190"/>
+    <path d="M 300 190 L 900 190"/>
+    <path d="M 300 190 L 300 216"/>
+    <path d="M 900 190 L 900 216"/>
+    <path d="M 292 206 L 300 216 L 308 206"/>
+    <path d="M 892 206 L 900 216 L 908 206"/>
+  </g>
+
+  <!-- ================= LEFT: caregiver ================= -->
+  <rect x="60" y="220" width="480" height="52" rx="10" fill="#5b3ef0"/>
+  <text x="300" y="245" text-anchor="middle" font-size="14" font-weight="600" fill="#ffffff" letter-spacing="0.05em">CAREGIVER  -  4:40 a.m.</text>
+  <text x="300" y="263" text-anchor="middle" font-size="12" fill="#d8cffb">the volume nobody plans for</text>
+
+  <g>
+    <rect x="60" y="292" width="480" height="62" rx="10" fill="#ffffff" stroke="#e2dcf5" stroke-width="1.5"/>
+    <text x="84" y="317" font-size="14" font-weight="500" fill="#1a1a1a">1. Capture the call-off properly</text>
+    <text x="84" y="339" font-size="13" fill="#5a5468">Client, shift, start time, reason, how much notice</text>
+
+    <rect x="60" y="366" width="480" height="62" rx="10" fill="#ffffff" stroke="#e2dcf5" stroke-width="1.5"/>
+    <text x="84" y="391" font-size="14" font-weight="500" fill="#1a1a1a">2. Notify the on-call scheduler now</text>
+    <text x="84" y="413" font-size="13" fill="#5a5468">Not a voicemail read at 9 a.m. - the shift starts at 6</text>
+
+    <rect x="60" y="440" width="480" height="62" rx="10" fill="#ffffff" stroke="#e2dcf5" stroke-width="1.5"/>
+    <text x="84" y="465" font-size="14" font-weight="500" fill="#1a1a1a">3. Work the pre-approved backup list</text>
+    <text x="84" y="487" font-size="13" fill="#5a5468">Only names you cleared for that client</text>
+
+    <rect x="60" y="514" width="480" height="62" rx="10" fill="#f1edfd"/>
+    <text x="84" y="539" font-size="14" font-weight="500" fill="#1a1a1a">4. If it cannot be filled, call the client</text>
+    <text x="84" y="561" font-size="13" fill="#5a5468">The call nobody wants to make is the one that keeps the account</text>
+  </g>
+
+  <!-- ================= RIGHT: client ================= -->
+  <rect x="660" y="220" width="480" height="52" rx="10" fill="#1a1a1a"/>
+  <text x="900" y="245" text-anchor="middle" font-size="14" font-weight="600" fill="#ffffff" letter-spacing="0.05em">CLIENT OR FAMILY  -  1:15 a.m.</text>
+  <text x="900" y="263" text-anchor="middle" font-size="12" fill="#b9b2cc">is this call clinical?</text>
+
+  <g>
+    <rect x="660" y="292" width="480" height="62" rx="10" fill="#ffffff" stroke="#e2dcf5" stroke-width="1.5"/>
+    <text x="684" y="317" font-size="14" font-weight="500" fill="#1a1a1a">Life-threatening - 911, first sentence</text>
+    <text x="684" y="339" font-size="13" fill="#5a5468">Chest pain, breathing, stroke signs, unresponsive</text>
+
+    <rect x="660" y="366" width="480" height="62" rx="10" fill="#ffffff" stroke="#e2dcf5" stroke-width="1.5"/>
+    <text x="684" y="391" font-size="14" font-weight="500" fill="#1a1a1a">Clinical - on-call nurse, live</text>
+    <text x="684" y="413" font-size="13" fill="#5a5468">A fall, a medication question, a change in condition</text>
+
+    <rect x="660" y="440" width="480" height="62" rx="10" fill="#ffffff" stroke="#e2dcf5" stroke-width="1.5"/>
+    <text x="684" y="465" font-size="14" font-weight="500" fill="#1a1a1a">Not clinical - log it for the morning</text>
+    <text x="684" y="487" font-size="13" fill="#5a5468">Schedule changes, admin, a new enquiry</text>
+
+    <rect x="660" y="514" width="480" height="62" rx="10" fill="#f1edfd"/>
+    <text x="684" y="539" font-size="14" font-weight="500" fill="#1a1a1a">Complaint or abuse allegation - human, now</text>
+    <text x="684" y="561" font-size="13" fill="#5a5468">Never a script, never a message, never a morning callback</text>
+  </g>
+
+  <!-- divider -->
+  <line x1="600" y1="292" x2="600" y2="576" stroke="#e6e0f7" stroke-width="1" stroke-dasharray="4 6"/>
+
+  <!-- third bucket -->
+  <rect x="60" y="596" width="1080" height="1" fill="#ece7f6"/>
+  <text x="60" y="618" font-size="13" fill="#8a8398">Third bucket, and the one that ruins on-call rotations: EVV clock-in failures, pay questions and vendor calls. Captured, routed - never paged to the nurse.</text>
+</svg>

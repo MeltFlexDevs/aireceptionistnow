@@ -1,0 +1,76 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" role="img" aria-label="Two clocks start when a water loss call comes in. The caller's clock: at zero minutes they dial the first result, within minutes an unanswered line sends them to the next company, within the hour another restorer has been authorised. The building's clock: at hour zero the water is clean Category 1 with a contained scope, within 24 to 48 hours the EPA drying window closes and mould risk begins, and after several days the water picks up contamination so the category and the scope escalate.">
+  <rect width="1200" height="630" fill="#faf8ff"/>
+  <rect x="0.5" y="0.5" width="1199" height="629" fill="none" stroke="#ece7f6"/>
+
+  <text x="60" y="62" font-size="26" font-weight="600" fill="#1a1a1a">Two clocks start when the phone rings</text>
+  <text x="60" y="94" font-size="16" fill="#8a8398">One decides who gets the job. The other decides how big the job is.</text>
+
+  <!-- ============ CALLER'S CLOCK ============ -->
+  <text x="60" y="148" font-size="12" font-weight="600" fill="#5b3ef0" letter-spacing="0.08em">THE CALLER'S CLOCK</text>
+
+  <line x1="60" y1="212" x2="1140" y2="212" stroke="#d9d2f2" stroke-width="2" stroke-linecap="round"/>
+
+  <g text-anchor="middle">
+    <!-- node 1 -->
+    <text x="180" y="186" font-size="14" font-weight="600" fill="#1a1a1a">0 min</text>
+    <circle cx="180" cy="212" r="9" fill="#5b3ef0"/>
+    <text x="180" y="248" font-size="13" fill="#5a5468">Water is coming through</text>
+    <text x="180" y="266" font-size="13" fill="#5a5468">a ceiling. They dial the</text>
+    <text x="180" y="284" font-size="13" fill="#5a5468">first result they see.</text>
+
+    <!-- node 2 -->
+    <text x="470" y="186" font-size="14" font-weight="600" fill="#1a1a1a">Rings out</text>
+    <circle cx="470" cy="212" r="9" fill="#5b3ef0"/>
+    <text x="470" y="248" font-size="13" fill="#5a5468">Nobody picks up. They do</text>
+    <text x="470" y="266" font-size="13" fill="#5a5468">not leave a voicemail -</text>
+    <text x="470" y="284" font-size="13" fill="#5a5468">they dial the next number.</text>
+
+    <!-- node 3 -->
+    <text x="760" y="186" font-size="14" font-weight="600" fill="#1a1a1a">~20 min</text>
+    <circle cx="760" cy="212" r="9" fill="#a49dba"/>
+    <text x="760" y="248" font-size="13" fill="#5a5468">A competitor has taken the</text>
+    <text x="760" y="266" font-size="13" fill="#5a5468">intake and a crew is</text>
+    <text x="760" y="284" font-size="13" fill="#5a5468">already rolling.</text>
+
+    <!-- node 4 -->
+    <text x="1050" y="186" font-size="14" font-weight="600" fill="#1a1a1a">Within the hour</text>
+    <circle cx="1050" cy="212" r="9" fill="#a49dba"/>
+    <text x="1050" y="248" font-size="13" fill="#5a5468">Authorisation is signed -</text>
+    <text x="1050" y="266" font-size="13" fill="#5a5468">with somebody else. Your</text>
+    <text x="1050" y="284" font-size="13" fill="#5a5468">callback has no job left.</text>
+  </g>
+
+  <line x1="60" y1="330" x2="1140" y2="330" stroke="#ece7f6" stroke-width="1"/>
+
+  <!-- ============ BUILDING'S CLOCK ============ -->
+  <text x="60" y="376" font-size="12" font-weight="600" fill="#5b3ef0" letter-spacing="0.08em">THE BUILDING'S CLOCK</text>
+
+  <line x1="60" y1="440" x2="1140" y2="440" stroke="#d9d2f2" stroke-width="2" stroke-linecap="round"/>
+
+  <g text-anchor="middle">
+    <!-- node 1 -->
+    <text x="230" y="414" font-size="14" font-weight="600" fill="#1a1a1a">Hour 0</text>
+    <circle cx="230" cy="440" r="9" fill="#5b3ef0"/>
+    <text x="230" y="476" font-size="13" fill="#5a5468">Clean supply water.</text>
+    <text x="230" y="494" font-size="13" fill="#5a5468">Contained scope, the</text>
+    <text x="230" y="512" font-size="13" fill="#5a5468">cheapest this job will be.</text>
+
+    <!-- node 2 -->
+    <text x="600" y="414" font-size="14" font-weight="600" fill="#1a1a1a">24 - 48 hours</text>
+    <circle cx="600" cy="440" r="9" fill="#5b3ef0"/>
+    <text x="600" y="476" font-size="13" fill="#5a5468">The EPA drying window.</text>
+    <text x="600" y="494" font-size="13" fill="#5a5468">Dried inside it, &#8220;in most</text>
+    <text x="600" y="512" font-size="13" fill="#5a5468">cases mold will not grow.&#8221;</text>
+
+    <!-- node 3 -->
+    <text x="970" y="414" font-size="14" font-weight="600" fill="#1a1a1a">Days later</text>
+    <circle cx="970" cy="440" r="9" fill="#a49dba"/>
+    <text x="970" y="476" font-size="13" fill="#5a5468">Standing water picks up</text>
+    <text x="970" y="494" font-size="13" fill="#5a5468">contamination. Category,</text>
+    <text x="970" y="512" font-size="13" fill="#5a5468">scope and argument grow.</text>
+  </g>
+
+  <!-- footnote -->
+  <rect x="60" y="546" width="1080" height="46" rx="8" fill="#f1edfd"/>
+  <text x="84" y="575" font-size="13" fill="#5a5468">A call that rings out at 1 a.m. and is returned at 8 a.m. is not the same job seven hours later. It is a bigger, dirtier job - and somebody else is doing it.</text>
+</svg>
