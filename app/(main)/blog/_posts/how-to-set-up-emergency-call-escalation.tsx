@@ -560,7 +560,19 @@ export default function Body() {
         <Internal href="/blog/how-to-forward-calls-to-an-answering-service">
           conditional call forwarding
         </Internal>
-        , and run the 2 a.m. drill before you rely on it. Our plans are on the{" "}
+        , and run the 2 a.m. drill before you rely on it. What the ladder has
+        to carry differs by business: the{" "}
+        <Internal href="/blog/water-damage-restoration-answering-service">
+          restoration
+        </Internal>
+        ,{" "}
+        <Internal href="/blog/home-care-answering-service">home care</Internal>{" "}
+        and{" "}
+        <Internal href="/blog/self-storage-answering-service">
+          self storage
+        </Internal>{" "}
+        guides each show the escalation triggers those operators actually
+        write down. Our plans are on the{" "}
         <Internal href="/pricing">pricing page</Internal> and run
         month-to-month, which means you can test a full ladder on real calls
         for two weeks before committing to anything.

@@ -348,7 +348,13 @@ export default function Body() {
           dental practices
         </Internal>{" "}
         - a vertical with the identical structure of high call volume, HIPAA
-        constraints, and an overloaded desk.
+        constraints, and an overloaded desk. If your clinicians work in
+        patients&apos; homes rather than in a building you own, the{" "}
+        <Internal href="/blog/home-care-answering-service">
+          home care answering service guide
+        </Internal>{" "}
+        covers the version of this problem where caregiver call-offs, not
+        patient calls, are the after-hours volume.
       </P>
 
       <H2 id="setup">Setting it up in a medical practice</H2>

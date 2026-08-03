@@ -157,7 +157,12 @@ export default function Body() {
         <Internal href="/blog/hvac-answering-service">
           HVAC answering service guide
         </Internal>{" "}
-        is the companion piece for heating and cooling. The point is not to
+        is the companion piece for heating and cooling. When a burst supply
+        line stops being a plumbing call and becomes a mitigation job, the{" "}
+        <Internal href="/blog/water-damage-restoration-answering-service">
+          restoration answering service guide
+        </Internal>{" "}
+        covers that intake. The point is not to
         replace your judgment or your hands. It&apos;s to stop leaking your
         most profitable calls to voicemail.
       </P>

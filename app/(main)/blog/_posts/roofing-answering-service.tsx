@@ -157,6 +157,11 @@ export default function Body() {
         <Internal href="/blog/hvac-answering-service">HVAC</Internal> and{" "}
         <Internal href="/blog/plumbing-answering-service">plumbing</Internal>{" "}
         guides are the companion pieces for the other weather-driven trades.
+        When the storm call turns into water inside the building, the{" "}
+        <Internal href="/blog/water-damage-restoration-answering-service">
+          restoration answering service guide
+        </Internal>{" "}
+        picks up where this one stops.
       </P>
 
       <H2 id="storm-problem">The storm-week problem</H2>

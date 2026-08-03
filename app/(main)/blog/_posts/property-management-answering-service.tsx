@@ -163,7 +163,13 @@ export default function Body() {
           apartment answering services
         </Internal>{" "}
         covers leasing-call handling and the fair housing limits on what a
-        script may say.
+        script may say. If your doors are storage doors rather than
+        residential ones, the{" "}
+        <Internal href="/blog/self-storage-answering-service">
+          self storage answering service guide
+        </Internal>{" "}
+        deals with the two calls unique to that asset class: the gate lockout
+        and the delinquency call sitting on top of a lien statute.
       </P>
 
       <H2 id="burst-pipe">The 2 a.m. burst-pipe problem</H2>
