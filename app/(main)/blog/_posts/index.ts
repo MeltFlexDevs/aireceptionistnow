@@ -120,6 +120,15 @@ import HomeCareAnsweringService, {
 import SelfStorageAnsweringService, {
   meta as selfStorageAnsweringServiceMeta,
 } from "./self-storage-answering-service";
+import RestaurantAnsweringService, {
+  meta as restaurantAnsweringServiceMeta,
+} from "./restaurant-answering-service";
+import AutoRepairAnsweringService, {
+  meta as autoRepairAnsweringServiceMeta,
+} from "./auto-repair-answering-service";
+import MissedCallTextBack, {
+  meta as missedCallTextBackMeta,
+} from "./missed-call-text-back";
 
 export type PostMeta = {
   slug: string;
@@ -167,6 +176,7 @@ const postIndustry: Record<string, IndustrySlug> = {
   "apartment-answering-service": "property-management",
   "water-damage-restoration-answering-service": "home-services",
   "self-storage-answering-service": "property-management",
+  "restaurant-answering-service": "restaurants",
 };
 
 const postAuthors: Record<string, AuthorKey> = {
@@ -209,6 +219,9 @@ const postAuthors: Record<string, AuthorKey> = {
   "water-damage-restoration-answering-service": "matus",
   "home-care-answering-service": "brano",
   "self-storage-answering-service": "matus",
+  "restaurant-answering-service": "brano",
+  "auto-repair-answering-service": "matus",
+  "missed-call-text-back": "brano",
 };
 
 export const posts: Post[] = [
@@ -284,6 +297,9 @@ export const posts: Post[] = [
     ...selfStorageAnsweringServiceMeta,
     Body: SelfStorageAnsweringService,
   },
+  { ...restaurantAnsweringServiceMeta, Body: RestaurantAnsweringService },
+  { ...autoRepairAnsweringServiceMeta, Body: AutoRepairAnsweringService },
+  { ...missedCallTextBackMeta, Body: MissedCallTextBack },
 ]
   .map((p) => ({
     ...p,

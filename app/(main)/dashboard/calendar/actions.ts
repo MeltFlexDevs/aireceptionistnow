@@ -9,18 +9,10 @@ import { ok, fail, type ActionState } from "@/lib/dashboard/action-state";
 import {
   cancelCalendarEvent,
   loadBookingForCancel,
-  patchCancellationState,
   saveCancellationState,
-  type BookingForCancel,
 } from "@/lib/dashboard/booking-cancel";
 import { retryBookingSync } from "@/lib/dashboard/booking-retry";
-import { ownerTimezone } from "@/lib/dashboard/timezone";
-import { dateTimeFmt } from "@/lib/dashboard/calls/format";
-import { composeCancellationScript, composeCancellationSms } from "@/lib/call-engine/cancellation";
-import { placeAgentCall } from "@/lib/call-engine/elevenlabs";
-import { localizeSms } from "@/lib/call-engine/llm/greeting";
-import { sendSms } from "@/lib/call-engine/telephony";
-import { languageFromPhone } from "@/lib/call-engine/voice/phone-language";
+import { notifyCancelledCustomer } from "@/lib/dashboard/booking-notify";
 
 /**
  * All four actions below report back through the shared ActionState contract
@@ -73,7 +65,7 @@ export async function cancelBookingAction(
     at: new Date().toISOString(),
   });
 
-  after(() => notifyCustomer(actionId, booking, reason, offerRebook, ownerId));
+  after(() => notifyCancelledCustomer(actionId, booking, reason, offerRebook, ownerId));
 
   revalidatePath("/dashboard/calendar");
   // When the calendar entry could not be removed automatically, say so plainly
@@ -115,69 +107,4 @@ export async function disconnectCalendarAction(
   revalidatePath("/dashboard/calendar");
   revalidatePath("/dashboard/assistant", "layout");
   return ok(c.disconnected);
-}
-
-async function notifyCustomer(
-  actionId: string,
-  booking: BookingForCancel,
-  reason: string,
-  offerRebook: boolean,
-  ownerId: string | null,
-): Promise<void> {
-  const tz = await ownerTimezone(ownerId).catch(() => "UTC");
-  const whenLabel = booking.startTime ? dateTimeFmt(tz)(booking.startTime) : "your appointment";
-  const ctx = {
-    businessName: booking.config.businessName,
-    whenLabel,
-    reason,
-    offerRebook,
-    callbackNumber: booking.fromNumber,
-  };
-
-  // Text the customer if there's no way to call them (no agent/number/phone).
-  const canCall = Boolean(booking.agentId && booking.agentPhoneNumberId && booking.attendeePhone);
-  if (!canCall) {
-    await smsFallback(actionId, booking, ctx);
-    return;
-  }
-
-  const script = composeCancellationScript(ctx);
-  try {
-    const res = await placeAgentCall(booking.attendeePhone, {
-      agentId: booking.agentId!,
-      agentPhoneNumberId: booking.agentPhoneNumberId!,
-      language: booking.language ?? undefined,
-      firstMessage: script.firstMessage,
-      prompt: script.prompt,
-    });
-    if (res.conversationId) {
-      await patchCancellationState(actionId, {
-        notifyStatus: "calling",
-        notifyConversationId: res.conversationId,
-        notifyAt: new Date().toISOString(),
-      }).catch(() => {});
-    } else {
-      await smsFallback(actionId, booking, ctx);
-    }
-  } catch (err) {
-    console.error(`[cancel] outbound call failed for ${actionId}, texting instead`, err);
-    await smsFallback(actionId, booking, ctx);
-  }
-}
-
-async function smsFallback(
-  actionId: string,
-  booking: BookingForCancel,
-  ctx: Parameters<typeof composeCancellationSms>[0],
-): Promise<void> {
-  try {
-    const lang = languageFromPhone(booking.attendeePhone);
-    const body = composeCancellationSms(ctx);
-    const localized = lang ? await localizeSms(body, lang) : body;
-    await sendSms(booking.attendeePhone, booking.fromNumber, localized, ctx.businessName);
-    await patchCancellationState(actionId, { notifyStatus: "sms_sent" }).catch(() => {});
-  } catch (err) {
-    console.error(`[cancel] SMS fallback failed for ${actionId}`, err);
-    await patchCancellationState(actionId, { notifyStatus: "failed" }).catch(() => {});
-  }
 }

@@ -136,6 +136,15 @@ export const BLOG_SLUGS = {
     pt: "atendimento-telefonico-para-condominios",
     nl: "telefoonservice-voor-huurwoningen",
   },
+  "auto-repair-answering-service": {
+    de: "telefonservice-autowerkstatt",
+    es: "atencion-telefonica-para-talleres-mecanicos",
+    fr: "permanence-telephonique-garage-automobile",
+    sk: "telefonicka-sluzba-pre-autoservisy",
+    it: "servizio-risposta-per-officine-meccaniche",
+    pt: "atendimento-telefonico-para-oficinas-auto",
+    nl: "telefoonservice-voor-autogarages",
+  },
   "best-ai-receptionist": {
     de: "bester-ki-telefonassistent",
     es: "mejor-recepcionista-ia",
@@ -208,6 +217,15 @@ export const BLOG_SLUGS = {
     pt: "atendimento-telefonico-para-eletricistas",
     nl: "telefoonservice-voor-elektriciens",
   },
+  "home-care-answering-service": {
+    de: "telefonservice-ambulante-pflege",
+    es: "atencion-telefonica-para-ayuda-a-domicilio",
+    fr: "permanence-telephonique-aide-a-domicile",
+    sk: "telefonicka-sluzba-pre-opatrovatelske-sluzby",
+    it: "servizio-risposta-per-assistenza-domiciliare",
+    pt: "atendimento-telefonico-para-apoio-domiciliario",
+    nl: "telefoonservice-voor-thuiszorg",
+  },
   "how-to-choose-an-ai-receptionist": {
     de: "ki-telefonassistent-richtig-auswaehlen",
     es: "como-elegir-una-recepcionista-ia",
@@ -271,6 +289,15 @@ export const BLOG_SLUGS = {
     pt: "atendimento-telefonico-para-clinicas",
     nl: "telefoonservice-voor-huisartsen",
   },
+  "missed-call-text-back": {
+    de: "sms-bei-verpasstem-anruf",
+    es: "sms-automatico-por-llamada-perdida",
+    fr: "sms-automatique-apres-appel-manque",
+    sk: "sms-po-zmeskanom-hovore",
+    it: "sms-automatico-dopo-chiamata-persa",
+    pt: "sms-automatico-apos-chamada-perdida",
+    nl: "sms-na-gemiste-oproep",
+  },
   "plumbing-answering-service": {
     de: "telefonservice-klempner",
     es: "servicio-de-atencion-telefonica-para-fontaneros",
@@ -298,6 +325,15 @@ export const BLOG_SLUGS = {
     pt: "atendimento-telefonico-para-imobiliarias",
     nl: "telefoonservice-voor-makelaars",
   },
+  "restaurant-answering-service": {
+    de: "telefonservice-restaurant",
+    es: "atencion-telefonica-para-restaurantes",
+    fr: "permanence-telephonique-restaurant",
+    sk: "telefonicka-sluzba-pre-restauracie",
+    it: "servizio-risposta-per-ristoranti",
+    pt: "atendimento-telefonico-para-restaurantes",
+    nl: "telefoonservice-voor-restaurants",
+  },
   "roofing-answering-service": {
     de: "telefonservice-dachdecker",
     es: "atencion-telefonica-para-tejadores",
@@ -306,6 +342,15 @@ export const BLOG_SLUGS = {
     it: "servizio-risposta-per-imprese-di-coperture",
     pt: "atendimento-telefonico-para-telhados",
     nl: "telefoonservice-voor-dakdekkers",
+  },
+  "self-storage-answering-service": {
+    de: "telefonservice-selfstorage",
+    es: "atencion-telefonica-para-trasteros",
+    fr: "permanence-telephonique-garde-meubles",
+    sk: "telefonicka-sluzba-pre-skladovacie-boxy",
+    it: "servizio-risposta-per-self-storage",
+    pt: "atendimento-telefonico-para-self-storage",
+    nl: "telefoonservice-voor-selfstorage",
   },
   "telephone-answering-service": {
     de: "telefonservice",
@@ -342,6 +387,15 @@ export const BLOG_SLUGS = {
     it: "prezzi-receptionist-virtuale",
     pt: "precos-rececionista-virtual",
     nl: "virtuele-receptionist-prijzen",
+  },
+  "water-damage-restoration-answering-service": {
+    de: "telefonservice-wasserschaden-sanierung",
+    es: "atencion-telefonica-para-danos-por-agua",
+    fr: "permanence-telephonique-degats-des-eaux",
+    sk: "telefonicka-sluzba-pre-sanaciu-po-vode",
+    it: "servizio-risposta-per-danni-da-acqua",
+    pt: "atendimento-telefonico-para-danos-por-agua",
+    nl: "telefoonservice-voor-waterschadeherstel",
   },
 } as const satisfies Record<string, Record<MarketingLocale, string>>;
 
