@@ -24,7 +24,7 @@ export const meta = {
   description:
     "Live answering services run $1-$3.50/minute (about $200-$1,000/mo); AI answering services cost $30-$300/mo flat. Real 2026 rates, hidden fees, and the math.",
   date: "2026-07-25",
-  updated: "2026-07-25",
+  updated: "2026-08-08",
   readingTime: "10 min read",
   tag: "Guides",
   hero: "/blog/answering-service-cost-hero.webp",
@@ -372,6 +372,26 @@ export default function Body() {
           add-ons that quietly double a cheap base plan.
         </LI>
       </UL>
+      <P>
+        Industry requirements are the driver most people underestimate, because
+        they show up as a rate premium and as a boundary the script has to
+        respect. A{" "}
+        <Internal href="/blog/funeral-home-answering-service">
+          funeral home
+        </Internal>{" "}
+        is legally required to answer price questions by telephone; an{" "}
+        <Internal href="/blog/answering-service-for-therapists">
+          answering service for therapists
+        </Internal>{" "}
+        needs a signed business associate agreement before it takes a single
+        call; a{" "}
+        <Internal href="/blog/pest-control-answering-service">
+          pest control company
+        </Internal>{" "}
+        needs a script that never answers a pesticide safety question. If your
+        trade has one of these, price the vendors that can actually meet it, not
+        the cheapest per-minute rate on the market.
+      </P>
 
       <H2 id="roi">How to calculate ROI: the fee vs the missed call</H2>
       <P>

@@ -24,7 +24,7 @@ export const meta = {
   description:
     "The honest 2026 guide to choosing an answering service for small business: live agents at $1-$3.50/min vs AI from ~$30/mo, plus features and setup steps.",
   date: "2026-07-25",
-  updated: "2026-07-25",
+  updated: "2026-08-08",
   readingTime: "10 min read",
   tag: "Guides",
   hero: "/blog/answering-service-for-small-business-hero.webp",
@@ -315,6 +315,22 @@ export default function Body() {
           don&apos;t enter.
         </LI>
       </OL>
+      <P>
+        One shortcut on step two: the call mix is more trade-specific than most
+        buyer&apos;s guides admit, and the boundary that matters is usually
+        obvious once it is written down. A{" "}
+        <Internal href="/blog/salon-answering-service">salon</Internal> needs
+        bookings written into the right stylist&apos;s column for the right
+        duration; a{" "}
+        <Internal href="/blog/locksmith-answering-service">locksmith</Internal>{" "}
+        needs an all-in quote in the first ninety seconds; a{" "}
+        <Internal href="/blog/cleaning-company-answering-service">
+          cleaning company
+        </Internal>{" "}
+        needs an eight-question intake before anything gets priced. If we have
+        written up your trade, start there - the generic version of this advice
+        is worth less than the specific one.
+      </P>
 
       <H2 id="setup">How to set it up in an afternoon</H2>
       <OL>

@@ -130,6 +130,25 @@ import MissedCallTextBack, {
   meta as missedCallTextBackMeta,
 } from "./missed-call-text-back";
 
+import PestControlAnsweringService, {
+  meta as pestControlAnsweringServiceMeta,
+} from "./pest-control-answering-service";
+import LocksmithAnsweringService, {
+  meta as locksmithAnsweringServiceMeta,
+} from "./locksmith-answering-service";
+import SalonAnsweringService, {
+  meta as salonAnsweringServiceMeta,
+} from "./salon-answering-service";
+import CleaningCompanyAnsweringService, {
+  meta as cleaningCompanyAnsweringServiceMeta,
+} from "./cleaning-company-answering-service";
+import AnsweringServiceForTherapists, {
+  meta as answeringServiceForTherapistsMeta,
+} from "./answering-service-for-therapists";
+import FuneralHomeAnsweringService, {
+  meta as funeralHomeAnsweringServiceMeta,
+} from "./funeral-home-answering-service";
+
 export type PostMeta = {
   slug: string;
   title: string;
@@ -177,6 +196,10 @@ const postIndustry: Record<string, IndustrySlug> = {
   "water-damage-restoration-answering-service": "home-services",
   "self-storage-answering-service": "property-management",
   "restaurant-answering-service": "restaurants",
+  "pest-control-answering-service": "home-services",
+  "locksmith-answering-service": "home-services",
+  "cleaning-company-answering-service": "home-services",
+  "answering-service-for-therapists": "medical",
 };
 
 const postAuthors: Record<string, AuthorKey> = {
@@ -222,6 +245,12 @@ const postAuthors: Record<string, AuthorKey> = {
   "restaurant-answering-service": "brano",
   "auto-repair-answering-service": "matus",
   "missed-call-text-back": "brano",
+  "pest-control-answering-service": "matus",
+  "locksmith-answering-service": "brano",
+  "salon-answering-service": "matus",
+  "cleaning-company-answering-service": "brano",
+  "answering-service-for-therapists": "matus",
+  "funeral-home-answering-service": "brano",
 };
 
 export const posts: Post[] = [
@@ -300,6 +329,18 @@ export const posts: Post[] = [
   { ...restaurantAnsweringServiceMeta, Body: RestaurantAnsweringService },
   { ...autoRepairAnsweringServiceMeta, Body: AutoRepairAnsweringService },
   { ...missedCallTextBackMeta, Body: MissedCallTextBack },
+  { ...pestControlAnsweringServiceMeta, Body: PestControlAnsweringService },
+  { ...locksmithAnsweringServiceMeta, Body: LocksmithAnsweringService },
+  { ...salonAnsweringServiceMeta, Body: SalonAnsweringService },
+  {
+    ...cleaningCompanyAnsweringServiceMeta,
+    Body: CleaningCompanyAnsweringService,
+  },
+  {
+    ...answeringServiceForTherapistsMeta,
+    Body: AnsweringServiceForTherapists,
+  },
+  { ...funeralHomeAnsweringServiceMeta, Body: FuneralHomeAnsweringService },
 ]
   .map((p) => ({
     ...p,

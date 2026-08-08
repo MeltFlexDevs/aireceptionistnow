@@ -24,7 +24,7 @@ export const meta = {
   description:
     "Virtual receptionist pricing in 2026: live plans run $25-$100/mo base plus $1-$3.50 per minute (real bills $150-$700); AI plans cost $30-$300/mo flat.",
   date: "2026-07-25",
-  updated: "2026-07-25",
+  updated: "2026-08-08",
   readingTime: "9 min read",
   tag: "Guides",
   hero: "/blog/virtual-receptionist-pricing-hero.webp",
@@ -383,6 +383,24 @@ export default function Body() {
           answering services for small business
         </Internal>
         .
+      </P>
+
+      <P>
+        Where that division of labor falls depends on your trade more than on
+        your budget. The calls a script must never take are different for a{" "}
+        <Internal href="/blog/answering-service-for-therapists">
+          therapy practice
+        </Internal>
+        , a{" "}
+        <Internal href="/blog/funeral-home-answering-service">
+          funeral home
+        </Internal>{" "}
+        and a{" "}
+        <Internal href="/blog/pest-control-answering-service">
+          pest control company
+        </Internal>
+        , and those boundaries decide which vendors are even eligible before
+        price enters the conversation.
       </P>
 
       <H2 id="overpaying">How to not overpay</H2>
