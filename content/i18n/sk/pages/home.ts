@@ -67,7 +67,7 @@ export const skHome: HomeCopy = {
       { quote: "dielňu vediem sám a nemôžem nechať prácu len tak stáť kvôli telefónu. toto zdvihne, zistí čo treba a napíše mi čo je súrne. tento mesiac som spravil viac roboty ako kedykoľvek predtým.", name: "Wes Carter", role: "Elektrikár" },
       { quote: "prešiel som z call centra ktoré nám stále kazilo objednávky. toto zatiaľ nepoplietlo ani jeden termín a ešte to znie aj milo.", name: "Linda Park", role: "Chiropraktická klinika" },
       { quote: "samotné pokrytie po zatváračke sa zaplatilo. ľudia volajú o deviatej večer a aj tak sa objednajú. koniec naháňačky cez odkazovač.", name: "Greg Sullivan", role: "Deratizácia a dezinsekcia" },
-      { quote: "najprv som to skúsila na bezplatnom pláne a hneď prvý týždeň to objednalo 4 termíny. v ten istý deň som prešla na platený. ľahké rozhodnutie.", name: "Aisha Khan", role: "Nechtové štúdio" },
+      { quote: "nechala som to týždeň na ozajstných hovoroch a hneď objednalo 4 termíny. ľahké rozhodnutie.", name: "Aisha Khan", role: "Nechtové štúdio" },
       { quote: "napojí sa rovno na náš kalendár aj CRM, takže sa nič nestratí. nastavenie zabralo jeden večer a odvtedy to beží bezchybne.", name: "Daniel Wright", role: "Realitný tím" },
     ],
   },
@@ -158,7 +158,7 @@ export const skHome: HomeCopy = {
       },
       {
         q: "Koľko stojí AI recepcia?",
-        a: "Začať môžete zadarmo a na vyšší plán prejdete, až keď potrebujete viac hovorov alebo funkcií. AI recepcia stojí zlomok toho, čo zamestnanec na recepcii alebo telefonická služba, a pritom zdvihne každý hovor 24/7 - väčšine firiem sa investícia vráti z hovorov, ktoré by inak prepásli.",
+        a: "Solo stojí 99 € mesačne za 1 000 minút hovoru, potom 0,09 € za každú ďalšiu minútu; Team stojí 299 € mesačne za 3 000 minút a tri čísla. Oba sú mesačné, s 30-dňovou zárukou vrátenia peňazí. Je to zlomok toho, čo zamestnanec na recepcii alebo telefonická služba, a pritom sa zdvihne každý hovor 24/7 - väčšine firiem sa investícia vráti z hovorov, ktoré by inak prepásli.",
       },
       {
         q: "Sú moje údaje v bezpečí?",

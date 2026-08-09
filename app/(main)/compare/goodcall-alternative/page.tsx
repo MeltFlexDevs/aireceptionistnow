@@ -18,7 +18,7 @@ const MODIFIED = "2026-07-07";
 
 const title = "Goodcall Alternative: AI Receptionist Now vs Goodcall (2026)";
 const description =
-  "A multilingual, GDPR-first Goodcall alternative. Answers 24/7 in 25+ languages, EU-hosted and flat-priced with no per-seat caps. Free to start.";
+  "A multilingual, GDPR-first Goodcall alternative. Answers 24/7 in 25+ languages, EU-hosted and flat-priced with no per-seat caps, from EUR 99/mo.";
 
 export const metadata: Metadata = {
   // absolute: the root template would append the brand and push these past ~60 chars
@@ -55,7 +55,6 @@ type Owner = "yes" | "no" | "partial";
 const ROLES: { capability: string; ours: Owner; them: Owner }[] = [
   { capability: "Answers calls 24/7", ours: "yes", them: "yes" },
   { capability: "Pure AI, self-serve, live in minutes", ours: "yes", them: "yes" },
-  { capability: "Free to start (no card)", ours: "yes", them: "no" },
   { capability: "Flat price, no per-agent or per-caller caps", ours: "yes", them: "partial" },
   { capability: "Unlimited call minutes included", ours: "partial", them: "yes" },
   { capability: "25+ languages, switches mid-call", ours: "yes", them: "partial" },
@@ -80,7 +79,7 @@ const TOC: TocItem[] = [
 
 const STATS = [
   { v: "25+", l: "languages, one agent" },
-  { v: "Free", l: "to start, no card" },
+  { v: "30 days", l: "money-back guarantee" },
   { v: "€99/mo", l: "flat, no seat caps" },
   { v: "EU", l: "hosted, GDPR-first" },
 ];
@@ -88,10 +87,10 @@ const STATS = [
 const OUR_WINS = [
   "25+ languages, switching automatically per caller",
   "GDPR-first, built and hosted in the EU",
-  "Free to start with no card, so you test on real calls",
+  "30-day money-back guarantee, cancelable from the dashboard",
   "One flat plan, no per-agent seats or per-caller caps",
   "Booking straight into your calendar on every plan",
-  "Native Google Calendar, Outlook, HubSpot and Salesforce links",
+  "Two-way Google Calendar, Microsoft 365 and Cal.com booking",
 ];
 
 const GOODCALL_WINS = [
@@ -109,8 +108,8 @@ const SCENARIOS = [
     body: "One agent covers 25+ languages and switches mid-call. Goodcall supports a handful of languages with weaker mid-call switching, so multilingual markets favour us.",
   },
   {
-    title: "You want to try before you pay",
-    body: "We're free to start with no card. Goodcall retired its old free plan and now offers a time-limited trial, so testing on real calls costs you nothing here.",
+    title: "You want a way out if it does not fit",
+    body: "Every plan carries a 30-day money-back guarantee and cancels from the dashboard with no contract. Goodcall retired its old free tier and now offers a time-limited trial instead.",
   },
   {
     title: "You process EU data",
@@ -135,19 +134,19 @@ const SCREENS = [
   { src: "/how-it-works/behavior.webp", cap: "Choose what it does on every call" },
 ];
 
+// Only what actually connects: CALENDAR_PROVIDERS in lib/calendar/providers.ts.
+// Cal.com has no logo asset here and is listed as text below; HubSpot,
+// Salesforce, Calendly and Zapier were on this wall without any code behind
+// them (Calendly is legacy-read-only, the rest do not exist), so they are gone.
 const INTEGRATION_LOGOS = [
   { name: "Google Calendar", logo: "/compare/logos/googlecalendar.svg" },
   { name: "Outlook", logo: "/compare/logos/outlook.svg" },
-  { name: "HubSpot", logo: "/compare/logos/hubspot.svg" },
-  { name: "Salesforce", logo: "/compare/logos/salesforce.svg" },
-  { name: "Calendly", logo: "/compare/logos/calendly.svg" },
-  { name: "Zapier", logo: "/compare/logos/zapier.svg" },
 ];
 
 const FAQS = [
   {
     q: "Is AI Receptionist Now a real alternative to Goodcall?",
-    a: "Yes. Both are self-serve, pure-AI phone agents that answer 24/7, capture leads, book appointments, and send a summary. The differences are language reach, data posture, and how you buy it. We handle 25+ languages, are GDPR-first and EU-hosted, are free to start, and price a flat plan with no per-agent seats or per-caller caps. Goodcall is a US product with unlimited minutes and its own security certifications.",
+    a: "Yes. Both are self-serve, pure-AI phone agents that answer 24/7, capture leads, book appointments, and send a summary. The differences are language reach, data posture, and how you buy it. We handle 25+ languages, are GDPR-first and EU-hosted, and price a flat plan with no per-agent seats or per-caller caps, with a 30-day money-back guarantee. Goodcall is a US product with unlimited minutes and its own security certifications.",
   },
   {
     q: "How does the pricing compare to Goodcall?",
@@ -155,7 +154,7 @@ const FAQS = [
   },
   {
     q: "Does Goodcall have a free plan?",
-    a: "Not any longer. Goodcall launched with a free tier but has since discontinued it, and now offers a time-limited free trial (reported as 14 days by third parties, not stated on its pricing page). AI Receptionist Now is free to start with no card, so you can hear it handle real calls before you pay anything.",
+    a: "Not any longer. Goodcall launched with a free tier but has since discontinued it, and now offers a time-limited free trial (reported as 14 days by third parties, not stated on its pricing page). AI Receptionist Now has no free tier either: Solo is EUR 99 a month, with a 30-day money-back guarantee and no contract, so you can put it on real calls and get your money back if it does not fit.",
   },
   {
     q: "Which supports more languages, AI Receptionist Now or Goodcall?",
@@ -265,12 +264,12 @@ export default function GoodcallComparePage() {
                 Goodcall is a US, pure-AI phone agent with unlimited minutes,
                 priced per agent with a cap on unique callers. AI Receptionist
                 Now is the multilingual, GDPR-first alternative: it answers in
-                25+ languages, is EU-hosted, free to start, and flat-priced with
-                no seat or caller caps. Here is the honest, side-by-side
+                25+ languages, is EU-hosted, and flat-priced with no seat or
+                caller caps. Here is the honest, side-by-side
                 breakdown.
               </p>
               <div className="compare-hero-cta">
-                <CompareCta label="Start free" />
+                <CompareCta label="Get started" />
                 <Link href="/pricing" className="compare-cta-btn compare-cta-btn-outline">
                   See pricing
                 </Link>
@@ -291,19 +290,12 @@ export default function GoodcallComparePage() {
                   ))}
                 </div>
                 <div className="hero-trust-text">
-                  <span className="hero-trust-number">9,500+ users worldwide</span>
-                  <span className="hero-trust-label">Every call answered 24/7.</span>
+                  <span className="hero-trust-number">Every call answered, 24/7</span>
+                  <span className="hero-trust-label">25+ languages, EU-hosted.</span>
                 </div>
                 <div className="hero-trust-reviews">
                   <div className="hero-trust-reviews-right">
-                    <div className="hero-trust-stars">
-                      <span className="hero-trust-star">&#9733;</span>
-                      <span className="hero-trust-star">&#9733;</span>
-                      <span className="hero-trust-star">&#9733;</span>
-                      <span className="hero-trust-star">&#9733;</span>
-                      <span className="hero-trust-star half">&#9733;</span>
-                    </div>
-                    <span className="hero-trust-rating">4.8 out of 5</span>
+                    <span className="hero-trust-rating">30-day money-back guarantee</span>
                   </div>
                 </div>
               </div>
@@ -346,8 +338,8 @@ export default function GoodcallComparePage() {
             holds up well.{" "}
             <strong>
               The gap opens when your callers are multilingual, your data lives
-              in the EU, or you want to start free without a per-agent, per-caller
-              plan to reason about.
+              in the EU, or you want one flat price without a per-agent,
+              per-caller plan to reason about.
             </strong>
           </p>
 
@@ -360,7 +352,7 @@ export default function GoodcallComparePage() {
                 turned into an appointment on your calendar instead of a missed
                 call you notice hours later.
               </p>
-              <CompareCta label="Start free" />
+              <CompareCta label="Get started" />
               <div className="compare-before-after">
                 <div className="compare-ba-item">
                   <span className="compare-ba-label">The call comes in</span>
@@ -404,10 +396,12 @@ export default function GoodcallComparePage() {
               <span className="compare-showcase-tag compare-showcase-tag--exclusive">Plugs in</span>
               <h3>It drops straight into the tools you already use</h3>
               <p>
-                Bookings land in your calendar, leads land in your CRM, and a
-                summary lands in your inbox after every call.{" "}
+                Bookings land in your calendar and a summary and full transcript
+                land in your inbox after every call.{" "}
                 <strong>No copy-paste, nothing to chase.</strong> Goodcall reaches
-                most CRMs through Zapier; we connect natively too.
+                most CRMs through Zapier; we book two-way into Google Calendar,
+                Microsoft 365 and Cal.com, and post every call to any system that
+                accepts a signed webhook.
               </p>
               <div className="compare-showcase-media">
                 <Image
@@ -421,7 +415,7 @@ export default function GoodcallComparePage() {
                 <div className="compare-output" style={{ margin: 0 }}>
                   <div className="compare-output-label">After every call</div>
                   <div className="compare-output-item"><span className="compare-output-dot compare-output-dot--yes" /> Appointment booked in your calendar</div>
-                  <div className="compare-output-item"><span className="compare-output-dot compare-output-dot--yes" /> Lead pushed to your CRM</div>
+                  <div className="compare-output-item"><span className="compare-output-dot compare-output-dot--yes" /> Lead posted to your webhook endpoint</div>
                   <div className="compare-output-item"><span className="compare-output-dot compare-output-dot--yes" /> Transcript &amp; summary by text or email</div>
                   <div className="compare-output-item"><span className="compare-output-dot compare-output-dot--yes" /> Caller details captured, never lost</div>
                 </div>
@@ -435,7 +429,8 @@ export default function GoodcallComparePage() {
                     {it.name}
                   </span>
                 ))}
-                <span className="works-with-item"><span className="muted">+ 1000s more via Zapier</span></span>
+                <span className="works-with-item"><span className="muted">Cal.com</span></span>
+                <span className="works-with-item"><span className="muted">+ any system that accepts a signed webhook</span></span>
               </div>
             </div>
           </div>
@@ -508,7 +503,7 @@ export default function GoodcallComparePage() {
                   ))}
                   <tr className="compare-score-row">
                     <td><strong>Best for</strong></td>
-                    <td><span className="compare-score compare-score-meltflex">Multilingual, EU, flat &amp; free to start</span></td>
+                    <td><span className="compare-score compare-score-meltflex">Multilingual, EU, flat pricing</span></td>
                     <td><span className="compare-score compare-score-competitor">US, high-volume, unlimited minutes</span></td>
                   </tr>
                 </tbody>
@@ -544,7 +539,7 @@ export default function GoodcallComparePage() {
                 real conversation, in the language your callers actually use.
               </p>
               <div className="compare-cta-buttons">
-                <CompareCta label="Start free" />
+                <CompareCta label="Get started" />
                 <Link href="/#how-it-works" className="compare-cta-btn compare-cta-btn-outline">
                   See how it works
                 </Link>
@@ -581,7 +576,7 @@ export default function GoodcallComparePage() {
                       <li>1,000 minutes included, €0.09 per extra</li>
                       <li>No per-agent seats, no unique-caller cap</li>
                       <li>Booking, 25+ languages, EU hosting included</li>
-                      <li>Free to start, no card, no contract</li>
+                      <li>No contract; 30-day money-back guarantee</li>
                     </ul>
                     <div className="compare-pv-note">Flat €99, however many callers</div>
                   </div>
@@ -595,7 +590,6 @@ export default function GoodcallComparePage() {
                       <li>Unlimited minutes (a real strength)</li>
                       <li className="pv-con">Capped at 250 unique callers, then $0.50 each</li>
                       <li className="pv-con">Priced per agent, so lines add up</li>
-                      <li className="pv-con">No free plan; trial only</li>
                     </ul>
                     <div className="compare-pv-note">$129 per agent, per month</div>
                   </div>
@@ -607,7 +601,7 @@ export default function GoodcallComparePage() {
                 minutes genuinely win when one line takes very high minutes with a
                 modest number of repeat callers. Our flat, per-minute plan wins on
                 predictability when caller counts climb, when you&apos;d otherwise
-                pay for several agents, or when you want to start free. Figures are
+                pay for several agents. Figures are
                 each provider&apos;s published rates in their own currency, not
                 currency-converted.
               </div>
@@ -677,7 +671,6 @@ export default function GoodcallComparePage() {
                 <div className="compare-scorecard-grid">
                   <div className="compare-scorecard-row"><span className="compare-scorecard-cat">Multilingual coverage</span><span className="compare-scorecard-winner compare-scorecard-winner--mf">AI Receptionist Now</span></div>
                   <div className="compare-scorecard-row"><span className="compare-scorecard-cat">GDPR / EU data residency</span><span className="compare-scorecard-winner compare-scorecard-winner--mf">AI Receptionist Now</span></div>
-                  <div className="compare-scorecard-row"><span className="compare-scorecard-cat">Free to start</span><span className="compare-scorecard-winner compare-scorecard-winner--mf">AI Receptionist Now</span></div>
                   <div className="compare-scorecard-row"><span className="compare-scorecard-cat">Flat pricing, no seat caps</span><span className="compare-scorecard-winner compare-scorecard-winner--mf">AI Receptionist Now</span></div>
                   <div className="compare-scorecard-row"><span className="compare-scorecard-cat">SOC 2 / ISO 27001</span><span className="compare-scorecard-winner compare-scorecard-winner--rh">Goodcall</span></div>
                   <div className="compare-scorecard-row"><span className="compare-scorecard-cat">Unlimited minutes</span><span className="compare-scorecard-winner compare-scorecard-winner--rh">Goodcall</span></div>
@@ -716,7 +709,7 @@ export default function GoodcallComparePage() {
               <div className="compare-scorecard">
                 <div className="compare-scorecard-label">The main alternatives at a glance</div>
                 <div className="compare-scorecard-grid">
-                  <div className="compare-scorecard-row"><span className="compare-scorecard-cat"><strong>AI Receptionist Now</strong> · flat, multilingual, EU/GDPR, free to start</span><span className="compare-scorecard-winner compare-scorecard-winner--mf">Our pick</span></div>
+                  <div className="compare-scorecard-row"><span className="compare-scorecard-cat"><strong>AI Receptionist Now</strong> · flat, multilingual, EU/GDPR</span><span className="compare-scorecard-winner compare-scorecard-winner--mf">Our pick</span></div>
                   <div className="compare-scorecard-row"><span className="compare-scorecard-cat"><strong>Goodcall</strong> · US pure AI, unlimited minutes, per-agent pricing</span><span className="compare-scorecard-winner compare-scorecard-winner--rh">This page</span></div>
                   <div className="compare-scorecard-row"><span className="compare-scorecard-cat"><Link href="/compare/rosie-alternative">Rosie</Link> · US pure AI, English/Spanish, low entry price</span><span className="compare-scorecard-winner compare-scorecard-winner--tie">Compare</span></div>
                   <div className="compare-scorecard-row"><span className="compare-scorecard-cat"><Link href="/compare/ruby-alternative">Ruby</Link> · live human receptionists, premium price</span><span className="compare-scorecard-winner compare-scorecard-winner--tie">Compare</span></div>
@@ -735,8 +728,7 @@ export default function GoodcallComparePage() {
                   reward one busy line.{" "}
                   <strong>
                     AI Receptionist Now is the multilingual, GDPR-first, EU-hosted
-                    alternative that is free to start and flat-priced with no seat
-                    or caller caps.
+                    alternative, flat-priced with no seat or caller caps.
                   </strong>{" "}
                   For most businesses outside a single high-volume US line,
                   that&apos;s the calmer choice.
@@ -747,14 +739,14 @@ export default function GoodcallComparePage() {
             <RelatedComparisons currentSlug={PATH.slice("/compare/".length)} />
 
             <div className="compare-cta-section">
-              <h2>Try the alternative free</h2>
+              <h2>Try the alternative</h2>
               <p>
                 Answer every call in your callers&apos; language, book
-                appointments, capture leads. Free to start, live in minutes,
-                EU-hosted.
+                appointments, capture leads. Live in minutes, EU-hosted,
+                30-day money-back guarantee.
               </p>
               <div className="compare-cta-buttons">
-                <CompareCta label="Start free" />
+                <CompareCta label="Get started" />
                 <Link href="/pricing" className="compare-cta-btn compare-cta-btn-outline">
                   Compare plans
                 </Link>

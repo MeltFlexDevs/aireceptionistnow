@@ -65,7 +65,7 @@ export const esHome: HomeCopy = {
       { quote: "Llevo el taller solo y no puedo dejar el trabajo a medias para atender el teléfono. contesta, califica y me escribe lo que es urgente. este mes he cerrado más trabajos que nunca.", name: "Wes Carter", role: "Electricista" },
       { quote: "veníamos de un call center que se equivocaba una y otra vez con las reservas. esto nunca falla con la cita y encima suena simpático.", name: "Linda Park", role: "Clínica quiropráctica" },
       { quote: "solo la cobertura fuera de horario ya se pagó sola. la gente llama a las 9 de la noche y aun así consigue cita. se acabó el juego del buzón de voz.", name: "Greg Sullivan", role: "Control de plagas" },
-      { quote: "primero lo probé en el plan gratuito y ya reservó 4 citas la primera semana. pasé al plan de pago ese mismo día. decisión fácil.", name: "Aisha Khan", role: "Estudio de uñas" },
+      { quote: "lo dejé una semana con llamadas reales y ya reservó 4 citas. decisión fácil.", name: "Aisha Khan", role: "Estudio de uñas" },
       { quote: "se integra directamente con nuestro calendario y el CRM, así no se pierde nada. la configuración me llevó una tarde y desde entonces funciona sin fallos.", name: "Daniel Wright", role: "Equipo inmobiliario" },
     ],
   },
@@ -156,7 +156,7 @@ export const esHome: HomeCopy = {
       },
       {
         q: "¿Cuánto cuesta un recepcionista con IA?",
-        a: "Puede empezar gratis y pasar a un plan superior solo cuando necesite más llamadas o más funciones. Un recepcionista con IA cuesta una fracción de lo que supone contratar personal de recepción o un servicio de contestador, y aun así atiende todas las llamadas 24/7. La mayoría de los negocios recuperan la inversión con los trabajos adicionales que consiguen agendar y las llamadas que antes perdían.",
+        a: "Solo cuesta 99 € al mes por 1.000 minutos de conversación, y después 0,09 € por minuto extra; Team cuesta 299 € al mes por 3.000 minutos y tres números. Ambos son mes a mes, con 30 días de garantía de devolución. Es una fracción de lo que supone contratar personal de recepción o un servicio de contestador, y aun así atiende todas las llamadas 24/7. La mayoría de los negocios recuperan la inversión con los trabajos adicionales que consiguen agendar y las llamadas que antes perdían.",
       },
       {
         q: "¿Están seguros mis datos?",

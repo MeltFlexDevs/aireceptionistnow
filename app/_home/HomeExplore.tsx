@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { INDUSTRY_MENU } from "@/lib/marketing/industries";
+import { COMPETITORS } from "@/app/(main)/compare/_compare/competitors";
 
 // The cross-link module rendered just above the footer on the English home
 // page, via HomeClient's `relatedResources` slot (the same slot the industry
@@ -11,6 +12,12 @@ import { INDUSTRY_MENU } from "@/lib/marketing/industries";
 // derived from the posts registry: importing that here would be harmless (this
 // is a server component) but the anchor text is deliberately written for the
 // home page audience rather than reusing post titles.
+//
+// The comparison block below is the exception: it reads COMPETITORS directly, so
+// a new /compare page cannot be published and then sit with no editorial inbound
+// link. Before it existed the home page body linked to 8 industries and 6 guides
+// and never once to /compare, which left every alternative page on a single
+// contextual inbound link from /blog/best-ai-receptionist.
 
 const GUIDES: { href: string; label: string }[] = [
   { href: "/blog/answering-service-for-small-business", label: "Answering service for small business: the full guide" },
@@ -68,6 +75,27 @@ export function HomeExplore() {
           ))}
         </div>
 
+        <p className="mt-12 mb-2 text-[11px] font-medium tracking-[0.06em] text-[#1D1D1D] uppercase">
+          Weighing up alternatives
+        </p>
+        <h2 className="mb-6 text-[22px] leading-[1.25] font-light tracking-[-0.01em] text-[#1D1D1D] sm:text-[26px]">
+          How we compare to the services you&apos;re probably also looking at
+        </h2>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {COMPETITORS.map((c) => (
+            <Link
+              key={c.slug}
+              href={`/compare/${c.slug}`}
+              className="border border-[#e5e5e5] px-[18px] py-3.5 transition-colors hover:border-[#1D1D1D] hover:bg-[#fafafa]"
+            >
+              <span className="block text-[15px] text-[#1D1D1D]">
+                AI Receptionist Now vs {c.competitor}
+              </span>
+              <span className="mt-0.5 block text-[13px] text-[#6f6f6f]">{c.blurb}</span>
+            </Link>
+          ))}
+        </div>
+
         <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-[14px]">
           <Link
             href="/industries"
@@ -86,6 +114,12 @@ export function HomeExplore() {
             className="text-[#666] underline decoration-[#ddd] underline-offset-4 transition-colors hover:text-[#1D1D1D]"
           >
             Common questions
+          </Link>
+          <Link
+            href="/compare"
+            className="text-[#666] underline decoration-[#ddd] underline-offset-4 transition-colors hover:text-[#1D1D1D]"
+          >
+            All comparisons
           </Link>
           <Link
             href="/pricing"

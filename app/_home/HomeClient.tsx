@@ -360,12 +360,6 @@ export default function Home({
           width: max-content;
           animation: marquee 28s linear infinite;
         }
-        .hero-trust-star.half {
-          background: linear-gradient(90deg, #1D1D1D 50%, #ddd 50%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-        }
         .badge.main-lp {
           display: inline-flex;
           align-items: center;
@@ -680,7 +674,11 @@ export default function Home({
                   all eight locales and left copy.hero.avatarAlts unused. */}
               {heroAvatars.map((av, i) => (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img key={i} src={av.src} alt={av.alt} width={32} height={32} loading="eager"
+                // loading="lazy", not "eager": eager made React emit a
+                // <link rel="preload" as="image"> for all four, so four 32px
+                // avatars in the trust bar competed for early bandwidth with
+                // the hero <h1> that is the actual LCP element on this page.
+                <img key={i} src={av.src} alt={av.alt} width={32} height={32} loading="lazy" decoding="async"
                   style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover", border: "none", marginRight: i < 3 ? "-8px" : "0" }}
                 />
               ))}

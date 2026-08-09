@@ -66,7 +66,7 @@ export const frHome: HomeCopy = {
       { quote: "Je tiens l'atelier tout seul et je peux pas m'arrêter en plein boulot pour répondre. il répond, qualifie et m'envoie par SMS ce qui est urgent. plus de chantiers signés que jamais ce mois-ci.", name: "Wes Carter", role: "Électricien" },
       { quote: "on a quitté un centre d'appels qui se plantait tout le temps sur les rendez-vous. là il ne se trompe jamais et en plus il a l'air sympa.", name: "Linda Park", role: "Cabinet de chiropraxie" },
       { quote: "rien que la couverture hors horaires a remboursé l'abonnement. les gens appellent à 21h et obtiennent quand même un rendez-vous. fini les messages sur répondeur.", name: "Greg Sullivan", role: "Entreprise de dératisation" },
-      { quote: "testé d'abord sur la formule gratuite et il avait déjà pris 4 rendez-vous la première semaine. passé à l'offre supérieure le jour même. décision facile.", name: "Aisha Khan", role: "Onglerie" },
+      { quote: "je l'ai laissé une semaine sur de vrais appels et il avait déjà pris 4 rendez-vous. décision facile.", name: "Aisha Khan", role: "Onglerie" },
       { quote: "il s'intègre direct à notre agenda et à notre CRM, du coup rien ne se perd. une soirée pour tout configurer et ça tourne nickel depuis.", name: "Daniel Wright", role: "Équipe immobilière" },
     ],
   },
@@ -157,7 +157,7 @@ export const frHome: HomeCopy = {
       },
       {
         q: "Combien coûte une standardiste IA ?",
-        a: "Vous pouvez commencer gratuitement et ne passer à une offre supérieure que lorsque vous avez besoin de plus d'appels ou de fonctionnalités. Une standardiste IA coûte une fraction du prix d'un poste d'accueil ou d'une permanence téléphonique classique, tout en répondant à chaque appel 24h/24 - la plupart des entreprises rentabilisent la dépense grâce aux rendez-vous supplémentaires et aux appels qui ne sont plus perdus.",
+        a: "Solo coûte 99 € par mois pour 1 000 minutes de conversation, puis 0,09 € par minute supplémentaire ; Team coûte 299 € par mois pour 3 000 minutes et trois numéros. Les deux sont sans engagement, avec 30 jours satisfait ou remboursé. C'est une fraction du prix d'un poste d'accueil ou d'une permanence téléphonique classique, tout en répondant à chaque appel 24h/24 - la plupart des entreprises rentabilisent la dépense grâce aux rendez-vous supplémentaires et aux appels qui ne sont plus perdus.",
       },
       {
         q: "Mes données sont-elles sécurisées ?",

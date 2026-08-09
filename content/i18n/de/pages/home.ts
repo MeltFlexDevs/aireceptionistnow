@@ -64,7 +64,7 @@ export const deHome: HomeCopy = {
       { quote: "Ich führe den Betrieb allein und kann mitten in der Arbeit nicht ans Telefon. es nimmt ab, qualifiziert und schreibt mir, was dringend ist. diesen Monat mehr Aufträge als je zuvor.", name: "Wes Carter", role: "Elektriker" },
       { quote: "vorher ein Callcenter, das ständig Termine falsch eingetragen hat. das hier vertut sich nie und klingt dabei auch noch freundlich.", name: "Linda Park", role: "Chiropraxis" },
       { quote: "allein die Erreichbarkeit nach Feierabend hat sich sofort bezahlt gemacht. Leute rufen um 21 Uhr an und bekommen trotzdem einen Termin. kein Rückruf-Pingpong mehr.", name: "Greg Sullivan", role: "Schädlingsbekämpfung" },
-      { quote: "erst im kostenlosen Tarif getestet und es hat in der ersten Woche direkt 4 Termine gebucht. noch am selben Tag upgegradet. leichte Entscheidung.", name: "Aisha Khan", role: "Nagelstudio" },
+      { quote: "eine Woche lang an echten Anrufen getestet und es hat direkt 4 Termine gebucht. leichte Entscheidung.", name: "Aisha Khan", role: "Nagelstudio" },
       { quote: "hängt direkt an unserem Kalender und CRM, dadurch geht nichts verloren. Einrichtung an einem Abend und läuft seitdem einwandfrei.", name: "Daniel Wright", role: "Immobilienteam" },
     ],
   },
@@ -155,7 +155,7 @@ export const deHome: HomeCopy = {
       },
       {
         q: "Was kostet ein KI-Telefonassistent?",
-        a: "Sie starten kostenlos und wechseln erst dann in einen größeren Tarif, wenn Sie mehr Anrufe oder Funktionen brauchen. Ein KI-Telefonassistent kostet einen Bruchteil einer Kraft am Empfang oder eines Telefonservice und nimmt dabei jeden Anruf rund um die Uhr an - die meisten Betriebe holen die Kosten allein über zusätzlich gebuchte Aufträge wieder herein.",
+        a: "Solo kostet 99 € im Monat für 1.000 Gesprächsminuten, danach 0,09 € je weitere Minute; Team kostet 299 € im Monat für 3.000 Minuten und drei Rufnummern. Beide laufen monatlich, mit 30 Tagen Geld-zurück-Garantie. Das ist ein Bruchteil einer Kraft am Empfang oder eines Telefonservice, und dabei wird jeder Anruf rund um die Uhr angenommen - die meisten Betriebe holen die Kosten allein über zusätzlich gebuchte Aufträge wieder herein.",
       },
       {
         q: "Sind meine Daten sicher?",

@@ -10,7 +10,8 @@ export function RelatedComparisons({ currentSlug }: { currentSlug: string }) {
       <h2>Compare & explore</h2>
       <p>
         Weighing up a few AI receptionists? Start with the questions that
-        actually decide it — price, setup time, languages — then try ours free.
+        actually decide it — price, setup time, languages — then see how ours
+        compares.
       </p>
       <div className="compare-diagnostic">
         <div className="compare-diagnostic-grid">
@@ -22,7 +23,7 @@ export function RelatedComparisons({ currentSlug }: { currentSlug: string }) {
           ))}
           <Link className="compare-diagnostic-card" href="/pricing">
             <span className="compare-diagnostic-title">See our pricing &rarr;</span>
-            <p>Two flat plans, free to start, €0.09 per extra minute — no per-call fees.</p>
+            <p>Two flat plans, €0.09 per extra minute, 30-day money-back guarantee — no per-call fees.</p>
           </Link>
           <Link className="compare-diagnostic-card" href="/answers">
             <span className="compare-diagnostic-title">AI receptionist answers &rarr;</span>

@@ -64,7 +64,7 @@ export const itHome: HomeCopy = {
       { quote: "Gestisco la ditta da solo e non posso fermarmi a metà lavoro per rispondere. risponde, qualifica e mi scrive cosa è urgente. questo mese ho chiuso più lavori che mai.", name: "Wes Carter", role: "Elettricista" },
       { quote: "siamo passati da un call center che sbagliava di continuo le prenotazioni. questo non sbaglia mai un appuntamento e ha pure un tono gentile.", name: "Linda Park", role: "Studio chiropratico" },
       { quote: "solo la copertura fuori orario si è ripagata da sola. la gente chiama alle 21 e riesce comunque a prenotare. basta rincorrersi in segreteria.", name: "Greg Sullivan", role: "Disinfestazioni" },
-      { quote: "l'ho provato prima col piano gratuito e la prima settimana aveva già prenotato 4 appuntamenti. passato al piano superiore lo stesso giorno. scelta facile.", name: "Aisha Khan", role: "Studio di manicure" },
+      { quote: "l'ho lasciato una settimana sulle chiamate vere e aveva già prenotato 4 appuntamenti. scelta facile.", name: "Aisha Khan", role: "Studio di manicure" },
       { quote: "si integra direttamente col nostro calendario e col CRM quindi non si perde niente. configurato in una sera e da allora funziona alla perfezione.", name: "Daniel Wright", role: "Team immobiliare" },
     ],
   },
@@ -155,7 +155,7 @@ export const itHome: HomeCopy = {
       },
       {
         q: "Quanto costa un receptionist con IA?",
-        a: "Può iniziare gratuitamente e passare a un piano superiore solo quando le servono più chiamate o più funzioni. Un receptionist con IA costa una frazione di un addetto alla reception o di un servizio di segreteria e risponde comunque a ogni chiamata 24 ore su 24 - la maggior parte delle aziende recupera la spesa con i lavori in più prenotati e le chiamate perse recuperate.",
+        a: "Solo costa 99 € al mese per 1.000 minuti di conversazione, poi 0,09 € per ogni minuto extra; Team costa 299 € al mese per 3.000 minuti e tre numeri. Entrambi sono mensili, con garanzia di rimborso entro 30 giorni. È una frazione di un addetto alla reception o di un servizio di segreteria, e risponde comunque a ogni chiamata 24 ore su 24 - la maggior parte delle aziende recupera la spesa con i lavori in più prenotati e le chiamate perse recuperate.",
       },
       {
         q: "I miei dati sono al sicuro?",

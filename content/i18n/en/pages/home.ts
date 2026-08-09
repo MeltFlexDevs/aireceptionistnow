@@ -64,7 +64,7 @@ export const enHome: HomeCopy = {
       { quote: "I run the shop alone and can't stop mid job to grab the phone. it answers, qualifies, and texts me whats urgent. closed more work this month than ever.", name: "Wes", role: "Electrician" },
       { quote: "switched from a call center that kept messing up bookings. this never gets the appointment wrong and it actually sounds friendly.", name: "Linda", role: "Chiropractic Clinic" },
       { quote: "the after hours coverage alone paid for itself. people call at 9pm and still get booked. no more voicemail tag.", name: "Greg", role: "Pest Control" },
-      { quote: "tried it on the free plan first and it already booked 4 appointments the first week. upgraded the same day. easy decision.", name: "Aisha", role: "Nail Studio" },
+      { quote: "gave it a week on our real calls and it booked 4 appointments straight off. easy decision.", name: "Aisha", role: "Nail Studio" },
       { quote: "integrates straight into our calendar and CRM so nothing gets lost. setup took one evening and it's been running flawless since.", name: "Daniel", role: "Real Estate Team" },
     ],
   },
@@ -155,7 +155,7 @@ export const enHome: HomeCopy = {
       },
       {
         q: "How much does an AI receptionist cost?",
-        a: "You can start for free and only upgrade when you need more calls or features. An AI receptionist costs a fraction of hiring front-desk staff or an answering service, while answering every call 24/7 - most businesses recover the cost from the extra booked jobs and recovered missed calls.",
+        a: "Solo is €99 a month for 1,000 talk minutes, then €0.09 per extra minute; Team is €299 a month for 3,000 minutes and three numbers. Both are month-to-month with a 30-day money-back guarantee. That is a fraction of hiring front-desk staff or an answering service, while answering every call 24/7 - most businesses recover the cost from the extra booked jobs and recovered missed calls.",
       },
       {
         q: "Is my data secure?",

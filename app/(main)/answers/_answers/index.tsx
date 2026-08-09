@@ -510,7 +510,17 @@ const defs: Answer[] = [
               can an AI receptionist transfer calls to a human
             </Link>
             , or just call our <Link href="/">AI receptionist</Link> and compare
-            it to the last phone menu you fought with.
+            it to the last phone menu you fought with. If you are choosing
+            between AI agents rather than between AI and an IVR, we put ourselves
+            against the two closest pure-AI products in{" "}
+            <Link href="/compare/goodcall-alternative">
+              AI Receptionist Now vs Goodcall
+            </Link>{" "}
+            and{" "}
+            <Link href="/compare/rosie-alternative">
+              AI Receptionist Now vs Rosie
+            </Link>
+            .
           </p>
         </>
       );
@@ -1260,6 +1270,18 @@ const defs: Answer[] = [
             receptionist&rdquo; label too, always ask one question before you
             sign: <em>is a person or a program answering my phone?</em>
           </p>
+          <p>
+            If you have already shortlisted a named service, the two that anchor
+            each end of this comparison are worth reading side by side:{" "}
+            <Link href="/compare/ruby-alternative">
+              AI Receptionist Now vs Ruby
+            </Link>{" "}
+            for the live-human model, and{" "}
+            <Link href="/compare/smith-ai-alternative">
+              AI Receptionist Now vs Smith.ai
+            </Link>{" "}
+            for the hybrid AI-plus-human one.
+          </p>
         </>
       );
     },
@@ -1371,7 +1393,16 @@ const defs: Answer[] = [
             <Link href="/pricing">pricing page</Link>. We&apos;d rather earn
             the renewal every month than collect it in advance, and we think
             that should be the default you demand from any vendor in this
-            market.
+            market. For how the commitment compares with named services, the
+            per-call and per-seat models are broken down in{" "}
+            <Link href="/compare/smith-ai-alternative">
+              AI Receptionist Now vs Smith.ai
+            </Link>{" "}
+            and{" "}
+            <Link href="/compare/my-ai-front-desk-alternative">
+              AI Receptionist Now vs My AI Front Desk
+            </Link>
+            .
           </p>
         </>
       );

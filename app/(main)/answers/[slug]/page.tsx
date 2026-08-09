@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { siteUrl, siteName, getAuthor } from "@/lib/site";
+import { siteUrl, siteName, getAuthor, authorId } from "@/lib/site";
 import { answers, getAnswer } from "../_answers";
 
 function formatDate(date: string): string {
@@ -74,11 +74,17 @@ export default async function AnswerPage({
     .map((rs) => answers.find((x) => x.slug === rs))
     .filter((x): x is (typeof answers)[number] => Boolean(x));
 
+  // Same @id as the author page's Person, the blog bylines and the
+  // Organization's founder entry, so all 15 answers reconcile to one entity
+  // instead of minting a fourth disconnected copy of the same human. url points
+  // at our author page; LinkedIn stays in sameAs. (Matches the blog's treatment
+  // in app/(main)/blog/[slug]/page.tsx.)
   const authorPerson = {
     "@type": "Person",
+    "@id": authorId(author),
     name: author.name,
     jobTitle: author.role,
-    url: author.linkedin,
+    url: `${siteUrl}/authors/${author.slug}`,
     image: `${siteUrl}${author.image}`,
     sameAs: [author.linkedin],
   };

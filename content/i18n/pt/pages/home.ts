@@ -64,7 +64,7 @@ export const ptHome: HomeCopy = {
       { quote: "Trabalho sozinho e não posso parar a meio de um serviço para atender. ele atende, qualifica e manda-me mensagem com o que é urgente. fechei mais trabalho este mês do que nunca.", name: "Wes Carter", role: "Eletricista" },
       { quote: "mudei de um call center que andava sempre a trocar as marcações. isto nunca erra a marcação e ainda por cima soa simpático.", name: "Linda Park", role: "Clínica de quiropraxia" },
       { quote: "só a cobertura fora de horas já se pagou a si própria. as pessoas ligam às 21h e mesmo assim ficam com marcação. acabou o joguinho do atendedor de chamadas.", name: "Greg Sullivan", role: "Controlo de pragas" },
-      { quote: "experimentei primeiro no plano gratuito e logo na primeira semana já tinha 4 marcações feitas. fiz upgrade no mesmo dia. decisão fácil.", name: "Aisha Khan", role: "Estúdio de unhas" },
+      { quote: "deixei uma semana a atender chamadas reais e já tinha 4 marcações feitas. decisão fácil.", name: "Aisha Khan", role: "Estúdio de unhas" },
       { quote: "liga-se diretamente à nossa agenda e ao CRM, por isso não se perde nada. a configuração levou uma noite e desde aí trabalha impecável.", name: "Daniel Wright", role: "Equipa imobiliária" },
     ],
   },
@@ -155,7 +155,7 @@ export const ptHome: HomeCopy = {
       },
       {
         q: "Quanto custa uma rececionista com IA?",
-        a: "Pode começar gratuitamente e só passar a um plano superior quando precisar de mais chamadas ou funcionalidades. Uma rececionista com IA custa uma fração do que custa contratar pessoal para a receção ou um serviço de atendimento, e atende todas as chamadas 24 horas por dia - a maioria das empresas recupera o investimento apenas com os trabalhos adicionais que passa a fechar.",
+        a: "O Solo custa 99 € por mês por 1.000 minutos de conversa, e depois 0,09 € por cada minuto adicional; o Team custa 299 € por mês por 3.000 minutos e três números. Ambos são mensais, com garantia de devolução do dinheiro em 30 dias. É uma fração do que custa contratar pessoal para a receção ou um serviço de atendimento, e atende todas as chamadas 24 horas por dia - a maioria das empresas recupera o investimento apenas com os trabalhos adicionais que passa a fechar.",
       },
       {
         q: "Os meus dados estão seguros?",

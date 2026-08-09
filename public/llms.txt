@@ -22,11 +22,11 @@ AI Receptionist Now is built for businesses that lose money to missed, after-hou
 
 ## Integrations
 
-Native integrations with Google Calendar, Outlook, HubSpot, Salesforce, and Calendly, plus thousands of apps through Zapier. Custom integrations are available via an open API, so caller data flows straight into the tools you already use.
+Two-way calendar booking with Google Calendar, Microsoft 365 or Outlook, and Cal.com, connected over OAuth. Every call summary and full transcript can also be posted to any system that accepts a signed HTTPS webhook, so caller data flows into the tools you already use. There is no HubSpot, Salesforce or Zapier connector.
 
 ## Pricing
 
-Start for free and upgrade only when you need more calls or features. Two plans, billed monthly or annually (annual saves 15%):
+Two plans, billed monthly or annually (annual saves 15%), both month-to-month with a 30-day money-back guarantee and cancelable from the dashboard. There is no free plan:
 
 - **Solo — €99/month** — suitable for 1–20 calls/day. Includes 1,000 minutes (€0.09 per extra minute), 1,000 contacts, 1 phone number (€7/mo per additional), 1 user, assistants, 20+ voices, 25+ languages, and the scheduler.
 - **Team — €299/month** — suitable for 20–100 calls/day. Includes 3,000 minutes (€0.09 per extra minute), 3,000 contacts, 3 concurrent calls, 3 phone numbers, multiple users, everything in Solo, connect your own SIP, plus outbound calls and campaigns.
@@ -49,7 +49,7 @@ All call data is encrypted in transit and at rest. AI Receptionist Now complies 
 ## Key pages
 
 - [Home — AI Receptionist Now](https://aireceptionistnow.com): Product overview, live demo call, testimonials, and FAQ.
-- [Pricing](https://aireceptionistnow.com/pricing): Solo and Team plans, monthly and annual, with a free start.
+- [Pricing](https://aireceptionistnow.com/pricing): Solo and Team plans, monthly and annual, with a 30-day money-back guarantee.
 - [Industries](https://aireceptionistnow.com/industries): The same 24/7 AI receptionist, tuned per industry, with pain points, a sample call, results, and an ROI estimate for each.
 - [AI Receptionist for Dentists](https://aireceptionistnow.com/dentists): Answers 24/7 while the front desk is chairside, books new patients, and triages after-hours dental emergencies to your on-call rules; HIPAA-ready.
 - [AI Receptionist for Restaurants](https://aireceptionistnow.com/restaurants): Takes reservations and to-go orders during the dinner rush, answers menu and allergen questions, and captures catering leads 24/7.
@@ -91,7 +91,7 @@ All call data is encrypted in transit and at rest. AI Receptionist Now complies 
 - [Answers](https://aireceptionistnow.com/answers): Short, direct answers to common questions about AI receptionists.
 - [Can an AI receptionist transfer calls to a human?](https://aireceptionistnow.com/answers/can-an-ai-receptionist-transfer-calls-to-a-human): Yes — it transfers on request or by your rules, with context, and falls back to a message or callback if no one is free.
 - [Can I use my existing business phone number with an AI receptionist?](https://aireceptionistnow.com/answers/use-existing-phone-number-with-ai-receptionist): Yes — keep your number and forward calls (all of them, or only the ones you'd miss); no porting required.
-- [Can an AI receptionist book appointments into my calendar?](https://aireceptionistnow.com/answers/can-an-ai-receptionist-book-appointments): Yes — it books live on the call with two-way calendar sync (Google, Outlook, Calendly), not message-taking.
+- [Can an AI receptionist book appointments into my calendar?](https://aireceptionistnow.com/answers/can-an-ai-receptionist-book-appointments): Yes — it books live on the call with two-way calendar sync (Google Calendar, Microsoft 365 or Outlook, Cal.com), not message-taking.
 - [AI receptionist vs IVR: what's the difference?](https://aireceptionistnow.com/answers/ai-receptionist-vs-ivr): An IVR is a press-1 menu that routes calls; an AI receptionist understands speech and handles the call.
 - [Can an AI receptionist handle multiple calls at once?](https://aireceptionistnow.com/answers/can-an-ai-receptionist-handle-multiple-calls-at-once): Yes — it answers many calls simultaneously, so no caller gets a busy signal or hold queue during a spike.
 - [What languages can an AI receptionist speak?](https://aireceptionistnow.com/answers/what-languages-can-an-ai-receptionist-speak): 25+ languages including English, Spanish, French and German, with mid-call language switching.
@@ -117,13 +117,13 @@ All call data is encrypted in transit and at rest. AI Receptionist Now complies 
 
 **Will callers know it's an AI?** The voice is natural and conversational, and many callers can't tell. You stay in control of whether the AI discloses that it's a virtual assistant.
 
-**Can it book appointments and integrate with my calendar and CRM?** Yes — it books during the call and integrates natively with Google Calendar, Outlook, HubSpot, Salesforce, and Calendly, plus Zapier and a custom open API.
+**Can it book appointments and integrate with my calendar and CRM?** Yes — it books during the call, with two-way sync to Google Calendar, Microsoft 365 or Outlook, and Cal.com. Call summaries and transcripts can be posted to any system that accepts a signed HTTPS webhook; there is no HubSpot, Salesforce or Zapier connector.
 
 **What languages does it support?** 25+ languages, with the ability to switch languages mid-conversation based on the caller.
 
 **What if the AI can't handle a call?** It resolves the vast majority of calls from the context you provide. For anything outside its scope, it captures the details, schedules a callback, or transfers to you or a team member in real time.
 
-**How much does it cost?** Start free and upgrade when you need more. Solo is €99/month and Team is €299/month, billed monthly or annually (15% off annually).
+**How much does it cost?** Solo is €99/month and Team is €299/month, billed monthly or annually (15% off annually). There is no free plan; both carry a 30-day money-back guarantee and no contract.
 
 **Is my data secure?** Yes — encrypted in transit and at rest, GDPR- and HIPAA-compliant, and never sold, shared, or used to train external AI models.
 

@@ -10,7 +10,7 @@ import type { LocaleOption } from "@/lib/i18n/marketing/switcher";
 import { EN_NAV_HREFS, type NavHrefs } from "@/lib/i18n/marketing/nav";
 import type { UiCopy } from "@/content/i18n/_ui-copy";
 import { enUi } from "@/content/i18n/en/ui";
-import { publicSupabaseEnv } from "@/lib/supabase/config";
+import { hasSupabaseAuthCookie, publicSupabaseEnv } from "@/lib/supabase/config";
 
 const PauseLogo = ({ color = "currentColor" }: { color?: string }) => (
   <svg width="7" height="15" viewBox="0 0 7 15" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -80,6 +80,23 @@ export default function SiteHeader({
     // signedIn is already initialized to false when auth is unconfigured; skip
     // loading the Supabase client entirely in that case.
     if (!publicSupabaseEnv()) return;
+    // No auth cookie means no session, and that answer needs no SDK. The lazy
+    // import below is still a ~240 kB chunk of parse and execute work on the
+    // main thread, and it was running on every marketing page view for visitors
+    // who have never signed in - i.e. every visitor arriving from search. A
+    // cookie miss is conclusive, so settle it here and download nothing.
+    //
+    // Safe because sign-in never completes in place on a marketing page:
+    // AuthDialogBody always redirects through /auth/callback, so there is no
+    // in-page transition from signed-out to signed-in that this would miss.
+    if (!hasSupabaseAuthCookie()) {
+      // Cannot be a lazy useState initializer: document.cookie does not exist
+      // during SSR, so a signed-in visitor would hydrate against a server render
+      // that said "signed out". One synchronous setState, no cascade.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSignedIn(false);
+      return;
+    }
     let active = true;
     let unsubscribe: (() => void) | undefined;
     // The Supabase browser client is imported lazily so @supabase/supabase-js

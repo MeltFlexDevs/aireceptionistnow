@@ -24,7 +24,7 @@ const MODIFIED = "2026-07-07";
 
 const title = "Rosie Alternative: AI Receptionist Now vs Rosie (2026)";
 const description =
-  "A multilingual, GDPR-first Rosie alternative. AI Receptionist Now answers 24/7 in 25+ languages, with booking on every plan, EU-hosted. Free to start.";
+  "A multilingual, GDPR-first Rosie alternative. AI Receptionist Now answers 24/7 in 25+ languages, with booking on every plan, EU-hosted, from EUR 99/mo.";
 
 export const metadata: Metadata = {
   // absolute: the root template would append the brand and push these past ~60 chars
@@ -67,7 +67,6 @@ const ROLES: { capability: string; ours: Owner; them: Owner }[] = [
   { capability: "GDPR, EU data residency", ours: "yes", them: "no" },
   { capability: "HIPAA compliant", ours: "yes", them: "no" },
   { capability: "Native CRM & calendar integrations", ours: "yes", them: "partial" },
-  { capability: "Free to start (no card)", ours: "yes", them: "partial" },
   { capability: "Lowest entry price", ours: "partial", them: "yes" },
   { capability: "US local numbers & US-based support", ours: "partial", them: "yes" },
 ];
@@ -96,8 +95,8 @@ const OUR_WINS = [
   "GDPR-first, built and hosted in the EU",
   "HIPAA-ready for healthcare intake",
   "In-call appointment booking on every plan, not just the mid tier",
-  "Native Google Calendar, Outlook, HubSpot and Salesforce links",
-  "Free to start, no card, live in about ten minutes",
+  "Two-way Google Calendar, Microsoft 365 and Cal.com booking",
+  "Live in about ten minutes, with a 30-day money-back guarantee",
 ];
 
 const ROSIE_WINS = [
@@ -141,13 +140,13 @@ const SCREENS = [
   { src: "/how-it-works/behavior.webp", cap: "Choose what it does on every call" },
 ];
 
+// Only what actually connects: CALENDAR_PROVIDERS in lib/calendar/providers.ts.
+// Cal.com has no logo asset here and is listed as text below; HubSpot,
+// Salesforce, Calendly and Zapier were on this wall without any code behind
+// them (Calendly is legacy-read-only, the rest do not exist), so they are gone.
 const INTEGRATION_LOGOS = [
   { name: "Google Calendar", logo: "/compare/logos/googlecalendar.svg" },
   { name: "Outlook", logo: "/compare/logos/outlook.svg" },
-  { name: "HubSpot", logo: "/compare/logos/hubspot.svg" },
-  { name: "Salesforce", logo: "/compare/logos/salesforce.svg" },
-  { name: "Calendly", logo: "/compare/logos/calendly.svg" },
-  { name: "Zapier", logo: "/compare/logos/zapier.svg" },
 ];
 
 const rosiePricing: CompetitorPricing = {
@@ -286,7 +285,7 @@ export default function RosieComparePage() {
                 side-by-side breakdown.
               </p>
               <div className="compare-hero-cta">
-                <CompareCta label="Start free" />
+                <CompareCta label="Get started" />
                 <Link href="/pricing" className="compare-cta-btn compare-cta-btn-outline">
                   See pricing
                 </Link>
@@ -307,19 +306,12 @@ export default function RosieComparePage() {
                   ))}
                 </div>
                 <div className="hero-trust-text">
-                  <span className="hero-trust-number">9,500+ users worldwide</span>
-                  <span className="hero-trust-label">Every call answered 24/7.</span>
+                  <span className="hero-trust-number">Every call answered, 24/7</span>
+                  <span className="hero-trust-label">25+ languages, EU-hosted.</span>
                 </div>
                 <div className="hero-trust-reviews">
                   <div className="hero-trust-reviews-right">
-                    <div className="hero-trust-stars">
-                      <span className="hero-trust-star">&#9733;</span>
-                      <span className="hero-trust-star">&#9733;</span>
-                      <span className="hero-trust-star">&#9733;</span>
-                      <span className="hero-trust-star">&#9733;</span>
-                      <span className="hero-trust-star half">&#9733;</span>
-                    </div>
-                    <span className="hero-trust-rating">4.8 out of 5</span>
+                    <span className="hero-trust-rating">30-day money-back guarantee</span>
                   </div>
                 </div>
               </div>
@@ -376,7 +368,7 @@ export default function RosieComparePage() {
                 turned into an appointment on your calendar rather than a
                 voicemail you return tomorrow.
               </p>
-              <CompareCta label="Start free" />
+              <CompareCta label="Get started" />
               <div className="compare-before-after">
                 <div className="compare-ba-item">
                   <span className="compare-ba-label">The call comes in</span>
@@ -420,10 +412,12 @@ export default function RosieComparePage() {
               <span className="compare-showcase-tag compare-showcase-tag--exclusive">Plugs in</span>
               <h3>It drops straight into the tools you already use</h3>
               <p>
-                Bookings land in your calendar, leads land in your CRM, and a
-                summary lands in your inbox after every call.{" "}
+                Bookings land in your calendar and a summary and full transcript
+                land in your inbox after every call.{" "}
                 <strong>No copy-paste, nothing to chase.</strong> Rosie leans on
-                Zapier for most of this; we connect natively too.
+                Zapier for most of this; we book two-way into Google Calendar,
+                Microsoft 365 and Cal.com, and post every call to any system that
+                accepts a signed webhook.
               </p>
               <div className="compare-showcase-media">
                 <Image
@@ -437,7 +431,7 @@ export default function RosieComparePage() {
                 <div className="compare-output" style={{ margin: 0 }}>
                   <div className="compare-output-label">After every call</div>
                   <div className="compare-output-item"><span className="compare-output-dot compare-output-dot--yes" /> Appointment booked in your calendar</div>
-                  <div className="compare-output-item"><span className="compare-output-dot compare-output-dot--yes" /> Lead pushed to your CRM</div>
+                  <div className="compare-output-item"><span className="compare-output-dot compare-output-dot--yes" /> Lead posted to your webhook endpoint</div>
                   <div className="compare-output-item"><span className="compare-output-dot compare-output-dot--yes" /> Transcript &amp; summary by text or email</div>
                   <div className="compare-output-item"><span className="compare-output-dot compare-output-dot--yes" /> Caller details captured, never lost</div>
                 </div>
@@ -451,7 +445,8 @@ export default function RosieComparePage() {
                     {it.name}
                   </span>
                 ))}
-                <span className="works-with-item"><span className="muted">+ 1000s more via Zapier</span></span>
+                <span className="works-with-item"><span className="muted">Cal.com</span></span>
+                <span className="works-with-item"><span className="muted">+ any system that accepts a signed webhook</span></span>
               </div>
             </div>
           </div>
@@ -560,7 +555,7 @@ export default function RosieComparePage() {
                 real conversation, in the language your callers actually use.
               </p>
               <div className="compare-cta-buttons">
-                <CompareCta label="Start free" />
+                <CompareCta label="Get started" />
                 <Link href="/#how-it-works" className="compare-cta-btn compare-cta-btn-outline">
                   See how it works
                 </Link>
@@ -732,14 +727,14 @@ export default function RosieComparePage() {
             <RelatedComparisons currentSlug={PATH.slice("/compare/".length)} />
 
             <div className="compare-cta-section">
-              <h2>Try the alternative free</h2>
+              <h2>Try the alternative</h2>
               <p>
                 Answer every call in your callers&apos; language, book
-                appointments, capture leads. Free to start, live in minutes,
-                EU-hosted.
+                appointments, capture leads. Live in minutes, EU-hosted,
+                30-day money-back guarantee.
               </p>
               <div className="compare-cta-buttons">
-                <CompareCta label="Start free" />
+                <CompareCta label="Get started" />
                 <Link href="/pricing" className="compare-cta-btn compare-cta-btn-outline">
                   Compare plans
                 </Link>

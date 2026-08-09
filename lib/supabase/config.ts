@@ -17,3 +17,22 @@ export function authConfigured(): boolean {
 export function devDashboardBypass(): boolean {
   return process.env.NODE_ENV === "development" && process.env.DEV_DASHBOARD === "1";
 }
+
+/**
+ * Whether this browser is carrying a Supabase auth cookie at all.
+ *
+ * @supabase/ssr's browser client stores the session in `sb-<ref>-auth-token`
+ * (chunked into `.0`, `.1`… when it is large), with `httpOnly: false` in its
+ * DEFAULT_COOKIE_OPTIONS, so the presence of a session is readable without
+ * loading the SDK. That matters: @supabase/supabase-js is a ~240 kB chunk, and
+ * SiteHeader used to pull it on every marketing page just to decide whether the
+ * header says "Sign in" or "Dashboard". Anonymous visitors - which is everyone
+ * arriving from search - now never download it.
+ *
+ * Presence is not proof of a valid session (the token can be expired), so a hit
+ * still loads the client and resolves it properly. A miss is conclusive.
+ */
+export function hasSupabaseAuthCookie(): boolean {
+  if (typeof document === "undefined") return false;
+  return /(?:^|;\s*)sb-[^=;]*-auth-token(?:\.\d+)?=/.test(document.cookie);
+}

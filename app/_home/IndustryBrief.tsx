@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import type { IndustrySlug } from "@/lib/marketing/industries";
 import { INDUSTRY_CONTENT } from "./industry-content";
 
@@ -105,7 +107,93 @@ export function IndustryBrief({ slug }: { slug: IndustrySlug }) {
             {brief.stakes.body}
           </p>
         </div>
+
+        {/* The three questions the SXO pass found every lander left unanswered:
+            how it attaches to the phone system they already run, what it does
+            and does not write into, and what happens to what a caller says. */}
+        <div style={{ marginTop: "72px", display: "grid", gap: "56px" }}>
+          <div>
+            <h3 style={subHeading}>{brief.phoneSetup.heading}</h3>
+            <p style={bodyText}>{brief.phoneSetup.body}</p>
+            <p style={{ ...bodyText, marginTop: "14px" }}>
+              <Link href="/answers/use-existing-phone-number-with-ai-receptionist" style={linkStyle}>
+                More on keeping your existing number
+              </Link>
+            </p>
+          </div>
+
+          <div>
+            <h3 style={subHeading}>{brief.stack.heading}</h3>
+            <p style={bodyText}>{brief.stack.intro}</p>
+            <ul style={{ margin: "20px 0 0", padding: 0, listStyle: "none", display: "grid", gap: "16px" }}>
+              {brief.stack.notes.map((n) => (
+                <li
+                  key={n.slice(0, 40)}
+                  style={{ ...bodyText, paddingLeft: "18px", borderLeft: "1px solid #e5e5e5" }}
+                >
+                  {n}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h3 style={subHeading}>{brief.compliance.heading}</h3>
+            <p style={bodyText}>{brief.compliance.body}</p>
+          </div>
+        </div>
+
+        {/* Price and the guarantee were only ever visible on /pricing, so a
+            visitor landing here from search never saw the trust layer. */}
+        <div
+          style={{
+            marginTop: "64px",
+            borderTop: "1px solid #e5e5e5",
+            paddingTop: "28px",
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "12px 32px",
+            alignItems: "baseline",
+            fontSize: "15px",
+            color: "#4a4a4a",
+          }}
+        >
+          <span style={{ color: "#1D1D1D" }}>
+            Solo &euro;99/mo &middot; Team &euro;299/mo
+          </span>
+          <span>30-day money-back guarantee</span>
+          <span>Cancel any time from the dashboard</span>
+          <Link href="/pricing" style={linkStyle}>
+            See what is in each plan
+          </Link>
+        </div>
       </div>
     </section>
   );
 }
+
+const subHeading: React.CSSProperties = {
+  fontFamily: "var(--font-inter), Inter, sans-serif",
+  fontSize: "22px",
+  fontWeight: 400,
+  letterSpacing: "-0.015em",
+  color: "#1D1D1D",
+  margin: "0 0 14px",
+  maxWidth: "780px",
+};
+
+const bodyText: React.CSSProperties = {
+  fontSize: "16px",
+  lineHeight: 1.7,
+  color: "#4a4a4a",
+  margin: 0,
+  maxWidth: "760px",
+};
+
+// #666 on white is 5.7:1, so the underlined link clears WCAG AA at this size.
+const linkStyle: React.CSSProperties = {
+  color: "#666",
+  textDecoration: "underline",
+  textDecorationColor: "#ddd",
+  textUnderlineOffset: "4px",
+};

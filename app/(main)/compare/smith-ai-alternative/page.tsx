@@ -14,7 +14,7 @@ const url = `${siteUrl}${PATH}`;
 
 const title = "Smith.ai Alternative: AI Receptionist Now vs Smith.ai (2026)";
 const description =
-  "A flat-priced Smith.ai alternative that bills per minute, not per call. Answers 24/7 in 25+ languages and goes live in 10 minutes. Free to start.";
+  "A flat-priced Smith.ai alternative that bills per minute, not per call. Answers 24/7 in 25+ languages and goes live in 10 minutes, from EUR 99/mo.";
 
 export const metadata: Metadata = {
   // absolute: the root template would append the brand and push these past ~60 chars
@@ -53,7 +53,6 @@ const ROLES: { capability: string; ours: Owner; smith: Owner }[] = [
   { capability: "Live in ~10 minutes, self-serve", ours: "yes", smith: "no" },
   { capability: "Flat monthly price", ours: "yes", smith: "no" },
   { capability: "Billed per minute, not per call", ours: "yes", smith: "no" },
-  { capability: "Free to start", ours: "yes", smith: "no" },
   { capability: "25+ languages, switches mid-call", ours: "yes", smith: "partial" },
   { capability: "Books into your calendar & CRM", ours: "yes", smith: "yes" },
   { capability: "Live human-agent fallback", ours: "no", smith: "yes" },
@@ -83,7 +82,7 @@ const OUR_WINS = [
   "Flat €99/€299 a month, no per-call surprises",
   "Billed per minute — a 40-second call costs pennies",
   "Live in ~10 minutes, no sales call or onboarding wait",
-  "Free plan to test on real calls before you pay",
+  "30-day money-back guarantee, cancelable from the dashboard",
   "25+ languages, switches automatically per caller",
   "GDPR-first, built and hosted by an EU company",
 ];
@@ -123,13 +122,13 @@ const STORY = [
   { src: "/compare/photos/owner-booked.webp", cap: "You get the summary, close the job" },
 ];
 
+// Only what actually connects: CALENDAR_PROVIDERS in lib/calendar/providers.ts.
+// Cal.com has no logo asset here and is listed as text below; HubSpot,
+// Salesforce, Calendly and Zapier were on this wall without any code behind
+// them (Calendly is legacy-read-only, the rest do not exist), so they are gone.
 const INTEGRATION_LOGOS = [
   { name: "Google Calendar", logo: "/compare/logos/googlecalendar.svg" },
   { name: "Outlook", logo: "/compare/logos/outlook.svg" },
-  { name: "HubSpot", logo: "/compare/logos/hubspot.svg" },
-  { name: "Salesforce", logo: "/compare/logos/salesforce.svg" },
-  { name: "Calendly", logo: "/compare/logos/calendly.svg" },
-  { name: "Zapier", logo: "/compare/logos/zapier.svg" },
 ];
 
 const FAQS = [
@@ -248,7 +247,7 @@ export default function SmithAiComparePage() {
                 side-by-side breakdown.
               </p>
               <div className="compare-hero-cta">
-                <CompareCta label="Start free" />
+                <CompareCta label="Get started" />
                 <Link href="/pricing" className="compare-cta-btn compare-cta-btn-outline">
                   See pricing
                 </Link>
@@ -269,19 +268,12 @@ export default function SmithAiComparePage() {
                   ))}
                 </div>
                 <div className="hero-trust-text">
-                  <span className="hero-trust-number">9,500+ users worldwide</span>
-                  <span className="hero-trust-label">Every call answered 24/7.</span>
+                  <span className="hero-trust-number">Every call answered, 24/7</span>
+                  <span className="hero-trust-label">25+ languages, EU-hosted.</span>
                 </div>
                 <div className="hero-trust-reviews">
                   <div className="hero-trust-reviews-right">
-                    <div className="hero-trust-stars">
-                      <span className="hero-trust-star">&#9733;</span>
-                      <span className="hero-trust-star">&#9733;</span>
-                      <span className="hero-trust-star">&#9733;</span>
-                      <span className="hero-trust-star">&#9733;</span>
-                      <span className="hero-trust-star half">&#9733;</span>
-                    </div>
-                    <span className="hero-trust-rating">4.8 out of 5</span>
+                    <span className="hero-trust-rating">30-day money-back guarantee</span>
                   </div>
                 </div>
               </div>
@@ -336,7 +328,7 @@ export default function SmithAiComparePage() {
                 customer who&apos;d have hit voicemail becomes an appointment on
                 your calendar instead.
               </p>
-              <CompareCta label="Start free" />
+              <CompareCta label="Get started" />
               <div className="compare-before-after">
                 <div className="compare-ba-item">
                   <span className="compare-ba-label">The call comes in</span>
@@ -380,8 +372,8 @@ export default function SmithAiComparePage() {
               <span className="compare-showcase-tag compare-showcase-tag--exclusive">Plugs in</span>
               <h3>It drops straight into the tools you already use</h3>
               <p>
-                Bookings land in your calendar, leads land in your CRM, and a
-                summary lands in your inbox — automatically, after every call.{" "}
+                Bookings land in your calendar and a summary and full transcript
+                land in your inbox — automatically, after every call.{" "}
                 <strong>No copy-paste, nothing to chase.</strong>
               </p>
               <div className="compare-showcase-media">
@@ -396,7 +388,7 @@ export default function SmithAiComparePage() {
                 <div className="compare-output" style={{ margin: 0 }}>
                   <div className="compare-output-label">After every call</div>
                   <div className="compare-output-item"><span className="compare-output-dot compare-output-dot--yes" /> Appointment booked in your calendar</div>
-                  <div className="compare-output-item"><span className="compare-output-dot compare-output-dot--yes" /> Lead pushed to your CRM</div>
+                  <div className="compare-output-item"><span className="compare-output-dot compare-output-dot--yes" /> Lead posted to your webhook endpoint</div>
                   <div className="compare-output-item"><span className="compare-output-dot compare-output-dot--yes" /> Transcript &amp; summary by text or email</div>
                   <div className="compare-output-item"><span className="compare-output-dot compare-output-dot--yes" /> Caller details captured, never lost</div>
                 </div>
@@ -410,7 +402,8 @@ export default function SmithAiComparePage() {
                     {it.name}
                   </span>
                 ))}
-                <span className="works-with-item"><span className="muted">+ 1000s more via Zapier</span></span>
+                <span className="works-with-item"><span className="muted">Cal.com</span></span>
+                <span className="works-with-item"><span className="muted">+ any system that accepts a signed webhook</span></span>
               </div>
             </div>
           </div>
@@ -510,7 +503,7 @@ export default function SmithAiComparePage() {
                 handle a real conversation — no account needed to start.
               </p>
               <div className="compare-cta-buttons">
-                <CompareCta label="Start free" />
+                <CompareCta label="Get started" />
                 <Link href="/#how-it-works" className="compare-cta-btn compare-cta-btn-outline">
                   See how it works
                 </Link>
@@ -547,7 +540,7 @@ export default function SmithAiComparePage() {
                       <li>360 minutes used of 1,000 included</li>
                       <li>Short calls cost cents, not a call charge</li>
                       <li>Same €99 whether it&apos;s a quiet or busy month</li>
-                      <li>Free to start, no contract</li>
+                      <li>No contract; 30-day money-back guarantee</li>
                     </ul>
                     <div className="compare-pv-note">You pay €99</div>
                   </div>
@@ -733,13 +726,14 @@ export default function SmithAiComparePage() {
             <RelatedComparisons currentSlug={PATH.slice("/compare/".length)} />
 
             <div className="compare-cta-section">
-              <h2>Try the alternative free</h2>
+              <h2>Try the alternative</h2>
               <p>
                 Answer every call, book appointments, capture leads — without
-                per-call pricing or a setup wait. Free to start, live in minutes.
+                per-call pricing or a setup wait. Live in minutes, with a
+                30-day money-back guarantee.
               </p>
               <div className="compare-cta-buttons">
-                <CompareCta label="Start free" />
+                <CompareCta label="Get started" />
                 <Link href="/pricing" className="compare-cta-btn compare-cta-btn-outline">
                   Compare plans
                 </Link>

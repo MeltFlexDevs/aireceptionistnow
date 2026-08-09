@@ -24,7 +24,7 @@ const MODIFIED = "2026-07-07";
 
 const title = "Ruby Alternative: AI Receptionist Now vs Ruby (2026)";
 const description =
-  "A flat-priced, 24/7 AI alternative to Ruby's live-human receptionists. Answer every call in 25+ languages and pay a fraction per minute. Free to start.";
+  "A flat-priced, 24/7 AI alternative to Ruby's live-human receptionists. Answer every call in 25+ languages and pay a fraction per minute, from EUR 99/mo.";
 
 export const metadata: Metadata = {
   // absolute: the root template would append the brand and push these past ~60 chars
@@ -65,7 +65,6 @@ const ROLES: { capability: string; ours: Owner; them: Owner }[] = [
   { capability: "Every call answered, no hold at peak", ours: "yes", them: "partial" },
   { capability: "Flat, low monthly price", ours: "yes", them: "no" },
   { capability: "Per-minute overage in cents, not dollars", ours: "yes", them: "no" },
-  { capability: "Free to start (no card)", ours: "yes", them: "no" },
   { capability: "25+ languages, 24/7", ours: "yes", them: "no" },
   { capability: "GDPR, EU data residency", ours: "yes", them: "no" },
   { capability: "HIPAA compliant", ours: "yes", them: "yes" },
@@ -96,7 +95,7 @@ const OUR_WINS = [
   "Every call answered instantly, day or night, no queue",
   "25+ languages around the clock, not two on a schedule",
   "Overage measured in cents per minute, not dollars",
-  "Free to start, self-serve, live in about ten minutes",
+  "Self-serve, live in about ten minutes, no sales call",
   "GDPR-first, built and hosted in the EU",
 ];
 
@@ -141,13 +140,13 @@ const SCREENS = [
   { src: "/how-it-works/behavior.webp", cap: "Choose what it does on every call" },
 ];
 
+// Only what actually connects: CALENDAR_PROVIDERS in lib/calendar/providers.ts.
+// Cal.com has no logo asset here and is listed as text below; HubSpot,
+// Salesforce, Calendly and Zapier were on this wall without any code behind
+// them (Calendly is legacy-read-only, the rest do not exist), so they are gone.
 const INTEGRATION_LOGOS = [
   { name: "Google Calendar", logo: "/compare/logos/googlecalendar.svg" },
   { name: "Outlook", logo: "/compare/logos/outlook.svg" },
-  { name: "HubSpot", logo: "/compare/logos/hubspot.svg" },
-  { name: "Salesforce", logo: "/compare/logos/salesforce.svg" },
-  { name: "Calendly", logo: "/compare/logos/calendly.svg" },
-  { name: "Zapier", logo: "/compare/logos/zapier.svg" },
 ];
 
 const rubyPricing: CompetitorPricing = {
@@ -284,7 +283,7 @@ export default function RubyComparePage() {
                 humans still win.
               </p>
               <div className="compare-hero-cta">
-                <CompareCta label="Start free" />
+                <CompareCta label="Get started" />
                 <Link href="/pricing" className="compare-cta-btn compare-cta-btn-outline">
                   See pricing
                 </Link>
@@ -305,19 +304,12 @@ export default function RubyComparePage() {
                   ))}
                 </div>
                 <div className="hero-trust-text">
-                  <span className="hero-trust-number">9,500+ users worldwide</span>
-                  <span className="hero-trust-label">Every call answered 24/7.</span>
+                  <span className="hero-trust-number">Every call answered, 24/7</span>
+                  <span className="hero-trust-label">25+ languages, EU-hosted.</span>
                 </div>
                 <div className="hero-trust-reviews">
                   <div className="hero-trust-reviews-right">
-                    <div className="hero-trust-stars">
-                      <span className="hero-trust-star">&#9733;</span>
-                      <span className="hero-trust-star">&#9733;</span>
-                      <span className="hero-trust-star">&#9733;</span>
-                      <span className="hero-trust-star">&#9733;</span>
-                      <span className="hero-trust-star half">&#9733;</span>
-                    </div>
-                    <span className="hero-trust-rating">4.8 out of 5</span>
+                    <span className="hero-trust-rating">30-day money-back guarantee</span>
                   </div>
                 </div>
               </div>
@@ -416,8 +408,8 @@ export default function RubyComparePage() {
               <span className="compare-showcase-tag compare-showcase-tag--exclusive">Plugs in</span>
               <h3>It drops straight into the tools you already use</h3>
               <p>
-                Bookings land in your calendar, leads land in your CRM, and a
-                summary lands in your inbox after every call.{" "}
+                Bookings land in your calendar and a summary and full transcript
+                land in your inbox after every call.{" "}
                 <strong>No copy-paste, nothing to chase.</strong>
               </p>
               <div className="compare-showcase-media">
@@ -432,7 +424,7 @@ export default function RubyComparePage() {
                 <div className="compare-output" style={{ margin: 0 }}>
                   <div className="compare-output-label">After every call</div>
                   <div className="compare-output-item"><span className="compare-output-dot compare-output-dot--yes" /> Appointment booked in your calendar</div>
-                  <div className="compare-output-item"><span className="compare-output-dot compare-output-dot--yes" /> Lead pushed to your CRM</div>
+                  <div className="compare-output-item"><span className="compare-output-dot compare-output-dot--yes" /> Lead posted to your webhook endpoint</div>
                   <div className="compare-output-item"><span className="compare-output-dot compare-output-dot--yes" /> Transcript &amp; summary by text or email</div>
                   <div className="compare-output-item"><span className="compare-output-dot compare-output-dot--yes" /> Caller details captured, never lost</div>
                 </div>
@@ -446,7 +438,8 @@ export default function RubyComparePage() {
                     {it.name}
                   </span>
                 ))}
-                <span className="works-with-item"><span className="muted">+ 1000s more via Zapier</span></span>
+                <span className="works-with-item"><span className="muted">Cal.com</span></span>
+                <span className="works-with-item"><span className="muted">+ any system that accepts a signed webhook</span></span>
               </div>
             </div>
           </div>
@@ -555,7 +548,7 @@ export default function RubyComparePage() {
                 real conversation and judge it against a human for yourself.
               </p>
               <div className="compare-cta-buttons">
-                <CompareCta label="Start free" />
+                <CompareCta label="Get started" />
                 <Link href="/#how-it-works" className="compare-cta-btn compare-cta-btn-outline">
                   See how it works
                 </Link>
@@ -739,14 +732,14 @@ export default function RubyComparePage() {
             <RelatedComparisons currentSlug={PATH.slice("/compare/".length)} />
 
             <div className="compare-cta-section">
-              <h2>Try the AI alternative free</h2>
+              <h2>Try the AI alternative</h2>
               <p>
                 Answer every call 24/7 in your callers&apos; language, book
                 appointments, capture leads, without premium per-minute pricing.
-                Free to start, live in minutes.
+                Live in minutes, with a 30-day money-back guarantee.
               </p>
               <div className="compare-cta-buttons">
-                <CompareCta label="Start free" />
+                <CompareCta label="Get started" />
                 <Link href="/pricing" className="compare-cta-btn compare-cta-btn-outline">
                   Compare plans
                 </Link>

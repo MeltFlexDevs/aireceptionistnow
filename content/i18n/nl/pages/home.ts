@@ -66,7 +66,7 @@ export const nlHome: HomeCopy = {
       { quote: "Ik run de zaak alleen en kan niet midden in een klus de telefoon pakken. het neemt op, kwalificeert en appt me wat dringend is. deze maand meer werk binnengehaald dan ooit.", name: "Wes Carter", role: "Elektricien" },
       { quote: "overgestapt van een callcenter dat afspraken steeds verkeerd inboekte. dit zet nooit iets fout in de agenda en klinkt nog vriendelijk ook.", name: "Linda Park", role: "Chiropractiepraktijk" },
       { quote: "alleen de bereikbaarheid buiten kantooruren verdiende zichzelf al terug. mensen bellen om negen uur 's avonds en krijgen alsnog een afspraak. geen voicemailgedoe meer.", name: "Greg Sullivan", role: "Ongediertebestrijding" },
-      { quote: "eerst uitgeprobeerd op het gratis pakket en het boekte de eerste week al 4 afspraken. dezelfde dag geüpgraded. makkelijke keuze.", name: "Aisha Khan", role: "Nagelstudio" },
+      { quote: "een week laten draaien op echte gesprekken en het boekte al 4 afspraken. makkelijke keuze.", name: "Aisha Khan", role: "Nagelstudio" },
       { quote: "hangt rechtstreeks aan onze agenda en ons CRM, dus er gaat niets verloren. in een avond ingesteld en het draait sindsdien vlekkeloos.", name: "Daniel Wright", role: "Makelaarsteam" },
     ],
   },
@@ -157,7 +157,7 @@ export const nlHome: HomeCopy = {
       },
       {
         q: "Wat kost een AI-receptioniste?",
-        a: "U kunt gratis beginnen en stapt pas over op een groter pakket wanneer u meer gesprekken of functies nodig hebt. Een AI-receptioniste kost een fractie van een medewerker aan de balie of een antwoordservice, en neemt tegelijk elk gesprek 24/7 aan - de meeste bedrijven verdienen de kosten alleen al terug met de extra geboekte klussen en de gesprekken die anders verloren waren gegaan.",
+        a: "Solo kost 99 € per maand voor 1.000 gespreksminuten, daarna 0,09 € per extra minuut; Team kost 299 € per maand voor 3.000 minuten en drie nummers. Beide zijn maandelijks opzegbaar, met 30 dagen niet-goed-geld-terug. Dat is een fractie van een medewerker aan de balie of een antwoordservice, en het neemt tegelijk elk gesprek 24/7 aan - de meeste bedrijven verdienen de kosten alleen al terug met de extra geboekte klussen en de gesprekken die anders verloren waren gegaan.",
       },
       {
         q: "Zijn mijn gegevens veilig?",

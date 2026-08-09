@@ -20,7 +20,7 @@ const title = "My AI Front Desk Alternative: AI Receptionist Now (2026)";
 // Kept under ~160 chars so it is not truncated in the SERP, and ASCII-only:
 // the previous copy used an em dash and a multiplication sign.
 const description =
-  "A multilingual, GDPR-first alternative to My AI Front Desk (now Frontdesk). EU-hosted, answers calls 24/7 in 25+ languages, and free to start.";
+  "A multilingual, GDPR-first alternative to My AI Front Desk (now Frontdesk). EU-hosted, answers calls 24/7 in 25+ languages, from EUR 99/mo.";
 
 export const metadata: Metadata = {
   // absolute: the root template would append the brand and push these past ~60 chars
@@ -57,7 +57,6 @@ type Owner = "yes" | "no" | "partial";
 const ROLES: { capability: string; ours: Owner; them: Owner }[] = [
   { capability: "Answers calls 24/7", ours: "yes", them: "yes" },
   { capability: "Pure AI, self-serve, live in minutes", ours: "yes", them: "yes" },
-  { capability: "Free to start (no card)", ours: "yes", them: "no" },
   { capability: "Generous voice minutes on the core plan", ours: "yes", them: "no" },
   { capability: "Low per-minute overage", ours: "yes", them: "no" },
   { capability: "25+ languages, switches mid-call", ours: "yes", them: "partial" },
@@ -83,7 +82,7 @@ const TOC: TocItem[] = [
 const STATS = [
   { v: "1,000", l: "voice minutes on Solo" },
   { v: "€0.09", l: "per extra minute" },
-  { v: "Free", l: "to start, no card" },
+  { v: "30 days", l: "money-back guarantee" },
   { v: "EU", l: "hosted, GDPR-first" },
 ];
 
@@ -92,7 +91,7 @@ const OUR_WINS = [
   "€0.09 per extra minute, versus $0.25 on their standard rate",
   "25+ languages, switching automatically per caller",
   "GDPR-first, built and hosted in the EU",
-  "Free to start with no card, so you test on real calls",
+  "30-day money-back guarantee, cancelable from the dashboard",
   "Booking straight into your calendar on every plan",
 ];
 
@@ -137,19 +136,19 @@ const SCREENS = [
   { src: "/how-it-works/behavior.webp", cap: "Choose what it does on every call" },
 ];
 
+// Only what actually connects: CALENDAR_PROVIDERS in lib/calendar/providers.ts.
+// Cal.com has no logo asset here and is listed as text below; HubSpot,
+// Salesforce, Calendly and Zapier were on this wall without any code behind
+// them (Calendly is legacy-read-only, the rest do not exist), so they are gone.
 const INTEGRATION_LOGOS = [
   { name: "Google Calendar", logo: "/compare/logos/googlecalendar.svg" },
   { name: "Outlook", logo: "/compare/logos/outlook.svg" },
-  { name: "HubSpot", logo: "/compare/logos/hubspot.svg" },
-  { name: "Salesforce", logo: "/compare/logos/salesforce.svg" },
-  { name: "Calendly", logo: "/compare/logos/calendly.svg" },
-  { name: "Zapier", logo: "/compare/logos/zapier.svg" },
 ];
 
 const FAQS = [
   {
     q: "Is AI Receptionist Now a real alternative to My AI Front Desk?",
-    a: "Yes. Both are self-serve, pure-AI phone agents that answer 24/7, capture leads, book appointments, and send a summary. My AI Front Desk (rebranded Frontdesk in 2026) has since widened into an AI workforce bundle spanning voice, web chat, SMS and email. If what you need is a phone receptionist, we include far more voice minutes at a lower overage, handle 25+ languages, and are GDPR-first and EU-hosted, free to start.",
+    a: "Yes. Both are self-serve, pure-AI phone agents that answer 24/7, capture leads, book appointments, and send a summary. My AI Front Desk (rebranded Frontdesk in 2026) has since widened into an AI workforce bundle spanning voice, web chat, SMS and email. If what you need is a phone receptionist, we include far more voice minutes at a lower overage, handle 25+ languages, and are GDPR-first and EU-hosted.",
   },
   {
     q: "How does the pricing compare to My AI Front Desk?",
@@ -157,7 +156,7 @@ const FAQS = [
   },
   {
     q: "Does My AI Front Desk have a free plan?",
-    a: "No permanent free plan. Frontdesk offers a 7-day free trial on its Basic and Business plans and advertises a 5-minute setup. AI Receptionist Now is free to start with no card, so you can hear it handle real calls before you pay anything.",
+    a: "No permanent free plan. Frontdesk offers a 7-day free trial on its Basic and Business plans and advertises a 5-minute setup. AI Receptionist Now has no free tier either: Solo is EUR 99 a month, with a 30-day money-back guarantee and no contract, so you can put it on real calls and get your money back if it does not fit.",
   },
   {
     q: "Which supports more languages?",
@@ -268,11 +267,11 @@ export default function MyAiFrontDeskComparePage() {
                 platform that now bundles voice, web chat, SMS and email as one
                 AI workforce. AI Receptionist Now is the phone-first,
                 multilingual, GDPR-first alternative: it answers in 25+ languages,
-                is EU-hosted, includes far more voice minutes at a lower overage,
-                and is free to start. Here is the honest, side-by-side breakdown.
+                is EU-hosted, and includes far more voice minutes at a lower
+                overage. Here is the honest, side-by-side breakdown.
               </p>
               <div className="compare-hero-cta">
-                <CompareCta label="Start free" />
+                <CompareCta label="Get started" />
                 <Link href="/pricing" className="compare-cta-btn compare-cta-btn-outline">
                   See pricing
                 </Link>
@@ -293,19 +292,12 @@ export default function MyAiFrontDeskComparePage() {
                   ))}
                 </div>
                 <div className="hero-trust-text">
-                  <span className="hero-trust-number">9,500+ users worldwide</span>
-                  <span className="hero-trust-label">Every call answered 24/7.</span>
+                  <span className="hero-trust-number">Every call answered, 24/7</span>
+                  <span className="hero-trust-label">25+ languages, EU-hosted.</span>
                 </div>
                 <div className="hero-trust-reviews">
                   <div className="hero-trust-reviews-right">
-                    <div className="hero-trust-stars">
-                      <span className="hero-trust-star">&#9733;</span>
-                      <span className="hero-trust-star">&#9733;</span>
-                      <span className="hero-trust-star">&#9733;</span>
-                      <span className="hero-trust-star">&#9733;</span>
-                      <span className="hero-trust-star half">&#9733;</span>
-                    </div>
-                    <span className="hero-trust-rating">4.8 out of 5</span>
+                    <span className="hero-trust-rating">30-day money-back guarantee</span>
                   </div>
                 </div>
               </div>
@@ -349,7 +341,7 @@ export default function MyAiFrontDeskComparePage() {
             <strong>
               The gap opens when the phone is your priority: it includes only 200
               voice minutes on its popular plan and charges $0.25 a minute after,
-              has no EU hosting, and no free plan to test on real calls.
+              and has no EU hosting.
             </strong>
           </p>
 
@@ -362,7 +354,7 @@ export default function MyAiFrontDeskComparePage() {
                 turned into an appointment on your calendar instead of a missed
                 call you notice hours later.
               </p>
-              <CompareCta label="Start free" />
+              <CompareCta label="Get started" />
               <div className="compare-before-after">
                 <div className="compare-ba-item">
                   <span className="compare-ba-label">The call comes in</span>
@@ -406,11 +398,12 @@ export default function MyAiFrontDeskComparePage() {
               <span className="compare-showcase-tag compare-showcase-tag--exclusive">Plugs in</span>
               <h3>It drops straight into the tools you already use</h3>
               <p>
-                Bookings land in your calendar, leads land in your CRM, and a
-                summary lands in your inbox after every call.{" "}
+                Bookings land in your calendar and a summary and full transcript
+                land in your inbox after every call.{" "}
                 <strong>No copy-paste, nothing to chase.</strong> My AI Front Desk
-                leans on Zapier and vertical CRMs; we connect to the big calendars
-                and CRMs natively too.
+                leans on Zapier and vertical CRMs; we book two-way into Google
+                Calendar, Microsoft 365 and Cal.com, and post every call to any
+                system that accepts a signed webhook.
               </p>
               <div className="compare-showcase-media">
                 <Image
@@ -424,7 +417,7 @@ export default function MyAiFrontDeskComparePage() {
                 <div className="compare-output" style={{ margin: 0 }}>
                   <div className="compare-output-label">After every call</div>
                   <div className="compare-output-item"><span className="compare-output-dot compare-output-dot--yes" /> Appointment booked in your calendar</div>
-                  <div className="compare-output-item"><span className="compare-output-dot compare-output-dot--yes" /> Lead pushed to your CRM</div>
+                  <div className="compare-output-item"><span className="compare-output-dot compare-output-dot--yes" /> Lead posted to your webhook endpoint</div>
                   <div className="compare-output-item"><span className="compare-output-dot compare-output-dot--yes" /> Transcript &amp; summary by text or email</div>
                   <div className="compare-output-item"><span className="compare-output-dot compare-output-dot--yes" /> Caller details captured, never lost</div>
                 </div>
@@ -438,7 +431,8 @@ export default function MyAiFrontDeskComparePage() {
                     {it.name}
                   </span>
                 ))}
-                <span className="works-with-item"><span className="muted">+ 1000s more via Zapier</span></span>
+                <span className="works-with-item"><span className="muted">Cal.com</span></span>
+                <span className="works-with-item"><span className="muted">+ any system that accepts a signed webhook</span></span>
               </div>
             </div>
           </div>
@@ -511,7 +505,7 @@ export default function MyAiFrontDeskComparePage() {
                   ))}
                   <tr className="compare-score-row">
                     <td><strong>Best for</strong></td>
-                    <td><span className="compare-score compare-score-meltflex">Phone-first, multilingual, EU, free to start</span></td>
+                    <td><span className="compare-score compare-score-meltflex">Phone-first, multilingual, EU</span></td>
                     <td><span className="compare-score compare-score-competitor">All-in-one voice + chat + SMS bundle</span></td>
                   </tr>
                 </tbody>
@@ -547,7 +541,7 @@ export default function MyAiFrontDeskComparePage() {
                 real conversation, in the language your callers actually use.
               </p>
               <div className="compare-cta-buttons">
-                <CompareCta label="Start free" />
+                <CompareCta label="Get started" />
                 <Link href="/#how-it-works" className="compare-cta-btn compare-cta-btn-outline">
                   See how it works
                 </Link>
@@ -585,7 +579,7 @@ export default function MyAiFrontDeskComparePage() {
                       <li>1,000 voice minutes included, €0.09 per extra</li>
                       <li>25+ languages and EU hosting included</li>
                       <li>Booking on every plan, no upsell tier</li>
-                      <li>Free to start, no card, no contract</li>
+                      <li>No contract; 30-day money-back guarantee</li>
                     </ul>
                     <div className="compare-pv-note">1,000 minutes, then €0.09/min</div>
                   </div>
@@ -599,7 +593,6 @@ export default function MyAiFrontDeskComparePage() {
                       <li>Voice, chat, SMS &amp; email in one bundle (a real strength)</li>
                       <li className="pv-con">Only 200 voice minutes included</li>
                       <li className="pv-con">About $0.25 per minute after that</li>
-                      <li className="pv-con">No free plan; 7-day trial only</li>
                     </ul>
                     <div className="compare-pv-note">200 minutes, then ~$0.25/min</div>
                   </div>
@@ -684,7 +677,6 @@ export default function MyAiFrontDeskComparePage() {
                   <div className="compare-scorecard-row"><span className="compare-scorecard-cat">Included voice minutes</span><span className="compare-scorecard-winner compare-scorecard-winner--mf">AI Receptionist Now</span></div>
                   <div className="compare-scorecard-row"><span className="compare-scorecard-cat">Per-minute overage</span><span className="compare-scorecard-winner compare-scorecard-winner--mf">AI Receptionist Now</span></div>
                   <div className="compare-scorecard-row"><span className="compare-scorecard-cat">GDPR / EU data residency</span><span className="compare-scorecard-winner compare-scorecard-winner--mf">AI Receptionist Now</span></div>
-                  <div className="compare-scorecard-row"><span className="compare-scorecard-cat">Free to start</span><span className="compare-scorecard-winner compare-scorecard-winner--mf">AI Receptionist Now</span></div>
                   <div className="compare-scorecard-row"><span className="compare-scorecard-cat">Multi-channel bundle (chat/SMS/email)</span><span className="compare-scorecard-winner compare-scorecard-winner--rh">My AI Front Desk</span></div>
                   <div className="compare-scorecard-row"><span className="compare-scorecard-cat">Low-cost chat-first tier</span><span className="compare-scorecard-winner compare-scorecard-winner--rh">My AI Front Desk</span></div>
                   <div className="compare-scorecard-row"><span className="compare-scorecard-cat">Deep vertical CRM integrations</span><span className="compare-scorecard-winner compare-scorecard-winner--rh">My AI Front Desk</span></div>
@@ -724,7 +716,7 @@ export default function MyAiFrontDeskComparePage() {
               <div className="compare-scorecard">
                 <div className="compare-scorecard-label">The main alternatives at a glance</div>
                 <div className="compare-scorecard-grid">
-                  <div className="compare-scorecard-row"><span className="compare-scorecard-cat"><strong>AI Receptionist Now</strong> · flat, multilingual, EU/GDPR, free to start</span><span className="compare-scorecard-winner compare-scorecard-winner--mf">Our pick</span></div>
+                  <div className="compare-scorecard-row"><span className="compare-scorecard-cat"><strong>AI Receptionist Now</strong> · flat, multilingual, EU/GDPR</span><span className="compare-scorecard-winner compare-scorecard-winner--mf">Our pick</span></div>
                   <div className="compare-scorecard-row"><span className="compare-scorecard-cat"><strong>My AI Front Desk</strong> · US AI workforce, voice + chat + SMS bundle</span><span className="compare-scorecard-winner compare-scorecard-winner--rh">This page</span></div>
                   <div className="compare-scorecard-row"><span className="compare-scorecard-cat"><Link href="/compare/goodcall-alternative">Goodcall</Link> · US pure AI, unlimited minutes, per-agent pricing</span><span className="compare-scorecard-winner compare-scorecard-winner--tie">Compare</span></div>
                   <div className="compare-scorecard-row"><span className="compare-scorecard-cat"><Link href="/compare/rosie-alternative">Rosie</Link> · US pure AI, English/Spanish, low entry price</span><span className="compare-scorecard-winner compare-scorecard-winner--tie">Compare</span></div>
@@ -744,7 +736,7 @@ export default function MyAiFrontDeskComparePage() {
                   <strong>
                     AI Receptionist Now is the phone-first, multilingual,
                     GDPR-first, EU-hosted alternative that includes far more voice
-                    minutes at a lower overage and is free to start.
+                    minutes at a lower overage.
                   </strong>{" "}
                   If the phone is what you&apos;re buying, that&apos;s the calmer,
                   cheaper choice.
@@ -755,14 +747,14 @@ export default function MyAiFrontDeskComparePage() {
             <RelatedComparisons currentSlug={PATH.slice("/compare/".length)} />
 
             <div className="compare-cta-section">
-              <h2>Try the alternative free</h2>
+              <h2>Try the alternative</h2>
               <p>
                 Answer every call in your callers&apos; language, book
-                appointments, capture leads. Free to start, live in minutes,
-                EU-hosted.
+                appointments, capture leads. Live in minutes, EU-hosted,
+                30-day money-back guarantee.
               </p>
               <div className="compare-cta-buttons">
-                <CompareCta label="Start free" />
+                <CompareCta label="Get started" />
                 <Link href="/pricing" className="compare-cta-btn compare-cta-btn-outline">
                   Compare plans
                 </Link>

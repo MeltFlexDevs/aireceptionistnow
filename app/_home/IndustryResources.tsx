@@ -8,6 +8,12 @@ import { INDUSTRY_MENU, type IndustrySlug } from "@/lib/marketing/industries";
 // the supporting blog posts and answers (and the money pages). Hrefs are the
 // real published slugs; kept as curated data here so the anchor text is written
 // for the industry rather than reusing generic post titles.
+//
+// KEEP IN SYNC with `postIndustry` in app/(main)/blog/_posts/index.ts. That map
+// is what makes a post link UP to its industry pillar; this table is the only
+// thing that makes the pillar link back DOWN. They drifted once already - eight
+// posts had the backlink with nothing pointing at them - so when you add a post
+// to postIndustry, add it here too.
 
 type ResourceLink = {
   href: string;
@@ -38,6 +44,7 @@ const RESOURCES: Record<IndustrySlug, ResourceLink[]> = {
     { href: "/answers/can-an-ai-receptionist-handle-emergency-calls", label: "Can it handle emergency calls?", kind: "Answer" },
   ],
   restaurants: [
+    { href: "/blog/restaurant-answering-service", label: "Restaurant answering service: who answers during the rush?", kind: "Guide" },
     { href: "/blog/24-7-ai-receptionist", label: "What 24/7 call coverage actually means", kind: "Guide" },
     { href: "/blog/after-hours-answering-service", label: "After-hours answering service: who answers at 2 a.m.?", kind: "Guide" },
     { href: "/answers/can-an-ai-receptionist-handle-multiple-calls-at-once", label: "Can it answer several calls at once during the rush?", kind: "Answer" },
@@ -62,17 +69,24 @@ const RESOURCES: Record<IndustrySlug, ResourceLink[]> = {
     { href: "/blog/electrician-answering-service", label: "Electrician answering service: never lose a job call", kind: "Guide" },
     { href: "/blog/contractor-answering-service", label: "Contractor answering service: never miss a bid call", kind: "Guide" },
     { href: "/blog/ai-receptionist-for-home-services", label: "AI receptionist for home services and trades", kind: "Guide" },
+    { href: "/blog/water-damage-restoration-answering-service", label: "Restoration answering service: winning the 2 a.m. water loss call", kind: "Guide" },
+    { href: "/blog/pest-control-answering-service", label: "Pest control answering service: swarm season and safety calls", kind: "Guide" },
+    { href: "/blog/locksmith-answering-service", label: "Locksmith answering service: the lockout call, done right", kind: "Guide" },
+    { href: "/blog/cleaning-company-answering-service", label: "Cleaning company answering service: quotes, keys and crews", kind: "Guide" },
     { href: "/answers/can-an-ai-receptionist-handle-emergency-calls", label: "Can it handle emergency calls like a burst pipe?", kind: "Answer" },
     { href: "/answers/can-an-ai-receptionist-handle-multiple-calls-at-once", label: "Can it answer several calls at once?", kind: "Answer" },
   ],
   "property-management": [
     { href: "/blog/property-management-answering-service", label: "Property management answering service: 24/7 tenant calls", kind: "Guide" },
+    { href: "/blog/apartment-answering-service", label: "Apartment answering service: leasing and maintenance calls", kind: "Guide" },
+    { href: "/blog/self-storage-answering-service", label: "Self storage answering service: renting units from an empty office", kind: "Guide" },
     { href: "/blog/real-estate-answering-service", label: "Real estate answering service: AI that books showings", kind: "Guide" },
     { href: "/answers/can-an-ai-receptionist-handle-emergency-calls", label: "Can it triage maintenance emergencies?", kind: "Answer" },
     { href: "/answers/can-an-ai-receptionist-handle-multiple-locations", label: "Can it handle multiple locations?", kind: "Answer" },
   ],
   medical: [
     { href: "/blog/medical-answering-service", label: "Medical answering service: 24/7 AI for clinics", kind: "Guide" },
+    { href: "/blog/answering-service-for-therapists", label: "Answering service for therapists: intake without the risk", kind: "Guide" },
     { href: "/blog/after-hours-answering-service", label: "After-hours answering service: who answers at 2 a.m.?", kind: "Guide" },
     { href: "/answers/can-an-ai-receptionist-handle-emergency-calls", label: "How does it handle urgent calls?", kind: "Answer" },
     { href: "/answers/can-an-ai-receptionist-book-appointments", label: "Can it schedule patients into my calendar?", kind: "Answer" },

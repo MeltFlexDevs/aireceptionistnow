@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuthDialog } from "@/app/components/AuthDialog";
 
 export function CompareCta({
-  label = "Start free",
+  label = "Get started",
   outline = false,
 }: {
   label?: string;

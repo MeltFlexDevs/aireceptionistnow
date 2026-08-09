@@ -55,7 +55,7 @@ export const COMPETITORS: CompetitorEntry[] = [
     competitor: "My AI Front Desk",
     title: "AI Receptionist Now vs My AI Front Desk",
     blurb:
-      "A phone-first, GDPR-first alternative to My AI Front Desk (Frontdesk): 5× the voice minutes at a third the overage, 25+ languages, EU-hosted and free to start.",
+      "A phone-first, GDPR-first alternative to My AI Front Desk (Frontdesk): 5× the voice minutes at a third the overage, 25+ languages, EU-hosted.",
     logo: "/compare/logos/myaifrontdesk.svg",
   },
 ];
