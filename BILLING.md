@@ -47,7 +47,7 @@ Files:
 
 ## Environment variables
 
-Set in Vercel (Production + Preview) and `.env.local` for local testing:
+Set in Vercel (Production + Preview) and `.env` for local testing:
 
 | Var                                   | What                                                        |
 | ------------------------------------- | ----------------------------------------------------------- |

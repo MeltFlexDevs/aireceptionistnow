@@ -15,7 +15,9 @@ import { Skeleton } from "../components/Skeleton";
 import { Calendar, Sparkle } from "../icons";
 import { CARD, CARD_INTERACTIVE, SECTION_HEADING } from "../components/card";
 import { SetupBadge } from "../components/StatusBadge";
+import { listOpenDemand } from "@/lib/dashboard/demand";
 import { TeachBar } from "./TeachBar";
+import { GapList } from "./GapList";
 import { SourceList, type SourceRow } from "./SourceList";
 import { AiAvatar } from "@/app/(main)/onboarding/AiAvatar";
 
@@ -41,9 +43,15 @@ export default async function KnowledgePage({
   const k = t.knowledge;
 
   const ownerId = await currentUserId();
-  const [knowledge, calendars] = await Promise.all([
+  const [knowledge, calendars, gaps] = await Promise.all([
     getAiKnowledge(ownerId ?? null),
     connectedCalendarCount(ownerId ?? null),
+    // Never fatal to the page: the gap list is an addition to Knowledge, and a
+    // query failure should cost the reader that section, not the whole screen.
+    listOpenDemand(ownerId ?? null).catch((err) => {
+      console.error("[knowledge] could not load gaps", err);
+      return [];
+    }),
   ]);
 
   const orgs = knowledge.organizations;
@@ -112,6 +120,12 @@ export default async function KnowledgePage({
 
       {/* C: teach bar */}
       <TeachBar orgId={orgId} notes={notes} verified={verified} />
+
+      {/* C2: the gaps callers found. Above the source list on purpose - these
+          are the only rows on the page that came from a real customer asking a
+          real question, and answering one is worth more than adding another
+          document nobody asked for. Renders nothing when there are none. */}
+      <GapList orgId={orgId} rows={gaps} />
 
       {/* D: the page's only scroll region */}
       {isEmpty ? (

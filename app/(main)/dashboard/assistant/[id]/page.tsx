@@ -658,7 +658,10 @@ export default async function AssistantSettingsPage({
             >
               <option value="if_asked">{a.disclosureIfAsked}</option>
               <option value="upfront">{a.disclosureUpfront}</option>
-              <option value="deflect">{a.disclosureDeflect}</option>
+              {/* No third "don't discuss it" option: an assistant that dodges
+                  "am I talking to a robot?" is lying on the operator's behalf,
+                  and from 2 August 2026 EU AI Act Art. 50 makes that their
+                  problem as well as ours. See DisclosureMode in policy.ts. */}
             </select>
             <p className="mt-1.5 text-xs text-neutral-400">{a.disclosureNote}</p>
           </div>

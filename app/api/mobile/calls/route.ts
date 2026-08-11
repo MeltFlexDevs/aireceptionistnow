@@ -11,7 +11,12 @@ export const GET = mobileRoute(async (userId, req) => {
     {
       q: params.get("q") ?? undefined,
       status: params.get("status") ?? undefined,
-      direction: params.get("direction") ?? undefined,
+      // Inbound only, exactly like `/dashboard/calls` - which hardcodes the
+      // same thing. Honouring a client-supplied direction here let outbound
+      // rows (test calls, the cancellation callbacks placed by
+      // `placeAgentCall`) into the phone's log that the web deliberately hides,
+      // so the same account showed a different call history on each surface.
+      direction: "inbound",
     },
     userId,
     undefined,

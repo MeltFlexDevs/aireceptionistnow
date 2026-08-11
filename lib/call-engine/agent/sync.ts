@@ -294,6 +294,70 @@ export function composeSystemPrompt(
   return parts.join("\n\n");
 }
 
+/**
+ * The "never discuss this" list, compiled into a platform guardrail as well as
+ * a prompt line.
+ *
+ * The prompt block from `guardrailLines` stays exactly where it is - it is what
+ * makes the agent handle the subject gracefully, offering to take a message
+ * instead of stonewalling. But a prompt instruction is a preference: it degrades
+ * over a long call, and a caller who pushes hard enough can talk the model past
+ * it. The guardrail is a separate check on the generated reply, so the failure
+ * mode changes from "said the wrong thing" to "did not say it".
+ *
+ * `blocking` rather than `streaming`: a rule about refund eligibility or a price
+ * is worthless if the sentence has already been spoken by the time it trips.
+ * `retry` rather than `end_call` for the same reason a bare prohibition is a bad
+ * prompt - the recovery has to be specified, or the model improvises it, and
+ * improvisation is where the invented answer came from in the first place.
+ *
+ * Only `neverDiscuss` compiles. `alwaysEscalate` is about WHERE a call goes, not
+ * about what may be said, and a guardrail that blocks the reply cannot hand
+ * anyone to a human.
+ *
+ * NOTE: this adds a per-turn evaluation on a latency-critical path. It is
+ * attached only for assistants that actually configured a rule, so the default
+ * agent is untouched, but the reply latency of an account that turns it on is
+ * worth measuring against the 800ms budget before this is ever defaulted on.
+ */
+function buildGuardrails(
+  routing: Record<string, unknown>,
+): Pick<ElevenLabs.AgentPlatformSettingsRequestModel, "guardrails"> {
+  const { neverDiscuss } = parseGuardrails(routing);
+  if (neverDiscuss.length === 0) return {};
+
+  return {
+    guardrails: {
+      version: "1",
+      custom: {
+        config: {
+          configs: [
+            {
+              isEnabled: true,
+              name: "Never discuss",
+              prompt:
+                "Block the assistant's reply if it answers, estimates, guesses at, or implies an answer to any of these subjects: " +
+                neverDiscuss.map((r) => r.replace(/\.$/, "")).join("; ") +
+                ". Saying plainly that it cannot confirm the subject itself, and offering to take a message or pass the caller to a person, is ALLOWED and must not be blocked.",
+              executionMode: "blocking",
+              // The cheapest model on the list. This runs on every turn of a
+              // live phone call, and the judgement it makes is narrow.
+              model: "gemini-2.5-flash-lite",
+              // Enough history to tell an answer from an acknowledgement.
+              historyMessageCount: 2,
+              triggerAction: {
+                type: "retry",
+                feedback:
+                  "That subject is one you must not answer from your own knowledge. Say plainly that it is not something you can confirm yourself, then offer to take a message or pass them to someone who can. Do not guess, estimate, or say 'probably'.",
+              },
+            },
+          ],
+        },
+      },
+    },
+  };
+}
+
 /** "30 minutes" / "2 hours" - spoken form, for a promise the agent makes aloud. */
 function formatSla(minutes: number): string {
   if (minutes < 60) return `${minutes} minutes`;
@@ -614,6 +678,7 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
         tts: { voiceId: true },
       },
     },
+    ...buildGuardrails(assistant.routing),
   };
 
   const write = async (config: ElevenLabs.ConversationalConfig): Promise<string> => {

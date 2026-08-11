@@ -1,4 +1,4 @@
-import { getOverviewCached } from "@/lib/dashboard/analytics";
+import { getAnalyticsCached, getOverviewCached } from "@/lib/dashboard/analytics";
 import { listBookings } from "@/lib/dashboard/calendar";
 import { getOwnedNumbers, listAssistants, listIntegrations } from "@/lib/dashboard/db";
 import { getPlanContextCached } from "@/lib/dashboard/plan";
@@ -15,10 +15,16 @@ export const dynamic = "force-dynamic";
  * server component. A phone on a slow connection cannot afford nine requests,
  * so the same fan-out happens here and ships as one payload.
  */
-export const GET = mobileRoute(async (userId) => {
-  const [overview, assistants, numbers, integrations, plan, tz, bookings] =
+export const GET = mobileRoute(async (userId, req) => {
+  // The app's range toggle, mirroring `/dashboard?range=month`. Like the web
+  // page, today's view skips the 30-day rollup entirely rather than paying for
+  // a query it will not render.
+  const month = new URL(req.url).searchParams.get("range") === "month";
+
+  const [overview, analytics, assistants, numbers, integrations, plan, tz, bookings] =
     await Promise.all([
       getOverviewCached(userId),
+      month ? getAnalyticsCached(userId).catch(() => null) : Promise.resolve(null),
       listAssistants(userId).catch(() => []),
       getOwnedNumbers(userId).catch(() => []),
       listIntegrations(userId).catch(() => []),
@@ -37,8 +43,21 @@ export const GET = mobileRoute(async (userId) => {
     today: overview.today,
     monthUsage: overview.monthUsage,
     latency: overview.latency,
-    recentCalls: overview.recentCalls.slice(0, 20),
-    callVolume: overview.callVolume,
+    // Home renders six; the Activity screen behind the bell has its own route.
+    // Twenty was shipping fourteen rows nothing reads over a cellular link.
+    recentCalls: overview.recentCalls.slice(0, 6),
+    /**
+     * The month view, or null when it was not asked for. Same shape the web's
+     * `?range=month` renders: four totals, a 30-day volume series and the
+     * sentiment split behind the donut.
+     */
+    analytics: analytics
+      ? {
+          totals: analytics.totals,
+          volume: analytics.volume,
+          sentiment: analytics.sentiment,
+        }
+      : null,
     assistant: assistants[0]
       ? {
           id: assistants[0].id,

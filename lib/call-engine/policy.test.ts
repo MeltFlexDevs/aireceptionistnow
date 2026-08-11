@@ -20,10 +20,18 @@ test("disclosure defaults to answering honestly when asked", () => {
   assert.equal(parseDisclosure({ disclosure: "nonsense" }), "if_asked");
 });
 
-test("the three disclosure modes are honoured", () => {
+test("both disclosure modes are honoured", () => {
   assert.equal(parseDisclosure({ disclosure: "upfront" }), "upfront");
-  assert.equal(parseDisclosure({ disclosure: "deflect" }), "deflect");
   assert.equal(parseDisclosure({ disclosure: " if_asked " }), "if_asked");
+});
+
+test("a stored 'deflect' falls back to the honest default", () => {
+  // The retired third mode. Assistants configured before it was removed still
+  // carry the value in routing, and the one thing that must never happen is
+  // that they keep dodging "am I talking to a robot?" because nobody migrated
+  // a column.
+  assert.equal(parseDisclosure({ disclosure: "deflect" }), "if_asked");
+  assert.match(disclosureLine(parseDisclosure({ disclosure: "deflect" }), "Bright Dental"), /tell them the truth/);
 });
 
 test("if_asked tells the truth but never raises it first", () => {
@@ -40,10 +48,12 @@ test("upfront discloses in the first breath and still answers honestly later", (
   assert.match(line, /tell them the truth/, "a caller who asks later still gets a straight answer");
 });
 
-test("deflect keeps the old wording for operators who choose it", () => {
-  const line = disclosureLine("deflect", "Bright Dental");
-  assert.match(line, /don't discuss it/);
-  assert.doesNotMatch(line, /tell them the truth/);
+test("no disclosure mode can produce a dodge", () => {
+  // The property that matters, asserted over every mode rather than over the
+  // one that used to be able to break it.
+  for (const mode of ["if_asked", "upfront"] as const) {
+    assert.match(disclosureLine(mode, "Bright Dental"), /tell them the truth/);
+  }
 });
 
 test("guardrail rules are trimmed, capped and stripped of blanks", () => {

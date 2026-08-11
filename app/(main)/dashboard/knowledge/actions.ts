@@ -18,12 +18,14 @@ import { syncAssistantAgent } from "@/lib/call-engine/agent/sync";
 import { fetchWebsiteMarkdown } from "@/lib/knowledge/website";
 import { parsePdfMarkdown } from "@/lib/knowledge/pdf";
 import { summarizeSourceMarkdown } from "@/lib/dashboard/ai-knowledge";
+import { dismissDemand, markDemandAnswered } from "@/lib/dashboard/demand";
 import {
   addSource,
   parseVerifiedLines,
   readKnowledge,
   removeSource,
   MAX_SOURCE_CHARS,
+  MAX_VERIFIED,
   type KnowledgeSource,
 } from "@/lib/knowledge/sources";
 import { getDictionary } from "@/lib/i18n/server";
@@ -217,6 +219,83 @@ export async function addPdfKnowledgeAction(
     if (!added.ok) bail(t.knowledge.errorTooManySources);
     await saveKnowledge(org.id, { ...added.knowledge });
     return ok(truncated ? t.knowledge.savedTruncated : t.knowledge.saved);
+  });
+}
+
+/**
+ * Answer a gap the assistant admitted to, and close it for good.
+ *
+ * This is the compounding half of the product. A caller asked something the
+ * knowledge base did not cover, the assistant said so honestly and took a
+ * message, and the post-call pass recorded the question. The owner types one
+ * sentence here and it becomes a VERIFIED answer - injected ahead of retrieval
+ * with instructions to use the wording as given - so the next caller who asks
+ * gets it word for word, and the accuracy audit has something to check the
+ * assistant against instead of a blank.
+ *
+ * The pair is stored on the organization rather than the assistant, matching
+ * everything else on this page: one business, one set of facts, and every
+ * assistant in it re-synced by `saveKnowledge`.
+ */
+export async function answerKnowledgeGapAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  return run(async () => {
+    const t = await getDictionary();
+    const signalId = Number(formData.get("signal_id") ?? 0);
+    const answer = String(formData.get("answer") ?? "").trim();
+    if (!signalId || !answer) bail(t.knowledge.saveFailed);
+
+    const ownerId = await currentUserId();
+    if (authConfigured() && !ownerId) bail(t.knowledge.saveFailed);
+
+    // Claimed before anything is written to the knowledge base: if two tabs
+    // answer the same row, the second gets null here and stops, rather than
+    // adding a duplicate verified answer.
+    const signal = await markDemandAnswered(signalId, ownerId ?? "", answer);
+    if (!signal) bail(t.knowledge.saveFailed);
+
+    const org = await ensureActiveOrganization(String(formData.get("id") ?? ""));
+    const knowledge = readKnowledge(org.knowledge);
+    const verified = knowledge.verified ?? [];
+
+    // Re-answering the same question replaces it rather than stacking a second
+    // pair the model would have to choose between.
+    const question = signal.topic;
+    const next = [
+      { q: question, a: answer },
+      ...verified.filter((v) => v.q.trim().toLowerCase() !== question.trim().toLowerCase()),
+    ].slice(0, MAX_VERIFIED);
+
+    await saveKnowledge(org.id, { ...knowledge, verified: next });
+    return ok(t.knowledge.saved);
+  });
+}
+
+/**
+ * Not worth answering.
+ *
+ * Kept as an explicit action rather than a delete so the row stops appearing
+ * without losing the fact that a caller asked - the weekly demand report reads
+ * the same table, and "we decided not to answer this" is different from "nobody
+ * ever asked".
+ */
+export async function dismissKnowledgeGapAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  return run(async () => {
+    const t = await getDictionary();
+    const signalId = Number(formData.get("signal_id") ?? 0);
+    if (!signalId) bail(t.knowledge.saveFailed);
+
+    const ownerId = await currentUserId();
+    if (authConfigured() && !ownerId) bail(t.knowledge.saveFailed);
+
+    await dismissDemand(signalId, ownerId ?? "");
+    revalidatePath("/dashboard/knowledge");
+    return ok(t.knowledge.removed);
   });
 }
 

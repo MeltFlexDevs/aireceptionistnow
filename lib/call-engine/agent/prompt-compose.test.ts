@@ -127,8 +127,11 @@ test("the prompt never both denies and admits being an AI", () => {
   assert.match(honest, /tell them the truth/);
   assert.doesNotMatch(honest, /Never introduce yourself as an AI/);
 
-  const deflecting = composeSystemPrompt(withRouting({ disclosure: "deflect" }), "Acme", ALL_TOOLS);
-  assert.doesNotMatch(deflecting, /tell them the truth/);
+  // The retired "deflect" mode must not resurrect itself out of stored routing:
+  // an assistant carrying the old value still gets the honest line.
+  const legacy = composeSystemPrompt(withRouting({ disclosure: "deflect" }), "Acme", ALL_TOOLS);
+  assert.match(legacy, /tell them the truth/);
+  assert.doesNotMatch(legacy, /don't discuss it/);
 });
 
 test("the prompt only promises tools that were actually provisioned", () => {

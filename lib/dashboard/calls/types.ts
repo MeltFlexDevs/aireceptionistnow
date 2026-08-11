@@ -63,6 +63,8 @@ export interface CallDetail {
   summary: string | null;
   assistant: string | null;
   recordingUrl: string | null;
+  /** True when the call's audio can be streamed. See getCallAudioRef. */
+  hasAudio: boolean;
   isLive: boolean;
   /** True when the accuracy audit wants a person to read this call. */
   needsReview: boolean;

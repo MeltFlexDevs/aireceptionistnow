@@ -321,8 +321,12 @@ export function buildAssistantPatch(
     }
 
     const disclosure = str(form, "disclosure");
-    if (disclosure === "upfront" || disclosure === "deflect") routing.disclosure = disclosure;
-    else if (disclosure === "if_asked") delete routing.disclosure; // the default needs no row
+    // "deflect" is deliberately not accepted any more - see DisclosureMode in
+    // lib/call-engine/policy.ts. A stored value survives here untouched only
+    // until the next save of this section, and the call engine ignores it either
+    // way, so an assistant cannot be left silently dodging the question.
+    if (disclosure === "upfront") routing.disclosure = disclosure;
+    else if (disclosure === "if_asked" || disclosure === "deflect") delete routing.disclosure;
   }
 
   if (submitted(SECTION.calendar)) {

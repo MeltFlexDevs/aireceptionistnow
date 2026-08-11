@@ -12,6 +12,7 @@ import { alertNumber, parseEscalation } from "./escalation";
 import { BOOKING_TIMEOUT_MS, withDeadline } from "./net";
 import { pageOwner, shouldPage } from "./paging";
 import type { CallRepository } from "./persistence/types";
+import { appendReceiptLink, receiptUrl } from "./receipts";
 import { sendSms } from "./telephony";
 import type { BookingRequest, NumberConfig } from "./types";
 
@@ -163,7 +164,11 @@ function friendlyWhen(iso: string, locale: string): string {
 // calendar - this is the "confirmation shortly" the agent promised. Best-effort;
 // on by default, disabled with routing.bookingConfirmationSms = false. Note: the
 // appointment reason/notes are deliberately NOT included (could be sensitive).
-async function sendBookingConfirmationSms(ctx: ActionContext, req: BookingRequest): Promise<void> {
+async function sendBookingConfirmationSms(
+  ctx: ActionContext,
+  req: BookingRequest,
+  receiptLink = "",
+): Promise<void> {
   const r = ctx.config.routing as {
     bookingConfirmationSms?: boolean;
     location?: unknown;
@@ -180,11 +185,43 @@ async function sendBookingConfirmationSms(ctx: ActionContext, req: BookingReques
   const first = (req.attendeeName ?? "").trim().split(/\s+/)[0];
   const greeting = first ? `Hi ${first}, ` : "";
   const where = location ? ` at ${location}` : "";
-  const body = `${greeting}you're booked with ${ctx.config.businessName} for ${when}${where}. See you then!`;
+  const confirmation = `${greeting}you're booked with ${ctx.config.businessName} for ${when}${where}. See you then!`;
+  // The receipt rides along on the message the caller was already getting. A
+  // second text about the same phone call is how a useful artifact turns into
+  // the thing people mute, and two links from one number in two minutes is also
+  // what a carrier filter is looking for.
+  const body = appendReceiptLink(confirmation, receiptLink);
   const send = sendSms(to, ctx.to, body, ctx.config.businessName).catch((err) =>
     console.error("[actions] booking confirmation sms failed", err),
   );
   await withDeadline(send, 3000, undefined);
+}
+
+/**
+ * Off with an explicit `false`, on otherwise - the same shape as
+ * `bookingConfirmationSms` above, so an account that predates receipts gets them
+ * and an operator who has turned them off keeps them off.
+ */
+export function receiptsEnabled(routing: Record<string, unknown>): boolean {
+  return (routing as { callReceipt?: boolean }).callReceipt !== false;
+}
+
+/**
+ * Mint the caller's receipt for a booking, best-effort.
+ *
+ * Never throws and never blocks: the booking has already landed on the calendar
+ * by the time this runs, and a receipt that could not be created is a missing
+ * link in one SMS, not a failed appointment.
+ */
+async function receiptLinkFor(ctx: ActionContext, repo: CallRepository): Promise<string> {
+  if (!receiptsEnabled(ctx.config.routing)) return "";
+  try {
+    const token = await repo.ensureReceipt(ctx.callId, "live");
+    return token ? receiptUrl(token) : "";
+  } catch (err) {
+    console.error(`[actions] could not mint a receipt for call ${ctx.callId}`, err);
+    return "";
+  }
 }
 
 // The guard + calendar create + persistence. Returns the spoken stage-direction
@@ -302,8 +339,15 @@ async function runBooking(
     // it via after() so the SMS never delays the tool response. Never let a
     // confirmation-SMS failure propagate - the booking itself succeeded, so it
     // must not trigger the deferred error alert.
-    if (deferred) await sendBookingConfirmationSms(ctx, req).catch(() => {});
-    else after(() => sendBookingConfirmationSms(ctx, req));
+    if (deferred) {
+      const link = await receiptLinkFor(ctx, repo);
+      await sendBookingConfirmationSms(ctx, req, link).catch(() => {});
+    } else {
+      after(async () => {
+        const link = await receiptLinkFor(ctx, repo);
+        await sendBookingConfirmationSms(ctx, req, link);
+      });
+    }
     return "Booked and confirmed. Tell the caller it's all set (repeat the day and time naturally), then ask if there's anything else you can help with. If not, wish them well and end the call.";
   }
   if (deferred) {

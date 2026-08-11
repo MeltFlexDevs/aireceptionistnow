@@ -2,9 +2,11 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { getEnv } from "../env";
 import { mergeKnowledge } from "../../knowledge/sources";
 import { accountKnowledgeNotes, type AccountSettings } from "../../dashboard/account";
+import { mintReceiptToken, receiptExpiry, type ReceiptKind } from "../receipts";
 import type {
   CallAction,
   CallSummary,
+  DemandSignal,
   IntegrationConfig,
   NumberConfig,
   TranscriptTurn,
@@ -290,9 +292,88 @@ export class SupabaseCallRepository implements CallRepository {
         // call as audited and clean, as opposed to predating the audit (null).
         needs_review: summary.needsReview,
         review_claims: summary.unsupportedClaims,
+        // Null rather than "" when the model returned nothing, so the receipt
+        // page can tell "this call has no recap" from "the recap is empty",
+        // and fall back to the operational summary instead of rendering a blank.
+        caller_recap: summary.callerRecap || null,
       })
       .eq("id", callId);
     if (error) throw error;
+  }
+
+  /**
+   * Mint-or-return, in one round trip where possible.
+   *
+   * The insert races itself: `runBooking` reaches here mid-call while the
+   * post-call pipeline reaches here seconds later for the same call, and both
+   * would otherwise create a row. The unique index on `call_id` decides, and the
+   * loser re-reads instead of failing - which is why the conflict path is a
+   * normal outcome here and not logged as an error.
+   */
+  async ensureReceipt(callId: string, kind: ReceiptKind): Promise<string | null> {
+    const existing = await db()
+      .from("call_receipts")
+      .select("token")
+      .eq("call_id", callId)
+      .maybeSingle();
+    if (existing.data?.token) return String(existing.data.token);
+
+    const token = mintReceiptToken();
+    const { data, error } = await db()
+      .from("call_receipts")
+      .insert({
+        call_id: callId,
+        token,
+        kind,
+        expires_at: receiptExpiry(kind).toISOString(),
+      })
+      .select("token")
+      .maybeSingle();
+
+    if (!error && data?.token) return String(data.token);
+
+    // Lost the race - the other path already has a token for this call, and it
+    // is the one that will be texted. Read it back rather than inventing a
+    // second link to the same conversation.
+    const raced = await db()
+      .from("call_receipts")
+      .select("token")
+      .eq("call_id", callId)
+      .maybeSingle();
+    if (raced.data?.token) return String(raced.data.token);
+
+    console.error(`[receipts] could not create a receipt for call ${callId}`, error);
+    return null;
+  }
+
+  async markReceiptSent(token: string): Promise<void> {
+    const { error } = await db()
+      .from("call_receipts")
+      .update({ sent_at: new Date().toISOString() })
+      .eq("token", token);
+    if (error) console.error("[receipts] could not mark receipt sent", error);
+  }
+
+  async saveDemandSignals(
+    callId: string,
+    ownerId: string | null,
+    signals: DemandSignal[],
+  ): Promise<void> {
+    if (signals.length === 0) return;
+    const { error } = await db()
+      .from("demand_signals")
+      .insert(
+        signals.map((s) => ({
+          call_id: callId,
+          owner_id: ownerId,
+          kind: s.kind,
+          topic: s.topic,
+          quote: s.quote,
+        })),
+      );
+    // Never throws: these are a by-product of the summary, and losing them must
+    // not cost the business the summary itself.
+    if (error) console.error(`[demand] could not save signals for call ${callId}`, error);
   }
 
   async recordAction(
@@ -322,10 +403,11 @@ export class SupabaseCallRepository implements CallRepository {
     turns: TranscriptTurn[];
     actions: CallAction[];
     from: string;
+    ownerId: string | null;
   } | null> {
     const { data: call, error } = await db()
       .from("calls")
-      .select("to_number, from_number")
+      .select("to_number, from_number, owner_id")
       .eq("id", callId)
       .maybeSingle();
     if (error) throw error;
@@ -355,6 +437,7 @@ export class SupabaseCallRepository implements CallRepository {
     return {
       config,
       from: String(call.from_number ?? ""),
+      ownerId: call.owner_id ? String(call.owner_id) : null,
       turns: (turns ?? []).map((t) => ({
         role: t.role as TranscriptTurn["role"],
         text: String(t.text),

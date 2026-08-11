@@ -163,7 +163,42 @@ Connect the tools the AI reads from and writes to:
   warning when the slow tail drifts.
 - **Volume, outcomes and talk ratio**, with a per-assistant breakdown.
 
-### 5. Settings & overviews
+### 5. The caller's receipt, and the loop it closes
+
+The accuracy audit above catches what the assistant said that the knowledge base
+does not support. It cannot catch a misheard house number — nothing in the
+knowledge base contradicts it, because the *caller* supplied it. Only one person
+knows that happened, and until now nothing in the product asked them.
+
+- **Call receipt** ([`lib/call-engine/receipts.ts`](lib/call-engine/receipts.ts),
+  [`app/r/[token]`](app/r)): after a call that produced something — a booking, a
+  message, a transfer, or anything the audit flagged — the caller gets one SMS
+  with a private link. The page shows what the assistant understood **in the
+  caller's own language** (`caller_recap`, a field on the same Gemini pass that
+  already runs), the appointment with an `.ics` download, and the recording,
+  proxied so the account-wide ElevenLabs key never leaves the server. Addressed
+  by a 160-bit token, `noindex`, and expiring — 30 days for a customer, 7 for the
+  public demo line.
+- **Never two texts about one call.** A completed booking already texts the
+  caller, so the receipt link is appended to that message inside `runBooking`
+  rather than sent separately, and `deliverReceipt` skips any call that already
+  went out that way.
+- **The correction button** is the point. "That's not right" plus one free-text
+  line writes into `needs_review` / `review_claims` — the columns migration 0007
+  already added — so a caller's correction lands in the same list, the same
+  partial index and the same escalation push as a model-flagged claim. One
+  surface, two intake paths.
+- **Demand signals** ([`lib/dashboard/demand.ts`](lib/dashboard/demand.ts)): the
+  same summary pass records what callers asked for and did not get, each entry
+  requiring a verbatim quote so a fabricated one is obvious. `unanswered` gaps
+  appear on `/dashboard/knowledge`, where one typed sentence becomes a **verified
+  answer** and the gap never recurs. `not_offered` requests have no fix and are
+  not given a fake one — they are demand the phone line is the only system in the
+  business that can see, and they roll up into a weekly digest
+  (`/api/cron/demand-digest`, Mondays) that stays silent unless there is a
+  repeated request on enough call volume to mean something.
+
+### 6. Settings & overviews
 
 - **Daily overview:** today's calls, bookings, and summaries at a glance.
 - **Monthly overview:** usage against plan limits, trends, billing.
@@ -199,7 +234,7 @@ Edit the landing page in [app/page.tsx](app/page.tsx); it hot-reloads on save.
 
 ## Environment variables
 
-Put them in `.env.local` (never commit secrets):
+Put them in `.env` (never commit secrets):
 
 ```bash
 # App
@@ -249,6 +284,13 @@ CALCOM_OAUTH_CLIENT_SECRET=
 # Post-call summary emails (Resend). Without both, summaries are logged and skipped.
 RESEND_API_KEY=
 EMAIL_FROM=                         # verified sender
+
+# Cron auth for /api/cron/*. Falls back to AGENT_WEBHOOK_SECRET when unset.
+CRON_SECRET=
+
+# The public demo line printed on /ai-receptionist-demo, in E.164. Unset means
+# the page says the demo is being set up rather than rendering a dead tel: link.
+NEXT_PUBLIC_DEMO_PHONE_NUMBER=
 ```
 
 Anything prefixed `NEXT_PUBLIC_` is bundled into the client and is **public** — keep provider keys unprefixed and server-side only.
@@ -303,8 +345,31 @@ Shipped:
 - [x] Post-call accuracy audit and operator guardrails
 - [x] Custom actions against the business's own API
 - [x] Returning-caller recognition
+- [x] Caller-facing call receipts with a correction path, and the verified-answer
+      loop that closes the gaps they surface
+- [x] Guardrails compiled into a real platform check, not only prompt text
+- [x] `/ai-receptionist-demo` — a callable number that answers "what does an AI
+      receptionist sound like" with the caller's own call
 
 Known gaps, stated plainly:
+
+- **Receipts depend on a link surviving SMS.** `sendSms` prefers a branded
+  alphanumeric sender, which several carriers filter harder when the body
+  contains a URL, and Twilio reports a filtered message as sent. Nothing here has
+  been measured against real handsets per market yet — do that before the demo
+  page's promise ("it will text you a link") is advertised anywhere.
+- **No caller-confirmed accuracy rate is published, deliberately.** `confirmed_at`
+  is recorded per receipt and stays there. Tap rates on post-interaction SMS run
+  10-30% and skew hard to the satisfied, so any percentage computed from it would
+  be a number we generate, host, count and grade ourselves.
+- **The custom guardrail adds a per-turn check on the latency path.** It is only
+  attached for assistants that configured a `neverDiscuss` rule, so the default
+  agent is untouched, but its effect on p95 reply latency has not been measured
+  against the 800 ms budget.
+- **Demand clusters are string-grouped, not model-grouped.** "Saturday
+  appointments" and "weekend opening" stay separate. That undercounts, which is
+  the right direction: an LLM-generated category is one the operator cannot check
+  against their own transcripts.
 
 - **Warm transfer is opt-in and unverified against every carrier.** Per
   destination we can send `conference` or `blind`; unset leaves the ElevenLabs

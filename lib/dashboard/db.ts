@@ -106,6 +106,29 @@ export async function hasActiveCall(ownerId: string): Promise<boolean> {
   return (data ?? []).length > 0;
 }
 
+/**
+ * The call this owner is on right now, if any.
+ *
+ * Same query as `hasActiveCall` - which already selects the id and throws it
+ * away - but the native app needs to link straight into the live transcript,
+ * and a boolean cannot do that. Kept separate rather than widening
+ * `hasActiveCall`, whose callers only want the dot.
+ */
+export async function activeCallId(ownerId: string): Promise<string | null> {
+  const cutoff = new Date(Date.now() - 15 * 60_000).toISOString();
+  const { data, error } = await db()
+    .from("calls")
+    .select("id")
+    .eq("owner_id", ownerId)
+    .in("status", LIVE_CALL_STATUSES)
+    .gte("started_at", cutoff)
+    .order("started_at", { ascending: false })
+    .limit(1);
+  if (error) throw error;
+  const row = (data ?? [])[0];
+  return row ? String(row.id) : null;
+}
+
 // Which of the given E.164 numbers already have a (non-deleted) row. Lets the
 // dev provisioning flow skip Twilio-owned numbers that are already assigned.
 export async function existingNumberE164s(e164s: string[]): Promise<Set<string>> {

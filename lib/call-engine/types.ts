@@ -108,4 +108,51 @@ export interface CallSummary {
   unsupportedClaims: string[];
   /** True when a human should read this call. Drives the dashboard flag. */
   needsReview: boolean;
+  /**
+   * The same call, written for the person who rang - in THEIR language, in the
+   * second person, saying what was understood and what was committed to.
+   *
+   * Separate from `summary` because the audiences want opposite things. The
+   * dashboard summary is third-person operational copy in the owner's language
+   * ("caller asked about a leaking radiator, booked Thursday"). The caller needs
+   * to be able to check it: "you asked us to look at a leaking radiator, and
+   * we've booked you in for Thursday at 9am." One is a log line, the other is
+   * the thing they will notice is wrong.
+   */
+  callerRecap: string;
+  /**
+   * What the caller asked for and did not get. Two kinds, one schema, because
+   * they come out of the same reading of the transcript and lead to opposite
+   * actions: an `unanswered` gap is fixed by the owner writing one line, a
+   * `not_offered` request is a fact about the market that no amount of
+   * configuration will change.
+   */
+  demandSignals: DemandSignal[];
+}
+
+/**
+ * Something a caller wanted that the line could not give them.
+ *
+ * `quote` is mandatory and verbatim on purpose. Asked for a bare list, the model
+ * cheerfully reports demand nobody expressed - "callers seem interested in
+ * evening appointments" off a single ambiguous sentence. Requiring the words
+ * back makes every signal checkable against the transcript, and makes a
+ * fabricated one obvious rather than plausible.
+ */
+export interface DemandSignal {
+  /**
+   * `unanswered` - the knowledge base did not cover it, so the assistant could
+   * not answer. Fixable: the owner types the answer once and it is never a gap
+   * again.
+   *
+   * `not_offered` - the business genuinely does not do it, is not open then,
+   * does not go there, does not speak it. Not a defect, and not fixable by
+   * editing a knowledge base. It is demand the phone line is the only system in
+   * the business that can see.
+   */
+  kind: "unanswered" | "not_offered";
+  /** What they wanted, in a few words. */
+  topic: string;
+  /** Their own words, quoted from the transcript. */
+  quote: string;
 }

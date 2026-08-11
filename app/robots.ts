@@ -2,7 +2,13 @@ import type { MetadataRoute } from "next";
 import { siteUrl } from "@/lib/site";
 
 // Private areas: no crawl value, and /dashboard + /onboarding sit behind auth.
-const disallow = ["/dashboard", "/api", "/auth", "/onboarding"];
+//
+// /r is the caller's receipt: one member of the public's private summary of one
+// phone call, addressed by an unguessable token. Nothing links to it, so a
+// crawler would have to be handed the URL to reach it at all - but the pages
+// also carry `robots: noindex` in app/r/layout.tsx, because a customer who
+// forwards their own receipt into a public thread should not thereby publish it.
+const disallow = ["/dashboard", "/api", "/auth", "/onboarding", "/r"];
 
 // Answer engines are a real referral surface for "ai receptionist" queries, and
 // a wildcard Allow does not always read as consent to the crawlers' operators -

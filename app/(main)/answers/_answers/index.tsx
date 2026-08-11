@@ -1741,6 +1741,162 @@ const defs: Answer[] = [
       );
     },
   },
+  {
+    slug: "does-my-ai-phone-agent-have-to-say-its-ai",
+    question: "Does my AI phone agent have to tell callers it's an AI?",
+    metaTitle: "Does an AI Phone Agent Have to Say It's AI? (2026 Rules)",
+    shortAnswer:
+      "Increasingly, yes. From 2 August 2026 the EU AI Act's Article 50 transparency obligation applies, and it requires that a person interacting with an AI system is informed of that unless it is obvious from the context. California SB 1001 has required disclosure for commercial and political bots since 2019, and several US states have added their own rules. The practical answer is simpler than the legal one: configure it to answer honestly when asked, and the question stops being a risk.",
+    description:
+      "From 2 August 2026 the EU AI Act Article 50 requires people to be told they are interacting with an AI. What that means for an AI receptionist, plus the US state rules.",
+    keywords: [
+      "does an AI have to say it is an AI",
+      "do you have to tell callers they're talking to an AI",
+      "EU AI Act article 50 chatbot disclosure",
+      "AI disclosure law phone calls",
+      "California SB 1001 bot disclosure",
+      "AI receptionist legal",
+      "is it legal for AI to answer the phone",
+    ],
+    category: "Trust & disclosure",
+    date: "2026-08-11",
+    updated: "2026-08-11",
+    author: "brano",
+    related: [
+      "do-callers-know-its-an-ai-receptionist",
+      "what-happens-if-an-ai-receptionist-cant-answer",
+      "can-an-ai-receptionist-transfer-calls-to-a-human",
+      "train-ai-receptionist-on-my-business",
+    ],
+    faqs: [
+      {
+        q: "When does the EU AI Act transparency rule start applying?",
+        a: "Article 50, the transparency obligation for AI systems that interact directly with people, applies from 2 August 2026. It requires that a person is informed they are interacting with an AI system unless that is obvious to a reasonably well-informed person in the circumstances. The obligation sits with the provider of the system, and separately with deployers for certain other cases - if you run an AI answering your business line inside the EU, you should assume it concerns you.",
+      },
+      {
+        q: "Does the AI have to announce it in the greeting?",
+        a: "Article 50 says a person must be informed; it does not prescribe a script or a moment. A greeting that makes it clear is the safest reading and some operators prefer it. Answering honestly and immediately whenever a caller asks is the lighter-touch reading and is what most businesses choose. What is not defensible under any reading is an assistant instructed to dodge the question, which is why this product does not offer that as an option.",
+      },
+      {
+        q: "What are the US rules?",
+        a: "California's SB 1001 (the B.O.T. Act) has since 2019 made it unlawful to use a bot to communicate with a person in California to incentivize a sale or influence a vote without disclosing that it is a bot. Several states have since added AI disclosure requirements, some with a specific timing rule for voice calls. Because the rules key off where the caller is rather than where the business is, a line that takes calls from multiple states is subject to the strictest one that applies to those callers.",
+      },
+      {
+        q: "What about recording the call?",
+        a: "That is a separate law from AI disclosure and it catches people out. Recording consent is governed by wiretapping statutes: most US states require one party to consent, but roughly a dozen require all parties, and much of the EU treats a recording as personal data needing a lawful basis and notice. If you turn recording on, the notice belongs at the start of the call, and it is not covered by having disclosed that the assistant is an AI.",
+      },
+      {
+        q: "Is this legal advice?",
+        a: "No. This is a plain-language summary of publicly available rules, written by a vendor, current as of 11 August 2026. It is not a legal opinion and it does not account for your sector - healthcare, financial services, debt collection and political campaigning all carry additional requirements. If the answer matters to your risk, ask a lawyer in your jurisdiction.",
+      },
+    ],
+    Body: function Body() {
+      return (
+        <>
+          <p>
+            This is the question every owner asks about ten minutes after they
+            first hear their new{" "}
+            <Link href="/">AI receptionist</Link> answer a call, and the honest
+            answer has two halves. The legal half is genuinely moving. The
+            practical half has not changed in years: configure it to tell the
+            truth, and there is nothing left to worry about.
+          </p>
+
+          <h2 id="eu-ai-act-article-50">The EU: Article 50, from 2 August 2026</h2>
+          <p>
+            The EU AI Act sets a transparency obligation for AI systems that
+            interact directly with people. In substance, a person must be
+            informed that they are dealing with an AI system, unless that is
+            obvious to a reasonably well-informed and observant person given the
+            circumstances. The date to know is <strong>2 August 2026</strong>,
+            when that obligation becomes applicable.
+          </p>
+          <p>
+            Two things about it are commonly misread. First, it is a
+            transparency rule, not a ban: nothing in it stops an AI answering
+            your phone. Second, &ldquo;obvious from the context&rdquo; is doing
+            less work than people hope. A caller who dials a plumber and hears a
+            fluent, natural voice pick up is not on notice of anything, and a
+            synthetic voice that is good enough to be worth buying is precisely a
+            voice that does not announce itself.
+          </p>
+
+          <h2 id="united-states">The United States: state by state</h2>
+          <p>
+            There is no federal AI disclosure statute for phone calls.
+            California&apos;s SB 1001, in force since 2019, is the one most often
+            cited: it prohibits using a bot to communicate with a person in
+            California, with intent to mislead, in order to incentivize a
+            purchase or influence a vote, without clearly disclosing that it is a
+            bot. Several other states have since introduced AI disclosure
+            requirements of their own, some naming a specific window at the start
+            of a call.
+          </p>
+          <p>
+            The structural point matters more than any single statute: these
+            rules generally attach to where the <em>caller</em> is. A business in
+            one state taking calls from twenty is exposed to the strictest rule
+            that applies to any of those callers, which is a good reason to pick
+            a policy that satisfies all of them rather than to track them.
+          </p>
+
+          <h2 id="recording-is-a-different-law">
+            Recording is a different law, and it catches people out
+          </h2>
+          <p>
+            Disclosing that the assistant is an AI does not cover recording the
+            call. That is wiretapping law, and it is the one that produces actual
+            claims. Most US states are one-party consent, but roughly a dozen
+            require every party to consent; in the EU a recording is personal
+            data and needs a lawful basis and a notice. If you switch recording
+            on, the notice belongs in the first seconds of the call, separately
+            from anything the assistant says about being an AI.
+          </p>
+
+          <h2 id="what-we-do">What this product does, by default</h2>
+          <p>
+            There are two settings and neither of them lies. The default,{" "}
+            <em>if asked</em>, never volunteers it but answers straight the
+            moment a caller asks whether they are talking to a person - one short
+            sentence, in the caller&apos;s own language, and then straight back to
+            helping them. The alternative, <em>upfront</em>, says so in the first
+            breath after the greeting.
+          </p>
+          <p>
+            There used to be a third option that instructed the assistant to
+            change the subject. We removed it. Under Article 50 it was the one
+            configuration that could put an operator on the wrong side of the
+            rule, and commercially it was worse than the problem it solved: a
+            caller who suspects a bot and gets a dodge has been lied to by a
+            system acting for your business, and being caught at that damages you
+            far more than a synthetic voice ever will. For more on how callers
+            actually react, see{" "}
+            <Link href="/answers/do-callers-know-its-an-ai-receptionist">
+              whether callers can tell it&apos;s an AI
+            </Link>
+            .
+          </p>
+
+          <h2 id="the-practical-answer">The practical answer</h2>
+          <p>
+            Set it to answer honestly when asked. Turn recording on only if you
+            want it, and add the notice when you do. Keep the escalation path to
+            a person short, because &ldquo;can I speak to someone?&rdquo; is the
+            request that follows the disclosure question about a third of the
+            time. Do those three things and the compliance question resolves
+            itself in every jurisdiction we are aware of, without you tracking a
+            single statute.
+          </p>
+          <p>
+            One caveat worth stating plainly: this page is a vendor&apos;s
+            plain-language summary, current as of 11 August 2026, and not legal
+            advice. Healthcare, financial services, debt collection and political
+            campaigning each carry extra requirements this does not cover.
+          </p>
+        </>
+      );
+    },
+  },
 ];
 
 export const answers: Answer[] = [...defs].sort((a, b) =>

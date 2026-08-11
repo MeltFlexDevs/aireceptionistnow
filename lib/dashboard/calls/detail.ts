@@ -6,7 +6,7 @@ import { dateTimeFmt, fmtDuration, isLiveStatus, normalizeDirection, statusLabel
 import type { CallActionItem, CallDetail, CallTurn } from "./types";
 
 const SELECT =
-  "id,twilio_call_sid,from_number,to_number,direction,status,started_at,duration_seconds,outcome,sentiment,summary,needs_review,review_claims,recording_url,owner_id,assistant:assistants!assistant_id(name),phone_number:phone_numbers(assistant:assistants(name,owner_id))";
+  "id,twilio_call_sid,elevenlabs_conversation_id,from_number,to_number,direction,status,started_at,duration_seconds,outcome,sentiment,summary,needs_review,review_claims,recording_url,owner_id,assistant:assistants!assistant_id(name),phone_number:phone_numbers(assistant:assistants(name,owner_id))";
 
 export async function getCallDetail(
   id: string,
@@ -72,6 +72,11 @@ export async function getCallDetail(
     summary: str(c.summary) || null,
     assistant: assistantName(c),
     recordingUrl: str(c.recording_url) || null,
+    // The audio lives at ElevenLabs, keyed by the conversation id, and is only
+    // finalized once the call ends - so a live call reports no audio even
+    // though the id already exists. Streamed through
+    // /api/mobile/calls/[id]/recording; there is no public URL to hand out.
+    hasAudio: Boolean(str(c.elevenlabs_conversation_id)) && !isLiveStatus(status),
     isLive: isLiveStatus(status),
     needsReview: c.needs_review === true,
     reviewClaims: Array.isArray(c.review_claims)
@@ -80,4 +85,68 @@ export async function getCallDetail(
     turns,
     actions,
   };
+}
+
+/**
+ * The conversation id behind a call, for the audio proxy - and nothing else.
+ *
+ * Separate from `getCallDetail` because that one also hits Twilio, reads every
+ * turn and every action, and formats dates: all wasted on a request whose
+ * answer is one string. The ownership rule is duplicated deliberately rather
+ * than skipped; this is a tenant boundary, and `serviceClient` bypasses RLS.
+ */
+export async function getCallAudioRef(
+  id: string,
+  viewerId: string,
+): Promise<{ conversationId: string; isLive: boolean } | null> {
+  const { data, error } = await serviceClient()
+    .from("calls")
+    .select(
+      "id,status,owner_id,elevenlabs_conversation_id,phone_number:phone_numbers(assistant:assistants(owner_id))",
+    )
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+
+  const c = data as unknown as Record<string, unknown>;
+  const ownerId = (str(c.owner_id) || null) ?? assistantOwnerId(c);
+  if (ownerId !== viewerId) return null;
+
+  const conversationId = str(c.elevenlabs_conversation_id);
+  if (!conversationId) return null;
+  return { conversationId, isLive: isLiveStatus(str(c.status)) };
+}
+
+/**
+ * The two numbers on a call - who rang, and which of your lines they rang -
+ * with the same ownership check as everything else here.
+ *
+ * Exists so the text-back route never takes a destination from its request
+ * body. The number it texts comes out of the call row, which means a caller can
+ * only ever be replied to on the line they actually dialled, and this endpoint
+ * cannot be turned into an open SMS relay.
+ */
+export async function getCallContactRef(
+  id: string,
+  viewerId: string,
+): Promise<{ from: string; to: string } | null> {
+  const { data, error } = await serviceClient()
+    .from("calls")
+    .select(
+      "id,from_number,to_number,owner_id,phone_number:phone_numbers(assistant:assistants(owner_id))",
+    )
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+
+  const c = data as unknown as Record<string, unknown>;
+  const ownerId = (str(c.owner_id) || null) ?? assistantOwnerId(c);
+  if (ownerId !== viewerId) return null;
+
+  const from = str(c.from_number);
+  const to = str(c.to_number);
+  if (!from || !to) return null;
+  return { from, to };
 }

@@ -143,7 +143,7 @@ token expiry in Testing mode will break every connected account you migrate.
 
 ## 6. Wire up the environment
 
-`.env.local` for local dev, and the same three in your hosting provider's env
+`.env` for local dev, and the same three in your hosting provider's env
 settings for production:
 
 ```bash
@@ -160,7 +160,7 @@ Connect button then bounces back with *"google login is not configured"*
 whether the `oauth_state` cookie gets the `secure` flag. On production it must
 start with `https`, or the CSRF cookie is sent in the clear.
 
-Restart `next dev` after editing `.env.local` - env vars are read at process
+Restart `next dev` after editing `.env` - env vars are read at process
 start.
 
 ## 7. Verify the flow

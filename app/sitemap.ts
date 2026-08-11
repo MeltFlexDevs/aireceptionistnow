@@ -52,6 +52,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.8,
     },
+    // Bottom-funnel and the only page on the site a prospect can verify for
+    // themselves, so it ranks alongside the tool rather than below the blog.
+    { url: `${siteUrl}/ai-receptionist-demo`, changeFrequency: "monthly", priority: 0.8 },
     ...localizedRoutes("blog", 0.7),
     { url: `${siteUrl}/answers`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${siteUrl}/privacy-policy`, changeFrequency: "yearly", priority: 0.3 },

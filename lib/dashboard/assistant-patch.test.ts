@@ -502,11 +502,20 @@ test("the default disclosure mode is stored as absence, not as a value", () => {
   assert.equal(back.routing.disclosure, undefined);
 
   const opted = buildAssistantPatch(
-    fd({ id: "a1", [SECTION.guardrails]: "1", disclosure: "deflect" }),
+    fd({ id: "a1", [SECTION.guardrails]: "1", disclosure: "upfront" }),
     PREV,
     CTX,
   );
-  assert.equal(opted.routing.disclosure, "deflect");
+  assert.equal(opted.routing.disclosure, "upfront");
+
+  // The retired mode is not accepted back, even if a hand-crafted form posts
+  // it: saving the section clears it rather than storing it again.
+  const retired = buildAssistantPatch(
+    fd({ id: "a1", [SECTION.guardrails]: "1", disclosure: "deflect" }),
+    { ...PREV, routing: { ...PREV.routing, disclosure: "deflect" } },
+    CTX,
+  );
+  assert.equal(retired.routing.disclosure, undefined);
 });
 
 test("row keys are addressed by name, so removing one cannot shuffle the others", () => {
