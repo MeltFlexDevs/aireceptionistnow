@@ -148,6 +148,15 @@ import AnsweringServiceForTherapists, {
 import FuneralHomeAnsweringService, {
   meta as funeralHomeAnsweringServiceMeta,
 } from "./funeral-home-answering-service";
+import AiVoiceAgentVsChatbotVsIvr, {
+  meta as aiVoiceAgentVsChatbotVsIvrMeta,
+} from "./ai-voice-agent-vs-chatbot-vs-ivr";
+import TwilioVsDialpadVsFreshworksVsEliseai, {
+  meta as twilioVsDialpadVsFreshworksVsEliseaiMeta,
+} from "./twilio-vs-dialpad-vs-freshworks-vs-eliseai";
+import AiReceptionistForPropertyManagement, {
+  meta as aiReceptionistForPropertyManagementMeta,
+} from "./ai-receptionist-for-property-management";
 
 export type PostMeta = {
   slug: string;
@@ -200,6 +209,7 @@ const postIndustry: Record<string, IndustrySlug> = {
   "locksmith-answering-service": "home-services",
   "cleaning-company-answering-service": "home-services",
   "answering-service-for-therapists": "medical",
+  "ai-receptionist-for-property-management": "property-management",
 };
 
 const postAuthors: Record<string, AuthorKey> = {
@@ -251,6 +261,9 @@ const postAuthors: Record<string, AuthorKey> = {
   "cleaning-company-answering-service": "brano",
   "answering-service-for-therapists": "matus",
   "funeral-home-answering-service": "brano",
+  "ai-voice-agent-vs-chatbot-vs-ivr": "matus",
+  "twilio-vs-dialpad-vs-freshworks-vs-eliseai": "brano",
+  "ai-receptionist-for-property-management": "matus",
 };
 
 export const posts: Post[] = [
@@ -341,6 +354,18 @@ export const posts: Post[] = [
     Body: AnsweringServiceForTherapists,
   },
   { ...funeralHomeAnsweringServiceMeta, Body: FuneralHomeAnsweringService },
+  {
+    ...aiVoiceAgentVsChatbotVsIvrMeta,
+    Body: AiVoiceAgentVsChatbotVsIvr,
+  },
+  {
+    ...twilioVsDialpadVsFreshworksVsEliseaiMeta,
+    Body: TwilioVsDialpadVsFreshworksVsEliseai,
+  },
+  {
+    ...aiReceptionistForPropertyManagementMeta,
+    Body: AiReceptionistForPropertyManagement,
+  },
 ]
   .map((p) => ({
     ...p,

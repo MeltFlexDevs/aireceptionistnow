@@ -1,0 +1,58 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" role="img" aria-label="The difference between an assistant and an agent is whether it writes anything. An assistant only reads: it states opening hours, gives the address and directions, quotes a published price, answers a question from your knowledge base, and takes a message for someone to act on later. An agent writes: it checks a live calendar and holds the slot, creates the record in your system with the fields filled in, sends the confirmation text, pages the on-call person and confirms they picked up, and warm-transfers a caller mid-conversation. The right-hand column is where the labour saving lives, and it is the column a demo call almost never shows.">
+  <rect width="1200" height="630" fill="#faf8ff"/>
+  <rect x="0.5" y="0.5" width="1199" height="629" fill="none" stroke="#ece7f6"/>
+
+  <text x="60" y="60" font-size="26" font-weight="600" fill="#1a1a1a">Assistant or agent? Ask what it writes</text>
+  <text x="60" y="92" font-size="16" fill="#8a8398">Both columns sound identical on a call. Only one of them takes work off a person&#8217;s desk.</text>
+
+  <!-- LEFT: assistant -->
+  <rect x="60" y="130" width="510" height="392" rx="10" fill="#ffffff" stroke="#e6e0f5"/>
+  <text x="90" y="170" font-size="11" font-weight="600" fill="#a49dba" letter-spacing="0.08em">ASSISTANT - READS ONLY</text>
+  <text x="90" y="204" font-size="20" font-weight="600" fill="#1a1a1a">It knows things</text>
+
+  <g fill="#5a5468" font-size="14">
+    <circle cx="98" cy="243" r="3.5" fill="#cfc7e8"/>
+    <text x="118" y="248">States the opening hours</text>
+    <circle cx="98" cy="285" r="3.5" fill="#cfc7e8"/>
+    <text x="118" y="290">Gives the address and directions</text>
+    <circle cx="98" cy="327" r="3.5" fill="#cfc7e8"/>
+    <text x="118" y="332">Quotes a price off the published list</text>
+    <circle cx="98" cy="369" r="3.5" fill="#cfc7e8"/>
+    <text x="118" y="374">Answers from a knowledge base</text>
+    <circle cx="98" cy="411" r="3.5" fill="#cfc7e8"/>
+    <text x="118" y="416">Takes a message</text>
+  </g>
+
+  <rect x="90" y="444" width="450" height="52" rx="8" fill="#f7f5fc"/>
+  <text x="110" y="467" font-size="13" fill="#7a7389">Somebody still opens the message in the morning and</text>
+  <text x="110" y="486" font-size="13" fill="#7a7389">does the actual work. The call was captured, not handled.</text>
+
+  <!-- arrow -->
+  <text x="600" y="330" font-size="28" fill="#cfc7e8" text-anchor="middle">&#8594;</text>
+
+  <!-- RIGHT: agent -->
+  <rect x="630" y="130" width="510" height="392" rx="10" fill="#f1edfd" stroke="#5b3ef0"/>
+  <text x="660" y="170" font-size="11" font-weight="600" fill="#5b3ef0" letter-spacing="0.08em">AGENT - READS AND WRITES</text>
+  <text x="660" y="204" font-size="20" font-weight="600" fill="#1a1a1a">It changes things</text>
+
+  <g fill="#5a5468" font-size="14">
+    <circle cx="668" cy="243" r="3.5" fill="#5b3ef0"/>
+    <text x="688" y="248">Reads a live calendar and holds the slot</text>
+    <circle cx="668" cy="285" r="3.5" fill="#5b3ef0"/>
+    <text x="688" y="290">Creates the record, fields already filled</text>
+    <circle cx="668" cy="327" r="3.5" fill="#5b3ef0"/>
+    <text x="688" y="332">Sends the confirmation text</text>
+    <circle cx="668" cy="369" r="3.5" fill="#5b3ef0"/>
+    <text x="688" y="374">Pages on-call and checks somebody woke</text>
+    <circle cx="668" cy="411" r="3.5" fill="#5b3ef0"/>
+    <text x="688" y="416">Warm-transfers mid-conversation</text>
+  </g>
+
+  <rect x="660" y="444" width="450" height="52" rx="8" fill="#e7e0fa"/>
+  <text x="680" y="467" font-size="13" fill="#5a5468">Every line here needs a credential, a permission and a</text>
+  <text x="680" y="486" font-size="13" fill="#5a5468">rule for what happens when the write fails.</text>
+
+  <!-- footnote -->
+  <rect x="60" y="550" width="1080" height="44" rx="8" fill="#f1edfd"/>
+  <text x="84" y="578" font-size="13" fill="#5a5468">The question that separates vendors: &#8220;in the demo I just heard, which of those right-hand rows actually happened in a real system?&#8221;</text>
+</svg>

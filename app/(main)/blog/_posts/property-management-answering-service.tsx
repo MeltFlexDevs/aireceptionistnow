@@ -38,7 +38,6 @@ export const meta = {
     "tenant maintenance call answering",
     "property manager call answering",
     "leasing call answering service",
-    "AI receptionist for property management",
     "maintenance emergency triage",
   ],
   sections: [
@@ -501,6 +500,13 @@ export default function Body() {
           <Strong>Connect the calendar and the maintenance queue.</Strong>{" "}
           Showings should book into a synced calendar; work orders should
           land in your ticketing system, not an email inbox someone forwards.
+          Whether that is actually possible depends on your property
+          management software more than on the vendor - we break the
+          integration reality down in{" "}
+          <Internal href="/blog/ai-receptionist-for-property-management">
+            AI receptionist for property management
+          </Internal>
+          .
         </LI>
         <LI>
           <Strong>Start with after-hours only.</Strong> Route just nights and

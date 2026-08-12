@@ -1,0 +1,59 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" role="img" aria-label="Four rungs of integration depth for an AI receptionist in property management. Rung one, voicemail: you receive a recording, and a person still listens, calls back and types it in, so nothing is saved. Rung two, the AI answers and emails a summary: you receive a tidy typed message, and a person still keys it into the property management system and dispatches it, so only the transcription is saved. Rung three, the AI also books and pages: a tour lands on a calendar and the on-call technician is woken and confirmed, so the after-hours scramble is saved. Rung four, the AI writes into the property management system: a work order appears with unit, category, priority and contact already filled in, and a person only approves it, so the data entry is saved - which was the real cost all along. Most vendor pages sell rung two and price rung four.">
+  <rect width="1200" height="630" fill="#faf8ff"/>
+  <rect x="0.5" y="0.5" width="1199" height="629" fill="none" stroke="#ece7f6"/>
+
+  <text x="60" y="60" font-size="26" font-weight="600" fill="#1a1a1a">Four rungs, and only the top one saves the data entry</text>
+  <text x="60" y="92" font-size="16" fill="#8a8398">Every product below &#8220;answers the phone&#8221;. What changes is how much typing is left over in the morning.</text>
+
+  <!-- column headers -->
+  <text x="352" y="140" font-size="11" font-weight="600" fill="#a49dba" letter-spacing="0.08em">WHAT YOU GET</text>
+  <text x="700" y="140" font-size="11" font-weight="600" fill="#a49dba" letter-spacing="0.08em">WHAT A PERSON STILL DOES</text>
+  <text x="968" y="140" font-size="11" font-weight="600" fill="#a49dba" letter-spacing="0.08em">HOURS SAVED</text>
+
+  <!-- RUNG 1 -->
+  <rect x="60" y="156" width="1080" height="94" rx="10" fill="#ffffff" stroke="#ece7f6"/>
+  <rect x="60" y="156" width="4" height="94" fill="#dcd6ee"/>
+  <text x="88" y="190" font-size="11" font-weight="600" fill="#a49dba" letter-spacing="0.06em">RUNG 1</text>
+  <text x="88" y="216" font-size="16" font-weight="600" fill="#1a1a1a">Voicemail</text>
+  <text x="352" y="196" font-size="13.5" fill="#5a5468">A recording, and often</text>
+  <text x="352" y="216" font-size="13.5" fill="#5a5468">not even that</text>
+  <text x="700" y="196" font-size="13.5" fill="#5a5468">Listens, calls back, works out</text>
+  <text x="700" y="216" font-size="13.5" fill="#5a5468">what happened, types it in</text>
+  <text x="968" y="206" font-size="15" font-weight="600" fill="#a49dba">None</text>
+
+  <!-- RUNG 2 -->
+  <rect x="60" y="262" width="1080" height="94" rx="10" fill="#ffffff" stroke="#ece7f6"/>
+  <rect x="60" y="262" width="4" height="94" fill="#c3b8e6"/>
+  <text x="88" y="296" font-size="11" font-weight="600" fill="#a49dba" letter-spacing="0.06em">RUNG 2</text>
+  <text x="88" y="322" font-size="16" font-weight="600" fill="#1a1a1a">Answers, emails you</text>
+  <text x="352" y="302" font-size="13.5" fill="#5a5468">A tidy typed summary,</text>
+  <text x="352" y="322" font-size="13.5" fill="#5a5468">every call, in one inbox</text>
+  <text x="700" y="302" font-size="13.5" fill="#5a5468">Reads it, keys it into the PMS,</text>
+  <text x="700" y="322" font-size="13.5" fill="#5a5468">decides, dispatches</text>
+  <text x="968" y="312" font-size="15" font-weight="600" fill="#8a8398">The typing up</text>
+
+  <!-- RUNG 3 -->
+  <rect x="60" y="368" width="1080" height="94" rx="10" fill="#ffffff" stroke="#ded6f4"/>
+  <rect x="60" y="368" width="4" height="94" fill="#8f7dd4"/>
+  <text x="88" y="402" font-size="11" font-weight="600" fill="#a49dba" letter-spacing="0.06em">RUNG 3</text>
+  <text x="88" y="428" font-size="16" font-weight="600" fill="#1a1a1a">Books and pages</text>
+  <text x="352" y="408" font-size="13.5" fill="#5a5468">A tour on the calendar,</text>
+  <text x="352" y="428" font-size="13.5" fill="#5a5468">the on-call tech awake</text>
+  <text x="700" y="408" font-size="13.5" fill="#5a5468">Checks it in the morning and</text>
+  <text x="700" y="428" font-size="13.5" fill="#5a5468">files the paperwork</text>
+  <text x="968" y="418" font-size="15" font-weight="600" fill="#5a5468">The night scramble</text>
+
+  <!-- RUNG 4 -->
+  <rect x="60" y="474" width="1080" height="94" rx="10" fill="#f1edfd" stroke="#5b3ef0"/>
+  <rect x="60" y="474" width="4" height="94" fill="#5b3ef0"/>
+  <text x="88" y="508" font-size="11" font-weight="600" fill="#5b3ef0" letter-spacing="0.06em">RUNG 4</text>
+  <text x="88" y="534" font-size="16" font-weight="600" fill="#1a1a1a">Writes into the PMS</text>
+  <text x="352" y="514" font-size="13.5" fill="#5a5468">A work order with unit,</text>
+  <text x="352" y="534" font-size="13.5" fill="#5a5468">category, priority, contact</text>
+  <text x="700" y="514" font-size="13.5" fill="#5a5468">Approves it. Or does not, and</text>
+  <text x="700" y="534" font-size="13.5" fill="#5a5468">that exception is the job now</text>
+  <text x="968" y="524" font-size="15" font-weight="600" fill="#5b3ef0">The data entry</text>
+
+  <!-- footnote -->
+  <text x="60" y="600" font-size="13" fill="#7a7389">Most pages titled &#8220;AI receptionist for property management&#8221; are selling rung 2 while pricing against the savings of rung 4. Ask which, in writing.</text>
+</svg>
