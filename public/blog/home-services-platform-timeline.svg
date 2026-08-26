@@ -1,0 +1,61 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" role="img" aria-label="Between August 2025 and April 2026 the field service platforms stopped being partners and became competitors. In August 2025 Jobber launched its own AI Receptionist, sold as an add-on to any plan and included at no extra cost on the Plus plan, with no per minute fees. Housecall Pro pairs its CSR AI with HCP Assist, its own human answering service, so escalation stays inside the platform. In April 2026 ServiceTitan introduced AI Virtual Agents, described as the only virtual agents that integrate with adaptive capacity directly inside ServiceTitan, working with Contact Center Pro, Phones Pro or any third-party phone system, with no commitment and a per-call usage fee. The consequence for buyers is that if your field service management software already ships a voice agent, a third-party product now has to beat something that is already inside the system holding your capacity, your job types and your dispatch board, and that is a much higher bar than beating your voicemail.">
+  <rect width="1200" height="630" fill="#fbfaff"/>
+  <rect x="0.5" y="0.5" width="1199" height="629" fill="none" stroke="#ece7f6"/>
+
+  <text x="60" y="58" font-size="26" font-weight="600" fill="#1a1a1a">In eight months, your software vendor became your competitor</text>
+  <text x="60" y="88" font-size="15.5" fill="#8a8398">Every major field service platform now ships its own voice agent. That changes which question you are actually answering.</text>
+
+  <!-- timeline axis -->
+  <line x1="120" y1="152" x2="1140" y2="152" stroke="#ded6f4" stroke-width="2"/>
+  <text x="120" y="136" font-size="11" font-weight="600" fill="#a49dba" letter-spacing="0.06em">AUG 2025</text>
+  <text x="1075" y="136" font-size="11" font-weight="600" fill="#5b3ef0" letter-spacing="0.06em">APR 2026</text>
+
+  <!-- node 1 -->
+  <circle cx="180" cy="152" r="8" fill="#ffffff" stroke="#c3b8e6" stroke-width="2"/>
+  <line x1="180" y1="160" x2="180" y2="196" stroke="#ded6f4" stroke-width="2"/>
+  <rect x="80" y="196" width="320" height="176" rx="10" fill="#ffffff" stroke="#ece7f6"/>
+  <rect x="80" y="196" width="4" height="176" fill="#c3b8e6"/>
+  <text x="106" y="226" font-size="11" font-weight="600" fill="#a49dba" letter-spacing="0.06em">AUGUST 2025</text>
+  <text x="106" y="252" font-size="16.5" font-weight="600" fill="#1a1a1a">Jobber AI Receptionist</text>
+  <text x="106" y="280" font-size="13.5" fill="#5a5468">An add-on to any plan, and</text>
+  <text x="106" y="300" font-size="13.5" fill="#5a5468">included at no extra cost on</text>
+  <text x="106" y="320" font-size="13.5" fill="#5a5468">the Plus plan. No per-minute</text>
+  <text x="106" y="340" font-size="13.5" fill="#5a5468">fees. Books visits on the call.</text>
+  <text x="106" y="362" font-size="13" fill="#a08fb8">Answers calls and texts</text>
+
+  <!-- node 2 -->
+  <circle cx="600" cy="152" r="8" fill="#ffffff" stroke="#c3b8e6" stroke-width="2"/>
+  <line x1="600" y1="160" x2="600" y2="196" stroke="#ded6f4" stroke-width="2"/>
+  <rect x="440" y="196" width="320" height="176" rx="10" fill="#ffffff" stroke="#ece7f6"/>
+  <rect x="440" y="196" width="4" height="176" fill="#c3b8e6"/>
+  <text x="466" y="226" font-size="11" font-weight="600" fill="#a49dba" letter-spacing="0.06em">ALONGSIDE</text>
+  <text x="466" y="252" font-size="16.5" font-weight="600" fill="#1a1a1a">Housecall Pro</text>
+  <text x="466" y="280" font-size="13.5" fill="#5a5468">CSR AI on chat and calls, with</text>
+  <text x="466" y="300" font-size="13.5" fill="#5a5468">HCP Assist &#8212; its own human</text>
+  <text x="466" y="320" font-size="13.5" fill="#5a5468">answering service &#8212; behind it.</text>
+  <text x="466" y="340" font-size="13.5" fill="#5a5468">Escalation stays in-platform.</text>
+  <text x="466" y="362" font-size="13" fill="#a08fb8">AI and humans from one vendor</text>
+
+  <!-- node 3 -->
+  <circle cx="1020" cy="152" r="8" fill="#f1edfd" stroke="#5b3ef0" stroke-width="2"/>
+  <line x1="1020" y1="160" x2="1020" y2="196" stroke="#5b3ef0" stroke-width="2"/>
+  <rect x="800" y="196" width="340" height="176" rx="10" fill="#f1edfd" stroke="#5b3ef0"/>
+  <rect x="800" y="196" width="4" height="176" fill="#5b3ef0"/>
+  <text x="826" y="226" font-size="11" font-weight="600" fill="#5b3ef0" letter-spacing="0.06em">APRIL 2026</text>
+  <text x="826" y="252" font-size="16.5" font-weight="600" fill="#1a1a1a">ServiceTitan AI Virtual Agents</text>
+  <text x="826" y="280" font-size="13.5" fill="#3f3a4d">Books against live capacity,</text>
+  <text x="826" y="300" font-size="13.5" fill="#3f3a4d">per job type and business unit.</text>
+  <text x="826" y="320" font-size="13.5" fill="#3f3a4d">Works with any phone system.</text>
+  <text x="826" y="340" font-size="13.5" fill="#3f3a4d">No commitment, per-call fee.</text>
+  <text x="826" y="362" font-size="13" fill="#7a6fa8">Escalates to a human, or to yours</text>
+
+  <!-- consequence -->
+  <rect x="80" y="410" width="1060" height="128" rx="10" fill="#ffffff" stroke="#ded6f4"/>
+  <text x="106" y="442" font-size="11" font-weight="600" fill="#5b3ef0" letter-spacing="0.06em">WHAT THIS CHANGES FOR YOU</text>
+  <text x="106" y="472" font-size="15.5" fill="#3f3a4d">A third-party AI receptionist no longer has to beat your voicemail. It has to beat something already sitting inside the</text>
+  <text x="106" y="496" font-size="15.5" fill="#3f3a4d">system that holds your capacity, your job types, your price book and your dispatch board &#8212; and that is a far higher bar.</text>
+  <text x="106" y="522" font-size="13.5" fill="#8a8398">So the real question is not &#8220;which AI receptionist is best&#8221;. It is: does my FSM already have one, and is it good enough?</text>
+
+  <!-- footnote -->
+  <text x="80" y="580" font-size="13" fill="#7a7389">Dates and terms are each vendor&#8217;s own published announcements and product pages, checked August 2026. Confirm current pricing before you buy.</text>
+</svg>

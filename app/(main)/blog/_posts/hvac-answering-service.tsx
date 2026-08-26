@@ -36,7 +36,6 @@ export const meta = {
   keywords: [
     "HVAC answering service",
     "answering service for HVAC",
-    "AI receptionist for HVAC",
     "24/7 HVAC call answering",
     "HVAC missed calls",
     "after-hours HVAC answering service",

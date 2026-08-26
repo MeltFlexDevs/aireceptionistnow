@@ -1,0 +1,68 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" role="img" aria-label="Booking one dental appointment is five decisions, not one. Step one, what is the visit: a generic AI hears the word appointment and offers the next free slot, while a dental-aware AI separates a new patient exam from an emergency from a six month recall. Step two, how long does it take: a generic AI books a fixed block, usually thirty minutes, while a dental-aware AI reads the appointment length your practice management system already stores per procedure. Step three, who performs it: a generic AI books the practice, while a dental-aware AI books the hygienist column for a cleaning and the dentist column for a crown seat. Step four, which operatory is free: a generic AI cannot see the chair, so two patients arrive for one room, while a dental-aware AI books against the operatory the procedure actually needs. Step five, is the plan active: a generic AI promises a covered visit it cannot verify, while a dental-aware AI collects the carrier and subscriber and leaves eligibility to a human. The point is that the practice management system holds all five answers, so a voice agent that cannot read it is guessing at four of them.">
+  <rect width="1200" height="630" fill="#fbfaff"/>
+  <rect x="0.5" y="0.5" width="1199" height="629" fill="none" stroke="#ece7f6"/>
+
+  <text x="60" y="58" font-size="26" font-weight="600" fill="#1a1a1a">Booking one dental appointment is five decisions, not one</text>
+  <text x="60" y="88" font-size="15.5" fill="#8a8398">Every one of these answers already lives in the practice management system. A voice agent that cannot read it is guessing at four of them.</text>
+
+  <text x="330" y="126" font-size="11" font-weight="600" fill="#a49dba" letter-spacing="0.08em">A GENERIC VOICE AGENT</text>
+  <text x="740" y="126" font-size="11" font-weight="600" fill="#5b3ef0" letter-spacing="0.08em">ONE THAT CAN READ YOUR PMS</text>
+
+  <!-- spine -->
+  <line x1="86" y1="168" x2="86" y2="556" stroke="#ded6f4" stroke-width="2"/>
+
+  <!-- STEP 1 -->
+  <circle cx="86" cy="176" r="13" fill="#ffffff" stroke="#c3b8e6" stroke-width="2"/>
+  <text x="86" y="181" font-size="12" font-weight="600" fill="#7a6fa8" text-anchor="middle">1</text>
+  <text x="122" y="170" font-size="15.5" font-weight="600" fill="#1a1a1a">What is the visit?</text>
+  <text x="122" y="192" font-size="13" fill="#8a8398">The words the caller uses</text>
+  <text x="330" y="170" font-size="13.5" fill="#5a5468">Hears &#8220;appointment&#8221; and offers</text>
+  <text x="330" y="190" font-size="13.5" fill="#5a5468">the next free slot on the calendar</text>
+  <text x="740" y="170" font-size="13.5" fill="#3f3a4d">Separates a new-patient exam from</text>
+  <text x="740" y="190" font-size="13.5" fill="#3f3a4d">a broken tooth from a 6-month recall</text>
+
+  <!-- STEP 2 -->
+  <circle cx="86" cy="252" r="13" fill="#ffffff" stroke="#c3b8e6" stroke-width="2"/>
+  <text x="86" y="257" font-size="12" font-weight="600" fill="#7a6fa8" text-anchor="middle">2</text>
+  <text x="122" y="246" font-size="15.5" font-weight="600" fill="#1a1a1a">How long is it?</text>
+  <text x="122" y="268" font-size="13" fill="#8a8398">Minutes, by procedure</text>
+  <text x="330" y="246" font-size="13.5" fill="#5a5468">Books a fixed block, usually the</text>
+  <text x="330" y="266" font-size="13.5" fill="#5a5468">30 minutes someone typed in once</text>
+  <text x="740" y="246" font-size="13.5" fill="#3f3a4d">Uses the length your PMS already</text>
+  <text x="740" y="266" font-size="13.5" fill="#3f3a4d">stores against that procedure code</text>
+
+  <!-- STEP 3 -->
+  <circle cx="86" cy="328" r="13" fill="#ffffff" stroke="#c3b8e6" stroke-width="2"/>
+  <text x="86" y="333" font-size="12" font-weight="600" fill="#7a6fa8" text-anchor="middle">3</text>
+  <text x="122" y="322" font-size="15.5" font-weight="600" fill="#1a1a1a">Who performs it?</text>
+  <text x="122" y="344" font-size="13" fill="#8a8398">Dentist or hygienist</text>
+  <text x="330" y="322" font-size="13.5" fill="#5a5468">Books &#8220;the practice&#8221; &#8212; there is one</text>
+  <text x="330" y="342" font-size="13.5" fill="#5a5468">calendar and everyone shares it</text>
+  <text x="740" y="322" font-size="13.5" fill="#3f3a4d">Hygiene column for a cleaning, the</text>
+  <text x="740" y="342" font-size="13.5" fill="#3f3a4d">doctor&#8217;s for a crown seat</text>
+
+  <!-- STEP 4 -->
+  <circle cx="86" cy="404" r="13" fill="#ffffff" stroke="#c3b8e6" stroke-width="2"/>
+  <text x="86" y="409" font-size="12" font-weight="600" fill="#7a6fa8" text-anchor="middle">4</text>
+  <text x="122" y="398" font-size="15.5" font-weight="600" fill="#1a1a1a">Which chair is free?</text>
+  <text x="122" y="420" font-size="13" fill="#8a8398">Operatory, not just time</text>
+  <text x="330" y="398" font-size="13.5" fill="#5a5468">Cannot see the room, so two</text>
+  <text x="330" y="418" font-size="13.5" fill="#5a5468">patients arrive for one operatory</text>
+  <text x="740" y="398" font-size="13.5" fill="#3f3a4d">Books against the operatory the</text>
+  <text x="740" y="418" font-size="13.5" fill="#3f3a4d">procedure actually needs</text>
+
+  <!-- STEP 5 -->
+  <circle cx="86" cy="480" r="13" fill="#f1edfd" stroke="#5b3ef0" stroke-width="2"/>
+  <text x="86" y="485" font-size="12" font-weight="600" fill="#5b3ef0" text-anchor="middle">5</text>
+  <text x="122" y="474" font-size="15.5" font-weight="600" fill="#1a1a1a">Is the plan active?</text>
+  <text x="122" y="496" font-size="13" fill="#8a8398">Do not automate this one</text>
+  <text x="330" y="474" font-size="13.5" fill="#5a5468">Reassures the caller it is covered.</text>
+  <text x="330" y="494" font-size="13.5" fill="#5a5468">You find out at the front desk</text>
+  <text x="740" y="474" font-size="13.5" fill="#3f3a4d">Takes carrier, subscriber and DOB,</text>
+  <text x="740" y="494" font-size="13.5" fill="#3f3a4d">then leaves eligibility to a person</text>
+
+  <!-- footnote -->
+  <rect x="60" y="536" width="1080" height="52" rx="8" fill="#f1edfd" stroke="#ded6f4"/>
+  <text x="84" y="558" font-size="13.5" fill="#4b4459">Ask any vendor which of these five it reads from your PMS and which it guesses. &#8220;Integrates with Dentrix&#8221; can mean any of them &#8212;</text>
+  <text x="84" y="578" font-size="13.5" fill="#4b4459">including a nightly one-way export that never books anything at all.</text>
+</svg>

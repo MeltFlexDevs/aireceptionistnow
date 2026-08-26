@@ -1,0 +1,55 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" role="img" aria-label="Restaurant phone calls split into three endings and the products split with them. A call that ends in a message needs no integration at all: any general answering product handles hours, directions and taking a name, and the risk is that a caller who wanted to order gives up. A call that ends in a reservation needs write access to the booking platform, which means OpenTable, SevenRooms, Resy, Yelp or Tripleseat, and this is the tier where Slang AI publishes prices of three hundred and ninety nine dollars and five hundred and ninety nine dollars per location per month. A call that ends in a transaction needs write access to the point of sale, which means Toast, Square, Clover, SpotOn, Olo, PAR or NCR Aloha, and it must also handle modifiers, eighty-sixed items, quote times and payment; this is the tier where Loman, Incept AI and ConverseNow live and where nobody publishes a price. The rule underneath is that the hard part is never the voice, it is the write-back, and the further right you go the fewer vendors can do it and the less willing they are to name a number.">
+  <rect width="1200" height="630" fill="#fbfaff"/>
+  <rect x="0.5" y="0.5" width="1199" height="629" fill="none" stroke="#ece7f6"/>
+
+  <text x="60" y="58" font-size="26" font-weight="600" fill="#1a1a1a">Three ways a restaurant call can end &#8212; and the products split with them</text>
+  <text x="60" y="88" font-size="15.5" fill="#8a8398">Pick the ending you actually need before you compare voices. The voices are all fine. The write-back is where they differ.</text>
+
+  <!-- source node -->
+  <rect x="60" y="124" width="200" height="62" rx="10" fill="#ffffff" stroke="#ded6f4"/>
+  <text x="80" y="152" font-size="15" font-weight="600" fill="#1a1a1a">The phone rings</text>
+  <text x="80" y="172" font-size="13" fill="#8a8398">during service</text>
+
+  <!-- connectors -->
+  <path d="M160 186 L160 236 L260 236" stroke="#dcd6ee" stroke-width="2" fill="none"/>
+  <path d="M160 186 L160 372 L260 372" stroke="#c3b8e6" stroke-width="2" fill="none"/>
+  <path d="M160 186 L160 508 L260 508" stroke="#5b3ef0" stroke-width="2" fill="none"/>
+
+  <!-- BRANCH 1: message -->
+  <rect x="260" y="196" width="880" height="98" rx="10" fill="#ffffff" stroke="#ece7f6"/>
+  <rect x="260" y="196" width="4" height="98" fill="#dcd6ee"/>
+  <text x="288" y="226" font-size="16" font-weight="600" fill="#1a1a1a">Ends in a message</text>
+  <text x="288" y="250" font-size="13.5" fill="#5a5468">Hours, directions, allergens,</text>
+  <text x="288" y="270" font-size="13.5" fill="#5a5468">a name and a callback</text>
+  <text x="628" y="222" font-size="11" font-weight="600" fill="#a49dba" letter-spacing="0.06em">NEEDS</text>
+  <text x="628" y="246" font-size="13.5" fill="#5a5468">Nothing. No integration at all.</text>
+  <text x="628" y="266" font-size="13.5" fill="#5a5468">Any general AI answering product does it</text>
+  <text x="628" y="286" font-size="13" fill="#a08fb8">Risk: the caller who wanted to order hangs up</text>
+
+  <!-- BRANCH 2: reservation -->
+  <rect x="260" y="322" width="880" height="98" rx="10" fill="#ffffff" stroke="#ded6f4"/>
+  <rect x="260" y="322" width="4" height="98" fill="#c3b8e6"/>
+  <text x="288" y="352" font-size="16" font-weight="600" fill="#1a1a1a">Ends in a reservation</text>
+  <text x="288" y="376" font-size="13.5" fill="#5a5468">A table, a party size,</text>
+  <text x="288" y="396" font-size="13.5" fill="#5a5468">a private event enquiry</text>
+  <text x="628" y="348" font-size="11" font-weight="600" fill="#a49dba" letter-spacing="0.06em">NEEDS</text>
+  <text x="628" y="372" font-size="13.5" fill="#5a5468">Write access to the booking platform:</text>
+  <text x="628" y="392" font-size="13.5" fill="#5a5468">OpenTable, SevenRooms, Resy, Yelp, Tripleseat</text>
+  <text x="628" y="412" font-size="13" fill="#7a6fa8">Prices are published here &#8212; roughly $400&#8211;$600 per location</text>
+
+  <!-- BRANCH 3: transaction -->
+  <rect x="260" y="448" width="880" height="118" rx="10" fill="#f1edfd" stroke="#5b3ef0"/>
+  <rect x="260" y="448" width="4" height="118" fill="#5b3ef0"/>
+  <text x="288" y="478" font-size="16" font-weight="600" fill="#1a1a1a">Ends in a transaction</text>
+  <text x="288" y="502" font-size="13.5" fill="#5a5468">A takeout order, priced,</text>
+  <text x="288" y="522" font-size="13.5" fill="#5a5468">modified, timed and paid</text>
+  <text x="288" y="546" font-size="13" fill="#7a6fa8">The only ending worth money</text>
+  <text x="628" y="474" font-size="11" font-weight="600" fill="#5b3ef0" letter-spacing="0.06em">NEEDS</text>
+  <text x="628" y="498" font-size="13.5" fill="#3f3a4d">Write access to the POS: Toast, Square, Clover,</text>
+  <text x="628" y="518" font-size="13.5" fill="#3f3a4d">SpotOn, Olo, PAR, NCR Aloha &#8212; plus modifiers,</text>
+  <text x="628" y="538" font-size="13.5" fill="#3f3a4d">86&#8217;d items, a real quote time and payment</text>
+  <text x="628" y="558" font-size="13" fill="#7a6fa8">Nobody in this tier publishes a price</text>
+
+  <!-- footnote -->
+  <text x="60" y="600" font-size="13" fill="#7a7389">Figures are each vendor&#8217;s own published pricing as of August 2026. The further right you go, the fewer products can do it &#8212; and the less willing they are to name a number.</text>
+</svg>

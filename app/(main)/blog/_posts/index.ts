@@ -157,6 +157,15 @@ import TwilioVsDialpadVsFreshworksVsEliseai, {
 import AiReceptionistForPropertyManagement, {
   meta as aiReceptionistForPropertyManagementMeta,
 } from "./ai-receptionist-for-property-management";
+import BestAiReceptionistForDentalPractices, {
+  meta as bestAiReceptionistForDentalPracticesMeta,
+} from "./best-ai-receptionist-for-dental-practices";
+import BestAiPhoneAnsweringForRestaurants, {
+  meta as bestAiPhoneAnsweringForRestaurantsMeta,
+} from "./best-ai-phone-answering-for-restaurants";
+import BestAiReceptionistForHomeServices, {
+  meta as bestAiReceptionistForHomeServicesMeta,
+} from "./best-ai-receptionist-for-home-services";
 
 export type PostMeta = {
   slug: string;
@@ -177,6 +186,12 @@ export type PostMeta = {
   keywords: string[];
   sections: { id: string; title: string }[];
   faqs: FaqItem[];
+  /**
+   * Ranking posts only: the ordered shortlist the article evaluates, emitted as
+   * ItemList JSON-LD alongside BlogPosting. Position is meaningful - index 0 is
+   * the article's first pick - so only set this where the prose actually ranks.
+   */
+  itemList?: { name: string; description: string; url?: string }[];
 };
 
 export type Post = PostMeta & {
@@ -210,6 +225,9 @@ const postIndustry: Record<string, IndustrySlug> = {
   "cleaning-company-answering-service": "home-services",
   "answering-service-for-therapists": "medical",
   "ai-receptionist-for-property-management": "property-management",
+  "best-ai-receptionist-for-dental-practices": "dentists",
+  "best-ai-phone-answering-for-restaurants": "restaurants",
+  "best-ai-receptionist-for-home-services": "home-services",
 };
 
 const postAuthors: Record<string, AuthorKey> = {
@@ -264,6 +282,9 @@ const postAuthors: Record<string, AuthorKey> = {
   "ai-voice-agent-vs-chatbot-vs-ivr": "matus",
   "twilio-vs-dialpad-vs-freshworks-vs-eliseai": "brano",
   "ai-receptionist-for-property-management": "matus",
+  "best-ai-receptionist-for-dental-practices": "brano",
+  "best-ai-phone-answering-for-restaurants": "matus",
+  "best-ai-receptionist-for-home-services": "brano",
 };
 
 export const posts: Post[] = [
@@ -365,6 +386,18 @@ export const posts: Post[] = [
   {
     ...aiReceptionistForPropertyManagementMeta,
     Body: AiReceptionistForPropertyManagement,
+  },
+  {
+    ...bestAiReceptionistForDentalPracticesMeta,
+    Body: BestAiReceptionistForDentalPractices,
+  },
+  {
+    ...bestAiPhoneAnsweringForRestaurantsMeta,
+    Body: BestAiPhoneAnsweringForRestaurants,
+  },
+  {
+    ...bestAiReceptionistForHomeServicesMeta,
+    Body: BestAiReceptionistForHomeServices,
   },
 ]
   .map((p) => ({

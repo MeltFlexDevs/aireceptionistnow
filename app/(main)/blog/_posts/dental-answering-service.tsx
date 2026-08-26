@@ -36,7 +36,6 @@ export const meta = {
   keywords: [
     "dental answering service",
     "answering service for dental offices",
-    "AI receptionist for dental",
     "dental office phone answering",
     "after-hours dental answering service",
     "HIPAA dental answering service",

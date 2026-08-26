@@ -87,7 +87,7 @@ export default async function BlogPostPage({
     ? INDUSTRY_MENU.find((i) => i.slug === post.industry)
     : undefined;
 
-  const jsonLd = [
+  const jsonLd: Record<string, unknown>[] = [
     {
       "@context": "https://schema.org",
       "@type": "BlogPosting",
@@ -131,6 +131,26 @@ export default async function BlogPostPage({
       ],
     },
   ];
+
+  // Ranking posts carry the shortlist as ItemList so answer engines can lift the
+  // picks without re-parsing the prose. Ordered, because the article ranks.
+  if (post.itemList?.length) {
+    jsonLd.push({
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      name: post.title,
+      description: post.description,
+      itemListOrder: "https://schema.org/ItemListOrderAscending",
+      numberOfItems: post.itemList.length,
+      itemListElement: post.itemList.map((item, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        name: item.name,
+        description: item.description,
+        ...(item.url ? { url: item.url } : {}),
+      })),
+    });
+  }
 
   return (
     <div className="flex min-h-svh flex-col">

@@ -36,7 +36,6 @@ export const meta = {
     "restaurant answering service",
     "answering service for restaurants",
     "restaurant phone answering service",
-    "AI phone answering for restaurants",
     "restaurant call answering takeout orders",
     "restaurant reservation phone service",
     "who answers the phone at a restaurant",
