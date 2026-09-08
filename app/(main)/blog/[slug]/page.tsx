@@ -14,6 +14,7 @@ import { INDUSTRY_MENU } from "@/lib/marketing/industries";
 import { posts, getPost, relatedPosts, formatDate } from "../_posts";
 import { PostToc } from "../_components/post-toc";
 import { BlogCtaCard } from "../_components/blog-cta";
+import { enablePreferredSource } from "../_components/preferred-source";
 
 // Only the listed slugs exist - unknown ones 404 statically, no function invocation.
 export const dynamicParams = false;
@@ -80,6 +81,12 @@ export default async function BlogPostPage({
   if (!post) notFound();
 
   const { Body } = post;
+
+  // English articles carry the "add us as a preferred source" card under their
+  // opening paragraph; the localized twins render the same <Body /> and must
+  // not. Flipped here, read by Lead. See ../_components/preferred-source.
+  enablePreferredSource();
+
   const a = getAuthor(post.author);
   const others = relatedPosts(post.slug, 3);
   const url = `${siteUrl}/blog/${post.slug}`;

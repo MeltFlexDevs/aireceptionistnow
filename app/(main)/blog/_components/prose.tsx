@@ -1,9 +1,25 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
 import { YouTubeFacade } from "./youtube-facade";
+import { PreferredSource, preferredSourceEnabled } from "./preferred-source";
 
+/**
+ * The opening paragraph of an article — and, under it, the Google
+ * "preferred source" card.
+ *
+ * Every post in ../_posts opens with exactly one `<Lead>`, so this is the one
+ * edit that places the card under the first paragraph of every article, present
+ * and future. The card only prints where a template asked for it: the localized
+ * twins in content/i18n/{locale}/blog import this same `Lead`, and the card's
+ * copy is English. See ./preferred-source.
+ */
 export function Lead({ children }: { children: ReactNode }) {
-  return <p className="mb-8 text-[18px] leading-[1.7] text-[#333]">{children}</p>;
+  return (
+    <>
+      <p className="mb-8 text-[18px] leading-[1.7] text-[#333]">{children}</p>
+      {preferredSourceEnabled() && <PreferredSource />}
+    </>
+  );
 }
 
 export function P({ children }: { children: ReactNode }) {
