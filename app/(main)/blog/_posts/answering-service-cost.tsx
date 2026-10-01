@@ -388,7 +388,12 @@ export default function Body() {
         <Internal href="/blog/pest-control-answering-service">
           pest control company
         </Internal>{" "}
-        needs a script that never answers a pesticide safety question. If your
+        needs a script that never answers a pesticide safety question; and a
+        clinic pays for on-call dispatch time most businesses never see (
+        <Internal href="/blog/medical-answering-service-pricing">
+          medical answering service pricing, line by line
+        </Internal>
+        ). If your
         trade has one of these, price the vendors that can actually meet it, not
         the cheapest per-minute rate on the market.
       </P>

@@ -103,6 +103,9 @@ All call data is encrypted in transit and at rest. AI Receptionist Now complies 
 - [Can an AI receptionist block spam calls?](https://aireceptionistnow.com/answers/can-an-ai-receptionist-block-spam-calls): Yes — it answers and qualifies every call, so robocalls and cold pitches are screened out while real customers get through instantly.
 - [Can an AI receptionist handle multiple locations?](https://aireceptionistnow.com/answers/can-an-ai-receptionist-handle-multiple-locations): Yes — one setup answers every branch with location-aware answers, per-location calendars, and routing to the right office.
 - [Virtual receptionist vs answering service: what's the difference?](https://aireceptionistnow.com/answers/virtual-receptionist-vs-answering-service): An answering service takes messages; a virtual receptionist is a remote human front desk that books and transfers.
+- [Medical Answering Service Pricing: What Clinics Pay in 2026](https://aireceptionistnow.com/blog/medical-answering-service-pricing): Published rate cards from US answering services read line by line - plan prices, overage, billing increments, billable-time definitions, fees and the BAA question.
+- [Bilingual Answering Service: Agents vs Interpreters vs AI](https://aireceptionistnow.com/blog/bilingual-answering-service): The four delivery models behind "bilingual", what each vendor publishes about Spanish hours and cost, interpreter-line rates, and a five-call test.
+- [Chiropractic Answering Service: What It Must Never Say](https://aireceptionistnow.com/blog/chiropractic-answering-service): What a chiropractic phone script should handle, the seven sentences it must not say, red-flag symptoms that are not a booking, and Medicare and good-faith-estimate facts.
 - [Privacy Policy](https://aireceptionistnow.com/privacy-policy): How call data is handled and protected.
 
 ## FAQ

@@ -1,0 +1,60 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" role="img" aria-label="Three routes for a call to a chiropractic office. Route one, book it: new patient requests, reschedules, hours, directions, forms, and insurance questions that are answered from a written sheet. Route two, flag for the doctor: recent accident or fall, numbness or weakness, pain that is getting rapidly worse, a new severe headache with neck pain, fever with back pain, or a patient who feels worse after an adjustment; the script captures the caller's words, does not book a routine slot and notifies the chiropractor. Route three, 911 now: stroke signs, loss of bladder or bowel control, numbness in the groin or saddle area, weakness in both legs, or chest pain; the script tells the caller to call 911 and then notifies the chiropractor. The script never decides between routes two and three by asking clinical questions of its own.">
+  <rect width="1200" height="630" fill="#faf8ff"/>
+  <rect x="0.5" y="0.5" width="1199" height="629" fill="none" stroke="#ece7f6"/>
+
+  <text x="60" y="58" font-size="26" font-weight="600" fill="#1a1a1a">Every call goes through one of three doors</text>
+  <text x="60" y="88" font-size="16" fill="#8a8398">The script's only clinical skill is recognising which door. The list behind doors two and three is written and signed by the chiropractor.</text>
+
+  <!-- door 1 -->
+  <rect x="60" y="120" width="340" height="56" rx="10" fill="#1a1a1a"/>
+  <text x="230" y="146" text-anchor="middle" font-size="14" font-weight="600" fill="#ffffff" letter-spacing="0.05em">1  -  BOOK IT</text>
+  <text x="230" y="165" text-anchor="middle" font-size="12" fill="#b9b2cc">most calls</text>
+  <rect x="60" y="192" width="340" height="284" rx="10" fill="#ffffff" stroke="#e2dcf5" stroke-width="1.5"/>
+  <g font-size="14" fill="#1a1a1a">
+    <text x="84" y="228">New patient wants a first visit</text>
+    <text x="84" y="262">Reschedule or cancel</text>
+    <text x="84" y="296">Hours, directions, parking</text>
+    <text x="84" y="330">Intake forms and what to bring</text>
+    <text x="84" y="364">Insurance and self-pay questions</text>
+  </g>
+  <text x="84" y="386" font-size="12" fill="#5a5468">answered only from your written sheet</text>
+  <text x="84" y="428" font-size="13" font-weight="500" fill="#1a1a1a">Outcome</text>
+  <text x="84" y="450" font-size="13" fill="#5a5468">Appointment or message, no opinions</text>
+
+  <!-- door 2 -->
+  <rect x="430" y="120" width="340" height="56" rx="10" fill="#5b3ef0"/>
+  <text x="600" y="146" text-anchor="middle" font-size="14" font-weight="600" fill="#ffffff" letter-spacing="0.05em">2  -  FLAG FOR THE DOCTOR</text>
+  <text x="600" y="165" text-anchor="middle" font-size="12" fill="#d8cffb">no routine slot until a clinician decides</text>
+  <rect x="430" y="192" width="340" height="284" rx="10" fill="#ffffff" stroke="#e2dcf5" stroke-width="1.5"/>
+  <g font-size="14" fill="#1a1a1a">
+    <text x="454" y="228">Recent accident, fall or injury</text>
+    <text x="454" y="262">Numbness, tingling or weakness</text>
+    <text x="454" y="296">Pain getting rapidly worse</text>
+    <text x="454" y="330">New severe headache with neck pain</text>
+    <text x="454" y="364">Fever or feeling unwell with back pain</text>
+    <text x="454" y="398">Worse after an adjustment</text>
+  </g>
+  <text x="454" y="428" font-size="13" font-weight="500" fill="#1a1a1a">Outcome</text>
+  <text x="454" y="450" font-size="13" fill="#5a5468">Caller's own words captured, doctor notified</text>
+
+  <!-- door 3 -->
+  <rect x="800" y="120" width="340" height="56" rx="10" fill="#b3261e"/>
+  <text x="970" y="146" text-anchor="middle" font-size="14" font-weight="600" fill="#ffffff" letter-spacing="0.05em">3  -  911 NOW</text>
+  <text x="970" y="165" text-anchor="middle" font-size="12" fill="#f6d4d1">said in the first sentence</text>
+  <rect x="800" y="192" width="340" height="284" rx="10" fill="#ffffff" stroke="#f0c9c5" stroke-width="1.5"/>
+  <g font-size="14" fill="#1a1a1a">
+    <text x="824" y="228">Face drooping, arm weakness,</text>
+    <text x="824" y="248">trouble speaking or seeing</text>
+    <text x="824" y="282">Loss of bladder or bowel control</text>
+    <text x="824" y="316">Numbness in the groin or saddle area</text>
+    <text x="824" y="350">Weakness in both legs</text>
+    <text x="824" y="384">Chest pain</text>
+  </g>
+  <text x="824" y="428" font-size="13" font-weight="500" fill="#1a1a1a">Outcome</text>
+  <text x="824" y="450" font-size="13" fill="#5a5468">Emergency services first, then the doctor</text>
+
+  <rect x="60" y="500" width="1080" height="1" fill="#ece7f6"/>
+  <text x="60" y="536" font-size="15" font-weight="600" fill="#1a1a1a">What the script never does</text>
+  <text x="60" y="562" font-size="14" fill="#5a5468">Ask follow-up clinical questions to choose between doors two and three. If the caller's words are on either list, it takes the more cautious door.</text>
+  <text x="60" y="600" font-size="13" fill="#8a8398">Symptom lists adapted from the AANS, the NHS and the CDC - see sources. An illustration, not a clinical protocol: your chiropractor writes the real one.</text>
+</svg>

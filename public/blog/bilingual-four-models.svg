@@ -1,0 +1,64 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" role="img" aria-label="Four ways an answering service handles a Spanish-speaking caller. One: a Spanish-speaking agent answers first, reached through a dedicated line or a press-2 menu; the caller is greeted in Spanish. Two: an English-speaking agent answers, recognises Spanish, and transfers the caller to a bilingual colleague; the caller waits through a transfer. Three: an agent identifies the language and conferences in a third-party telephone interpreter; every sentence is spoken twice and two meters run. Four: an AI agent detects the language from the caller's first words and replies in it; there is no menu, and a route to a bilingual human is needed.">
+  <rect width="1200" height="630" fill="#faf8ff"/>
+  <rect x="0.5" y="0.5" width="1199" height="629" fill="none" stroke="#ece7f6"/>
+
+  <text x="60" y="58" font-size="26" font-weight="600" fill="#1a1a1a">Four things "bilingual" can mean</text>
+  <text x="60" y="88" font-size="16" fill="#8a8398">Follow one Spanish-speaking caller through each. The difference is who speaks Spanish, and when they join.</text>
+
+  <!-- column headers -->
+  <g font-size="12" fill="#8a8398" letter-spacing="0.05em">
+    <text x="330" y="128">WHO ANSWERS</text>
+    <text x="610" y="128">WHAT HAPPENS NEXT</text>
+    <text x="910" y="128">WHAT TO CHECK</text>
+  </g>
+
+  <!-- row 1 -->
+  <rect x="60" y="144" width="1080" height="96" rx="10" fill="#ffffff" stroke="#e2dcf5" stroke-width="1.5"/>
+  <rect x="60" y="144" width="240" height="96" rx="10" fill="#1a1a1a"/>
+  <text x="84" y="184" font-size="15" font-weight="600" fill="#ffffff">1. Spanish first</text>
+  <text x="84" y="208" font-size="12" fill="#b9b2cc">dedicated line or menu</text>
+  <text x="330" y="186" font-size="14" fill="#1a1a1a">A bilingual agent</text>
+  <text x="330" y="208" font-size="13" fill="#5a5468">greets in Spanish</text>
+  <text x="610" y="186" font-size="14" fill="#1a1a1a">The whole call in Spanish</text>
+  <text x="610" y="208" font-size="13" fill="#5a5468">message relayed to you in English</text>
+  <text x="910" y="186" font-size="14" fill="#1a1a1a">Published Spanish hours</text>
+  <text x="910" y="208" font-size="13" fill="#5a5468">any per-call line fee</text>
+
+  <!-- row 2 -->
+  <rect x="60" y="254" width="1080" height="96" rx="10" fill="#ffffff" stroke="#e2dcf5" stroke-width="1.5"/>
+  <rect x="60" y="254" width="240" height="96" rx="10" fill="#3a3550"/>
+  <text x="84" y="294" font-size="15" font-weight="600" fill="#ffffff">2. Transfer</text>
+  <text x="84" y="318" font-size="12" fill="#c9c3dc">English agent, then a colleague</text>
+  <text x="330" y="296" font-size="14" fill="#1a1a1a">An English-speaking agent</text>
+  <text x="330" y="318" font-size="13" fill="#5a5468">"un momento, por favor"</text>
+  <text x="610" y="296" font-size="14" fill="#1a1a1a">Transfer to a bilingual coworker</text>
+  <text x="610" y="318" font-size="13" fill="#5a5468">caller waits, then starts again</text>
+  <text x="910" y="296" font-size="14" fill="#1a1a1a">What if nobody bilingual is free</text>
+  <text x="910" y="318" font-size="13" fill="#5a5468">often a Spanish voicemail</text>
+
+  <!-- row 3 -->
+  <rect x="60" y="364" width="1080" height="96" rx="10" fill="#ffffff" stroke="#e2dcf5" stroke-width="1.5"/>
+  <rect x="60" y="364" width="240" height="96" rx="10" fill="#6b647f"/>
+  <text x="84" y="404" font-size="15" font-weight="600" fill="#ffffff">3. Interpreter line</text>
+  <text x="84" y="428" font-size="12" fill="#e0dcec">three-way call</text>
+  <text x="330" y="406" font-size="14" fill="#1a1a1a">An English-speaking agent</text>
+  <text x="330" y="428" font-size="13" fill="#5a5468">identifies the language</text>
+  <text x="610" y="406" font-size="14" fill="#1a1a1a">Interpreter is conferenced in</text>
+  <text x="610" y="428" font-size="13" fill="#5a5468">every sentence is said twice</text>
+  <text x="910" y="406" font-size="14" fill="#1a1a1a">Two meters running</text>
+  <text x="910" y="428" font-size="13" fill="#5a5468">retail interpreting: $3.95 a minute</text>
+
+  <!-- row 4 -->
+  <rect x="60" y="474" width="1080" height="96" rx="10" fill="#ffffff" stroke="#e2dcf5" stroke-width="1.5"/>
+  <rect x="60" y="474" width="240" height="96" rx="10" fill="#5b3ef0"/>
+  <text x="84" y="514" font-size="15" font-weight="600" fill="#ffffff">4. AI detection</text>
+  <text x="84" y="538" font-size="12" fill="#d8cffb">no menu</text>
+  <text x="330" y="516" font-size="14" fill="#1a1a1a">An AI agent</text>
+  <text x="330" y="538" font-size="13" fill="#5a5468">hears the caller's first words</text>
+  <text x="610" y="516" font-size="14" fill="#1a1a1a">Continues in that language</text>
+  <text x="610" y="538" font-size="13" fill="#5a5468">same speed at 3 a.m.</text>
+  <text x="910" y="516" font-size="14" fill="#1a1a1a">Spanglish and bad lines</text>
+  <text x="910" y="538" font-size="13" fill="#5a5468">a tested route to a bilingual human</text>
+
+  <text x="60" y="604" font-size="13" fill="#8a8398">Interpreter rate: LanguageLine pay-as-you-go audio, as published October 2026. Vendor behaviour in rows 1 and 2 as described on the vendors' own pages - see sources.</text>
+</svg>

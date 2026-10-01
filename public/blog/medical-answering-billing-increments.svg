@@ -1,0 +1,60 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" role="img" aria-label="One 70-second patient call billed three ways. Billed by the second it is 70 seconds. Rounded up to the next 30 seconds it is 90 seconds, 29 percent more. Rounded up to the next whole minute it is 120 seconds, 71 percent more. Across 300 such calls a month that is 350, 450 and 600 billed minutes for identical work, before any after-call wrap-up time is added.">
+  <rect width="1200" height="630" fill="#faf8ff"/>
+  <rect x="0.5" y="0.5" width="1199" height="629" fill="none" stroke="#ece7f6"/>
+
+  <text x="60" y="58" font-size="26" font-weight="600" fill="#1a1a1a">One 70-second call, three bills</text>
+  <text x="60" y="88" font-size="16" fill="#8a8398">The per-minute rate is the number on the pricing page. The billing increment is the number that decides the invoice.</text>
+
+  <!-- scale -->
+  <g stroke="#e2dcf5" stroke-width="1">
+    <line x1="330" y1="130" x2="330" y2="470"/>
+    <line x1="540" y1="130" x2="540" y2="470" stroke-dasharray="4 6"/>
+    <line x1="750" y1="130" x2="750" y2="470" stroke-dasharray="4 6"/>
+    <line x1="960" y1="130" x2="960" y2="470" stroke-dasharray="4 6"/>
+    <line x1="1170" y1="130" x2="1170" y2="470" stroke-dasharray="4 6"/>
+  </g>
+  <g font-size="12" fill="#8a8398" text-anchor="middle">
+    <text x="330" y="122">0 s</text>
+    <text x="540" y="122">30 s</text>
+    <text x="750" y="122">60 s</text>
+    <text x="960" y="122">90 s</text>
+    <text x="1170" y="122">120 s</text>
+  </g>
+
+  <!-- row 1: per second -->
+  <text x="60" y="176" font-size="15" font-weight="600" fill="#1a1a1a">Billed by the second</text>
+  <text x="60" y="198" font-size="13" fill="#5a5468">70 s billed</text>
+  <rect x="330" y="152" width="490" height="56" rx="8" fill="#5b3ef0"/>
+  <text x="344" y="186" font-size="14" font-weight="500" fill="#ffffff">70 s of talk time</text>
+
+  <!-- row 2: 30 s -->
+  <text x="60" y="286" font-size="15" font-weight="600" fill="#1a1a1a">Rounded up to 30 s</text>
+  <text x="60" y="308" font-size="13" fill="#5a5468">90 s billed  ·  +29%</text>
+  <rect x="330" y="262" width="490" height="56" rx="8" fill="#5b3ef0"/>
+  <rect x="820" y="262" width="140" height="56" fill="#cfc5fa"/>
+  <text x="344" y="296" font-size="14" font-weight="500" fill="#ffffff">70 s of talk time</text>
+  <text x="832" y="296" font-size="13" fill="#3b2a99">+20 s rounding</text>
+
+  <!-- row 3: whole minute -->
+  <text x="60" y="396" font-size="15" font-weight="600" fill="#1a1a1a">Rounded up to 1 minute</text>
+  <text x="60" y="418" font-size="13" fill="#5a5468">120 s billed  ·  +71%</text>
+  <rect x="330" y="372" width="490" height="56" rx="8" fill="#5b3ef0"/>
+  <rect x="820" y="372" width="350" height="56" fill="#cfc5fa"/>
+  <text x="344" y="406" font-size="14" font-weight="500" fill="#ffffff">70 s of talk time</text>
+  <text x="832" y="406" font-size="13" fill="#3b2a99">+50 s rounding</text>
+
+  <!-- monthly -->
+  <rect x="60" y="494" width="1080" height="1" fill="#ece7f6"/>
+  <text x="60" y="530" font-size="15" font-weight="600" fill="#1a1a1a">Across 300 identical calls a month</text>
+  <g font-size="15" fill="#1a1a1a">
+    <text x="330" y="530">350 billed minutes</text>
+    <text x="610" y="530">450 billed minutes</text>
+    <text x="890" y="530">600 billed minutes</text>
+  </g>
+  <g font-size="12" fill="#8a8398">
+    <text x="330" y="552">per second</text>
+    <text x="610" y="552">30-second increments</text>
+    <text x="890" y="552">whole-minute increments</text>
+  </g>
+  <text x="60" y="596" font-size="13" fill="#8a8398">Talk time only. Several services also bill after-call wrap-up and the time spent reaching your on-call clinician, which widens the gap further.</text>
+</svg>

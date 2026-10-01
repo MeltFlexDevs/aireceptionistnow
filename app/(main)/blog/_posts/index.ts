@@ -166,6 +166,15 @@ import BestAiPhoneAnsweringForRestaurants, {
 import BestAiReceptionistForHomeServices, {
   meta as bestAiReceptionistForHomeServicesMeta,
 } from "./best-ai-receptionist-for-home-services";
+import MedicalAnsweringServicePricing, {
+  meta as medicalAnsweringServicePricingMeta,
+} from "./medical-answering-service-pricing";
+import BilingualAnsweringService, {
+  meta as bilingualAnsweringServiceMeta,
+} from "./bilingual-answering-service";
+import ChiropracticAnsweringService, {
+  meta as chiropracticAnsweringServiceMeta,
+} from "./chiropractic-answering-service";
 
 export type PostMeta = {
   slug: string;
@@ -228,6 +237,8 @@ const postIndustry: Record<string, IndustrySlug> = {
   "best-ai-receptionist-for-dental-practices": "dentists",
   "best-ai-phone-answering-for-restaurants": "restaurants",
   "best-ai-receptionist-for-home-services": "home-services",
+  "medical-answering-service-pricing": "medical",
+  "chiropractic-answering-service": "medical",
 };
 
 const postAuthors: Record<string, AuthorKey> = {
@@ -285,6 +296,9 @@ const postAuthors: Record<string, AuthorKey> = {
   "best-ai-receptionist-for-dental-practices": "brano",
   "best-ai-phone-answering-for-restaurants": "matus",
   "best-ai-receptionist-for-home-services": "brano",
+  "medical-answering-service-pricing": "brano",
+  "bilingual-answering-service": "matus",
+  "chiropractic-answering-service": "matus",
 };
 
 export const posts: Post[] = [
@@ -399,6 +413,12 @@ export const posts: Post[] = [
     ...bestAiReceptionistForHomeServicesMeta,
     Body: BestAiReceptionistForHomeServices,
   },
+  {
+    ...medicalAnsweringServicePricingMeta,
+    Body: MedicalAnsweringServicePricing,
+  },
+  { ...bilingualAnsweringServiceMeta, Body: BilingualAnsweringService },
+  { ...chiropracticAnsweringServiceMeta, Body: ChiropracticAnsweringService },
 ]
   .map((p) => ({
     ...p,

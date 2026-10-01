@@ -34,9 +34,8 @@ export const meta = {
   heroHeight: 900,
   keywords: [
     "bilingual ai receptionist",
-    "spanish speaking answering service",
-    "bilingual answering service",
-    "spanish virtual receptionist",
+    "spanish ai receptionist",
+    "ai receptionist that speaks spanish",
     "bilingual receptionist for small business",
     "ai receptionist spanish",
     "answer calls in spanish",
@@ -361,6 +360,15 @@ export default function Body() {
         reach. It won&apos;t replace a fluent human on the sensitive calls, and it
         shouldn&apos;t try. But it makes sure no caller hangs up simply because
         the line didn&apos;t speak their language.
+      </P>
+      <P>
+        AI is one of four ways an answering service can be &quot;bilingual&quot;.
+        If you are comparing it with live Spanish-speaking agents or an
+        interpreter line, our{" "}
+        <Internal href="/blog/bilingual-answering-service">
+          bilingual answering service guide
+        </Internal>{" "}
+        sets out what each vendor publishes about hours and cost.
       </P>
       <P>
         If a real part of your community calls in Spanish, the cheapest experiment

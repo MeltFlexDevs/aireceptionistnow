@@ -407,6 +407,18 @@ export default function Body() {
         on-call provider&apos;s - for the calls that genuinely need it.
       </P>
       <P>
+        On cost, we read the published rate cards of the human answering
+        services line by line in{" "}
+        <Internal href="/blog/medical-answering-service-pricing">
+          medical answering service pricing
+        </Internal>
+        ; and if you run a chiropractic office, the{" "}
+        <Internal href="/blog/chiropractic-answering-service">
+          chiropractic answering service guide
+        </Internal>{" "}
+        covers the red-flag calls specific to that practice.
+      </P>
+      <P>
         If you want to evaluate one against the standards in this guide, you
         can <Internal href="/">hear our AI receptionist take a call</Internal>{" "}
         right now and see the{" "}
