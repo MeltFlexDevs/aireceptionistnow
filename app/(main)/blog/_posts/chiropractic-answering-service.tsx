@@ -28,9 +28,9 @@ export const meta = {
   updated: "2026-10-01",
   readingTime: "17 min read",
   tag: "Industries",
-  hero: "/blog/chiropractic-answering-service-hero.webp",
+  hero: "/blog/chiropractic-front-desk.webp",
   heroAlt:
-    "An empty chiropractic clinic front desk in morning light, with a desk phone, a closed appointment book and a small spine model on the counter, an adjusting table visible through the open doorway behind",
+    "An empty chiropractic clinic front desk in soft daylight, with a desk phone, a closed appointment book and a small spine model on a rounded wooden counter, adjusting tables visible in the room behind",
   heroWidth: 1600,
   heroHeight: 900,
   keywords: [
@@ -277,8 +277,8 @@ export default function Body() {
         only one that matters.
       </P>
       <Figure
-        src="/blog/chiropractic-adjusting-room.webp"
-        alt="A chiropractor in dark scrubs standing beside a patient who sits on the edge of an adjusting table, one hand near the patient's shoulder as they talk before treatment, a spine model on a shelf behind"
+        src="/blog/chiropractic-consultation-room.webp"
+        alt="A chiropractor in dark scrubs seen from behind, standing beside a patient who sits on the edge of a treatment table, one hand on the patient's shoulder as they talk, in a bright room with a large window"
         width={1376}
         height={768}
         caption="The reason the phone rings out. In a one-doctor office the person a caller wants is in a treatment room, and the person at the desk is often in the next one."

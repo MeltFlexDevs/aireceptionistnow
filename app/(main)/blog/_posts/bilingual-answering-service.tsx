@@ -28,9 +28,9 @@ export const meta = {
   updated: "2026-10-01",
   readingTime: "16 min read",
   tag: "Guides",
-  hero: "/blog/bilingual-answering-service-hero.webp",
+  hero: "/blog/bilingual-shop-counter-phone.webp",
   heroAlt:
-    "The front counter of a small neighborhood business in afternoon light, a desk phone with its handset lying off the hook beside an open blank notepad, a sunlit city street blurred through the window",
+    "The wooden front counter of a small neighborhood shop in warm afternoon light, a desk phone with its handset lying off the hook beside an open blank notepad, a sunlit city street blurred through the window",
   heroWidth: 1600,
   heroHeight: 900,
   keywords: [
@@ -403,8 +403,8 @@ export default function Body() {
       </Callout>
 
       <Figure
-        src="/blog/bilingual-caller-kitchen-phone.webp"
-        alt="A woman standing in a home kitchen holding a phone to her ear and listening, one hand on the counter next to a small puddle of water by the sink, a folded towel on the floor"
+        src="/blog/bilingual-caller-kitchen-call.webp"
+        alt="A woman standing at a kitchen counter holding a phone to her ear and listening, her other hand resting on the worktop beside a puddle of water next to the sink and a folded towel"
         width={1376}
         height={768}
         caption="The call this is all about: a problem that will not wait, described by someone who would rather describe it in Spanish. What she hears in the first ten seconds decides whether she stays on the line."

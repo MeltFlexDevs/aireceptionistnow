@@ -1,0 +1,44 @@
+{
+  "practice-desk": {
+    "file": "https://mir-s3-cdn-cf.behance.net/projects/original_webp/7376c3120324595.Y3JvcCw0NjYyLDM2NDcsMTY5Niww.jpg",
+    "project": "a medical company office",
+    "page": "https://www.behance.net/gallery/120324595/a-medical-company-office",
+    "query": "medical office interior design",
+    "pick": 1
+  },
+  "clinic-reception": {
+    "file": "https://mir-s3-cdn-cf.behance.net/projects/original_webp/3fd2fe255473317.Y3JvcCwxODcxLDE0NjQsMjU0LDA.jpg",
+    "project": "Hospital Reception | Modern Style",
+    "page": "https://www.behance.net/gallery/255473317/Hospital-Reception-Modern-Style",
+    "query": "clinic reception interior",
+    "pick": 7
+  },
+  "local-shop": {
+    "file": "https://mir-s3-cdn-cf.behance.net/projects/original_webp/9681bd237882343.6aafae1a8f6b2.jpg",
+    "project": "Hunkal - Interior Execution by Studio Renee",
+    "page": "https://www.behance.net/gallery/237882343/Hunkal-Interior-Execution-by-Studio-Renee",
+    "query": "small shop interior",
+    "pick": 5
+  },
+  "home-kitchen": {
+    "file": "https://mir-s3-cdn-cf.behance.net/projects/original_webp/6caa6c256122803.Y3JvcCwyODAwLDIxOTAsMCw4MTc.jpg",
+    "project": "Luxury Reception | Kitchen with Livingroom",
+    "page": "https://www.behance.net/gallery/256122803/Luxury-Reception-Kitchen-with-Livingroom",
+    "query": "kitchen lifestyle photography",
+    "pick": 9
+  },
+  "chiro-clinic": {
+    "file": "https://mir-s3-cdn-cf.behance.net/projects/original_webp/9fddb2193098257.Y3JvcCwxMDA3LDc4OCwxOTcsMA.jpg",
+    "project": "CORE BALANCE CHIROPRACTIC CLINIC",
+    "page": "https://www.behance.net/gallery/193098257/CORE-BALANCE-CHIROPRACTIC-CLINIC",
+    "query": "chiropractic clinic interior",
+    "pick": 2
+  },
+  "treatment-room": {
+    "file": "https://mir-s3-cdn-cf.behance.net/projects/original_webp/3a519a255759007.Y3JvcCwxODQxLDE0NDAsMzY5LDA.png",
+    "project": "physiotherapist clinic",
+    "page": "https://www.behance.net/gallery/255759007/physiotherapist-clinic",
+    "query": "physiotherapy clinic interior",
+    "pick": 0
+  }
+}

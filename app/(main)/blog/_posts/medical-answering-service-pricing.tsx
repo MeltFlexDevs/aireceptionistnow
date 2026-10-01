@@ -28,7 +28,7 @@ export const meta = {
   updated: "2026-10-01",
   readingTime: "17 min read",
   tag: "Guides",
-  hero: "/blog/medical-answering-service-pricing-hero.webp",
+  hero: "/blog/medical-answering-pricing-desk.webp",
   heroAlt:
     "A practice manager's desk seen from above: a desk phone, a calculator, a fan of blank printed sheets, a stethoscope, a pen and a mug of coffee in morning light",
   heroWidth: 1600,
@@ -369,8 +369,8 @@ export default function Body() {
         without anyone doing anything wrong.
       </P>
       <Figure
-        src="/blog/medical-practice-after-hours-phone.webp"
-        alt="A physician practice reception area at night after closing, lit by a single desk lamp, with a desk phone on the counter and an empty row of waiting room chairs beyond"
+        src="/blog/medical-clinic-reception-night.webp"
+        alt="A clinic reception at night after closing, lit by a single desk lamp, with a desk phone on the marble counter and an empty row of waiting chairs along the window"
         width={1376}
         height={768}
         caption="Where the minutes actually accrue. In one published study of an academic primary care practice, 63% of after-hours calls arrived on weekends or holidays and 14% between 5 and 7 p.m. on weekdays."
