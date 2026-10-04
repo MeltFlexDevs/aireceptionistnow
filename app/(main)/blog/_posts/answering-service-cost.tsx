@@ -20,12 +20,12 @@ import {
 
 export const meta = {
   slug: "answering-service-cost",
-  title: "How Much Does an Answering Service Cost? (2026 Guide)",
+  title: "How Much Does an Answering Service Cost? 12 Services Compared",
   description:
-    "Live answering services run $1-$3.50/minute (about $200-$1,000/mo); AI answering services cost $30-$300/mo flat. Real 2026 rates, hidden fees, and the math.",
+    "We read 12 answering services' published rate cards: live plans run $149-$395 for 100 minutes, AI plans from about $20/mo. Fees, rounding, and the math.",
   date: "2026-07-25",
-  updated: "2026-08-08",
-  readingTime: "10 min read",
+  updated: "2026-10-04",
+  readingTime: "13 min read",
   tag: "Guides",
   hero: "/blog/answering-service-cost-hero.webp",
   heroAlt:
@@ -41,9 +41,12 @@ export const meta = {
     "affordable answering service",
     "answering service cost per call",
     "AI answering service cost",
+    "answering service pricing comparison",
+    "live answering service pricing",
   ],
   sections: [
     { id: "short-answer", title: "The short answer" },
+    { id: "price-comparison", title: "12 services' published prices" },
     { id: "pricing-models", title: "The pricing models, explained" },
     { id: "hidden-fees", title: "Hidden fees to watch for" },
     { id: "live-vs-ai", title: "Live vs AI, at three volumes" },
@@ -55,19 +58,19 @@ export const meta = {
   faqs: [
     {
       q: "How much does an answering service cost per month?",
-      a: "A live answering service typically costs $200 to $1,000 a month for a small business, built from per-minute rates of $1 to $3.50 plus a base fee. AI answering services charge a flat $30 to $300 a month depending on call volume and features, with no after-hours premium. The biggest variable in either case is your monthly call volume, so estimate that before comparing quotes.",
+      a: "Based on the rate cards seven US live answering services publish (checked October 2026), a live service costs $149 to $395 a month for 100 minutes of calls and $600 to $1,725 for 500 minutes - about $1.20 to $5 per minute depending on plan size. AI answering services list plans from about $20 to $300 a month, usually as minute or caller bundles with no after-hours premium. The biggest variable in either case is your monthly call volume, so estimate that before comparing quotes.",
     },
     {
       q: "How much does an answering service cost per call?",
-      a: "Per-call plans typically run $0.75 to $1.50 per answered call at the entry level, rising to $2 or more for calls that involve intake questions or transfers. On per-minute plans, a typical 3-minute call at $1 to $3.50 a minute works out to $3 to $10 per call. AI services on flat plans often land under $0.50 per call at realistic volumes.",
+      a: "On per-minute live plans, a typical 3-minute call works out to roughly $3.60 to $15, since published plans cost $1.20 to $5 a minute. Per-call pricing depends on who answers: Smith.ai's human-first receptionists cost $10 a call on the entry plan ($300 for 30 calls) with $8.50 to $11.50 per extra call, while per-call AI plans from Moneypenny and Smith.ai run about $1.90 to $3 a call. AI services sold as minute bundles often land under $1 per call at realistic volumes.",
     },
     {
       q: "Are AI answering services cheaper than live ones?",
-      a: "At almost any volume, yes, and the gap widens as volume grows. At around 200 calls a month, a live per-minute service typically bills $650 to $1,000, while an AI answering service handles the same calls for a flat $100 to $200. The reason is structural: a live service pays an operator for every minute, while software answers additional calls at near-zero marginal cost.",
+      a: "At almost any volume, yes, and the gap widens as volume grows. At around 200 three-minute calls a month, published live per-minute plans come to roughly $720 to $1,725, while published AI plans handle the same calls for about $100 to $420. The reason is structural: a live service pays an operator for every minute, while software answers additional calls at near-zero marginal cost.",
     },
     {
       q: "What hidden fees do answering services charge?",
-      a: "The common ones are setup or onboarding fees ($50 to $500), overage rates once you pass your minute bundle, holiday and after-hours surcharges, per-transfer or call-patching fees, and billing increments that round every call up to the next 30 or 60 seconds. Some services also bill spam and wrong numbers as answered calls. Always ask for the all-in monthly cost at your real volume.",
+      a: "The ones vendors actually state in writing: setup fees (AMBS Call Center charges $85; Nexa charges an unpublished amount), call-patching fees ($0.06 to $0.10 a minute at AMBS and Specialty Answering Service), holiday fees (Nexa, on eight named holidays), per-call add-ons such as booking ($1.50 a call at Smith.ai), and billing rules that round each call up to 30 seconds or a whole minute or add wrap-up time. Always ask for the all-in monthly cost at your real volume.",
     },
     {
       q: "Is an answering service worth it for a small business?",
@@ -75,7 +78,11 @@ export const meta = {
     },
     {
       q: "What is the cheapest way to answer business calls?",
-      a: "Voicemail is free but converts terribly - a large share of callers hang up rather than leave a message and simply call the next business. Among real coverage options, entry-level AI answering plans at roughly $30 to $50 a month are the cheapest, followed by live per-call plans at low volume. A cheap live plan with a tiny minute bundle is often the most expensive option once overage kicks in.",
+      a: "Voicemail is free but converts terribly - a large share of callers hang up rather than leave a message and simply call the next business. Among real coverage options, entry-level AI plans are the cheapest: Smith.ai has a free AI tier for 25 calls a month, AMBS Call Center an AI tier from $19, and Rosie $49 for 250 minutes. A cheap live plan with a tiny minute bundle is often the most expensive option once overage kicks in.",
+    },
+    {
+      q: "Which answering service is the cheapest?",
+      a: "Among live services that publish prices, AMBS Call Center has the lowest 100-minute plan ($149, plus an $85 setup fee) and the lowest effective rate at 500 minutes ($1.20 a minute). Specialty Answering Service is close behind at $159 for 100 minutes, with per-second billing and no setup fee. For AI, the cheapest entry tiers are Smith.ai's free 25-call plan and AMBS's $19 tier; at a few hundred minutes a month, bundles such as Rosie's $149 for 1,000 minutes or our 99 euros for 1,000 minutes cost far less per minute than any live plan.",
     },
   ] satisfies FaqItem[],
 };
@@ -96,6 +103,63 @@ const sources: Source[] = [
       "Harvard Business Review: The Short Life of Online Sales Leads (lead response-time research)",
     url: "https://hbr.org/2011/03/the-short-life-of-online-sales-leads",
   },
+  {
+    title: "Specialty Answering Service: pricing (checked October 4, 2026)",
+    url: "https://www.specialtyansweringservice.net/pricing/",
+  },
+  {
+    title: "AMBS Call Center: answering service and AI receptionist pricing (checked October 4, 2026)",
+    url: "https://www.ambscallcenter.com/answering-service-pricing",
+  },
+  {
+    title: "Signius: pricing (checked October 4, 2026)",
+    url: "https://www.signius.com/pricing/",
+  },
+  {
+    title: "PATLive: pricing (checked October 4, 2026)",
+    url: "https://www.patlive.com/pricing",
+  },
+  {
+    title: "Moneypenny US: people and AI answering pricing (checked October 4, 2026)",
+    url: "https://www.moneypenny.com/us/pricing/",
+  },
+  {
+    title: "Abby Connect: pricing (checked October 4, 2026)",
+    url: "https://www.abby.com/pricing",
+  },
+  {
+    title: "Ruby: plans and pricing (checked October 4, 2026)",
+    url: "https://www.ruby.com/plans-and-pricing/",
+  },
+  {
+    title: "Smith.ai: receptionist pricing, human-first and AI-first (checked October 4, 2026)",
+    url: "https://smith.ai/pricing/receptionists",
+  },
+  {
+    title: "Smith.ai: AI receptionist pricing (checked October 4, 2026)",
+    url: "https://smith.ai/pricing/ai-receptionist",
+  },
+  {
+    title: "Rosie: pricing (checked October 4, 2026)",
+    url: "https://heyrosie.com/pricing",
+  },
+  {
+    title: "Goodcall: pricing (checked October 4, 2026)",
+    url: "https://www.goodcall.com/pricing",
+  },
+  {
+    title: "My AI Front Desk: pricing (checked October 4, 2026)",
+    url: "https://www.myaifrontdesk.com/pricing",
+  },
+  {
+    title:
+      "Moneypenny US terms and conditions (billable operator minutes, wrap-up time, 30-second rounding)",
+    url: "https://res.cloudinary.com/moneyp/image/upload/files/us-terms-and-conditions.pdf",
+  },
+  {
+    title: "Nexa: terms and conditions (whole-minute rounding, set-up and holiday fees)",
+    url: "https://www.nexa.com/legal/terms-conditions/",
+  },
 ];
 
 export default function Body() {
@@ -104,29 +168,31 @@ export default function Body() {
       <Lead>
         Full disclosure up front: we sell the AI kind of answering service, so
         we have an obvious rooting interest in how this comparison ends. What
-        we can offer instead of neutrality is specificity - the real answering
-        service rates vendors quote in 2026, the fee structures that decide
-        what you actually pay, and the hidden charges that turn a $150 quote
-        into a $400 invoice. Use the numbers against any provider, including
-        us.
+        we can offer instead of neutrality is specificity - the published
+        rate cards of 12 answering services, read on their own pricing pages
+        on October 4, 2026, the fee structures that decide what you actually
+        pay, and the charges that turn a $150 quote into a much larger
+        invoice. Use the numbers against any provider, including us.
       </Lead>
 
       <KeyTakeaways
         items={[
           <>
-            Live operator answering services bill{" "}
-            <Strong>$1 to $3.50 a minute</Strong>, which lands most small
-            businesses at <Strong>$200 to $1,000 a month</Strong>.
+            Published live plans cost <Strong>$149 to $395 for 100
+            minutes</Strong> and <Strong>$600 to $1,725 for 500</Strong> -
+            the priciest 100-minute plan is 2.65 times the cheapest.
           </>,
           <>
-            AI answering services charge{" "}
-            <Strong>roughly $30 to $300 a month flat</Strong>; per-call plans
-            run about <Strong>$0.75 to $1.50 per call</Strong>.
+            AI answering services list plans from{" "}
+            <Strong>about $20 to $300 a month</Strong>; per-call pricing runs{" "}
+            <Strong>$1.90 to $3 a call for AI</Strong> and $8.50 to $11.50 for
+            human receptionists.
           </>,
           <>
-            The quote is not the bill. <Strong>Setup fees, overage rates,
-            holiday premiums, and per-transfer charges</Strong> routinely add
-            30-100% to the headline price.
+            The quote is not the bill. <Strong>Rounding, wrap-up time,
+            setup and patching fees</Strong> sit in the terms, not on the
+            pricing page - one vendor&apos;s own example bills a 62-second
+            call as 90 seconds.
           </>,
           <>
             Judge any service against the revenue in your missed calls, not
@@ -139,10 +205,13 @@ export default function Body() {
       <H2 id="short-answer">The short answer</H2>
       <P>
         <Strong>
-          A live answering service costs $1 to $3.50 per minute, which works
-          out to roughly $200 to $1,000 a month for a typical small business.
-          An AI answering service costs about $30 to $300 a month flat, and
-          per-call plans run around $0.75 to $1.50 per call.
+          A live answering service costs $149 to $395 a month for 100 minutes
+          of calls and $600 to $1,725 for 500 minutes, based on the rate cards
+          seven US services publish - about $1.20 to $5 per minute, with the
+          smallest plans costing the most per minute. AI answering services
+          list plans from about $20 to $300 a month, and per-call plans run
+          $1.90 to $3 a call for AI and $8.50 to $11.50 for human
+          receptionists.
         </Strong>{" "}
         Where you land inside those ranges depends almost entirely on call
         volume, and secondarily on hours of coverage and how much each call
@@ -150,9 +219,190 @@ export default function Body() {
         cost more). For reference against a real number, our own AI plans
         start at{" "}
         <Internal href="/pricing">€99/month for ~1,000 minutes</Internal>. The
-        rest of this guide is how those ranges are built, because the pricing
-        model you pick matters more than the sticker price you see.
+        rest of this guide is the rate cards behind those ranges and how they
+        are built, because the pricing model you pick matters more than the
+        sticker price you see.
       </P>
+
+      <H2 id="price-comparison">
+        Answering service pricing comparison: 12 services&apos; published rates
+      </H2>
+      <P>
+        Every number below was read on the vendor&apos;s own pricing page on
+        October 4, 2026. We left out anyone who only offers a quote form,
+        rather than repeat third-party figures. We compete with all of these
+        companies; the links go straight to their pages, and prices change, so
+        check before you buy.
+      </P>
+      <H3>Live answering services (per minute)</H3>
+      <Table
+        caption="Live answering service plans as published, checked October 4, 2026"
+        head={[
+          "Service",
+          "100-minute plan",
+          "500-minute plan",
+          "Overage per minute",
+          "Billing increment",
+          "Setup fee",
+        ]}
+        rows={[
+          [
+            <Ext key="ambs" href="https://www.ambscallcenter.com/answering-service-pricing" nofollow>AMBS Call Center</Ext>,
+            "$149 ($1.49/min)",
+            "$600 ($1.20/min)",
+            "$1.29 / $1.22",
+            "30 seconds, rounded up",
+            "$85",
+          ],
+          [
+            <Ext key="sas" href="https://www.specialtyansweringservice.net/pricing/" nofollow>Specialty Answering Service</Ext>,
+            "$159 ($1.59/min)",
+            "$649 ($1.30/min)",
+            "$1.44 / $1.34",
+            "By the second",
+            "$0",
+          ],
+          [
+            <Ext key="sig" href="https://www.signius.com/pricing/" nofollow>Signius</Ext>,
+            "$170 for 125 min ($1.36/min)",
+            "None published; $280 for 225 min",
+            "$1.25",
+            "Not published",
+            "Not published",
+          ],
+          [
+            <Ext key="pat" href="https://www.patlive.com/pricing" nofollow>PATLive</Ext>,
+            "$189 ($1.89/min)",
+            "$759 ($1.52/min)",
+            "$2.09 / $1.79",
+            "First minute, then 6 seconds",
+            "Not published",
+          ],
+          [
+            <Ext key="mp" href="https://www.moneypenny.com/us/pricing/" nofollow>Moneypenny US</Ext>,
+            "$265 ($2.65/min)",
+            "$985 ($1.97/min)",
+            "$2.12 / $1.67",
+            "30 seconds, after adding wrap-up time (per its terms)",
+            "None listed",
+          ],
+          [
+            <Ext key="abby" href="https://www.abby.com/pricing" nofollow>Abby Connect</Ext>,
+            "$329 ($3.29/min)",
+            "$1,380 ($2.76/min)",
+            "At the plan's own rate",
+            "Not published",
+            "None",
+          ],
+          [
+            <Ext key="ruby" href="https://www.ruby.com/plans-and-pricing/" nofollow>Ruby</Ext>,
+            "$395 ($3.95/min)",
+            "$1,725 ($3.45/min)",
+            "Not published",
+            "Not published",
+            "None",
+          ],
+        ]}
+      />
+      <P>
+        Three things the table shows that a range can&apos;t. First, the
+        spread is real: the priciest 100-minute plan costs 2.65 times the
+        cheapest. They are not identical products - the receptionist brands
+        sell a more polished front-desk experience - but anyone buying
+        message-taking should know the lower number exists. Second, small
+        plans are the expensive ones per minute: Ruby&apos;s $250 starter
+        buys 50 minutes, which is $5.00 a minute. Third, the increment column
+        changes the bill as much as the rate. A 70-second call is billed as 70
+        seconds by the second, 90 seconds at 30-second rounding and 120 at
+        whole-minute rounding; across hundreds of short calls that is a
+        different invoice. We go through who bills what, from the vendors&apos;
+        own terms, in our{" "}
+        <Internal href="/blog/medical-answering-service-pricing#billable-time">
+          breakdown of billable minutes and increments
+        </Internal>
+        .
+      </P>
+      <H3>Per-call and AI answering services</H3>
+      <Table
+        caption="Per-call and AI answering plans as published, checked October 4, 2026"
+        head={["Service", "Billing unit", "Entry plan", "Next plan", "Beyond the plan"]}
+        rows={[
+          [
+            <Ext key="smh" href="https://smith.ai/pricing/receptionists" nofollow>Smith.ai (human-first)</Ext>,
+            "Per call",
+            "$300 for 30 calls",
+            "$810 for 90 calls",
+            "$11.50 / $10.50 per call; spam not billed when caller ID is passed",
+          ],
+          [
+            <Ext key="sma" href="https://smith.ai/pricing/ai-receptionist" nofollow>Smith.ai AI Receptionist</Ext>,
+            "Per call",
+            "Free for 25 calls",
+            "$150 for 75 calls",
+            "$3.00 per call on the free plan",
+          ],
+          [
+            <Ext key="mpa" href="https://www.moneypenny.com/us/pricing/" nofollow>Moneypenny US AI</Ext>,
+            "Per call",
+            "$69 for 25 calls",
+            "$99 for 50 calls",
+            "$2.49 down to $1.89 per call",
+          ],
+          [
+            <Ext key="ambsai" href="https://www.ambscallcenter.com/answering-service-pricing" nofollow>AMBS Call Center AI</Ext>,
+            "Per minute",
+            "$19 plus $0.79 a minute",
+            "$75 for 100 minutes",
+            "$0.79 down to $0.70 per minute",
+          ],
+          [
+            <Ext key="rosie" href="https://heyrosie.com/pricing" nofollow>Rosie</Ext>,
+            "Minute bundle",
+            "$49 for 250 minutes",
+            "$149 for 1,000 minutes (first tier with in-call booking)",
+            "Not published",
+          ],
+          [
+            <Ext key="gc" href="https://www.goodcall.com/pricing" nofollow>Goodcall</Ext>,
+            "Per agent, capped unique callers",
+            "$79 for 100 callers",
+            "$129 for 250 callers",
+            "$0.50 per extra caller; minutes unlimited",
+          ],
+          [
+            <Ext key="mafd" href="https://www.myaifrontdesk.com/pricing" nofollow>My AI Front Desk</Ext>,
+            "Minute bundle",
+            "$99 for 200 voice minutes",
+            "Custom",
+            "About $0.25 per minute",
+          ],
+          [
+            <Internal key="us" href="/pricing">AI Receptionist Now (us)</Internal>,
+            "Minute bundle",
+            "€99 for 1,000 minutes",
+            "€299 for 3,000 minutes",
+            "€0.09 per minute; booking on both plans",
+          ],
+        ]}
+      />
+      <P>
+        The per-minute gap between the two tables is the whole story of this
+        market. The cheapest live minute above costs $1.20; AI bundles work
+        out to roughly 10 to 50 cents a minute (Rosie&apos;s $149 for 1,000
+        minutes is about 15 cents, a $99 plan with 200 minutes is about 50).
+        Per-call AI pricing sits in between, at roughly $1.90 to $3 a call,
+        and suits short calls badly or well depending on your mix. Two
+        caveats in fairness to the live side: a human operator is a different
+        product, and per-call human pricing like Smith.ai&apos;s is built for
+        long intake conversations, not 70-second messages.
+      </P>
+      <Callout>
+        Not in the tables: AnswerConnect, AnswerForce and Nexa show a quote
+        form or plan sizes without a US price list, so any figure you see for
+        them comes from a third party. We bill in euros, and a euro has been
+        worth a little more than a dollar, so our €99 lands somewhat above
+        $100 on a US card.
+      </Callout>
 
       <H2 id="pricing-models">Answering service pricing models, explained</H2>
       <P>
@@ -163,27 +413,32 @@ export default function Body() {
       <H3>Per-minute</H3>
       <P>
         The classic live-operator model: you pay for every minute an operator
-        spends on your calls, typically <Strong>$1 to $3.50 a minute</Strong>,
-        usually on top of a base fee of $30 to $50. It looks affordable at low
-        volume and gets punishing fast - a modest 200 three-minute calls is
-        600 billable minutes. Watch the rounding: some services bill per
-        second after the first minute; others round every call up to the next
-        30 or 60 seconds, which quietly inflates the bill 15-30%.
+        spends on your calls. Bundled plans work out to{" "}
+        <Strong>$1.20 to $5 a minute</Strong> depending on size, and
+        pay-as-you-go tiers charge a $44 to $49 base plus $1.35 to $2.99 a
+        minute (Specialty, Signius, PATLive). It looks affordable at low volume
+        and gets punishing fast - a modest 200 three-minute calls is 600
+        billable minutes. Watch the rounding: Specialty bills by the second,
+        PATLive bills the first minute then 6-second steps, AMBS and
+        Moneypenny round up to 30 seconds, and Nexa&apos;s terms round up to
+        the whole minute.
       </P>
       <H3>Per-call</H3>
       <P>
-        A flat fee per answered call, commonly{" "}
-        <Strong>$0.75 to $1.50 per call</Strong> for simple message-taking and
-        more for scripted intake. It&apos;s the easiest model to forecast, but
-        ask two questions: do spam calls and wrong numbers count as billable,
-        and what happens to the rate when a call runs long or needs a
-        transfer.
+        A fee per answered call. For human receptionists the published
+        example is Smith.ai at <Strong>$10 a call</Strong> on its entry plan,
+        with $8.50 to $11.50 per extra call; per-call AI plans run{" "}
+        <Strong>about $1.90 to $3 a call</Strong>. It&apos;s the easiest
+        model to forecast, but ask two questions: do spam calls and wrong
+        numbers count as billable (Smith.ai says not, if caller ID is passed),
+        and which add-ons - booking, recording, a Spanish line - are charged
+        per call on top.
       </P>
       <H3>Flat monthly subscription</H3>
       <P>
         A fixed monthly fee with a bundle of included minutes or calls and an
         overage rate beyond it. This is how most AI answering services price -{" "}
-        <Strong>roughly $30 to $300 a month</Strong> depending on volume - and
+        <Strong>roughly $20 to $300 a month</Strong> depending on volume - and
         some live services offer tiered versions. It&apos;s the most
         predictable model; the number to scrutinize is the overage rate,
         because that&apos;s what you pay in your busy season.
@@ -206,19 +461,19 @@ export default function Body() {
         rows={[
           [
             "Per-minute (live)",
-            "$1-$3.50/min + base fee",
+            "$1.20-$5/min on bundles; PAYG $44-$49 base + $1.35-$2.99/min",
             "Very low, short calls",
             "Any real volume; long or complex calls",
           ],
           [
             "Per-call",
-            "$0.75-$1.50/call",
-            "Short, predictable calls",
-            "Spam is billable; calls need transfers",
+            "AI ~$1.90-$3/call; human ~$8.50-$11.50/call",
+            "Long calls that would rack up minutes",
+            "Many short calls; per-call add-ons",
           ],
           [
             "Flat monthly (mostly AI)",
-            "$30-$300/mo + overage",
+            "$20-$300/mo + overage",
             "Steady or growing volume",
             "Volume far below the bundle you bought",
           ],
@@ -240,10 +495,11 @@ export default function Body() {
       </P>
       <UL>
         <LI>
-          <Strong>Setup and onboarding fees.</Strong> A one-time{" "}
-          <Strong>$50 to $500</Strong> charge for scripting and account setup.
-          Common with live services, often negotiable, rarely on the pricing
-          page.
+          <Strong>Setup and onboarding fees.</Strong> A one-time charge for
+          scripting and account setup. AMBS publishes{" "}
+          <Strong>$85</Strong>; Nexa&apos;s terms mention one without an
+          amount; Specialty, Abby Connect, Smith.ai and Ruby say they charge
+          none. Ask, and get the answer in writing.
         </LI>
         <LI>
           <Strong>Overage rates.</Strong> The per-minute price after your
@@ -251,23 +507,25 @@ export default function Body() {
           base plan with a brutal overage is priced to be exceeded.
         </LI>
         <LI>
-          <Strong>Holiday and after-hours premiums.</Strong> Many live
-          services bill time-and-a-half or add flat surcharges on nights,
-          weekends, and holidays - precisely when you need coverage most. AI
-          services generally bill midnight the same as noon; confirm it
-          anyway.
+          <Strong>Holiday and after-hours premiums.</Strong> Nexa&apos;s terms
+          include a fee on eight named holidays; Specialty, AMBS and Ruby state
+          they charge none. These surcharges land precisely when you need
+          coverage most. AI services generally bill midnight the same as noon;
+          confirm it anyway.
         </LI>
         <LI>
-          <Strong>Per-transfer and call-patching fees.</Strong> A charge each
-          time the operator connects a caller to you or your cell, sometimes
-          plus the connected minutes. At a few dollars a patch,
-          transfer-heavy businesses get stung.
+          <Strong>Per-transfer and call-patching fees.</Strong> A charge for
+          connecting a caller through to you or your cell and keeping the line
+          up: $0.06 a minute at AMBS, $0.10 at Specialty. Small per minute, but
+          transfer-heavy businesses pay it on every live handoff.
         </LI>
         <LI>
-          <Strong>Billing increments.</Strong> Rounding every call up to the
-          next 30 or 60 seconds turns a 65-second call into two billable
-          minutes. Per-second billing is fairer; ask which one you&apos;re
-          getting.
+          <Strong>Billing increments and wrap-up time.</Strong> Rounding every
+          call up to the next 30 or 60 seconds turns a 65-second call into 90
+          or 120 billable seconds, and some terms add after-call work first:
+          Moneypenny&apos;s own example bills a 62-second call with 8 seconds
+          of wrap-up as 90 seconds. Per-second billing is fairer; ask which one
+          you&apos;re getting.
         </LI>
         <LI>
           <Strong>Billable junk.</Strong> Spam, robocalls, and wrong numbers
@@ -289,42 +547,47 @@ export default function Body() {
       </H2>
       <P>
         Here&apos;s the comparison at three realistic volumes, assuming an
-        average call of about three minutes and typical 2026 rates
-        ($1-$1.50/minute at the affordable end of live services; flat AI
-        subscriptions sized to volume). The point isn&apos;t any single cell -
-        it&apos;s how differently the two models scale.
+        average call of about three minutes, computed from the published
+        plans above: for each service, the cheapest plan that fits plus
+        overage, from the least to the most expensive service. The point
+        isn&apos;t any single cell - it&apos;s how differently the two models
+        scale.
       </P>
       <Table
-        caption="Estimated monthly cost by call volume (3-minute average call, US rates)"
+        caption="Monthly cost by call volume from published plans (3-minute average call, checked October 2026)"
         head={[
           "Monthly volume",
-          "Live operator service",
-          "AI answering service",
+          "Live per-minute services",
+          "AI answering services",
           "Effective cost per call (AI)",
         ]}
         rows={[
           [
             "50 calls (~150 min)",
-            "~$200-$350",
-            "~$30-$100 flat",
-            "~$0.60-$2.00",
+            "~$215-$720",
+            "~$50-$150",
+            "~$1-$3",
           ],
           [
             "200 calls (~600 min)",
-            "~$650-$1,000",
-            "~$100-$200 flat",
-            "~$0.50-$1.00",
+            "~$720-$1,725+",
+            "~$110-$420",
+            "~$0.50-$2.10",
           ],
           [
             "500 calls (~1,500 min)",
-            "~$1,600-$2,500",
-            "~$200-$300 flat",
-            "~$0.40-$0.60",
+            "~$1,800-$4,100+",
+            "~$160-$1,000",
+            "~$0.30-$2.00",
           ],
         ]}
       />
       <P>
-        The divergence is structural, not a promotion. A live service pays a
+        A plus sign means at least one service (Ruby) publishes no plan or
+        overage rate at that volume. The wide AI ranges are real too: per-call
+        and per-minute AI plans from live-answering companies scale more like
+        the live side than flat minute bundles do. The divergence is
+        structural, not a promotion. A live service pays a
         human for every minute, so its costs scale linearly with your calls
         and spike at nights and holidays when labor costs more. Software
         answers the 500th call at nearly the same marginal cost as the first,
@@ -388,8 +651,16 @@ export default function Body() {
         <Internal href="/blog/home-services-answering-service#pest-control">
           pest control company
         </Internal>{" "}
-        needs a script that never answers a pesticide safety question; and a
-        clinic pays for on-call dispatch time most businesses never see (
+        needs a script that never answers a pesticide safety question; a{" "}
+        <Internal href="/blog/veterinary-answering-service#vet-techs">
+          veterinary practice
+        </Internal>{" "}
+        decides whether it is paying for routing or for a vet tech&apos;s
+        triage; a{" "}
+        <Internal href="/blog/towing-answering-service">
+          towing company
+        </Internal>{" "}
+        needs every night call answered in parallel; and a clinic pays for on-call dispatch time most businesses never see (
         <Internal href="/blog/medical-answering-service-pricing">
           medical answering service pricing, line by line
         </Internal>

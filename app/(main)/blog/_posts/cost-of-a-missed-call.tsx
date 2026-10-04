@@ -369,6 +369,10 @@ export default function Body() {
           <Internal href="/blog/ai-receptionist-vs-virtual-receptionist-vs-answering-service">
             answering service vs. receptionist breakdown
           </Internal>
+          , and what twelve services actually charge in our{" "}
+          <Internal href="/blog/answering-service-cost#price-comparison">
+            answering service pricing comparison
+          </Internal>
           .
         </LI>
         <LI>
@@ -406,6 +410,10 @@ export default function Body() {
         see our guide to{" "}
         <Internal href="/blog/best-ai-receptionist#how-to-choose">
           choosing an AI receptionist
+        </Internal>
+        , or, if you are still deciding between live and AI, the{" "}
+        <Internal href="/blog/answering-service-for-small-business#compared">
+          best small business answering services compared
         </Internal>
         .
       </P>

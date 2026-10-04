@@ -1198,7 +1198,12 @@ export default function Body() {
         carrier and claim number recorded as plain facts, and who can authorize
         the work. A tenant can&apos;t authorize demolition in someone
         else&apos;s building, and finding that out on site costs a truck
-        roll.
+        roll. The building&apos;s side of the same night - how a leasing
+        office triages a tenant&apos;s leak report - is in our{" "}
+        <Internal href="/blog/apartment-answering-service#triage">
+          apartment answering service guide
+        </Internal>
+        .
       </P>
       <H3>Five sentences the script must never say</H3>
       <OL>
@@ -1291,6 +1296,15 @@ export default function Body() {
           business name on it.
         </LI>
       </OL>
+      <P>
+        Vehicle lockouts sit next door to towing: same roadside caller, same
+        &quot;where exactly are you?&quot; problem. If your vans also tow, the
+        location intake and motor-club sorting are in our{" "}
+        <Internal href="/blog/towing-answering-service">
+          24/7 towing dispatch and answering guide
+        </Internal>
+        .
+      </P>
       <H3>The quote is the trade&apos;s reputation</H3>
       <P>
         The scam pattern consumer agencies warn about is a phone problem: a

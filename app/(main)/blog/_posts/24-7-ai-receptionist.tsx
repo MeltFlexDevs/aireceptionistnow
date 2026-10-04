@@ -209,7 +209,16 @@ export default function Body() {
         <LI>
           <Strong>Overnight: triage.</Strong> Low volume, high stakes. The
           job is to answer everything, book or log the routine, and wake your
-          on-call person only for a genuine emergency.
+          on-call person only for a genuine emergency. What counts as one is
+          trade-specific: a{" "}
+          <Internal href="/blog/veterinary-answering-service#after-hours">
+            veterinary answering service
+          </Internal>{" "}
+          refers urgent calls to an emergency hospital, while a{" "}
+          <Internal href="/blog/towing-answering-service">
+            24/7 towing dispatch line
+          </Internal>{" "}
+          gets a truck rolling.
         </LI>
         <LI>
           <Strong>Weekends and holidays: the competitor gap.</Strong> The
@@ -373,8 +382,14 @@ export default function Body() {
         prices by time, so the expensive hours are exactly the ones you&apos;re
         buying 24/7 coverage for: nights, weekends, holidays. AI prices by
         subscription, so extending from business hours to always-on typically
-        costs nothing extra - the flat monthly fee (commonly $30-$300 by
-        volume and features) already includes the midnight calls. We break
+        costs nothing extra - the flat monthly fee (commonly $20-$300 by
+        volume and features) already includes the midnight calls. If you are
+        weighing a live service against AI, we put twelve providers&apos;
+        published prices side by side in our{" "}
+        <Internal href="/blog/answering-service-for-small-business#compared">
+          small business answering service comparison
+        </Internal>
+        . We break
         down the models, the per-minute traps, and the questions to ask in{" "}
         <Internal href="/blog/virtual-receptionist-pricing#ai-receptionist-pricing">
           our AI receptionist pricing guide

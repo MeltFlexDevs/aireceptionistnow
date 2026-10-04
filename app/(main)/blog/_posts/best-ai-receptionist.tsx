@@ -369,7 +369,13 @@ export default function Body() {
         <Internal href="/blog/virtual-receptionist-pricing#ai-receptionist-pricing">
           guide to AI receptionist pricing
         </Internal>{" "}
-        breaks down what should and shouldn&apos;t be a billable minute.
+        breaks down what should and shouldn&apos;t be a billable minute, and
+        if a live answering service is also on your list, its published
+        per-minute rates are in our{" "}
+        <Internal href="/blog/answering-service-cost#price-comparison">
+          answering service pricing comparison
+        </Internal>
+        .
       </P>
       <Callout>
         Always price the comparison against the alternative you&apos;re really

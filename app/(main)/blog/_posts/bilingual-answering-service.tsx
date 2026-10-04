@@ -787,6 +787,18 @@ export default function Body() {
         ]}
       />
       <P>
+        The night-and-weekend row is also where the rest of the script gets
+        hardest, language aside: the location intake on a{" "}
+        <Internal href="/blog/towing-answering-service">
+          towing dispatch line
+        </Internal>{" "}
+        and the emergency triage for{" "}
+        <Internal href="/blog/apartment-answering-service">
+          apartment answering services
+        </Internal>{" "}
+        have to work in whichever language the caller opens with.
+      </P>
+      <P>
         For the money side, per-minute and per-call billing are explained in our{" "}
         <Internal href="/blog/answering-service-cost">
           answering service cost guide

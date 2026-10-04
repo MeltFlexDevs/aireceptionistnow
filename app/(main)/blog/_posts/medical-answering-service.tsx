@@ -547,7 +547,12 @@ export default function Body() {
         a signed BAA, clinician-approved triage rules, and real-time
         scheduling answers every patient instantly, fills the evening booking
         window, and reserves human attention - the front desk&apos;s and the
-        on-call provider&apos;s - for the calls that genuinely need it.
+        on-call provider&apos;s - for the calls that genuinely need it. The
+        same capture-and-route rule carries over to animal care, where our{" "}
+        <Internal href="/blog/veterinary-answering-service">
+          veterinary answering service guide
+        </Internal>{" "}
+        covers emergency referral and vet-tech triage lines.
       </P>
       <P>
         On cost, we read the published rate cards of the human answering

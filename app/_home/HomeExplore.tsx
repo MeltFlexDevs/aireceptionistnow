@@ -20,8 +20,8 @@ import { COMPETITORS } from "@/app/(main)/compare/_compare/competitors";
 // contextual inbound link from /blog/best-ai-receptionist.
 
 const GUIDES: { href: string; label: string }[] = [
-  { href: "/blog/answering-service-for-small-business", label: "Answering service for small business: the full guide" },
-  { href: "/blog/answering-service-cost", label: "How much does an answering service cost?" },
+  { href: "/blog/answering-service-for-small-business", label: "Best small business answering services, compared" },
+  { href: "/blog/answering-service-cost", label: "Answering service cost: 12 services' prices compared" },
   { href: "/blog/virtual-receptionist-pricing", label: "Virtual receptionist pricing, without the surprises" },
   { href: "/blog/24-hour-answering-service", label: "24 hour answering service: live vs AI" },
   { href: "/blog/ai-receptionist-vs-virtual-receptionist-vs-answering-service", label: "AI receptionist vs virtual receptionist vs answering service" },

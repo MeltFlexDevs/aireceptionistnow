@@ -138,11 +138,11 @@ const FAQS = [
   },
   {
     q: "How is the pricing different from Smith.ai?",
-    a: "Smith.ai bills per call: its AI Receptionist starts around $97.50/month for 30 calls with per-call overage after that, and the human-backed tier is $292.50/month for 30 calls (roughly $9.75 a call), per their published rates. AI Receptionist Now is a flat €99/month (Solo) or €299/month (Team) that includes 1,000 or 3,000 talk minutes, with any extra minutes at €0.09. Because we meter minutes rather than calls, short calls — a hang-up, a quick 'are you open?' — cost a few cents instead of a full call charge.",
+    a: "Smith.ai bills per call. Per its published rates (checked October 2026), the AI Receptionist has a free plan with 25 calls a month and $3.00 per call after that, and a Pro plan at $150/month for 75 calls ($2.00 a call); the human-first receptionist starts at $300/month for 30 calls, with $11.50 per extra call. AI Receptionist Now is a flat €99/month (Solo) or €299/month (Team) that includes 1,000 or 3,000 talk minutes, with any extra minutes at €0.09. Because we meter minutes rather than calls, short calls — a hang-up, a quick 'are you open?' — cost a few cents instead of a full call charge.",
   },
   {
     q: "Which is cheaper for a busy month?",
-    a: "It depends on call length, but per-minute billing usually wins when volume spikes. Take 90 calls in a month: on Smith.ai's AI tier at ~$2.40 per extra call that's roughly $97.50 + 60 × $2.40 ≈ $240; on the human tier it's far more. On AI Receptionist Now, 90 calls averaging four minutes is 360 minutes — comfortably inside the €99 Solo plan, so you still pay €99 flat. The more calls you take, the wider that gap opens.",
+    a: "It depends on call length, but per-minute billing usually wins when volume spikes. Take 75 calls in a month: that's $150 on Smith.ai's AI Pro plan, and $810 on its 90-call human-first plan. On AI Receptionist Now, 75 calls averaging four minutes is 300 minutes — comfortably inside the €99 Solo plan, so you pay €99 flat, and a busier month still costs €99 until you pass 1,000 minutes. Below about 25 calls a month, Smith.ai's free AI plan is cheaper than us, and we'd say so. The more calls you take, the wider that gap opens.",
   },
   {
     q: "How long does setup take compared to Smith.ai?",
@@ -516,17 +516,18 @@ export default function SmithAiComparePage() {
               <p>
                 This is the difference that shows up on your card. Smith.ai bills
                 per call; AI Receptionist Now bills per minute inside a flat
-                plan. Per published rates, Smith.ai&apos;s AI Receptionist starts
-                around <strong>$97.50/month for 30 calls</strong> with per-call
-                overage, and the human-backed tier is{" "}
-                <strong>$292.50/month for 30 calls</strong> — roughly $9.75 a
-                call. We&apos;re <strong>€99 or €299 a month, flat</strong>, with
+                plan. Per its published rates (checked October 2026), Smith.ai&apos;s AI
+                Receptionist is <strong>free for 25 calls a month</strong>, then
+                $3.00 a call, or <strong>$150/month for 75 calls</strong> on Pro;
+                the human-first receptionist starts at{" "}
+                <strong>$300/month for 30 calls</strong> — $10 a call, $11.50
+                for each extra one. We&apos;re <strong>€99 or €299 a month, flat</strong>, with
                 1,000 or 3,000 minutes and €0.09 per extra minute.
               </p>
 
               <div className="compare-pricing-visual">
                 <div className="compare-pricing-visual-label">
-                  A month with 90 calls, ~4 minutes each
+                  A month with 75 calls, ~4 minutes each
                 </div>
                 <div className="compare-pricing-visual-grid">
                   <div className="compare-pv-card compare-pv-card--best">
@@ -537,7 +538,7 @@ export default function SmithAiComparePage() {
                       <span className="compare-pv-period">/ month</span>
                     </div>
                     <ul className="compare-pv-features">
-                      <li>360 minutes used of 1,000 included</li>
+                      <li>300 minutes used of 1,000 included</li>
                       <li>Short calls cost cents, not a call charge</li>
                       <li>Same €99 whether it&apos;s a quiet or busy month</li>
                       <li>No contract; 30-day money-back guarantee</li>
@@ -547,16 +548,16 @@ export default function SmithAiComparePage() {
                   <div className="compare-pv-card">
                     <div className="compare-pv-name">Smith.ai — AI Receptionist</div>
                     <div className="compare-pv-price">
-                      <span className="compare-pv-amount">~$240</span>
+                      <span className="compare-pv-amount">$150</span>
                       <span className="compare-pv-period">/ month</span>
                     </div>
                     <ul className="compare-pv-features">
-                      <li>$97.50 base for the first 30 calls</li>
-                      <li className="pv-con">60 extra calls × ~$2.40 = ~$144</li>
+                      <li>Pro plan: 75 calls at $2.00 each</li>
+                      <li className="pv-con">A busier month moves you up a call tier</li>
                       <li className="pv-con">Every call bills, even a 20-second one</li>
-                      <li className="pv-con">Human tier costs several times more</li>
+                      <li className="pv-con">Human-first tier: $810 for 90 calls</li>
                     </ul>
-                    <div className="compare-pv-note">You pay ~$240</div>
+                    <div className="compare-pv-note">You pay $150</div>
                   </div>
                 </div>
               </div>

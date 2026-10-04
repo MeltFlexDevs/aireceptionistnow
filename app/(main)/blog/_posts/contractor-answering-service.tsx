@@ -373,6 +373,10 @@ export default function Body() {
         <Internal href="/blog/answering-service-cost">
           answering service cost guide
         </Internal>
+        , the providers themselves side by side in our{" "}
+        <Internal href="/blog/answering-service-for-small-business#compared">
+          small business answering service comparison
+        </Internal>
         , and our own flat rates are on the{" "}
         <Internal href="/pricing">pricing page</Internal>.
       </P>

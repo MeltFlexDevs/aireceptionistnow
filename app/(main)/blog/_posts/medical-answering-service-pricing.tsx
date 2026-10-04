@@ -238,10 +238,11 @@ export default function Body() {
       </P>
       <P>
         If you want the general picture for any kind of business, our{" "}
-        <Internal href="/blog/answering-service-cost">
+        <Internal href="/blog/answering-service-cost#price-comparison">
           answering service cost guide
         </Internal>{" "}
-        covers the pricing models. This article is narrower: the lines on the
+        covers the pricing models and sets these live rate cards next to
+        per-call and AI plans. This article is narrower: the lines on the
         invoice that are specific to a clinic - on-call dispatch, HIPAA,
         holidays - and what vendors put in writing about each.
       </P>

@@ -317,6 +317,13 @@ export default function Body() {
           trained on your business
         </Internal>{" "}
         so it answers the questions callers ask before they commit to a time.
+        The appointment types are where industries differ most: a{" "}
+        <Internal href="/blog/veterinary-answering-service">
+          veterinary clinic
+        </Internal>{" "}
+        needs species and reason on every booking, a{" "}
+        <Internal href="/blog/salon-answering-service">salon</Internal> needs
+        the service length, not just the service name.
       </P>
 
       <H2 id="bottom-line">The bottom line</H2>

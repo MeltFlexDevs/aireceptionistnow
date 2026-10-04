@@ -246,7 +246,12 @@ export default function Body() {
         Our honest recommendation for the first two weeks is the conditional
         set. It has no downside worth naming: the calls you answer stay exactly
         as they were, and you get a log of everything you were previously
-        losing. Read the transcripts, then decide whether answering
+        losing. The same conditional set is how daytime overflow works - see
+        how a{" "}
+        <Internal href="/blog/veterinary-answering-service#overflow">
+          vet clinic handles overflow calls
+        </Internal>{" "}
+        during its morning rush. Read the transcripts, then decide whether answering
         <em> everything </em> first is the better experience - for most
         businesses with a real front desk it eventually is, for the reasons in{" "}
         <Internal href="/blog/how-to-replace-front-desk-receptionist-with-ai">
