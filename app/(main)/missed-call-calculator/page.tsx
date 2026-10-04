@@ -211,7 +211,7 @@ export default function MissedCallCalculatorPage() {
             <li>
               <strong>Check when the misses happen.</strong> If they cluster
               outside opening hours, the fix is coverage, not more staff. See{" "}
-              <Link href="/blog/after-hours-answering-service">
+              <Link href="/blog/24-hour-answering-service#after-hours">
                 after-hours answering
               </Link>
               .

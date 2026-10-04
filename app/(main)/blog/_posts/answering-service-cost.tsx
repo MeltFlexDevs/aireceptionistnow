@@ -332,7 +332,7 @@ export default function Body() {
         win specific jobs - genuinely complex, high-empathy calls - and why
         the honest comparison depends on your call mix. We&apos;ve unpacked
         the AI side of these numbers, model by model, in our{" "}
-        <Internal href="/blog/ai-receptionist-pricing">
+        <Internal href="/blog/virtual-receptionist-pricing#ai-receptionist-pricing">
           AI receptionist pricing breakdown
         </Internal>
         .
@@ -380,12 +380,12 @@ export default function Body() {
           funeral home
         </Internal>{" "}
         is legally required to answer price questions by telephone; an{" "}
-        <Internal href="/blog/answering-service-for-therapists">
+        <Internal href="/blog/medical-answering-service">
           answering service for therapists
         </Internal>{" "}
         needs a signed business associate agreement before it takes a single
         call; a{" "}
-        <Internal href="/blog/pest-control-answering-service">
+        <Internal href="/blog/home-services-answering-service#pest-control">
           pest control company
         </Internal>{" "}
         needs a script that never answers a pesticide safety question; and a

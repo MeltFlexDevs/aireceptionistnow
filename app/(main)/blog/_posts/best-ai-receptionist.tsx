@@ -2,6 +2,7 @@ import {
   Lead,
   P,
   H2,
+  H3,
   UL,
   OL,
   LI,
@@ -21,10 +22,10 @@ export const meta = {
   slug: "best-ai-receptionist",
   title: "The Best AI Receptionist Services, Honestly Compared (2026)",
   description:
-    "An honest comparison of AI receptionist services - the vendor categories, what actually matters, how costs compare, and a scorecard for any vendor.",
+    "An honest comparison of AI receptionist services: the vendor categories, how costs compare, the questions to ask any vendor, and a scorecard to pick one.",
   date: "2026-07-23",
-  updated: "2026-07-23",
-  readingTime: "12 min read",
+  updated: "2026-10-04",
+  readingTime: "16 min read",
   tag: "Guides",
   hero: "/blog/best-ai-receptionist-hero.webp",
   heroAlt:
@@ -40,6 +41,10 @@ export const meta = {
     "how do the costs of virtual receptionist services compare",
     "ai receptionist services compared",
     "top ai receptionist",
+    "how to choose an ai receptionist",
+    "questions to ask an ai receptionist vendor",
+    "how to choose an answering service",
+    "ai receptionist buyer's guide",
   ],
   sections: [
     { id: "short-answer", title: "The short answer" },
@@ -47,6 +52,10 @@ export const meta = {
     { id: "categories", title: "The four categories of vendor" },
     { id: "what-to-compare", title: "The seven things that actually matter" },
     { id: "pricing", title: "How the pricing really compares" },
+    {
+      id: "how-to-choose",
+      title: "How to choose: the questions to ask any vendor",
+    },
     { id: "scorecard", title: "A scorecard you can run in ten minutes" },
     { id: "where-we-fit", title: "Where we fit - and where we don't" },
     { id: "bottom-line", title: "The bottom line" },
@@ -73,6 +82,18 @@ export const meta = {
       q: "Can I test an AI receptionist before I buy?",
       a: "Yes, and you should never buy one you haven't heard. The fastest test is to call the vendor's own demo line and listen: does it sound human, does it interrupt naturally when you talk over it, does it actually answer a question specific to a business rather than reading a script? Then set up a short trial with your own business details and call it yourself from a real phone. Ten minutes of listening tells you more than any comparison table, including this one.",
     },
+    {
+      q: "What questions should I ask an AI receptionist vendor?",
+      a: "Ask what triggers a handoff to a human and where that call goes; what the caller hears during a transfer; whether it books directly on your calendar with two-way sync; whether you can keep your existing number; what your all-in monthly cost is at your real call volume, including the integrations you need; what happens when you exceed your allowance; whether there's a contract or setup fee; how it discloses that it's an AI; and how call recordings and data are stored, consented and deleted. A vendor that can't answer these plainly is telling you something.",
+    },
+    {
+      q: "How do I choose an answering service?",
+      a: "Start with the calls you're losing today - after-hours, overflow, or repetitive FAQs - and decide what 'handled' means: a booked appointment, a message texted to you within a minute, or a live transfer. Then put every candidate, human or AI, through the same tests: call it yourself off-script and as a difficult caller, ask for a human, check the all-in price at your real volume, and confirm you can leave month to month. The same checklist works whether you're comparing live answering services or AI receptionists.",
+    },
+    {
+      q: "Should I pick a general AI receptionist or one built for my industry?",
+      a: "For routine answering and booking, a general-purpose AI receptionist is usually enough and cheaper. Industry-specific tools earn their premium when you need deep integration with sector software (a legal practice-management system, a dental PMS, a home-services dispatch tool) or specialised intake. If your needs are standard, paying for a vertical product mostly buys you marketing copy.",
+    },
   ] satisfies FaqItem[],
 };
 
@@ -86,6 +107,16 @@ const sources: Source[] = [
     title:
       "Harvard Business Review: The Short Life of Online Sales Leads (lead response-time research)",
     url: "https://hbr.org/2011/03/the-short-life-of-online-sales-leads",
+  },
+  {
+    title:
+      "FTC .com Disclosures: how to make effective disclosures in digital advertising",
+    url: "https://www.ftc.gov/business-guidance/resources/com-disclosures-how-make-effective-disclosures-digital-advertising",
+  },
+  {
+    title:
+      "FCC: AI-generated voices in robocalls are illegal under the TCPA (Feb 2024 ruling)",
+    url: "https://www.fcc.gov/document/fcc-makes-ai-generated-voices-robocalls-illegal",
   },
 ];
 
@@ -335,7 +366,7 @@ export default function Body() {
         answering the hundredth call costs the same as the first. When you get a
         per-minute quote, always convert it: take your real monthly call minutes
         and do the multiplication before you compare. Our own{" "}
-        <Internal href="/blog/ai-receptionist-pricing">
+        <Internal href="/blog/virtual-receptionist-pricing#ai-receptionist-pricing">
           guide to AI receptionist pricing
         </Internal>{" "}
         breaks down what should and shouldn&apos;t be a billable minute.
@@ -348,6 +379,136 @@ export default function Body() {
         </Ext>
         , that&apos;s roughly $37,000 a year before benefits, and it only covers
         staffed hours. Any AI plan is competing with that number, not with zero.
+      </Callout>
+
+      <H2 id="how-to-choose">How to choose: the questions to ask any vendor</H2>
+      <P>
+        The seven attributes tell you <em>what</em> to compare. This is how to
+        actually run the evaluation - and it works just as well for choosing a
+        human answering service as an AI one. The most common buying mistake
+        isn&apos;t picking the wrong vendor; it&apos;s shopping for features
+        before you&apos;ve defined the job. So spend ten minutes on three
+        things before you talk to anyone:
+      </P>
+      <OL>
+        <LI>
+          <Strong>Name the call you keep losing.</Strong> After-hours
+          bookings? Overflow during the rush? The same five FAQs eating your
+          day? That sentence is your buying criteria.
+        </LI>
+        <LI>
+          <Strong>Map what happens to a call today.</Strong> Where it rings,
+          who picks up, what happens when nobody does, and where the
+          information ends up afterwards.
+        </LI>
+        <LI>
+          <Strong>Decide what &quot;handled&quot; means.</Strong> Booked on the
+          calendar, a text summary within a minute, or a warm transfer. Be
+          concrete - it&apos;s exactly what you&apos;ll test.
+        </LI>
+      </OL>
+      <H3>Questions to ask an AI receptionist vendor</H3>
+      <P>
+        These are the questions sales pages are quietest about. Ask them
+        plainly and listen for a specific answer, not &quot;our AI handles
+        everything&quot;:
+      </P>
+      <UL>
+        <LI>
+          <Strong>What triggers a handoff, and where does the call go?</Strong>{" "}
+          Caller asks for a human, repeated misunderstanding, an emotional or
+          out-of-scope call - then a warm transfer, your cell, or a detailed
+          message texted to you within a minute. A capable AI that doesn&apos;t
+          know its limits is worse than a modest one that escalates cleanly.
+        </LI>
+        <LI>
+          <Strong>What does the caller hear while that happens?</Strong> Dead
+          air and loops are how a recoverable call becomes a one-star review.
+        </LI>
+        <LI>
+          <Strong>How does it handle latency, interruptions and mistakes?</Strong>{" "}
+          A second&apos;s pause is fine; several seconds of silence makes
+          people say &quot;hello?&quot; and hang up. You should be able to cut
+          it off mid-sentence, and it should recover when it mishears instead
+          of repeating the same wrong thing.
+        </LI>
+        <LI>
+          <Strong>Does booking mean booking?</Strong> Writing to your real
+          calendar with two-way sync, including reschedules and
+          cancellations - not emailing you a request to key in later.
+        </LI>
+        <LI>
+          <Strong>What&apos;s my all-in monthly cost at my real volume?</Strong>{" "}
+          Bring your actual call count and the integrations you need. Then ask
+          what happens when you go over: an overage rate, a hard cap, or the
+          line simply stops answering.
+        </LI>
+        <LI>
+          <Strong>What&apos;s the commitment?</Strong> Free trial,
+          month-to-month, or an annual lock-in with a setup fee.
+        </LI>
+        <LI>
+          <Strong>How does it disclose that it&apos;s an AI?</Strong> A brief,
+          natural disclosure is the safe default - see the{" "}
+          <Ext href="https://www.ftc.gov/business-guidance/resources/com-disclosures-how-make-effective-disclosures-digital-advertising">
+            FTC&apos;s guidance on clear and conspicuous disclosure
+          </Ext>{" "}
+          - and regulators are watching AI voices, as the{" "}
+          <Ext href="https://www.fcc.gov/document/fcc-makes-ai-generated-voices-robocalls-illegal">
+            FCC&apos;s 2024 ruling on AI-generated voices in robocalls
+          </Ext>{" "}
+          signalled.
+        </LI>
+        <LI>
+          <Strong>How are recordings and data handled?</Strong> Some
+          jurisdictions require all-party consent to record. Ask where call
+          data lives, who can see it, how long it&apos;s kept and whether you
+          can delete it. In healthcare, ask for a signed business associate
+          agreement before any patient information touches the system. (None
+          of this is legal advice; check your local rules.)
+        </LI>
+      </UL>
+      <H3>Run a demo designed to find the edges</H3>
+      <P>
+        The vendor&apos;s demo is built to succeed. Yours should be built to
+        break it - ideally on a trial using your own number:
+      </P>
+      <OL>
+        <LI>
+          <Strong>Do the core job</Strong> end to end and confirm the booking
+          lands on the calendar and the summary reaches you.
+        </LI>
+        <LI>
+          <Strong>Go off-script</Strong> with a question it wasn&apos;t
+          prepared for, and listen to how it recovers.
+        </LI>
+        <LI>
+          <Strong>Be the hard caller:</Strong> annoyed, rambling, changing
+          your mind mid-sentence.
+        </LI>
+        <LI>
+          <Strong>Make the audio messy:</Strong> call from a car or a noisy
+          room, talk fast.
+        </LI>
+        <LI>
+          <Strong>Ask for a human</Strong> and watch the whole escalation
+          path play out. This one test tells you more than the rest combined.
+        </LI>
+      </OL>
+      <P>
+        Make at least one of those calls outside business hours - a 24/7
+        claim is checkable at midnight, and our{" "}
+        <Internal href="/blog/24-7-ai-receptionist">
+          24/7 AI receptionist guide
+        </Internal>{" "}
+        lists what to probe.
+      </P>
+      <Callout>
+        Red flags that should end the conversation with any vendor, us
+        included: &quot;our AI handles everything&quot;; no clean way for a
+        caller to reach a human; pricing that only appears after a sales call;
+        no trial on your own number; and &quot;it&apos;s all secure&quot; as
+        the whole answer on data and recording.
       </Callout>
 
       <H2 id="scorecard">A scorecard you can run in ten minutes</H2>
@@ -413,12 +574,9 @@ export default function Body() {
         <Internal href="/">hear our AI receptionist answer a call</Internal>,
         then check the{" "}
         <Internal href="/pricing">flat monthly pricing</Internal> against your
-        own missed-call maths. If you want the buyer&apos;s checklist in more
-        depth, our guide to{" "}
-        <Internal href="/blog/how-to-choose-an-ai-receptionist">
-          choosing an AI receptionist
-        </Internal>{" "}
-        goes deeper on the traps to avoid.
+        own missed-call maths - and put us through every{" "}
+        <Internal href="#how-to-choose">question on the vendor list</Internal>{" "}
+        above.
       </P>
 
       <FAQList items={meta.faqs} />

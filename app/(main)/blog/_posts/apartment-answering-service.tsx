@@ -349,7 +349,7 @@ export default function Body() {
         <Strong>anyone who asks for a person gets one</Strong> - the escape
         hatch is not negotiable, whichever branch they are on. How that
         escalation is actually wired is the subject of{" "}
-        <Internal href="/blog/how-to-set-up-emergency-call-escalation">
+        <Internal href="/blog/24-hour-answering-service#emergency-escalation">
           our guide to emergency call escalation
         </Internal>
         .
@@ -529,7 +529,7 @@ export default function Body() {
         p.m. Each of those was a prospect who called the next community on their
         list, or a resident whose small problem was still small at the time. If
         you want the coverage patterns in general terms, our{" "}
-        <Internal href="/blog/after-hours-answering-service">
+        <Internal href="/blog/24-hour-answering-service#after-hours">
           after-hours guide
         </Internal>{" "}
         and{" "}

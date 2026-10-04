@@ -20,12 +20,12 @@ import {
 
 export const meta = {
   slug: "virtual-receptionist-pricing",
-  title: "Virtual Receptionist Pricing: What It Costs in 2026",
+  title: "Virtual Receptionist & AI Receptionist Pricing (2026)",
   description:
-    "Virtual receptionist pricing in 2026: live plans run $25-$100/mo base plus $1-$3.50 per minute (real bills $150-$700); AI plans cost $30-$300/mo flat.",
+    "Virtual receptionist pricing: live plans $25-$100/mo plus $1-$3.50/min (real bills $150-$700). AI receptionist pricing: $30-$300/mo flat, vendors compared.",
   date: "2026-07-25",
-  updated: "2026-08-08",
-  readingTime: "9 min read",
+  updated: "2026-10-04",
+  readingTime: "13 min read",
   tag: "Guides",
   hero: "/blog/virtual-receptionist-pricing-hero.webp",
   heroAlt:
@@ -41,12 +41,19 @@ export const meta = {
     "virtual receptionist per minute cost",
     "AI virtual receptionist pricing",
     "live virtual receptionist rates",
+    "ai receptionist pricing",
+    "ai receptionist cost",
+    "how much does an ai receptionist cost",
   ],
   sections: [
     { id: "short-answer", title: "The short answer" },
     { id: "what-is", title: "Live human or AI? Define it first" },
     { id: "pricing-models", title: "How virtual receptionists price" },
     { id: "real-bills", title: "Real monthly bills at three volumes" },
+    {
+      id: "ai-receptionist-pricing",
+      title: "AI receptionist pricing: models and real vendor prices",
+    },
     { id: "included", title: "What's included vs paid add-ons" },
     { id: "live-vs-ai", title: "Live vs AI: the honest trade-offs" },
     { id: "overpaying", title: "How to not overpay" },
@@ -74,6 +81,14 @@ export const meta = {
       a: "For routine work - answering common questions, taking messages, booking appointments, qualifying callers - a good AI virtual receptionist now performs comparably, answers instantly at 3 a.m., and takes unlimited simultaneous calls. A skilled live receptionist still wins on empathy with upset callers, judgment in ambiguous situations, and free-form conversation. Many businesses run a hybrid: AI answers everything first and passes the genuinely complex calls to a human.",
     },
     {
+      q: "How much does an AI receptionist cost?",
+      a: "Most small-business AI receptionist plans cost roughly $30 to $300 a month as a flat subscription with a bundle of minutes. As published on vendors' pricing pages in July 2026: Rosie ran $49 for 250 minutes, $149 for 1,000 and $299 for 2,000; Goodcall $79-$249 per agent with unlimited minutes but a cap on unique callers; My AI Front Desk's popular plan $99 for 200 voice minutes, then about $0.25 a minute; and our own plans €99 for 1,000 minutes or €299 for 3,000, with extra minutes at €0.09. Check what's included - booking, integrations, languages - before comparing headline prices.",
+    },
+    {
+      q: "Is an AI receptionist worth the cost?",
+      a: "Estimate the calls you miss each month, multiply by a conservative share that would have become customers and by your average revenue per customer, then compare that to the all-in monthly fee. For many service businesses one or two recovered jobs a month covers the subscription. If you already answer essentially every call yourself, the recovered revenue is small and the case is weak.",
+    },
+    {
       q: "What add-ons increase virtual receptionist pricing?",
       a: "At many live services, bilingual answering adds roughly $0.25-$0.50 per minute or requires a higher tier, 24/7 coverage carries night, weekend, and holiday premiums, and appointment booking or CRM integration sit behind upgraded plans or per-feature fees. AI services more often include after-hours coverage, bilingual answering, and booking in the flat rate. Always ask for the all-in price with every feature you actually need before comparing providers.",
     },
@@ -95,6 +110,21 @@ const sources: Source[] = [
     title:
       "Harvard Business Review: The Short Life of Online Sales Leads (lead response time research)",
     url: "https://hbr.org/2011/03/the-short-life-of-online-sales-leads",
+  },
+  {
+    title: "Rosie: published pricing (plans and included minutes, checked July 2026)",
+    url: "https://heyrosie.com/pricing",
+    nofollow: true,
+  },
+  {
+    title: "Goodcall: published pricing (per-agent plans and unique-caller caps, checked July 2026)",
+    url: "https://www.goodcall.com/pricing",
+    nofollow: true,
+  },
+  {
+    title: "My AI Front Desk: published pricing (included voice minutes and overage, checked July 2026)",
+    url: "https://www.myaifrontdesk.com/pricing",
+    nofollow: true,
   },
 ];
 
@@ -150,7 +180,10 @@ export default function Body() {
         thousands of minutes included and overage measured in cents. For
         reference, our own plans start at{" "}
         <Internal href="/pricing">€99/month for ~1,000 minutes</Internal>,
-        with extra minutes at €0.09. The single most important thing to
+        with extra minutes at €0.09, and the AI plans other vendors publish
+        are compared{" "}
+        <Internal href="#ai-receptionist-pricing">further down</Internal>.
+        The single most important thing to
         understand about virtual receptionist cost is that the advertised
         base price and your actual bill are different numbers - the rest of
         this guide is about closing that gap before you sign.
@@ -186,11 +219,12 @@ export default function Body() {
           AI receptionist vs virtual receptionist vs answering service
         </Internal>
         . This guide covers what each one costs; if you land on the AI side,
-        our{" "}
-        <Internal href="/blog/ai-receptionist-pricing">
-          AI receptionist pricing deep-dive
+        the{" "}
+        <Internal href="#ai-receptionist-pricing">
+          AI receptionist pricing section
         </Internal>{" "}
-        goes further into that model&apos;s fine print.
+        goes further into that model&apos;s fine print and real vendor
+        prices.
       </P>
 
       <H2 id="pricing-models">How virtual receptionist pricing works</H2>
@@ -298,6 +332,167 @@ export default function Body() {
         - per-minute human billing always punishes growth.
       </P>
 
+      <H2 id="ai-receptionist-pricing">
+        AI receptionist pricing: models and real vendor prices
+      </H2>
+      <P>
+        If you&apos;ve decided the AI side fits, the question becomes how
+        much an AI receptionist costs - and the honest answer is that the{" "}
+        <Strong>billing unit</Strong> decides your bill more than the headline
+        price. Most small-business plans land between roughly $30 and $300 a
+        month, but vendors meter very different things.
+      </P>
+      <H3>The four ways AI receptionists bill</H3>
+      <Table
+        caption="AI receptionist pricing models compared"
+        head={["Model", "What you pay for", "Good when", "Watch out for"]}
+        rows={[
+          [
+            "Flat subscription + minute bundle",
+            "A monthly fee with included minutes, overage beyond",
+            "Steady or growing volume; you want a predictable bill",
+            "The overage rate, and whether unused minutes roll over",
+          ],
+          [
+            "Per-minute",
+            "Only the minutes the AI spends on calls",
+            "Very low, occasional volume",
+            "Spikes in your busy season; rounding (per second vs every call rounded up to 30 or 60s)",
+          ],
+          [
+            "Per-call or per-caller",
+            "Each answered call, or each unique caller",
+            "Short, simple calls; few repeat callers",
+            "Spam, wrong numbers and hang-ups can count; long calls cost the same as short ones",
+          ],
+          [
+            "Custom / enterprise",
+            "A negotiated contract",
+            "High volume, many locations, deep integrations",
+            "Opacity, setup fees, long lock-in",
+          ],
+        ]}
+      />
+      <H3>What published AI receptionist plans actually cost</H3>
+      <P>
+        Ranges are only useful up to a point, so here are real plans as
+        published on each vendor&apos;s pricing page when we checked in July
+        2026. Vendors change prices often - treat this as a snapshot and
+        verify before you buy. We&apos;re a competitor of all of them; the
+        links go straight to their own pages.
+      </P>
+      <Table
+        caption="Published AI receptionist pricing, checked July 2026"
+        head={["Vendor", "Billing unit", "Published plans", "Note"]}
+        rows={[
+          [
+            "Rosie",
+            "Minute bundle",
+            "$49 / 250 min, $149 / 1,000 min, $299 / 2,000 min",
+            "In-call booking starts on the $149 tier; overage not published",
+          ],
+          [
+            "Goodcall",
+            "Per agent, capped unique callers",
+            "$79, $129, $249 per agent/month (100, 250, 500 unique callers)",
+            "Unlimited minutes; $0.50 per extra unique caller",
+          ],
+          [
+            "My AI Front Desk",
+            "Minute bundle + overage",
+            "$99/month for 200 voice minutes",
+            "About $0.25 per extra minute; a $20 plan is chat-first with no voice minutes",
+          ],
+          [
+            "AI Receptionist Now (us)",
+            "Minute bundle + overage",
+            "€99 / 1,000 min, €299 / 3,000 min",
+            "€0.09 per extra minute; booking on both plans",
+          ],
+        ]}
+      />
+      <P>
+        Sources:{" "}
+        <Ext href="https://heyrosie.com/pricing" nofollow>
+          Rosie
+        </Ext>
+        ,{" "}
+        <Ext href="https://www.goodcall.com/pricing" nofollow>
+          Goodcall
+        </Ext>
+        ,{" "}
+        <Ext href="https://www.myaifrontdesk.com/pricing" nofollow>
+          My AI Front Desk
+        </Ext>{" "}
+        and <Internal href="/pricing">our pricing page</Internal>. Notice how
+        little the headline numbers tell you on their own: one vendor&apos;s
+        &quot;unlimited minutes&quot; comes with a cap on callers, another
+        gates calendar booking behind its middle tier, and a 99-a-month
+        headline buys 200 voice minutes at one vendor and 1,000 at another. Some vendors,
+        such as Smith.ai, bill per call instead - we walk through how that
+        compares in our{" "}
+        <Internal href="/compare/smith-ai-alternative">
+          Smith.ai comparison
+        </Internal>
+        .
+      </P>
+      <H3>The fine print specific to AI plans</H3>
+      <UL>
+        <LI>
+          <Strong>Effective cost per call.</Strong> Divide the monthly fee by
+          the included minutes or calls, then recompute at <em>your</em>{" "}
+          volume with overage. A cheap plan with a steep overage often loses
+          to a pricier plan with a generous bundle.
+        </LI>
+        <LI>
+          <Strong>&quot;Unlimited&quot; with an asterisk.</Strong> Read what
+          unlimited actually limits - callers, agents, fair use - before you
+          count on it.
+        </LI>
+        <LI>
+          <Strong>Features gated by tier.</Strong> Booking, integrations,
+          extra languages and multiple numbers can each sit behind a higher
+          plan. Price the configuration you&apos;ll actually run.
+        </LI>
+        <LI>
+          <Strong>Setup fees and lock-in.</Strong> A one-time onboarding fee
+          or an annual commitment changes the first-year cost more than the
+          monthly number suggests; &quot;contact sales&quot; on a
+          small-business plan is rarely a friendly sign.
+        </LI>
+      </UL>
+      <H3>Is it worth it? A quick ROI check</H3>
+      <OL>
+        <LI>
+          <Strong>Count missed calls.</Strong> Pull a month of unanswered and
+          after-hours calls from your phone logs.
+        </LI>
+        <LI>
+          <Strong>Apply a conservative conversion rate.</Strong> How many of
+          those callers would have become customers if someone had picked up
+          quickly? Speed matters here: in the{" "}
+          <Ext href="https://hbr.org/2011/03/the-short-life-of-online-sales-leads">
+            HBR lead-response research
+          </Ext>
+          , the odds of qualifying a lead dropped sharply after the first
+          hour.
+        </LI>
+        <LI>
+          <Strong>Multiply by revenue per customer</Strong> to get the
+          monthly revenue an answering service could recover - our{" "}
+          <Internal href="/blog/cost-of-a-missed-call">
+            cost-of-a-missed-call guide
+          </Internal>{" "}
+          walks through the math.
+        </LI>
+        <LI>
+          <Strong>Compare it to the all-in monthly fee.</Strong> If the
+          recovered revenue clears the fee comfortably, it&apos;s worth it. If
+          you already answer essentially every call, it isn&apos;t - don&apos;t
+          buy a fix for a problem you don&apos;t have.
+        </LI>
+      </OL>
+
       <H2 id="included">What&apos;s included vs paid add-ons</H2>
       <P>
         Two quotes with identical base prices can diverge by hundreds of
@@ -388,16 +583,16 @@ export default function Body() {
       <P>
         Where that division of labor falls depends on your trade more than on
         your budget. The calls a script must never take are different for a{" "}
-        <Internal href="/blog/answering-service-for-therapists">
-          therapy practice
+        <Internal href="/blog/medical-answering-service">
+          medical practice
         </Internal>
         , a{" "}
         <Internal href="/blog/funeral-home-answering-service">
           funeral home
         </Internal>{" "}
         and a{" "}
-        <Internal href="/blog/pest-control-answering-service">
-          pest control company
+        <Internal href="/blog/home-services-answering-service">
+          home-services company
         </Internal>
         , and those boundaries decide which vendors are even eligible before
         price enters the conversation.

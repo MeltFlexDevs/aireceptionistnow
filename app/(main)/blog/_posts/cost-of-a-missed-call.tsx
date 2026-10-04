@@ -342,7 +342,7 @@ export default function Body() {
       <P>
         The fix for the after-hours slice specifically is its own topic - we go
         deep on it in{" "}
-        <Internal href="/blog/after-hours-answering-service">
+        <Internal href="/blog/24-hour-answering-service#after-hours">
           the after-hours answering guide
         </Internal>{" "}
         - but the pattern is the same everywhere: the calls you miss are the
@@ -404,7 +404,7 @@ export default function Body() {
         of that $4,000, the maths isn&apos;t close. For a fuller buyer&apos;s
         checklist - integrations, escalation, and the pricing traps to avoid -
         see our guide to{" "}
-        <Internal href="/blog/how-to-choose-an-ai-receptionist">
+        <Internal href="/blog/best-ai-receptionist#how-to-choose">
           choosing an AI receptionist
         </Internal>
         .

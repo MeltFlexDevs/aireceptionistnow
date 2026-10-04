@@ -2,6 +2,7 @@ import {
   Lead,
   P,
   H2,
+  H3,
   UL,
   OL,
   LI,
@@ -24,8 +25,8 @@ export const meta = {
   description:
     "How clinics handle patient calls 24/7 with an AI medical answering service: scheduling, after-hours triage, and the HIPAA and BAA question.",
   date: "2026-07-20",
-  updated: "2026-07-25",
-  readingTime: "12 min read",
+  updated: "2026-10-04",
+  readingTime: "17 min read",
   tag: "Industries",
   hero: "/blog/medical-answering-service-hero.svg",
   ogImage: "/blog/medical-answering-service-og.webp",
@@ -42,6 +43,10 @@ export const meta = {
     "clinic answering service",
     "healthcare AI receptionist",
     "surgical center answering service",
+    "answering service for therapists",
+    "therapist answering service",
+    "answering service for mental health practice",
+    "private practice answering service",
   ],
   sections: [
     { id: "short-answer", title: "The short answer" },
@@ -49,6 +54,7 @@ export const meta = {
     { id: "what-it-handles", title: "What an AI receptionist handles for a clinic" },
     { id: "triage", title: "The non-negotiable: emergency triage" },
     { id: "hipaa", title: "HIPAA, PHI, and the BAA question" },
+    { id: "therapy", title: "Therapy and behavioral health practices" },
     { id: "options", title: "Your options, compared" },
     { id: "setup", title: "Setting it up in a medical practice" },
     { id: "bottom-line", title: "The bottom line" },
@@ -73,7 +79,19 @@ export const meta = {
     },
     {
       q: "How much does a medical answering service cost?",
-      a: "Human medical answering services typically bill per minute or per call - often $1-$2 a minute with premiums for nights, weekends, and holidays, which is precisely when medical coverage is needed most. AI receptionists charge a flat monthly subscription, commonly $30-$300 depending on volume and features, with no after-hours premium at all. For a practice whose call volume is heavy and around-the-clock, the structural difference compounds quickly - though whatever you choose must clear the HIPAA bar first.",
+      a: "Human medical answering services typically bill per minute or per call, often with premiums for nights, weekends and holidays - precisely when medical coverage is needed most. We read the published rate cards line by line in our medical answering service pricing guide. AI receptionists usually charge a flat monthly subscription with no after-hours premium; ours is 99 euros a month including 1,000 talk minutes. Whatever you choose must clear the HIPAA bar first: a signed BAA, documented data handling, and a tested route to your on-call clinician.",
+    },
+    {
+      q: "Should a therapy practice use an AI answering service?",
+      a: "For the administrative half of the phone, it works well: new-client enquiries, scheduling and rescheduling, practical questions about location, fees, telehealth and paperwork, and taking a message properly. For anything clinical it should not be involved at all, and for anything resembling a crisis it must do exactly one thing - direct the caller to 988 or 911 and get a human involved. If a vendor sells you clinical triage for a therapy practice, end the conversation.",
+    },
+    {
+      q: "What should happen when someone in crisis calls a therapy practice?",
+      a: "They should hear the 988 Suicide and Crisis Lifeline named clearly, be told to call 911 if there is immediate danger, and be escalated to a person. 988 is free, confidential and available around the clock by call, text or chat, staffed by trained crisis counselors. An automated line's entire job on that call is to recognize it early, say that plainly, and stop trying to be helpful in any other way. Configure and test this out loud before anything else.",
+    },
+    {
+      q: "Can an answering service confirm whether someone is a client of my practice?",
+      a: "No. A spouse, a parent, an employer or an attorney may call asking whether a person is seeing you. Whether that person is a client is itself protected information, and confirming it can be a disclosure however reasonable the caller sounds. The correct script neither confirms nor denies, says the practice cannot discuss whether anyone is a client, takes a message and stops. Custody disputes and separations are exactly where this goes wrong.",
     },
   ] satisfies FaqItem[],
 };
@@ -91,6 +109,21 @@ const sources: Source[] = [
   },
   {
     title:
+      "US HHS OCR FAQ 198: leaving messages for patients, and limiting the information disclosed",
+    url: "https://www.hhs.gov/hipaa/for-professionals/faq/198/may-health-care-providers-leave-messages/index.html",
+  },
+  {
+    title:
+      "988 Suicide & Crisis Lifeline: free, confidential support by call, text and chat, 24/7",
+    url: "https://988lifeline.org/",
+  },
+  {
+    title:
+      "SAMHSA: 988 Suicide & Crisis Lifeline overview and frequently asked questions",
+    url: "https://www.samhsa.gov/mental-health/988",
+  },
+  {
+    title:
       "Harvard Business Review: The Short Life of Online Sales Leads (lead response-time research by James Oldroyd)",
     url: "https://hbr.org/2011/03/the-short-life-of-online-sales-leads",
   },
@@ -105,7 +138,7 @@ export default function Body() {
         occasionally - a genuine emergency, and the front desk is supposed to
         sort them while checking in the person standing at the counter. Then
         the office closes and the calls keep coming. This guide is how
-        medical offices, clinics, and surgical centers put an AI receptionist
+        medical offices, clinics, surgical centers and therapy practices put an AI receptionist
         on that line: what it handles, the triage and HIPAA questions that
         decide everything, and what stays human. We build AI phone agents, so
         read us critically - especially in the compliance section, where we
@@ -163,8 +196,8 @@ export default function Body() {
       </P>
       <UL>
         <LI>
-          <Strong>The stakes are mixed into the volume.</Strong> Ninety-five
-          percent of calls are logistics - scheduling, directions, insurance,
+          <Strong>The stakes are mixed into the volume.</Strong> Most calls
+          are logistics - scheduling, directions, insurance,
           refills - but the occasional call is genuinely urgent, so
           everything must be answered as if it might be.
         </LI>
@@ -230,8 +263,8 @@ export default function Body() {
         clinic safe. And because patient populations are multilingual, it&apos;s
         worth knowing an AI receptionist can take the call in the
         caller&apos;s language - we&apos;ve covered how that works in{" "}
-        <Internal href="/blog/bilingual-ai-receptionist">
-          our bilingual AI receptionist guide
+        <Internal href="/blog/bilingual-answering-service">
+          our bilingual answering service guide
         </Internal>
         .
       </P>
@@ -307,6 +340,116 @@ export default function Body() {
         walk.
       </Callout>
 
+      <H2 id="therapy">Therapy and behavioral health practices</H2>
+      <P>
+        A private therapy practice has the same compliance gate as a clinic and
+        a different phone. The person who would answer is in session fifty
+        minutes of every hour, the callers are often having a hard week, and the
+        act of calling is itself sensitive. An answering service - live or AI -
+        is worth having here for the administrative half of the line: new-client
+        enquiries, scheduling, and practical questions about fees, location,
+        telehealth and paperwork. Three rules come before any of that.
+      </P>
+
+      <H3>Crisis calls leave the script in the first sentence</H3>
+      <P>
+        Some callers to a therapy practice are in crisis, and that is not a case
+        to be handled elegantly. The 988 Suicide &amp; Crisis Lifeline is{" "}
+        <Ext href="https://988lifeline.org/">
+          free, confidential and available around the clock by call, text or
+          chat
+        </Ext>
+        , staffed by trained crisis counselors, with{" "}
+        <Ext href="https://www.samhsa.gov/mental-health/988">
+          Spanish-language service and interpretation in more than 240 languages
+        </Ext>
+        . A caller who needs that is not helped by an appointment slot.
+      </P>
+      <Callout>
+        Write it as an explicit, tested rule: on any indication of risk to self
+        or others, the line names 988 immediately, says to call 911 if there is
+        immediate danger, and escalates to a person. Then call your own number
+        and test it out loud before you go live, and again after every script
+        change. A vendor who cannot demonstrate this on a live test call is
+        relying on a model behaving sensibly, which is not a guarantee.
+      </Callout>
+      <P>
+        There is a quieter reason to design this deliberately. A caller in
+        distress who reaches an obviously automated system experiences it as
+        being turned away by their own therapist&apos;s office. The fix is a
+        fast, warm, unmistakable handoff, not a longer script.
+      </P>
+
+      <H3>Intake is administrative, never clinical</H3>
+      <Table
+        caption="What rings a therapy practice, and who should handle it"
+        head={["Caller", "Right handling"]}
+        rows={[
+          [
+            "Prospective client",
+            "Administrative intake only: contact details, whether it is safe to leave a message, insurance or self-pay, availability. Book a consultation, or say plainly that you are full",
+          ],
+          [
+            "Current client, scheduling",
+            "Move, cancel or confirm a session. The highest-volume call and the easiest to automate well",
+          ],
+          [
+            "Current client, distressed",
+            "Not a script's call. Risk indicators route immediately; anything else is a message flagged urgent, with an honest statement of when you will call back",
+          ],
+          [
+            "Insurance, billing, EAP",
+            "Capture and route to whoever does your billing. Never improvise coverage answers",
+          ],
+          [
+            "Third party asking about a client",
+            "Neither confirm nor deny. Message taken, nothing disclosed",
+          ],
+        ]}
+      />
+      <P>
+        Two scripts are worth writing carefully. If you are not accepting new
+        clients, the line should say so in the first thirty seconds, offer the
+        waitlist only if you genuinely keep one, and name where else to look - a
+        directory, a colleague, a community mental health service - rather than
+        collecting a full intake from someone you will never see. And on
+        &quot;do you take my insurance?&quot; the line states the panels you are
+        on and your self-pay fee, but never confirms coverage, benefits or a
+        copay: that depends on the caller&apos;s plan, and the right sentence
+        points them to the behavioral health number on their card. What the line
+        should never collect is a clinical history - their story belongs in the
+        room, not in a transcript.
+      </P>
+
+      <H3>Privacy: who may know someone called</H3>
+      <P>
+        Whether a person is your client is itself protected information. A
+        spouse checking attendance, a parent, an employer, an attorney asking
+        for records: the script neither confirms nor denies, says the practice
+        cannot discuss whether anyone is a client, takes a message and routes it
+        to the therapist. Records requests and subpoenas are never handled by a
+        phone service, and calls from a parent of an adolescent client depend on
+        your state&apos;s minor consent law - a therapist decision, not a script
+        decision. Test the boundary by calling your own line and asking whether
+        a friend has an appointment.
+      </P>
+      <P>
+        Callbacks carry their own risk: a message on the wrong phone can
+        disclose that someone is in therapy. HHS guidance allows providers to
+        leave messages, including on an answering machine, but says to{" "}
+        <Ext href="https://www.hhs.gov/hipaa/for-professionals/faq/198/may-health-care-providers-leave-messages/index.html">
+          limit the amount of information disclosed
+        </Ext>
+        . So a therapy intake asks two questions most answering services never
+        do: <Strong>is it safe to leave a message at this number</Strong>, and{" "}
+        <Strong>is it safe to say the name of the practice</Strong> - plus the
+        preferred contact method and times. On the vendor side, consider turning
+        call recording off and keeping only structured fields, and configure
+        notifications to say a message is waiting rather than reproducing its
+        contents on a lock screen. Your licensing board&apos;s confidentiality
+        rules may go beyond HIPAA; none of this is legal advice.
+      </P>
+
       <H2 id="options">Your options, compared</H2>
       <Table
         caption="Patient call coverage options for a practice"
@@ -344,7 +487,7 @@ export default function Body() {
         provider receives only what the triage rules escalate, and the front
         desk owns the in-person experience. It&apos;s the same division of
         labour we&apos;ve seen work in{" "}
-        <Internal href="/blog/dental-answering-service">
+        <Internal href="/blog/best-ai-receptionist-for-dental-practices">
           dental practices
         </Internal>{" "}
         - a vertical with the identical structure of high call volume, HIPAA
@@ -384,8 +527,8 @@ export default function Body() {
           the calls voicemail was losing, review transcripts for a week or
           two, then add daytime overflow when the front desk is buried - the
           gradual rollout we detail in{" "}
-          <Internal href="/blog/after-hours-answering-service">
-            our after-hours guide
+          <Internal href="/blog/24-hour-answering-service">
+            our 24-hour answering service guide
           </Internal>
           .
         </LI>

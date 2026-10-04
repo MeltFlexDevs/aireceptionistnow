@@ -509,7 +509,7 @@ export default function Body() {
           legal deadlines, whether a payment cleared, whether a gas smell is
           urgent. Those calls want a triage script that escalates fast, which is
           a design problem more than a model one - see{" "}
-          <Internal href="/blog/how-to-set-up-emergency-call-escalation">
+          <Internal href="/blog/24-hour-answering-service#emergency-escalation">
             emergency call escalation
           </Internal>
           .
@@ -573,7 +573,7 @@ export default function Body() {
       </P>
       <P>
         If you are working out which category you actually need, the{" "}
-        <Internal href="/blog/how-to-choose-an-ai-receptionist">
+        <Internal href="/blog/best-ai-receptionist#how-to-choose">
           buyer&apos;s checklist
         </Internal>{" "}
         covers the commercial side, and our{" "}

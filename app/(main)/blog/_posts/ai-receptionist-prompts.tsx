@@ -163,7 +163,7 @@ export default function Body() {
         latency, a voice that grates, or no real calendar access - if the
         system can&apos;t see your availability, no instruction will make
         bookings real. Those are buying decisions, and we cover them in{" "}
-        <Internal href="/blog/how-to-choose-an-ai-receptionist">
+        <Internal href="/blog/best-ai-receptionist#how-to-choose">
           how to choose an AI receptionist
         </Internal>
         . But within what your platform can do, the prompt is the highest-leverage
@@ -501,7 +501,7 @@ EMERGENCY TRIAGE
             "New vs. returning patient, insurance carrier, pain triage (severe pain = same-day). No clinical advice, ever - and mind HIPAA before patient data touches any system.",
             <Internal
               key="dental"
-              href="/blog/dental-answering-service"
+              href="/blog/best-ai-receptionist-for-dental-practices"
             >
               Dental answering service
             </Internal>,
@@ -511,7 +511,7 @@ EMERGENCY TRIAGE
             "Property address and access notes, no-heat/no-cooling and water-leak triage, service-area check before booking, on-call dispatch rules.",
             <Internal
               key="home-services"
-              href="/blog/ai-receptionist-for-home-services"
+              href="/blog/best-ai-receptionist-for-home-services"
             >
               AI receptionist for home services
             </Internal>,
@@ -648,7 +648,7 @@ EMERGENCY TRIAGE
         the prompt isn&apos;t the thing failing - the latency is, or the voice,
         or the fake &quot;booking&quot; - no template on this page will save
         it. That&apos;s a vendor problem, and our{" "}
-        <Internal href="/blog/how-to-choose-an-ai-receptionist">
+        <Internal href="/blog/best-ai-receptionist#how-to-choose">
           buyer&apos;s guide
         </Internal>{" "}
         covers how to spot it before you pay. If you want to hear these

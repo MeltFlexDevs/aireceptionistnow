@@ -159,7 +159,7 @@ export default function Body() {
           medical answering service guide
         </Internal>{" "}
         is the companion piece; the{" "}
-        <Internal href="/blog/dental-answering-service">
+        <Internal href="/blog/best-ai-receptionist-for-dental-practices">
           dental guide
         </Internal>{" "}
         covers the appointment-book economics that vet clinics share.
@@ -375,7 +375,7 @@ export default function Body() {
         </Internal>
         , and the triage rules behind it belong in a written ladder, which we
         specify in{" "}
-        <Internal href="/blog/how-to-set-up-emergency-call-escalation">
+        <Internal href="/blog/24-hour-answering-service#emergency-escalation">
           how to set up emergency call escalation
         </Internal>
         . You can compare market pricing in our{" "}

@@ -338,7 +338,7 @@ export default function Body() {
         appointment, then check the{" "}
         <Internal href="/pricing">flat monthly pricing</Internal>. If you want the
         wider buyer&apos;s checklist first, start with{" "}
-        <Internal href="/blog/how-to-choose-an-ai-receptionist">
+        <Internal href="/blog/best-ai-receptionist#how-to-choose">
           how to choose an AI receptionist
         </Internal>
         .

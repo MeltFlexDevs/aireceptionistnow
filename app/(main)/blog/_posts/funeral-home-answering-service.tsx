@@ -511,7 +511,7 @@ export default function Body() {
           <Strong>Build the on-call escalation properly.</Strong> Primary
           director, secondary, and a third fallback, with the rota reflected
           automatically rather than remembered.{" "}
-          <Internal href="/blog/how-to-set-up-emergency-call-escalation">
+          <Internal href="/blog/24-hour-answering-service#emergency-escalation">
             Emergency escalation
           </Internal>{" "}
           is worth designing on paper first, and this is the industry where it
@@ -538,7 +538,7 @@ export default function Body() {
         General Price List correctly to everyone else, is doing both jobs. If
         you want the general version of where these systems earn their place and
         where they lose to a person, we wrote{" "}
-        <Internal href="/blog/can-an-ai-receptionist-replace-a-human-receptionist">
+        <Internal href="/blog/how-to-replace-front-desk-receptionist-with-ai">
           the honest comparison
         </Internal>
         , and{" "}

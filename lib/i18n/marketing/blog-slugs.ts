@@ -23,10 +23,10 @@ import type { MarketingLocale } from "./locales";
 //  - Never edit a published slug. A changed slug is a new URL that drops the
 //    old one's history; if it must change, ship a redirect with it.
 //
-// NOT TRANSLATED: ai-receptionist-orange-county. It is a US local-SEO page
-// targeting a California county. A Slovak or Dutch version would target a
-// place its readers cannot hire us from, which is doorway content, not
-// localization. It stays English-only and simply has no hreflang cluster.
+// NOT TRANSLATED: home-services-answering-service, the English hub that replaced
+// eight trade posts on 2026-10-04 (see lib/marketing/retired-posts.ts). The
+// locales keep those per-trade translations, which rank in their own markets;
+// a translated hub would only compete with them. It has no hreflang cluster.
 export const BLOG_SLUGS = {
   "24-7-ai-receptionist": {
     de: "24-7-ki-telefonassistent",
@@ -127,15 +127,6 @@ export const BLOG_SLUGS = {
     pt: "atendimento-telefonico-para-pequenas-empresas",
     nl: "telefoonservice-voor-kleine-bedrijven",
   },
-  "answering-service-for-therapists": {
-    de: "telefonservice-fuer-psychotherapeuten",
-    es: "atencion-telefonica-para-psicologos",
-    fr: "permanence-telephonique-psychologue",
-    sk: "telefonicka-sluzba-pre-psychologov",
-    it: "servizio-risposta-per-psicologi",
-    pt: "atendimento-telefonico-para-psicologos",
-    nl: "telefoonservice-voor-psychologen",
-  },
   "apartment-answering-service": {
     de: "telefonservice-mietwohnungen",
     es: "servicio-de-atencion-telefonica-para-comunidades",
@@ -144,15 +135,6 @@ export const BLOG_SLUGS = {
     it: "servizio-risposta-per-condomini",
     pt: "atendimento-telefonico-para-condominios",
     nl: "telefoonservice-voor-huurwoningen",
-  },
-  "auto-repair-answering-service": {
-    de: "telefonservice-autowerkstatt",
-    es: "atencion-telefonica-para-talleres-mecanicos",
-    fr: "permanence-telephonique-garage-automobile",
-    sk: "telefonicka-sluzba-pre-autoservisy",
-    it: "servizio-risposta-per-officine-meccaniche",
-    pt: "atendimento-telefonico-para-oficinas-auto",
-    nl: "telefoonservice-voor-autogarages",
   },
   "best-ai-receptionist": {
     de: "bester-ki-telefonassistent",
@@ -180,15 +162,6 @@ export const BLOG_SLUGS = {
     it: "un-receptionist-ai-puo-sostituire-una-persona",
     pt: "pode-uma-rececionista-ia-substituir-uma-pessoa",
     nl: "kan-een-ai-receptionist-een-mens-vervangen",
-  },
-  "cleaning-company-answering-service": {
-    de: "telefonservice-reinigungsfirma",
-    es: "atencion-telefonica-para-empresas-de-limpieza",
-    fr: "permanence-telephonique-entreprise-de-nettoyage",
-    sk: "telefonicka-sluzba-pre-upratovacie-firmy",
-    it: "servizio-risposta-per-imprese-di-pulizie",
-    pt: "atendimento-telefonico-para-empresas-de-limpeza",
-    nl: "telefoonservice-voor-schoonmaakbedrijven",
   },
   "contractor-answering-service": {
     de: "telefonservice-bauunternehmen",
@@ -307,15 +280,6 @@ export const BLOG_SLUGS = {
     pt: "atendimento-telefonico-para-advogados",
     nl: "telefoonservice-voor-advocatenkantoren",
   },
-  "locksmith-answering-service": {
-    de: "telefonservice-schluesseldienst",
-    es: "atencion-telefonica-para-cerrajeros",
-    fr: "permanence-telephonique-serrurier",
-    sk: "telefonicka-sluzba-pre-zamocnikov",
-    it: "servizio-risposta-per-fabbri",
-    pt: "atendimento-telefonico-para-serralheiros",
-    nl: "telefoonservice-voor-slotenmakers",
-  },
   "medical-answering-service": {
     de: "telefonservice-arztpraxis",
     es: "servicio-de-atencion-telefonica-para-clinicas",
@@ -333,15 +297,6 @@ export const BLOG_SLUGS = {
     it: "sms-automatico-dopo-chiamata-persa",
     pt: "sms-automatico-apos-chamada-perdida",
     nl: "sms-na-gemiste-oproep",
-  },
-  "pest-control-answering-service": {
-    de: "telefonservice-schaedlingsbekaempfung",
-    es: "atencion-telefonica-para-control-de-plagas",
-    fr: "permanence-telephonique-deratisation",
-    sk: "telefonicka-sluzba-pre-deratizaciu",
-    it: "servizio-risposta-per-disinfestazioni",
-    pt: "atendimento-telefonico-para-controlo-de-pragas",
-    nl: "telefoonservice-voor-ongediertebestrijding",
   },
   "plumbing-answering-service": {
     de: "telefonservice-klempner",
@@ -370,15 +325,6 @@ export const BLOG_SLUGS = {
     pt: "atendimento-telefonico-para-imobiliarias",
     nl: "telefoonservice-voor-makelaars",
   },
-  "restaurant-answering-service": {
-    de: "telefonservice-restaurant",
-    es: "atencion-telefonica-para-restaurantes",
-    fr: "permanence-telephonique-restaurant",
-    sk: "telefonicka-sluzba-pre-restauracie",
-    it: "servizio-risposta-per-ristoranti",
-    pt: "atendimento-telefonico-para-restaurantes",
-    nl: "telefoonservice-voor-restaurants",
-  },
   "roofing-answering-service": {
     de: "telefonservice-dachdecker",
     es: "atencion-telefonica-para-tejadores",
@@ -396,15 +342,6 @@ export const BLOG_SLUGS = {
     it: "servizio-risposta-per-parrucchieri",
     pt: "atendimento-telefonico-para-cabeleireiros",
     nl: "telefoonservice-voor-kapsalons",
-  },
-  "self-storage-answering-service": {
-    de: "telefonservice-selfstorage",
-    es: "atencion-telefonica-para-trasteros",
-    fr: "permanence-telephonique-garde-meubles",
-    sk: "telefonicka-sluzba-pre-skladovacie-boxy",
-    it: "servizio-risposta-per-self-storage",
-    pt: "atendimento-telefonico-para-self-storage",
-    nl: "telefoonservice-voor-selfstorage",
   },
   "telephone-answering-service": {
     de: "telefonservice",
@@ -441,15 +378,6 @@ export const BLOG_SLUGS = {
     it: "prezzi-receptionist-virtuale",
     pt: "precos-rececionista-virtual",
     nl: "virtuele-receptionist-prijzen",
-  },
-  "water-damage-restoration-answering-service": {
-    de: "telefonservice-wasserschaden-sanierung",
-    es: "atencion-telefonica-para-danos-por-agua",
-    fr: "permanence-telephonique-degats-des-eaux",
-    sk: "telefonicka-sluzba-pre-sanaciu-po-vode",
-    it: "servizio-risposta-per-danni-da-acqua",
-    pt: "atendimento-telefonico-para-danos-por-agua",
-    nl: "telefoonservice-voor-waterschadeherstel",
   },
 } as const satisfies Record<string, Record<MarketingLocale, string>>;
 

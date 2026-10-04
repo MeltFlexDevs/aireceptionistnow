@@ -24,8 +24,8 @@ const GUIDES: { href: string; label: string }[] = [
   { href: "/blog/answering-service-cost", label: "How much does an answering service cost?" },
   { href: "/blog/virtual-receptionist-pricing", label: "Virtual receptionist pricing, without the surprises" },
   { href: "/blog/24-hour-answering-service", label: "24 hour answering service: live vs AI" },
-  { href: "/blog/telephone-answering-service", label: "Telephone answering service: live vs AI" },
-  { href: "/blog/how-to-choose-an-ai-receptionist", label: "How to choose an AI receptionist: a buyer's guide" },
+  { href: "/blog/ai-receptionist-vs-virtual-receptionist-vs-answering-service", label: "AI receptionist vs virtual receptionist vs answering service" },
+  { href: "/blog/best-ai-receptionist", label: "The best AI receptionist services, and how to choose one" },
 ];
 
 export function HomeExplore() {

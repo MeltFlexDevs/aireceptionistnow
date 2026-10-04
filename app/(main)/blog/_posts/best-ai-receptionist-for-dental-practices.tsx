@@ -23,10 +23,10 @@ export const meta = {
   slug: "best-ai-receptionist-for-dental-practices",
   title: "Best AI Receptionist for Dental Practices (2026)",
   description:
-    "Five dental AI phone products ranked by the only thing that separates them - what they can actually write into your practice management system. With published prices where they exist, and named where they don't.",
+    "Five dental AI phone products ranked by what they can actually write into your practice management system - plus what a dental answering service costs, how after-hours and emergency calls should be handled, and the scripts.",
   date: "2026-08-25",
-  updated: "2026-08-25",
-  readingTime: "17 min read",
+  updated: "2026-10-04",
+  readingTime: "21 min read",
   tag: "Guides",
   hero: "/blog/dental-front-desk-phone-hero.webp",
   heroAlt:
@@ -36,6 +36,11 @@ export const meta = {
   keywords: [
     "dental ai receptionist",
     "ai receptionist for dentists",
+    "dental answering service",
+    "dental answering service cost",
+    "ai answering service for dentists",
+    "after-hours dental answering service",
+    "hipaa dental answering service",
     "best ai dental receptionist",
     "ai receptionist for dental practice",
     "dental ai phone answering",
@@ -50,6 +55,8 @@ export const meta = {
     { id: "the-gate", title: "The gate nobody in the SERP mentions" },
     { id: "shortlist", title: "The five, one at a time" },
     { id: "pricing", title: "What each one actually costs" },
+    { id: "after-hours", title: "After hours and emergencies" },
+    { id: "scripts", title: "What good calls sound like" },
     { id: "hipaa", title: "The BAA conversation, before the demo" },
     { id: "test", title: "A fifteen-minute test that settles it" },
     { id: "not-for-you", title: "When none of these is the answer" },
@@ -97,12 +104,16 @@ export const meta = {
       a: "Some do, and the word 'integrate' is doing an enormous amount of work in that sentence. Both systems gate third-party access behind a real programme. Open Dental requires the developer to request a Developer API Key from vendor relations, supplying a billing address and a list of the exact permissions they need, then generate a per-office Customer API Key - and the practice must run the eConnector and tick Enabled in API Setup. Dentrix goes further: the Dentrix Developer Program charges a one-time $5,000 registration fee for read access and a further $5,000 for write, and Henry Schein One's API Exchange states that all integrated software vendors are SOC 2 Type II and OAuth 2.0 certified. So ask any vendor two questions in writing: which of my systems, and read or write? A nightly one-way export is an integration too, and it will never book anything.",
     },
     {
-      q: "How much does a dental AI receptionist cost?",
-      a: "Dentina publishes the clearest numbers in the category: Standard Inbound starting at $299 per month and Premium Inbound starting at $399 per month, billed annually per location, with a 30-day free trial. Arini, Weave and Peerlogic all sell through a demo request rather than a price page, which usually signals per-location quotes and an annual contract. A general packaged AI receptionist that does not touch your PMS runs roughly €99-€299 per month. The gap between those numbers is not margin - it is the cost of writing into dental software.",
+      q: "How much does a dental answering service cost?",
+      a: "It depends on which kind. Among dental AI products, Dentina publishes the clearest numbers: Standard Inbound starting at $299 per month and Premium Inbound starting at $399 per month, billed annually per location, with a 30-day free trial. Arini, Weave and Peerlogic all sell through a demo request rather than a price page, which usually signals per-location quotes and an annual contract. A general packaged AI receptionist that does not touch your PMS runs roughly €99-€299 per month. Live human answering services usually bill per minute or per call on top of a base plan, so the bill rises with exactly the busy weeks you bought it for. The gap between the AI numbers is not margin - it is the cost of writing into dental software.",
     },
     {
       q: "Can an AI receptionist book a dental appointment correctly?",
       a: "Booking a dental appointment is five decisions, not one: what the visit is, how long that procedure takes, whether it belongs in the hygiene column or the doctor's, which operatory is free at that time, and whether the plan is active. A voice agent that cannot read your practice management system is guessing at four of them, and the failure mode is not a rude call - it is two patients arriving for one chair, or a crown seat booked into a 30-minute hygiene slot. Ask a vendor which of the five it reads and which it assumes.",
+    },
+    {
+      q: "Does an AI answer dental calls after hours?",
+      a: "Yes - after hours and lunch are where an AI receptionist earns its keep, because those are the windows patients are free to call and nobody is at the desk. After hours it should capture the patient (new or existing, reason for the visit, insurance carrier, callback number), book or request the visit depending on whether it can write into your practice management system, and send a summary for the morning huddle. For emergencies it should triage by rules you set, never diagnose: a knocked-out tooth pages the on-call dentist straight away, and facial swelling that affects breathing or swallowing, uncontrolled bleeding or trauma gets a hard stop - call 911 or go to the ER now - followed by an escalation to a person.",
     },
     {
       q: "Is a dental AI receptionist HIPAA compliant?",
@@ -158,6 +169,20 @@ const sources: Source[] = [
     title:
       "45 CFR 160.103 - definition of business associate (HIPAA administrative requirements)",
     url: "https://www.ecfr.gov/current/title-45/subtitle-A/subchapter-C/part-160/subpart-A/section-160.103",
+  },
+  {
+    title:
+      "HHS: Business Associates under HIPAA (business associate agreement requirements, 45 CFR 164.504(e))",
+    url: "https://www.hhs.gov/hipaa/for-professionals/privacy/guidance/business-associates/index.html",
+  },
+  {
+    title: "American Dental Association: FAQ on HIPAA Business Associates",
+    url: "https://www.ada.org/resources/practice/legal-and-regulatory/faqs-on-hipaa-business-associates",
+  },
+  {
+    title:
+      "FTC .com Disclosures: how to make effective disclosures in digital advertising",
+    url: "https://www.ftc.gov/business-guidance/resources/com-disclosures-how-make-effective-disclosures-digital-advertising",
   },
 ];
 
@@ -295,7 +320,7 @@ export default function Body() {
         not do it honestly at the scale required, the results would be stale in
         a quarter, and it is not the axis that decides these purchases anyway.
         The general question of how to evaluate any of them is covered in{" "}
-        <Internal href="/blog/how-to-choose-an-ai-receptionist">
+        <Internal href="/blog/best-ai-receptionist">
           how to choose an AI receptionist
         </Internal>
         .
@@ -613,10 +638,168 @@ export default function Body() {
         pricing and per-location API fees compound in the same direction. A
         three-location group evaluating a $299 product is looking at roughly
         $10,800 a year before the Dentrix Ascend API line, not $3,588. Run your
-        own arithmetic on locations, not on the headline. The general shape of
-        these bills is covered in{" "}
-        <Internal href="/blog/ai-receptionist-pricing">
-          AI receptionist pricing
+        own arithmetic on locations, not on the headline.
+      </P>
+      <H3>If you are comparing against a live dental answering service</H3>
+      <P>
+        Many practices searching for a dental answering service are really
+        choosing between three shapes, not five products. Be honest about how
+        many calls you miss in a normal week before picking one.
+      </P>
+      <Table
+        caption="Answering models for a dental practice"
+        head={["Model", "Best fit", "Watch out for"]}
+        rows={[
+          [
+            "Live human operators",
+            "Practices that want a person on every call and have steady, predictable volume",
+            "Usually billed per minute or per call; hold times when several calls hit at once; operators who do not know dental triage or your software",
+          ],
+          [
+            "AI receptionist",
+            "Heavy lunch, after-hours and overflow volume; routine booking, recall and reactivation; small front desks",
+            "Must be configured for emergency triage, insurance honesty and HIPAA; needs a clean handoff for anything clinical or sensitive",
+          ],
+          [
+            "Hybrid (AI first, human backup)",
+            "Most growing practices: the AI catches every call, a person takes the ones that need one",
+            "You must define exactly what triggers a handoff and where it goes",
+          ],
+        ]}
+      />
+      <P>
+        The meter matters as much as the rate. A per-minute live service bills
+        hardest in exactly the weeks you bought it for, while the AI products
+        above are flat or per location. The base-plus-per-minute structure of
+        live services, and what real monthly bills look like, is broken down in{" "}
+        <Internal href="/blog/virtual-receptionist-pricing">
+          virtual receptionist pricing
+        </Internal>
+        . Whichever you compare, weigh it against what you are losing: a new
+        patient is not one cleaning but years of exams, hygiene and restorative
+        work, plus the family they refer.
+      </P>
+
+      <H2 id="after-hours">After hours and emergencies: what the AI should do</H2>
+      <P>
+        Yes, an AI receptionist answers dental calls after hours - that is the
+        most common reason practices buy one. Lunch, the first hour of the
+        morning, evenings and weekends are when patients are free to call and
+        your office often is not, and during the day the front desk is checking
+        patients in and walking them back while the phone rings through. On
+        those calls the agent should do four things: answer instantly; capture
+        the patient cleanly (name, callback number, new or existing, reason for
+        the visit, the insurance they want on file); sort urgency by your rules;
+        and either book the visit or, if it cannot write into your PMS, leave a
+        request the front desk can act on in the morning.
+      </P>
+      <Figure
+        src="/blog/dental-call-flow.svg"
+        alt="Diagram: an incoming dental call is answered by the AI, which then books a new-patient exam, schedules recall or hygiene, or triages an emergency and pages the on-call dentist"
+        width={1200}
+        height={630}
+        caption="Answer instantly, identify new versus existing and the reason, then book the visit or escalate a true emergency. The emergency branch is the one to configure before you trust it."
+        credit="Illustration by AI Receptionist Now"
+      />
+      <P>
+        The emergency rules are the highest-stakes configuration in the whole
+        setup, and they belong in writing before the first forwarded call:
+      </P>
+      <UL>
+        <LI>
+          <Strong>Hard stop to 911 or the ER.</Strong> Facial swelling that
+          affects breathing or swallowing, bleeding that will not stop, or
+          trauma. The agent tells the caller to call 911 or go to the ER now,
+          then escalates to a person. It never schedules this for tomorrow.
+        </LI>
+        <LI>
+          <Strong>Page the on-call dentist.</Strong> Time-critical dental
+          emergencies such as a knocked-out tooth get flagged urgent and paged
+          with the callback number, rather than left in a queue until morning.
+        </LI>
+        <LI>
+          <Strong>Book or route by your definitions.</Strong> &quot;My crown fell
+          off&quot; and &quot;I&apos;d like a cleaning&quot; are different calls
+          from &quot;my tooth was knocked out an hour ago,&quot; and each goes
+          where you decided in advance.
+        </LI>
+        <LI>
+          <Strong>Never diagnose.</Strong> An AI must not decide whether pain is
+          serious, recommend treatment or advise on medication. Its only job on a
+          symptom call is triage and escalation.
+        </LI>
+        <LI>
+          <Strong>Anxious callers go to a person early.</Strong> Dental anxiety
+          is real, and a frightened patient often wants a human voice. A polite
+          AI is not the same thing, and they can tell.
+        </LI>
+      </UL>
+      <P>
+        If the agent cannot reach anyone, it must say so and tell the caller what
+        to do next. Wiring the escalation chain so someone actually wakes up is
+        covered in our{" "}
+        <Internal href="/blog/24-hour-answering-service">
+          24-hour answering service guide
+        </Internal>
+        , and the wider healthcare version of these triage rules is in the{" "}
+        <Internal href="/blog/medical-answering-service">
+          medical answering service guide
+        </Internal>
+        .
+      </P>
+
+      <H2 id="scripts">What good calls sound like</H2>
+      <P>
+        The quality of any answering setup lives in the script, and the short
+        ones work best - long scripts are where AI and tired humans both go
+        wrong. Three calls worth modelling, whichever product you buy:
+      </P>
+      <H3>New-patient booking</H3>
+      <Callout>
+        &quot;Thanks for calling Bright Smiles Dental, this is the practice&apos;s
+        AI assistant and I can get you scheduled. Are you a new patient with us,
+        or have you been in before? ... Welcome. Is this a routine checkup and
+        cleaning, or is something bothering you today? ... Got it. Do you have
+        dental insurance you&apos;d like us to keep on file? ... I have next
+        Tuesday at 9 or Thursday at 2 open for a new-patient exam, which works
+        better? ... Booked. I&apos;ll text you the confirmation, the address and
+        the new-patient forms now.&quot;
+      </Callout>
+      <P>
+        Note the longer new-patient slot rather than a squeezed-in checkup, and
+        the forms going out before the visit so the patient arrives ready.
+      </P>
+      <H3>The emergency call - triage and escalate, never diagnose</H3>
+      <Callout>
+        &quot;You said a tooth was knocked out - let&apos;s act fast because
+        timing matters. If you can find the tooth, pick it up by the crown, not
+        the root, and keep it in a little milk or tucked in your cheek. I&apos;m
+        flagging this as urgent and paging the on-call dentist to call you
+        straight back. What&apos;s the best number to reach you? ... If you have
+        bleeding that won&apos;t stop, trouble breathing or swallowing, or major
+        swelling, please call 911 or head to the ER now.&quot;
+      </Callout>
+      <P>
+        Any first-aid line in a script like this should be wording your dentist
+        has signed off, said the same way every time.
+      </P>
+      <H3>The insurance question - capture, don&apos;t promise</H3>
+      <Callout>
+        &quot;I can note your plan and have our team verify your benefits before
+        the visit, but I can&apos;t confirm exactly what your insurance will
+        cover on this call - that depends on your specific policy. Want me to
+        book the exam and have someone confirm your coverage and any estimate
+        beforehand?&quot;
+      </Callout>
+      <P>
+        The moment a call ends, the front desk should get a one-line summary it
+        can act on: <em>&quot;New patient, cracked molar, Delta Dental, booked
+        Thu 2pm, forms sent&quot;</em> or{" "}
+        <em>&quot;Recall, existing patient, hygiene, booked next Tue 9am.&quot;</em>{" "}
+        That summary is the actual product. Templates for these modules are in
+        our{" "}
+        <Internal href="/blog/ai-receptionist-prompts">
+          AI receptionist prompts
         </Internal>
         .
       </P>
@@ -631,7 +814,16 @@ export default function Body() {
           45 CFR 160.103
         </Ext>
         . You need a signed business associate agreement in place before the
-        first live call, not after the pilot goes well.
+        first live call, not after the pilot goes well -{" "}
+        <Ext href="https://www.hhs.gov/hipaa/for-professionals/privacy/guidance/business-associates/index.html">
+          HHS guidance on business associates
+        </Ext>{" "}
+        sets out what that agreement must cover, and the{" "}
+        <Ext href="https://www.ada.org/resources/practice/legal-and-regulatory/faqs-on-hipaa-business-associates">
+          ADA&apos;s own FAQ
+        </Ext>{" "}
+        makes the same point for practices. Compliance is yours as the covered
+        entity; a vendor&apos;s marketing cannot grant it to you.
       </P>
       <P>
         Ask for the document itself and read four clauses: how long call
@@ -645,7 +837,12 @@ export default function Body() {
       </P>
       <Callout>
         Two smaller things worth settling in the same conversation: whether the
-        agent identifies itself as AI at the start of the call, and whether
+        agent identifies itself as AI at the start of the call - the honest
+        default, and in line with the{" "}
+        <Ext href="https://www.ftc.gov/business-guidance/resources/com-disclosures-how-make-effective-disclosures-digital-advertising">
+          FTC&apos;s guidance on clear disclosure
+        </Ext>{" "}
+        - and whether
         recording notice meets your state&apos;s consent rules. Both are cheap to
         fix before launch and awkward to fix after a complaint.
       </Callout>
@@ -749,12 +946,18 @@ export default function Body() {
       </UL>
       <P>
         If after all that the honest answer is that you just need the phone
-        answered after six and at lunch, that is the narrow problem we built for,
-        and our{" "}
-        <Internal href="/blog/dental-answering-service">
-          dental answering service guide
+        answered after six and at lunch, that is the narrow problem we built for.
+        Start with the{" "}
+        <Internal href="#after-hours">
+          after-hours rules
         </Internal>{" "}
-        goes into what a script for a practice should and should not say.
+        and the{" "}
+        <Internal href="#scripts">
+          scripts
+        </Internal>{" "}
+        above, forward only the lunch, evening and overflow calls you are
+        already missing, and read the first two weeks of transcripts before you
+        hand it the main line.
       </P>
 
       <FAQList items={meta.faqs} />

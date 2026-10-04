@@ -7,7 +7,8 @@ import {
 } from "@/lib/i18n/marketing/blog-nav";
 import { localesFor } from "@/lib/i18n/marketing/manifest";
 import type { ContentLocale } from "@/lib/i18n/marketing/locales";
-import { posts } from "./(main)/blog/_posts";
+import { allPosts, posts } from "./(main)/blog/_posts";
+import { isRetiredBlogPost } from "@/lib/marketing/retired-posts";
 import { answers } from "./(main)/answers/_answers";
 import { COMPETITORS } from "./(main)/compare/_compare/competitors";
 import { INDUSTRY_MENU } from "@/lib/marketing/industries";
@@ -81,10 +82,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // set-identical on every member because all of them come out of the same
   // blogAlternatesFor call. An article with no translation emits exactly the
   // one English row it always did.
-  const blogPosts: MetadataRoute.Sitemap = posts.flatMap((post) => {
+  //
+  // A retired post (see retired-posts.ts) has no English row - that URL 301s -
+  // but its translations are live pages and keep theirs.
+  const blogPosts: MetadataRoute.Sitemap = allPosts.flatMap((post) => {
+    const retired = isRetiredBlogPost(post.slug);
     const cluster = blogAlternatesFor(post.slug, "en");
     const languages = "languages" in cluster ? cluster.languages : undefined;
-    const members: ContentLocale[] = ["en", ...blogPostLocales(post.slug)];
+    const members: ContentLocale[] = [
+      ...(retired ? [] : (["en"] as const)),
+      ...blogPostLocales(post.slug),
+    ];
     return members.map((locale) => ({
       url: blogAlternatesFor(post.slug, locale).canonical,
       lastModified: new Date(`${post.updated}T00:00:00Z`),

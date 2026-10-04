@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { RETIRED_ANSWERS, RETIRED_BLOG_POSTS } from "./lib/marketing/retired-posts";
 
 const STATIC_ASSET_MATCHER =
   "/:path*\\.(ico|png|jpg|jpeg|gif|svg|webp|avif|woff|woff2)";
@@ -47,6 +48,18 @@ const nextConfig: NextConfig = {
         destination: "/:slug",
         permanent: true,
       },
+      // Blog posts merged into a stronger page (2026-10-04). Only the English
+      // URL moves; the localized versions stay live. See retired-posts.ts.
+      ...Object.entries(RETIRED_BLOG_POSTS).map(([slug, destination]) => ({
+        source: `/blog/${slug}`,
+        destination,
+        permanent: true,
+      })),
+      ...Object.entries(RETIRED_ANSWERS).map(([slug, destination]) => ({
+        source: `/answers/${slug}`,
+        destination,
+        permanent: true,
+      })),
     ];
   },
   async headers() {

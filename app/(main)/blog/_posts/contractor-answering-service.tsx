@@ -149,12 +149,13 @@ export default function Body() {
         operators, an AI receptionist, or a hybrid can all staff it; for most
         residential GCs and remodelers the hybrid shape wins, with AI
         absorbing volume and a human taking the delicate calls. This guide
-        sits alongside our trade-specific ones -{" "}
-        <Internal href="/blog/roofing-answering-service">roofing</Internal>,{" "}
-        <Internal href="/blog/plumbing-answering-service">plumbing</Internal>,
-        and <Internal href="/blog/hvac-answering-service">HVAC</Internal> -
+        sits alongside our{" "}
+        <Internal href="/blog/home-services-answering-service">
+          trade-by-trade guide for roofing, plumbing and HVAC
+        </Internal>{" "}
+        -
         and the{" "}
-        <Internal href="/blog/ai-receptionist-for-home-services">
+        <Internal href="/blog/best-ai-receptionist-for-home-services">
           home-services overview
         </Internal>{" "}
         covers the whole field.

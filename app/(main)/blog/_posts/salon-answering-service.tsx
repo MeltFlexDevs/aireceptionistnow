@@ -497,7 +497,7 @@ export default function Body() {
         written down anywhere. If you want to hear the handling before you
         commit,{" "}
         <Internal href="/pricing">our plans run month-to-month</Internal>, and{" "}
-        <Internal href="/blog/how-to-choose-an-ai-receptionist">
+        <Internal href="/blog/best-ai-receptionist#how-to-choose">
           the buyer&apos;s guide
         </Internal>{" "}
         lists the questions worth asking every vendor on your list, including

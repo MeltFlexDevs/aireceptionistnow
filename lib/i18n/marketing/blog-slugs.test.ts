@@ -20,9 +20,11 @@ import { MARKETING_LOCALES } from "./locales";
 // stay free of React and of the 36 article modules.
 const EN_DIR = path.resolve(__dirname, "../../../app/(main)/blog/_posts");
 
-// Deliberately English-only. Documented in blog-slugs.ts: a US local-SEO page
-// has no honest translation, so it is exempt from the coverage test below.
-const ENGLISH_ONLY = new Set(["ai-receptionist-orange-county"]);
+// Deliberately English-only, exempt from the coverage test below. The
+// home-services hub replaced eight English trade posts (retired-posts.ts); the
+// locales keep their per-trade translations, which rank in their own markets,
+// and a translated hub would only compete with them.
+const ENGLISH_ONLY = new Set(["home-services-answering-service"]);
 
 function englishSlugs(): string[] {
   return fs
@@ -112,22 +114,22 @@ test("an unknown localized slug resolves to nothing", () => {
   assert.equal(blogSlugFromLocalized("de", "does-not-exist"), undefined);
   // English slugs are not valid German URLs: the German article lives at the
   // German slug, and serving it at both would be a duplicate.
-  assert.equal(blogSlugFromLocalized("de", "dental-answering-service"), undefined);
+  assert.equal(blogSlugFromLocalized("de", "veterinary-answering-service"), undefined);
 });
 
 test("paths carry the locale prefix and the localized slug", () => {
   assert.equal(
-    localizedPageIdToPath("de", "blog/dental-answering-service"),
-    "/de/blog/telefonservice-zahnarztpraxis",
+    localizedPageIdToPath("de", "blog/veterinary-answering-service"),
+    "/de/blog/telefonservice-tierarztpraxis",
   );
   assert.equal(
-    localizedPageIdToPath("sk", "blog/dental-answering-service"),
-    "/sk/blog/telefonicka-sluzba-pre-zubarov",
+    localizedPageIdToPath("sk", "blog/veterinary-answering-service"),
+    "/sk/blog/telefonicka-sluzba-pre-veterinarov",
   );
   // English is the default and lives at the root, with no prefix.
   assert.equal(
-    localizedPageIdToPath("en", "blog/dental-answering-service"),
-    "/blog/dental-answering-service",
+    localizedPageIdToPath("en", "blog/veterinary-answering-service"),
+    "/blog/veterinary-answering-service",
   );
 });
 
@@ -141,9 +143,9 @@ test("non-blog pages keep their shared path in every locale", () => {
 test("an English-only article has no localized path", () => {
   // Falls back to the English URL rather than minting /de/blog/<english-slug>,
   // which nothing would serve.
-  assert.equal(localizedBlogSlug("de", "ai-receptionist-orange-county"), undefined);
+  assert.equal(localizedBlogSlug("de", "home-services-answering-service"), undefined);
   assert.equal(
-    localizedPageIdToPath("de", "blog/ai-receptionist-orange-county"),
-    "/blog/ai-receptionist-orange-county",
+    localizedPageIdToPath("de", "blog/home-services-answering-service"),
+    "/blog/home-services-answering-service",
   );
 });

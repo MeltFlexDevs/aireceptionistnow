@@ -385,7 +385,7 @@ export default function Body() {
       </OL>
       <P>
         If you want a fuller buyer&apos;s framework beyond the voice itself, our{" "}
-        <Internal href="/blog/how-to-choose-an-ai-receptionist">
+        <Internal href="/blog/best-ai-receptionist#how-to-choose">
           guide to choosing an AI receptionist
         </Internal>{" "}
         covers integrations, escalation, and pricing traps.
@@ -433,7 +433,7 @@ export default function Body() {
         in, recovers when you ramble, and actually gets you booked - it&apos;ll feel
         human enough to do the job, which is the only test that matters. For the
         wider picture of what AI can and can&apos;t take off your plate, see{" "}
-        <Internal href="/blog/can-an-ai-receptionist-replace-a-human-receptionist">
+        <Internal href="/blog/how-to-replace-front-desk-receptionist-with-ai">
           whether an AI receptionist can replace a human
         </Internal>
         , then hear our{" "}

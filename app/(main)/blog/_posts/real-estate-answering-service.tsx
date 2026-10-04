@@ -398,11 +398,11 @@ export default function Body() {
         instincts as an agent; you&apos;re making sure the phone is always
         answered so you get the chance to use them. For how to evaluate any
         provider, see our{" "}
-        <Internal href="/blog/how-to-choose-an-ai-receptionist">
+        <Internal href="/blog/best-ai-receptionist#how-to-choose">
           AI receptionist buyer&apos;s guide
         </Internal>
         , compare the{" "}
-        <Internal href="/blog/ai-receptionist-pricing">cost of the options</Internal>
+        <Internal href="/blog/virtual-receptionist-pricing#ai-receptionist-pricing">cost of the options</Internal>
         , then see how our{" "}
         <Internal href="/">AI receptionist for real estate</Internal> works, check
         the <Internal href="/pricing">setup and pricing</Internal>, and judge it on

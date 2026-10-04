@@ -326,7 +326,7 @@ export default function Body() {
         order into the software a large operator runs means clearing that
         vendor&apos;s partner programme, its data agreements and its interface
         fees - a subject worth its own article, which we gave it in{" "}
-        <Internal href="/blog/ai-receptionist-for-property-management">
+        <Internal href="/blog/property-management-answering-service">
           AI receptionists for property management
         </Internal>
         . When that work is done, an AI that files the ticket correctly is worth
@@ -408,7 +408,7 @@ export default function Body() {
         failure - you pay for a quiet month. Neither is a trick; pick the one that
         matches how much variance your finance conversation can absorb. Our own
         take on the general shape of these bills is in{" "}
-        <Internal href="/blog/ai-receptionist-pricing">
+        <Internal href="/blog/virtual-receptionist-pricing#ai-receptionist-pricing">
           AI receptionist pricing
         </Internal>
         .
@@ -444,7 +444,7 @@ export default function Body() {
           <Strong>Is the honest answer &quot;I just want the phone
           answered&quot;?</Strong> Then the packaged option is not a compromise,
           it is the correctly sized purchase - and the{" "}
-          <Internal href="/blog/how-to-choose-an-ai-receptionist">
+          <Internal href="/blog/best-ai-receptionist#how-to-choose">
             checklist for choosing one
           </Internal>{" "}
           is a shorter document than any of the above.

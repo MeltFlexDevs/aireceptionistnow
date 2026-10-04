@@ -361,7 +361,7 @@ export default function Body() {
       <P>
         This is a slice of the larger evaluation - voice quality, calendar
         integrations, languages, contracts - which we cover step by step in{" "}
-        <Internal href="/blog/how-to-choose-an-ai-receptionist">
+        <Internal href="/blog/best-ai-receptionist#how-to-choose">
           how to choose an AI receptionist
         </Internal>
         .
@@ -376,7 +376,7 @@ export default function Body() {
         costs nothing extra - the flat monthly fee (commonly $30-$300 by
         volume and features) already includes the midnight calls. We break
         down the models, the per-minute traps, and the questions to ask in{" "}
-        <Internal href="/blog/ai-receptionist-pricing">
+        <Internal href="/blog/virtual-receptionist-pricing#ai-receptionist-pricing">
           our AI receptionist pricing guide
         </Internal>
         , and our own{" "}
@@ -400,7 +400,7 @@ export default function Body() {
         it&apos;s the same agent that answers at 3&nbsp;a.m. And if your
         coverage gap is specifically the closed hours rather than the whole
         clock, our{" "}
-        <Internal href="/blog/after-hours-answering-service">
+        <Internal href="/blog/24-hour-answering-service#after-hours">
           after-hours answering service guide
         </Internal>{" "}
         walks that narrower problem in depth.

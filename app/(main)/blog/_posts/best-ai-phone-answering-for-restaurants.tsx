@@ -23,10 +23,10 @@ export const meta = {
   slug: "best-ai-phone-answering-for-restaurants",
   title: "Best AI Phone Answering for Restaurants (2026)",
   description:
-    "Five AI phone products for restaurants, ranked by where the call ends - a message, a reservation, or an order in your POS. With every published price named, and every unpublished one flagged.",
+    "Five AI phone products for restaurants, ranked by where the call ends - a message, a reservation, or an order in your POS. Plus what a restaurant answering service must handle: the rush, allergy calls, reservations and large parties.",
   date: "2026-08-25",
-  updated: "2026-08-25",
-  readingTime: "16 min read",
+  updated: "2026-10-04",
+  readingTime: "21 min read",
   tag: "Guides",
   hero: "/blog/restaurant-phone-service-hero.webp",
   heroAlt:
@@ -35,6 +35,10 @@ export const meta = {
   heroHeight: 900,
   keywords: [
     "ai answering service for restaurants",
+    "restaurant answering service",
+    "answering service for restaurants",
+    "restaurant phone answering service",
+    "restaurant reservation phone service",
     "ai voice agent for restaurants",
     "ai phone answering for restaurants",
     "restaurant ai phone system",
@@ -46,11 +50,14 @@ export const meta = {
   sections: [
     { id: "the-ranking", title: "The ranking, in one table" },
     { id: "the-fork", title: "Where does the call end?" },
+    { id: "call-mix", title: "Seven callers, one line - and the rush" },
     { id: "how-we-ranked", title: "How we ranked these - and who we are" },
     { id: "why-ordering-is-hard", title: "Why phone ordering is the hard one" },
+    { id: "reservations", title: "Reservations, large parties and catering" },
     { id: "shortlist", title: "The five, one at a time" },
     { id: "pricing", title: "What each one actually costs" },
     { id: "allergens", title: "The two sentences that must never be automated" },
+    { id: "scripts", title: "What good calls sound like" },
     { id: "test", title: "A test you can run during a slow Tuesday" },
     { id: "not-for-you", title: "When none of these is the answer" },
     { id: "faq", title: "FAQ" },
@@ -105,12 +112,24 @@ export const meta = {
       a: "Not into a point-of-sale system, on the evidence of its own site. Slang.ai's integrations page lists OpenTable, SevenRooms, Tripleseat and Yelp - reservation and event platforms - and names no POS at all. Its own description of the product centres on answering guest enquiries and managing reservations, covering everything from hours and directions to promos and allergy information. That is a coherent product for a full-service restaurant taking bookings. It is the wrong product for a pizzeria whose phone volume is orders.",
     },
     {
+      q: "Can an AI answer the phone for a restaurant during a dinner rush?",
+      a: "That is the hour that matters most. The rush is when every server is carrying plates and the host is seating a four-top, and it is also when the highest-intent calls arrive. A host stand can hold one line, so the second simultaneous caller hears a busy tone or a voicemail box they will not use. Software answers the ninth simultaneous call the same way it answers the first. The practical way to start is to point only the busy-line overflow at it during service and read a week of transcripts before adding after-hours.",
+    },
+    {
+      q: "Can an AI receptionist answer allergy questions?",
+      a: "It can state what is in a dish from the recipe and your written cross-contact policy, and it must stop there. It must never say a dish is safe, allergen-free or gluten-free, because whether a specific plate is free of an allergen is a question about the kitchen at that moment - shared fryers, shared boards - that no phone script can know. The correct behaviour is to state the ingredients and the policy, offer a callback from a manager or chef before the guest arrives, and flag the allergen on the reservation. The FDA's nine major allergens - milk, eggs, fish, crustacean shellfish, tree nuts, peanuts, wheat, soybeans and sesame - are the list a script should recognise and escalate on.",
+    },
+    {
       q: "Will an AI answering the phone annoy my regulars?",
       a: "Some of them, yes, and the mitigation is structural rather than cosmetic. Have the agent identify itself as AI in the first sentence - a fake human is what actually generates complaints. Make the route to a person short and reliable, and route large parties, private events and complaints straight to a human without argument. Then run it only during service and after hours for a month and read your reviews. If a name shows up twice, that is data, not noise.",
     },
     {
       q: "What happens when the AI gets a quote time wrong on a Friday night?",
       a: "You get an angry guest at the counter at 7:40, which is worse than a missed call. This is the sharpest limitation of phone ordering and the question fewest demos will answer well. Ask the vendor precisely where the quote time comes from: a static number you configured, a rule based on order count, or something reading live kitchen state. If it is static, set it pessimistically and change it manually on your busiest nights - and treat that fifteen seconds of work as part of the cost of the system.",
+    },
+    {
+      q: "Can it handle multiple locations on one number?",
+      a: "Yes, and it is one of the better reasons to use software rather than a host stand. A single line can identify which location the caller wants - by asking, by the number they dialled, or by the area they name - and then answer with that location's hours, menu, parking and reservation book. What it must not do is guess: sending a caller to the wrong location for a 7 p.m. booking is worse than asking one extra question, and the location belongs in every written confirmation.",
     },
     {
       q: "Should I use my POS's own AI instead of a third-party voice agent?",
@@ -143,6 +162,19 @@ const sources: Source[] = [
   {
     title: "Toast: partner directory listing for Incept AI",
     url: "https://pos.toasttab.com/partners/directory/Incept%20AI",
+  },
+  {
+    title:
+      "National Restaurant Association: off-premises dining is now essential for restaurant consumers and operators",
+    url: "https://restaurant.org/research-and-media/media/press-releases/from-trend-to-transformation-off-premises-dining-now-essential-for-restaurant-consumers,-operators/",
+  },
+  {
+    title: "FDA: Food Allergies - the nine major food allergens",
+    url: "https://www.fda.gov/food/nutrition-food-labeling-and-critical-foods/food-allergies",
+  },
+  {
+    title: "FDA: sesame added as a major food allergen, 2022 Food Code addition",
+    url: "https://www.fda.gov/food/retail-food-industryregulatory-assistance-training/addition-2022-food-code-sesame-added-major-food-allergen",
   },
 ];
 
@@ -256,6 +288,88 @@ export default function Body() {
         five names by every listicle on this results page.
       </P>
 
+      <H2 id="call-mix">Seven callers, one line - and the rush</H2>
+      <P>
+        Whatever picks up your line - a live answering bureau, an AI, or a
+        hybrid - is fielding the same seven kinds of caller. Sorting last
+        week&apos;s calls into these rows is the fastest way to see which branch
+        of the fork you are really on.
+      </P>
+      <Table
+        caption="The call mix on a restaurant's main number"
+        head={["Caller", "What they need", "Right handling"]}
+        rows={[
+          [
+            "Takeout or pickup order",
+            "To order food, now, and know when it will be ready",
+            "Take it against a live menu with 86'd items, quote a real time, confirm by text - or send your direct ordering link, quickly",
+          ],
+          [
+            "Reservation, new or changed",
+            "A table, a time, a party size - or to move or cancel one",
+            "Straight into the booking system, with the cancellation handled as willingly as the booking",
+          ],
+          [
+            "The twenty questions",
+            "Hours, parking, patio, kids, dogs, corkage, dress code, private room, gift cards",
+            "Answered instantly from a facts sheet you own. Most of your call volume and none of your staff's attention",
+          ],
+          [
+            "Large party or catering",
+            "To feed 30 people on a date, and to be taken seriously",
+            "Full capture and a same-day callback from a manager. Never a voicemail",
+          ],
+          [
+            "Allergy or dietary question",
+            "To know whether they can eat safely at your restaurant",
+            "State the ingredient facts, never an assurance. Flag the reservation and route to a manager or chef",
+          ],
+          [
+            "Delivery driver, vendor, or the guest who is lost",
+            "A door, a dock, a person, a direction",
+            "Resolved in ten seconds with the right facts, or routed to the one person who can help",
+          ],
+          [
+            "Sales calls and spam",
+            "Your time",
+            "Filtered before anyone in an apron hears about it",
+          ],
+        ]}
+      />
+      <P>
+        The commercial weight sits in the first row. The National Restaurant
+        Association&apos;s off-premises research found that{" "}
+        <Ext href="https://restaurant.org/research-and-media/media/press-releases/from-trend-to-transformation-off-premises-dining-now-essential-for-restaurant-consumers,-operators/">
+          roughly three of every four restaurant transactions now happen
+          off-premises
+        </Ext>{" "}
+        - takeout, drive-thru, curbside and delivery. Of the doors an
+        off-premises order can come through, the phone is the one with no
+        marketplace commission and the one where you keep the guest&apos;s
+        number. It is the cheapest order you will take all night, and the one
+        most likely to evaporate.
+      </P>
+      <Callout>
+        A host stand can hold exactly one line. During service the second
+        simultaneous caller gets a busy tone, a voicemail box they will not use,
+        or a hold they will not wait through. Restaurants do not lose calls one
+        at a time - they lose them in a clump, in the same twenty minutes, every
+        Friday.
+      </Callout>
+      <P>
+        That is why most after-hours framing is slightly wrong for restaurants.
+        The problem hours are the two a night when the room is full, and the
+        structural advantage of software is concurrency -{" "}
+        <Internal href="/answers/can-an-ai-receptionist-handle-multiple-calls-at-once">
+          answering calls in parallel
+        </Internal>{" "}
+        matters more here than in almost any other trade. Whichever product you
+        choose, start by pointing the busy-line <em>overflow</em> at it during
+        service, not your after-hours calls, and read a week of transcripts.
+        Most operators are surprised twice: by how many there are, and by how
+        many were about parking.
+      </P>
+
       <H2 id="how-we-ranked">How we ranked these - and who we are</H2>
       <OL>
         <LI>
@@ -330,6 +444,90 @@ export default function Body() {
         and then ask for something you know is sold out. Anyone can take an order
         for a Margherita.
       </Callout>
+
+      <H2 id="reservations">Reservations, large parties and catering</H2>
+      <P>
+        Reservation calls look like the easy branch and quietly are not, because
+        many of them are edits rather than bookings. Whether the agent writes
+        into OpenTable or SevenRooms or just takes details, these are the
+        behaviours to configure and test:
+      </P>
+      <UL>
+        <LI>
+          <Strong>Take the cancellation as gladly as the booking.</Strong> A
+          table released at 4 p.m. is a table you resell. A cancellation that
+          hits a voicemail box becomes a no-show.
+        </LI>
+        <LI>
+          <Strong>Confirm in writing, always.</Strong> Time, party size, date,
+          name, and the one detail that ruins evenings - which location.
+        </LI>
+        <LI>
+          <Strong>Waitlist calls are conversion calls.</Strong> &quot;How long
+          is the wait right now?&quot; is somebody deciding between you and
+          another restaurant while parked outside. An honest number, said fast,
+          wins more of those than an optimistic one.
+        </LI>
+        <LI>
+          <Strong>Special occasions belong in the record.</Strong> Birthday,
+          anniversary, high chair, wheelchair access, the regular who always
+          sits at 12 - lost every time a call is a scribble on a pad.
+        </LI>
+        <LI>
+          <Strong>Deposit and cancellation policies get said out loud.</Strong>{" "}
+          If you hold a card for parties over six, the caller hears it during
+          the booking, not in a dispute afterwards.
+        </LI>
+      </UL>
+      <P>
+        Large parties and catering are the highest-value calls a restaurant
+        receives and the ones most often fumbled, because they arrive at the same
+        bad moment as everything else and cannot be resolved in ninety seconds.
+        &quot;Can you email us?&quot; loses them: the person planning an office
+        lunch is calling three restaurants and books with whoever takes them
+        seriously first. No product on this list should quote one - but every one
+        of them, including the cheapest, can capture it properly:
+      </P>
+      <Table
+        caption="What a large-party or catering call must capture before it ends"
+        head={["Field", "Why it matters"]}
+        rows={[
+          [
+            "Date, time, headcount",
+            "Decides feasibility before a manager spends a minute on it",
+          ],
+          [
+            "Occasion and format",
+            "Seated dinner, buffet, drop-off catering and a private room are four different quotes",
+          ],
+          [
+            "Budget per head, if they will say",
+            "Separates a real inquiry from a price check, without making anyone feel screened",
+          ],
+          [
+            "Dietary requirements and allergens",
+            "The one thing that changes the menu, and the one thing nobody remembers to ask",
+          ],
+          [
+            "Decision deadline",
+            "Tells you whether this is a callback in an hour or tomorrow",
+          ],
+          [
+            "Name, mobile, email",
+            "Two channels, because this callback actually has to land",
+          ],
+        ]}
+      />
+      <P>
+        Then set a hard internal rule: large-party enquiries get a human callback
+        the same day, with a name attached. Mechanically the booking side is the
+        same job as any other appointment flow -{" "}
+        <Internal href="/answers/can-an-ai-receptionist-book-appointments">
+          how that works end to end
+        </Internal>{" "}
+        is worth reading, because &quot;we book&quot; can mean anything from a
+        live API write to an email somebody retypes.
+      </P>
 
       <H2 id="shortlist">The five, one at a time</H2>
 
@@ -554,6 +752,44 @@ export default function Body() {
         as assurance - make sure your configuration knows the difference.
       </P>
       <P>
+        The list the script should recognise and escalate on is the FDA&apos;s{" "}
+        <Ext href="https://www.fda.gov/food/nutrition-food-labeling-and-critical-foods/food-allergies">
+          nine major food allergens - milk, eggs, fish, crustacean shellfish,
+          tree nuts, peanuts, wheat, soybeans and sesame
+        </Ext>
+        , with{" "}
+        <Ext href="https://www.fda.gov/food/retail-food-industryregulatory-assistance-training/addition-2022-food-code-sesame-added-major-food-allergen">
+          sesame the most recent addition, folded into the 2022 Food Code
+        </Ext>
+        . Within that, the script has exactly three permitted moves:
+      </P>
+      <OL>
+        <LI>
+          <Strong>State ingredients, from the recipe.</Strong> &quot;The romesco
+          has almonds in it&quot; is a fact you control and can put in writing.
+        </LI>
+        <LI>
+          <Strong>State the policy, verbatim.</Strong> Whatever your kitchen
+          actually does about cross-contact - a dedicated fryer or not, a
+          separate prep area or not - written once, said the same way every
+          time.
+        </LI>
+        <LI>
+          <Strong>Escalate, and flag the booking.</Strong> Offer a callback from
+          a manager or chef before the guest arrives, and put the allergen on
+          the reservation so the floor is not learning about it when the plate
+          goes down.
+        </LI>
+      </OL>
+      <Callout>
+        The forbidden sentences are short and worth writing on the wall:{" "}
+        <em>it&apos;s safe</em>, <em>it&apos;s gluten-free</em>,{" "}
+        <em>you&apos;ll be fine</em>, <em>we can make anything allergy-free</em>
+        . This is not a reason to keep humans on the phone - an underslept host
+        improvises reassurance far more often than a script does. It is a reason
+        to write the boundary down and test it, whoever is answering.
+      </Callout>
+      <P>
         <Strong>An AI must never promise a time it cannot see.</Strong> That
         applies to a table at 8 and to a pickup at 7:30 equally. If the agent
         cannot read live state, it should quote a range, err long, and say it is
@@ -564,6 +800,57 @@ export default function Body() {
         Guests forgive a robot that says it is a robot and they do not forgive
         one that pretends. And route complaints to a human immediately - nobody
         who is already annoyed wants to explain themselves twice.
+      </P>
+
+      <H2 id="scripts">What good calls sound like</H2>
+      <P>
+        Three calls worth modelling, whichever product you buy. Keep them short;
+        long scripts are where agents and tired hosts both go wrong.
+      </P>
+      <H3>Friday 7:41 p.m., pickup order, third simultaneous caller</H3>
+      <Callout>
+        &quot;Thanks for calling - are you ordering for pickup? ... Great, go
+        ahead. ... Two carnitas tacos, the half chicken, and a side of rice. The
+        half chicken is about a twenty-five minute cook tonight, so I&apos;d say
+        ready at 8:10. Anything to drink? ... That&apos;s $47.20. I&apos;ll text
+        you the confirmation and the pickup time to this number - is this the
+        best one? ... Perfect, see you at 8:10.&quot;
+      </Callout>
+      <P>
+        If your system cannot take that order into the POS, the honest
+        alternatives are capturing it and reading it back to the kitchen line, or
+        texting the caller your direct ordering link. All three are defensible;
+        ambiguity is not, because the caller acts on whatever they think
+        happened.
+      </P>
+      <H3>The allergy call, handled correctly</H3>
+      <Callout>
+        &quot;I can tell you exactly what&apos;s in it - the pesto has pine nuts
+        and parmesan, and the pasta itself contains wheat. What I can&apos;t
+        tell you from here is whether it stays clear of the shellfish in the
+        kitchen, because that depends on the line tonight. Let me flag it on
+        your reservation and have the manager call you back before you come in -
+        what&apos;s the best number?&quot;
+      </Callout>
+      <H3>The sentence that stops the script</H3>
+      <Callout>
+        &quot;... my wife got sick after eating there last night.&quot;{" "}
+        <em>
+          [No explanation, no apology script, no reassurance. Straight to a
+          manager, logged with the time and the caller&apos;s number, whatever
+          hour it is.]
+        </em>
+      </Callout>
+      <P>
+        Illness reports sit on a short always-human list with complaints,
+        refunds, press, health department and licensing calls, and the regular
+        whose relationship is the product - route known numbers to a person on
+        purpose. Write that list before launch, not after the first bad
+        transcript. The craft of writing bounded instructions like these is in{" "}
+        <Internal href="/blog/ai-receptionist-prompts">
+          our guide to AI receptionist prompts
+        </Internal>
+        .
       </P>
 
       <H2 id="test">A test you can run during a slow Tuesday</H2>
@@ -644,11 +931,22 @@ export default function Body() {
       <P>
         If what you need is the simple version - the phone answered properly
         during service, questions handled, the twelve-top captured, a transcript
-        in your inbox - that is the narrow problem we built for, and our{" "}
-        <Internal href="/blog/restaurant-answering-service">
-          restaurant answering service guide
+        in your inbox - that is the narrow problem we built for. Write the facts
+        sheet first (hours by day, holiday hours, entrance, parking, patio,
+        dogs, kids, corkage, dress code, private room capacity, accessibility),
+        use the{" "}
+        <Internal href="#scripts">scripts above</Internal> as the starting
+        point, and keep the number on your listings -{" "}
+        <Internal href="/blog/how-to-forward-calls-to-an-answering-service">
+          forwarding takes minutes
+        </Internal>
+        . If you run several rooms,{" "}
+        <Internal href="/answers/can-an-ai-receptionist-handle-multiple-locations">
+          multi-location handling
         </Internal>{" "}
-        goes further into what the script should and should not say.
+        is the part to get right before launch, and the{" "}
+        <Internal href="/restaurants">restaurants page</Internal> covers our
+        setup.
       </P>
 
       <FAQList items={meta.faqs} />

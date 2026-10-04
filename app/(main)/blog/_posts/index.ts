@@ -2,6 +2,7 @@ import type { ComponentType } from "react";
 import type { FaqItem } from "../_components/prose";
 import { defaultAuthorKey, type AuthorKey } from "@/lib/site";
 import type { IndustrySlug } from "@/lib/marketing/industries";
+import { isRetiredBlogPost } from "@/lib/marketing/retired-posts";
 
 import CanAiReplaceReceptionist, {
   meta as canAiReplaceReceptionistMeta,
@@ -63,9 +64,6 @@ import AiReceptionistForItCompanies, {
 import AiReceptionistAppointmentBooking, {
   meta as aiReceptionistAppointmentBookingMeta,
 } from "./ai-receptionist-appointment-booking";
-import AiReceptionistOrangeCounty, {
-  meta as aiReceptionistOrangeCountyMeta,
-} from "./ai-receptionist-orange-county";
 import AnsweringServiceForSmallBusiness, {
   meta as answeringServiceForSmallBusinessMeta,
 } from "./answering-service-for-small-business";
@@ -111,40 +109,16 @@ import ApartmentAnsweringService, {
 import HowToSetUpEmergencyCallEscalation, {
   meta as howToSetUpEmergencyCallEscalationMeta,
 } from "./how-to-set-up-emergency-call-escalation";
-import WaterDamageRestorationAnsweringService, {
-  meta as waterDamageRestorationAnsweringServiceMeta,
-} from "./water-damage-restoration-answering-service";
 import HomeCareAnsweringService, {
   meta as homeCareAnsweringServiceMeta,
 } from "./home-care-answering-service";
-import SelfStorageAnsweringService, {
-  meta as selfStorageAnsweringServiceMeta,
-} from "./self-storage-answering-service";
-import RestaurantAnsweringService, {
-  meta as restaurantAnsweringServiceMeta,
-} from "./restaurant-answering-service";
-import AutoRepairAnsweringService, {
-  meta as autoRepairAnsweringServiceMeta,
-} from "./auto-repair-answering-service";
 import MissedCallTextBack, {
   meta as missedCallTextBackMeta,
 } from "./missed-call-text-back";
 
-import PestControlAnsweringService, {
-  meta as pestControlAnsweringServiceMeta,
-} from "./pest-control-answering-service";
-import LocksmithAnsweringService, {
-  meta as locksmithAnsweringServiceMeta,
-} from "./locksmith-answering-service";
 import SalonAnsweringService, {
   meta as salonAnsweringServiceMeta,
 } from "./salon-answering-service";
-import CleaningCompanyAnsweringService, {
-  meta as cleaningCompanyAnsweringServiceMeta,
-} from "./cleaning-company-answering-service";
-import AnsweringServiceForTherapists, {
-  meta as answeringServiceForTherapistsMeta,
-} from "./answering-service-for-therapists";
 import FuneralHomeAnsweringService, {
   meta as funeralHomeAnsweringServiceMeta,
 } from "./funeral-home-answering-service";
@@ -154,9 +128,6 @@ import AiVoiceAgentVsChatbotVsIvr, {
 import TwilioVsDialpadVsFreshworksVsEliseai, {
   meta as twilioVsDialpadVsFreshworksVsEliseaiMeta,
 } from "./twilio-vs-dialpad-vs-freshworks-vs-eliseai";
-import AiReceptionistForPropertyManagement, {
-  meta as aiReceptionistForPropertyManagementMeta,
-} from "./ai-receptionist-for-property-management";
 import BestAiReceptionistForDentalPractices, {
   meta as bestAiReceptionistForDentalPracticesMeta,
 } from "./best-ai-receptionist-for-dental-practices";
@@ -175,6 +146,9 @@ import BilingualAnsweringService, {
 import ChiropracticAnsweringService, {
   meta as chiropracticAnsweringServiceMeta,
 } from "./chiropractic-answering-service";
+import HomeServicesAnsweringService, {
+  meta as homeServicesAnsweringServiceMeta,
+} from "./home-services-answering-service";
 
 export type PostMeta = {
   slug: string;
@@ -226,19 +200,12 @@ const postIndustry: Record<string, IndustrySlug> = {
   "contractor-answering-service": "home-services",
   "electrician-answering-service": "home-services",
   "apartment-answering-service": "property-management",
-  "water-damage-restoration-answering-service": "home-services",
-  "self-storage-answering-service": "property-management",
-  "restaurant-answering-service": "restaurants",
-  "pest-control-answering-service": "home-services",
-  "locksmith-answering-service": "home-services",
-  "cleaning-company-answering-service": "home-services",
-  "answering-service-for-therapists": "medical",
-  "ai-receptionist-for-property-management": "property-management",
   "best-ai-receptionist-for-dental-practices": "dentists",
   "best-ai-phone-answering-for-restaurants": "restaurants",
   "best-ai-receptionist-for-home-services": "home-services",
   "medical-answering-service-pricing": "medical",
   "chiropractic-answering-service": "medical",
+  "home-services-answering-service": "home-services",
 };
 
 const postAuthors: Record<string, AuthorKey> = {
@@ -262,7 +229,6 @@ const postAuthors: Record<string, AuthorKey> = {
   "best-ai-receptionist": "matus",
   "ai-receptionist-for-it-companies": "brano",
   "ai-receptionist-appointment-booking": "brano",
-  "ai-receptionist-orange-county": "matus",
   "answering-service-for-small-business": "brano",
   "answering-service-cost": "matus",
   "virtual-receptionist-pricing": "brano",
@@ -278,30 +244,25 @@ const postAuthors: Record<string, AuthorKey> = {
   "how-to-forward-calls-to-an-answering-service": "brano",
   "apartment-answering-service": "matus",
   "how-to-set-up-emergency-call-escalation": "brano",
-  "water-damage-restoration-answering-service": "matus",
   "home-care-answering-service": "brano",
-  "self-storage-answering-service": "matus",
-  "restaurant-answering-service": "brano",
-  "auto-repair-answering-service": "matus",
   "missed-call-text-back": "brano",
-  "pest-control-answering-service": "matus",
-  "locksmith-answering-service": "brano",
   "salon-answering-service": "matus",
-  "cleaning-company-answering-service": "brano",
-  "answering-service-for-therapists": "matus",
   "funeral-home-answering-service": "brano",
   "ai-voice-agent-vs-chatbot-vs-ivr": "matus",
   "twilio-vs-dialpad-vs-freshworks-vs-eliseai": "brano",
-  "ai-receptionist-for-property-management": "matus",
   "best-ai-receptionist-for-dental-practices": "brano",
   "best-ai-phone-answering-for-restaurants": "matus",
   "best-ai-receptionist-for-home-services": "brano",
   "medical-answering-service-pricing": "brano",
   "bilingual-answering-service": "matus",
   "chiropractic-answering-service": "matus",
+  "home-services-answering-service": "matus",
 };
 
-export const posts: Post[] = [
+// Every module, retired ones included. Retired posts stay registered only so
+// their translations can read their facts; nothing public lists them (the
+// sitemap reads this list only to emit those translations' rows).
+export const allPosts: Post[] = [
   { ...canAiReplaceReceptionistMeta, Body: CanAiReplaceReceptionist },
   { ...howToChooseAiReceptionistMeta, Body: HowToChooseAiReceptionist },
   { ...realEstateAnsweringServiceMeta, Body: RealEstateAnsweringService },
@@ -334,7 +295,6 @@ export const posts: Post[] = [
     ...aiReceptionistAppointmentBookingMeta,
     Body: AiReceptionistAppointmentBooking,
   },
-  { ...aiReceptionistOrangeCountyMeta, Body: AiReceptionistOrangeCounty },
   {
     ...answeringServiceForSmallBusinessMeta,
     Body: AnsweringServiceForSmallBusiness,
@@ -365,29 +325,9 @@ export const posts: Post[] = [
     ...howToSetUpEmergencyCallEscalationMeta,
     Body: HowToSetUpEmergencyCallEscalation,
   },
-  {
-    ...waterDamageRestorationAnsweringServiceMeta,
-    Body: WaterDamageRestorationAnsweringService,
-  },
   { ...homeCareAnsweringServiceMeta, Body: HomeCareAnsweringService },
-  {
-    ...selfStorageAnsweringServiceMeta,
-    Body: SelfStorageAnsweringService,
-  },
-  { ...restaurantAnsweringServiceMeta, Body: RestaurantAnsweringService },
-  { ...autoRepairAnsweringServiceMeta, Body: AutoRepairAnsweringService },
   { ...missedCallTextBackMeta, Body: MissedCallTextBack },
-  { ...pestControlAnsweringServiceMeta, Body: PestControlAnsweringService },
-  { ...locksmithAnsweringServiceMeta, Body: LocksmithAnsweringService },
   { ...salonAnsweringServiceMeta, Body: SalonAnsweringService },
-  {
-    ...cleaningCompanyAnsweringServiceMeta,
-    Body: CleaningCompanyAnsweringService,
-  },
-  {
-    ...answeringServiceForTherapistsMeta,
-    Body: AnsweringServiceForTherapists,
-  },
   { ...funeralHomeAnsweringServiceMeta, Body: FuneralHomeAnsweringService },
   {
     ...aiVoiceAgentVsChatbotVsIvrMeta,
@@ -396,10 +336,6 @@ export const posts: Post[] = [
   {
     ...twilioVsDialpadVsFreshworksVsEliseaiMeta,
     Body: TwilioVsDialpadVsFreshworksVsEliseai,
-  },
-  {
-    ...aiReceptionistForPropertyManagementMeta,
-    Body: AiReceptionistForPropertyManagement,
   },
   {
     ...bestAiReceptionistForDentalPracticesMeta,
@@ -419,6 +355,10 @@ export const posts: Post[] = [
   },
   { ...bilingualAnsweringServiceMeta, Body: BilingualAnsweringService },
   { ...chiropracticAnsweringServiceMeta, Body: ChiropracticAnsweringService },
+  {
+    ...homeServicesAnsweringServiceMeta,
+    Body: HomeServicesAnsweringService,
+  },
 ]
   .map((p) => ({
     ...p,
@@ -427,8 +367,20 @@ export const posts: Post[] = [
   }))
   .sort((a, b) => (a.date < b.date ? 1 : -1));
 
+/** Live English posts: what the index, sitemap, llms.txt and related links show. */
+export const posts: Post[] = allPosts.filter((p) => !isRetiredBlogPost(p.slug));
+
 export function getPost(slug: string): Post | undefined {
   return posts.find((p) => p.slug === slug);
+}
+
+/**
+ * Any post, retired or not. Only for code that needs a translation's English
+ * source (posts-registry); an English page must use getPost so a retired post
+ * can never render on its old URL.
+ */
+export function getSourcePost(slug: string): Post | undefined {
+  return allPosts.find((p) => p.slug === slug);
 }
 
 // Words too generic to signal topical similarity between posts.
@@ -467,12 +419,21 @@ function topicWords(p: PostMeta): Set<string> {
   return new Set(words);
 }
 
-/** Topically closest posts (shared tag + keyword overlap), newest first on ties. */
-export function relatedPosts(slug: string, n = 3): Post[] {
-  const current = getPost(slug);
-  if (!current) return posts.slice(0, n);
+/**
+ * Topically closest posts (shared tag + keyword overlap), newest first on ties.
+ * `includeRetired` is for translations: a retired post's localized version is
+ * still live in its locale, so it may both ask for and be offered as related.
+ */
+export function relatedPosts(
+  slug: string,
+  n = 3,
+  { includeRetired = false }: { includeRetired?: boolean } = {},
+): Post[] {
+  const pool = includeRetired ? allPosts : posts;
+  const current = pool.find((p) => p.slug === slug);
+  if (!current) return pool.slice(0, n);
   const currentWords = topicWords(current);
-  return posts
+  return pool
     .filter((p) => p.slug !== slug)
     .map((p) => {
       let overlap = 0;

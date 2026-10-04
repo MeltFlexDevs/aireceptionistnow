@@ -459,9 +459,8 @@ export default function PricingClient({ localeOptions = [], copy = enPricing, ui
               <ul style={{ display: "grid", gap: "10px", margin: 0, padding: 0, listStyle: "none" }}>
                 {[
                   { href: "/missed-call-calculator", label: "Work out what your missed calls are already costing" },
-                  { href: "/blog/ai-receptionist-pricing", label: "AI receptionist pricing: how the market actually charges" },
+                  { href: "/blog/virtual-receptionist-pricing", label: "Virtual and AI receptionist pricing compared" },
                   { href: "/blog/answering-service-cost", label: "What an answering service costs, per model" },
-                  { href: "/blog/virtual-receptionist-pricing", label: "Virtual receptionist pricing compared" },
                 ].map((l) => (
                   <li key={l.href}>
                     <a

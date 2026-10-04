@@ -493,18 +493,18 @@ export default function Body() {
         outsourcing your judgment or your ethics; you&apos;re making sure the phone
         is always answered so you get the chance to use them. For how to evaluate any
         provider, see our{" "}
-        <Internal href="/blog/how-to-choose-an-ai-receptionist">
+        <Internal href="/blog/best-ai-receptionist#how-to-choose">
           AI receptionist buyer&apos;s guide
         </Internal>
         , compare the{" "}
-        <Internal href="/blog/ai-receptionist-pricing">cost of the options</Internal>
+        <Internal href="/blog/virtual-receptionist-pricing#ai-receptionist-pricing">cost of the options</Internal>
         , and, since first impressions decide intake, read whether{" "}
         <Internal href="/blog/do-ai-voices-sound-human-on-the-phone">
           AI voices actually sound human
         </Internal>
         . If you also handle healthcare clients or run a clinic, the same playbook for
         that world is in our{" "}
-        <Internal href="/blog/dental-answering-service">
+        <Internal href="/blog/best-ai-receptionist-for-dental-practices">
           dental answering service guide
         </Internal>
         . Then see how our{" "}

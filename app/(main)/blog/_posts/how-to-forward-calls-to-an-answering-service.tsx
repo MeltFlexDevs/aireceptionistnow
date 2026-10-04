@@ -537,7 +537,7 @@ export default function Body() {
         </Internal>
         , and if the reason you are forwarding is nights and weekends, the
         coverage patterns are in{" "}
-        <Internal href="/blog/after-hours-answering-service">
+        <Internal href="/blog/24-hour-answering-service#after-hours">
           the after-hours answering service guide
         </Internal>{" "}
         and{" "}

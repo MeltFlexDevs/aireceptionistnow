@@ -1,6 +1,10 @@
 import type { ComponentType } from "react";
 
-import { getPost, posts, relatedPosts } from "@/app/(main)/blog/_posts";
+import {
+  getSourcePost,
+  posts,
+  relatedPosts,
+} from "@/app/(main)/blog/_posts";
 import type { PostMeta } from "@/app/(main)/blog/_posts";
 import type { AuthorKey } from "@/lib/site";
 import type { IndustrySlug } from "@/lib/marketing/industries";
@@ -46,7 +50,9 @@ export type LocalizedPost = PostMeta & {
 
 function assemble(locale: MarketingLocale, mod: PostModule): LocalizedPost {
   const { meta } = mod;
-  const en = getPost(meta.source);
+  // getSourcePost, not getPost: a retired English post still feeds the facts of
+  // its translations, which stay live in their locales.
+  const en = getSourcePost(meta.source);
   if (!en) {
     throw new Error(
       `[i18n] ${locale}/blog: translation "${meta.slug}" points at unknown English post "${meta.source}"`,
@@ -132,7 +138,7 @@ export function relatedLocalizedPosts(
   source: string,
   n = 3,
 ): LocalizedPost[] {
-  return relatedPosts(source, n)
+  return relatedPosts(source, n, { includeRetired: true })
     .map((p) => getLocalizedPostBySource(locale, p.slug))
     .filter((p): p is LocalizedPost => p !== undefined);
 }

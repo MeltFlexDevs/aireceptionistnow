@@ -680,7 +680,7 @@ export default function Body() {
         caller describes a symptom. If the answers are not in writing, the price
         is irrelevant. And keep a human path for clinical calls - how to build
         one is in our{" "}
-        <Internal href="/blog/how-to-set-up-emergency-call-escalation">
+        <Internal href="/blog/24-hour-answering-service#emergency-escalation">
           emergency call escalation guide
         </Internal>
         .

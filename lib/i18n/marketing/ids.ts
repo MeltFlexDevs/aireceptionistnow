@@ -18,8 +18,8 @@ export function pathToPageId(path: string): PageId {
  * Full path for a page id in a locale, locale prefix included.
  *
  * Not merely `/${locale}${pageIdToPath(pageId)}`: the path segments themselves
- * are translated (see blog-slugs.ts), so /blog/dental-answering-service is
- * /de/blog/telefonservice-zahnarztpraxis and not a German article sitting on an
+ * are translated (see blog-slugs.ts), so /blog/veterinary-answering-service is
+ * /de/blog/telefonservice-tierarztpraxis and not a German article sitting on an
  * English URL. Every URL producer - href builder, hreflang cluster, switcher,
  * sitemap - goes through this one function, which is what keeps the localized
  * slug from being right in the sitemap and wrong in the canonical tag.

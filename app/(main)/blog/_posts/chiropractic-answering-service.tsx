@@ -315,7 +315,7 @@ export default function Body() {
         <LI>
           <Strong>After-hours coverage.</Strong> Evenings and Saturdays are when
           working patients call. See our{" "}
-          <Internal href="/blog/after-hours-answering-service">
+          <Internal href="/blog/24-hour-answering-service#after-hours">
             after-hours answering guide
           </Internal>{" "}
           for the coverage patterns.
@@ -530,7 +530,7 @@ export default function Body() {
         care daily. The answering service&apos;s job is simply not to get in the
         way of it. The mechanics of wiring a call to reach you, then a backup,
         are in our{" "}
-        <Internal href="/blog/how-to-set-up-emergency-call-escalation">
+        <Internal href="/blog/24-hour-answering-service#emergency-escalation">
           emergency call escalation guide
         </Internal>
         .

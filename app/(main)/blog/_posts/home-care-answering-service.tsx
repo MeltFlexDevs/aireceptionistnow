@@ -420,7 +420,7 @@ export default function Body() {
         human being immediately - no queue, no message, no morning callback. Build
         that as a hard branch, and test it. The mechanics of building any of
         these chains are in our{" "}
-        <Internal href="/blog/how-to-set-up-emergency-call-escalation">
+        <Internal href="/blog/24-hour-answering-service#emergency-escalation">
           guide to emergency call escalation
         </Internal>
         .
@@ -468,7 +468,7 @@ export default function Body() {
           caregiver workforce is more comfortable in Spanish or another language
           at 4 a.m., and a call-off in the caller&apos;s own language is a
           call-off you actually understand (
-          <Internal href="/blog/bilingual-ai-receptionist">
+          <Internal href="/blog/bilingual-answering-service">
             how bilingual answering works
           </Internal>
           ).
@@ -624,7 +624,7 @@ export default function Body() {
         staffing, EVV and admin, new inquiries. Most agencies are surprised by
         how small the first bucket is and how large the second is, and that
         single count tells you what to buy. Our{" "}
-        <Internal href="/blog/after-hours-answering-service">
+        <Internal href="/blog/24-hour-answering-service#after-hours">
           after-hours guide
         </Internal>{" "}
         covers the general coverage patterns, and if you want to hear the

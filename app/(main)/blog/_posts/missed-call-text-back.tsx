@@ -443,7 +443,7 @@ export default function Body() {
         <LI>
           <Strong>Escalate what needs a person.</Strong> Live transfer during
           hours, an on-call ladder after them.{" "}
-          <Internal href="/blog/how-to-set-up-emergency-call-escalation">
+          <Internal href="/blog/24-hour-answering-service#emergency-escalation">
             How to build one that survives 2 a.m.
           </Internal>
         </LI>

@@ -9,6 +9,7 @@ import { LOCALES } from "@/lib/i18n/config";
 import { MARKETING_LOCALES, type ContentLocale, type MarketingLocale } from "./locales";
 import { isPublished } from "./manifest";
 import type { LocaleOption } from "./switcher";
+import { isRetiredBlogPost } from "@/lib/marketing/retired-posts";
 
 // SERVER-ONLY. Importing this pulls in posts-registry, which pulls in every
 // translated article body - hundreds of KB of JSX. Call it from a server page
@@ -53,11 +54,18 @@ export function publishedLocalizedPosts(locale: MarketingLocale) {
 export function blogAlternatesFor(source: string, current: ContentLocale) {
   const pageId = `blog/${source}` as const;
   const others = blogPostLocales(source);
-  if (others.length === 0) return { canonical: abs("en", pageId) };
+  // A retired post's English URL 301s elsewhere, so it can be neither a cluster
+  // member nor the x-default: hreflang pointing at a redirect is ignored and
+  // reported as an error. The surviving translations cluster among themselves.
+  const retired = isRetiredBlogPost(source);
+  if (others.length === 0 || (retired && others.length === 1)) {
+    return { canonical: abs(current, pageId) };
+  }
 
-  const languages: Record<string, string> = { en: abs("en", pageId) };
+  const languages: Record<string, string> = {};
+  if (!retired) languages.en = abs("en", pageId);
   for (const locale of others) languages[locale] = abs(locale, pageId);
-  languages["x-default"] = abs("en", pageId);
+  if (!retired) languages["x-default"] = abs("en", pageId);
 
   return { canonical: abs(current, pageId), languages };
 }
@@ -83,7 +91,8 @@ export function blogLocaleOptions(
     current: current === locale,
   });
 
-  return [build("en"), ...translated.map(build)];
+  const members = translated.map(build);
+  return isRetiredBlogPost(source) ? members : [build("en"), ...members];
 }
 
 /** Absolute URL of an article in a locale. Used by JSON-LD and the sitemap. */
