@@ -40,5 +40,33 @@
     "page": "https://www.behance.net/gallery/255759007/physiotherapist-clinic",
     "query": "physiotherapy clinic interior",
     "pick": 0
+  },
+  "call-center": {
+    "file": "https://mir-s3-cdn-cf.behance.net/projects/original_webp/47c6aa176133373.Y3JvcCwxNTM0LDEyMDAsMjMxLDA.jpg",
+    "project": "MAIB CALL CENTER",
+    "page": "https://www.behance.net/gallery/176133373/MAIB-CALL-CENTER",
+    "query": "call center office interior",
+    "pick": 5
+  },
+  "accounting-office": {
+    "file": "https://mir-s3-cdn-cf.behance.net/projects/808/821596154517311.Y3JvcCwxNzk3LDE0MDYsMjkzLDA.jpg",
+    "project": "Office Design for Accounting firm",
+    "page": "https://www.behance.net/gallery/154517311/Office-Design-for-Accounting-firm",
+    "query": "accounting firm office interior",
+    "pick": 2
+  },
+  "small-office": {
+    "file": "https://mir-s3-cdn-cf.behance.net/projects/original_webp/41f0d3252345909.Y3JvcCwxOTk5LDE1NjQsMCwxNDg.jpg",
+    "project": "Office Design",
+    "page": "https://www.behance.net/gallery/252345909/Office-Design",
+    "query": "insurance agency office interior",
+    "pick": 12
+  },
+  "insurance-office": {
+    "file": "https://mir-s3-cdn-cf.behance.net/projects/808/96d14b31638171.Y3JvcCw5MjIsNzIyLDIwLDA.jpg",
+    "project": "Worldwide Insurance Agency - Dallas, TX",
+    "page": "https://www.behance.net/gallery/31638171/Worldwide-Insurance-Agency-Dallas-TX",
+    "query": "insurance agency office interior",
+    "pick": 1
   }
 }

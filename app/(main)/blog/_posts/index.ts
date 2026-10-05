@@ -149,6 +149,15 @@ import ChiropracticAnsweringService, {
 import HomeServicesAnsweringService, {
   meta as homeServicesAnsweringServiceMeta,
 } from "./home-services-answering-service";
+import LiveAnsweringService, {
+  meta as liveAnsweringServiceMeta,
+} from "./live-answering-service";
+import AccountingAnsweringService, {
+  meta as accountingAnsweringServiceMeta,
+} from "./accounting-answering-service";
+import InsuranceAnsweringService, {
+  meta as insuranceAnsweringServiceMeta,
+} from "./insurance-answering-service";
 
 export type PostMeta = {
   slug: string;
@@ -257,6 +266,9 @@ const postAuthors: Record<string, AuthorKey> = {
   "bilingual-answering-service": "matus",
   "chiropractic-answering-service": "matus",
   "home-services-answering-service": "matus",
+  "live-answering-service": "matus",
+  "accounting-answering-service": "brano",
+  "insurance-answering-service": "matus",
 };
 
 // Every module, retired ones included. Retired posts stay registered only so
@@ -359,6 +371,9 @@ export const allPosts: Post[] = [
     ...homeServicesAnsweringServiceMeta,
     Body: HomeServicesAnsweringService,
   },
+  { ...liveAnsweringServiceMeta, Body: LiveAnsweringService },
+  { ...accountingAnsweringServiceMeta, Body: AccountingAnsweringService },
+  { ...insuranceAnsweringServiceMeta, Body: InsuranceAnsweringService },
 ]
   .map((p) => ({
     ...p,

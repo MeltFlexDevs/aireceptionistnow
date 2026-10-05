@@ -15,6 +15,10 @@ export const REFS = {
   "home-kitchen": { query: "kitchen lifestyle photography", want: "kitchen lifestyle home", pick: 0 },
   "chiro-clinic": { query: "chiropractic clinic interior", want: "chiropractic clinic interior", pick: 0 },
   "treatment-room": { query: "physiotherapy clinic interior", want: "physiotherapy clinic treatment room", pick: 0 },
+  "call-center": { query: "call center office interior", want: "call center contact office interior", pick: 0 },
+  "accounting-office": { query: "accounting firm office interior", want: "accounting firm office interior", pick: 0 },
+  "insurance-office": { query: "insurance agency office interior", want: "insurance agency office", pick: 0 },
+  "small-office": { query: "insurance agency office interior", want: "office design", pick: 0 },
 }
 
 export const PLAN = [
@@ -65,5 +69,53 @@ export const PLAN = [
     height: 768,
     subject:
       "a chiropractor in plain dark scrubs seen from behind and to the side, standing beside a patient who sits upright on the edge of an adjusting table, the two talking before treatment, one of the chiropractor's hands resting near the patient's shoulder; bright calm treatment room with a window; faces are not the focus",
+  },
+  {
+    out: "live-answering-operator-evening",
+    ref: "call-center",
+    width: 1600,
+    height: 900,
+    subject:
+      "one answering-service operator at her workstation in the evening, a woman in her thirties wearing a lightweight single-ear headset, seen from behind and slightly to the side over her shoulder, mid-conversation, typing on a keyboard with BOTH hands on the keys; her monitor is angled away from the camera so its screen cannot be seen; behind her, rows of identical desks, most of them empty with their chairs pushed in and overhead lights dimmed; a few headsets resting on empty desks",
+  },
+  {
+    out: "live-answering-floor-night",
+    ref: "call-center",
+    width: 1376,
+    height: 768,
+    subject:
+      "a wide view of an answering-service floor in the middle of the night: long rows of desks almost all empty and dark, only two operators far away at the back lit by small pools of desk light, headsets lying on the nearest empty desks in the foreground, black windows; the feeling is thin overnight staffing, quiet, not dramatic",
+  },
+  {
+    out: "accounting-firm-tax-season-evening",
+    ref: "accounting-office",
+    width: 1600,
+    height: 900,
+    subject:
+      "a small accounting firm's open office on an evening in early April: desks with stacks of plain unlabelled manila folders and a few cardboard file boxes, a desk phone on the nearest desk with its handset in the cradle, a plain calculator, desk lamps switched on, dark windows; in the distance one accountant working alone, small in the frame and seen from the side",
+  },
+  {
+    out: "cpa-office-phone-call",
+    ref: "small-office",
+    width: 1376,
+    height: 768,
+    subject:
+      "an accountant in his fifties in a warm private office, sitting at a wooden desk, holding a desk-phone handset to his ear with ONE hand and holding a pen above a blank notepad with his OTHER hand, listening carefully; a closed laptop and a short stack of plain folders on the desk; seen in three-quarter profile, candid, not looking at the camera",
+  },
+  {
+    out: "insurance-agency-front-desk",
+    ref: "insurance-office",
+    width: 1600,
+    height: 900,
+    subject:
+      "a real photograph, not a 3D render: the front reception of a small, slightly dated independent insurance agency in a suburban strip-mall office on a weekday morning, shot handheld at eye level from the client side of the counter: a worn reception desk with a desk phone in its cradle, a closed appointment book, a coffee mug and a small potted plant, a coat hanging on a hook behind, two mismatched client chairs, low morning sun through the front window blinds making stripes on the carpet; lived-in, small imperfections, nobody in frame",
+  },
+  {
+    out: "insurance-agent-desk-after-storm",
+    ref: "small-office",
+    width: 1376,
+    height: 768,
+    subject:
+      "an insurance agent's desk at the end of a stormy day: rain streaks on the window behind, grey light, a desk phone with one small glowing indicator light, a short stack of plain folders, a blank notepad with a pen, a wet umbrella leaning against the desk with a small puddle under it, a half-finished cup of coffee; there is NO laptop and NO computer on the desk; nobody in frame",
   },
 ]

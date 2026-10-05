@@ -1,0 +1,40 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" role="img" aria-label="Where the licence line falls for an unlicensed person answering an insurance agency's phone, as described in Oklahoma Bulletin 2013-09 and a Tennessee bulletin on unlicensed agency personnel. On the clerical side, an unlicensed person may schedule appointments with a licensed producer, receive requests for coverage to pass to a licensed producer, take factual information about a claim, take factual information for an application, and tell an insured what their policy records show. On the licensed side, only a licensed producer may discuss or explain coverages, advise which coverage to buy, indicate that coverage is or will be bound, bind coverage or sign binders, or answer a request for advice. The script's rule: when a caller asks for advice, the answer is a callback from a licensed producer.">
+  <rect width="1200" height="630" fill="#faf8ff"/>
+  <rect x="0.5" y="0.5" width="1199" height="629" fill="none" stroke="#ece7f6"/>
+
+  <text x="60" y="58" font-size="26" font-weight="600" fill="#1a1a1a">Where the licence line falls on the phone</text>
+  <text x="60" y="88" font-size="16" fill="#8a8398">What state regulators say an unlicensed person may and may not do. Any answering-service agent is on the left side.</text>
+
+  <!-- left -->
+  <rect x="60" y="120" width="520" height="56" rx="10" fill="#0f766e"/>
+  <text x="320" y="146" text-anchor="middle" font-size="14" font-weight="600" fill="#ffffff" letter-spacing="0.05em">CLERICAL  -  ANYONE MAY</text>
+  <text x="320" y="165" text-anchor="middle" font-size="12" fill="#cdeee9">the answering service's whole job</text>
+  <rect x="60" y="192" width="520" height="272" rx="10" fill="#ffffff" stroke="#cdeee9" stroke-width="1.5"/>
+  <g font-size="15" fill="#1a1a1a">
+    <text x="88" y="232">Schedule an appointment with a licensed agent</text>
+    <text x="88" y="270">Take a request for coverage, to pass on</text>
+    <text x="88" y="308">Take factual details of a claim</text>
+    <text x="88" y="346">Take factual details for an application</text>
+    <text x="88" y="384">Say what the policy records show</text>
+  </g>
+  <text x="88" y="430" font-size="13" fill="#5a5468">Read-only and factual. No opinion on whether it is enough.</text>
+
+  <!-- right -->
+  <rect x="620" y="120" width="520" height="56" rx="10" fill="#b3261e"/>
+  <text x="880" y="146" text-anchor="middle" font-size="14" font-weight="600" fill="#ffffff" letter-spacing="0.05em">LICENSED PRODUCER ONLY</text>
+  <text x="880" y="165" text-anchor="middle" font-size="12" fill="#f6d4d1">never the answering service</text>
+  <rect x="620" y="192" width="520" height="272" rx="10" fill="#ffffff" stroke="#f0c9c5" stroke-width="1.5"/>
+  <g font-size="15" fill="#1a1a1a">
+    <text x="648" y="232">Discuss or explain coverages and terms</text>
+    <text x="648" y="270">Advise which coverage, limit or deductible</text>
+    <text x="648" y="308">Say coverage is, or will be, bound</text>
+    <text x="648" y="346">Bind coverage or sign a binder</text>
+    <text x="648" y="384">Answer any request for advice</text>
+  </g>
+  <text x="648" y="430" font-size="13" fill="#5a5468">&#8220;You're covered from today&#8221; is the sentence to fear.</text>
+
+  <rect x="60" y="490" width="1080" height="1" fill="#ece7f6"/>
+  <text x="60" y="526" font-size="15" font-weight="600" fill="#1a1a1a">The script's one rule</text>
+  <text x="60" y="552" font-size="14" fill="#5a5468">If a caller asks what they should do, the answer is: &#8220;A licensed agent will call you back.&#8221; Never an opinion, never a confirmation of cover.</text>
+  <text x="60" y="596" font-size="13" fill="#8a8398">Adapted from Oklahoma Insurance Department Bulletin 2013-09 and Tennessee's bulletin on unlicensed agency personnel. Rules vary by state. Illustration by AI Receptionist Now.</text>
+</svg>

@@ -1,0 +1,58 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" role="img" aria-label="Bar chart of individual tax returns the IRS received each week of the 2026 filing season, calculated from its cumulative weekly statistics. Weeks ending February 13 to March 27 each brought between 9.0 and 9.8 million returns. The week ending April 3 brought 11.4 million, April 10 brought 14.5 million, and the deadline week ending April 17 brought 25.9 million, about 2.2 times the average week of 11.8 million. The following weeks fell to 2.0, 1.4 and 1.3 million.">
+  <rect width="1200" height="630" fill="#faf8ff"/>
+  <rect x="0.5" y="0.5" width="1199" height="629" fill="none" stroke="#ece7f6"/>
+  <text x="60" y="58" font-size="26" font-weight="600" fill="#1a1a1a">The deadline week brought 2.2 times an average week</text>
+  <text x="60" y="88" font-size="16" fill="#8a8398">Individual returns the IRS received each week of the 2026 filing season, in millions, by week ending</text>
+  <text x="60" y="114" font-size="14" fill="#5a5468">Returns are not phone calls, but they are the nearest public record of when clients need their preparer.</text>
+    <line x1="90" x2="1140" y1="500.0" y2="500.0" stroke="#ece7f6"/>
+  <text x="78" y="505.0" text-anchor="end" font-size="13" fill="#8a8398">0M</text>
+  <line x1="90" x2="1140" y1="390.0" y2="390.0" stroke="#ece7f6"/>
+  <text x="78" y="395.0" text-anchor="end" font-size="13" fill="#8a8398">10M</text>
+  <line x1="90" x2="1140" y1="280.0" y2="280.0" stroke="#ece7f6"/>
+  <text x="78" y="285.0" text-anchor="end" font-size="13" fill="#8a8398">20M</text>
+  <line x1="90" x2="1140" y1="170.0" y2="170.0" stroke="#ece7f6"/>
+  <text x="78" y="175.0" text-anchor="end" font-size="13" fill="#8a8398">30M</text>
+  <rect x="105.3" y="391.9" width="50.1" height="108.1" rx="3" fill="#cfc6f3"/>
+  <text x="130.4" y="383.9" text-anchor="middle" font-size="13" font-weight="500" fill="#5a5468">9.8</text>
+  <text x="130.4" y="524" text-anchor="middle" font-size="13" fill="#5a5468">Feb 13</text>
+  <rect x="186.1" y="393.1" width="50.1" height="106.9" rx="3" fill="#cfc6f3"/>
+  <text x="211.2" y="385.1" text-anchor="middle" font-size="13" font-weight="500" fill="#5a5468">9.7</text>
+  <text x="211.2" y="524" text-anchor="middle" font-size="13" fill="#5a5468">Feb 20</text>
+  <rect x="266.9" y="394.4" width="50.1" height="105.6" rx="3" fill="#cfc6f3"/>
+  <text x="291.9" y="386.4" text-anchor="middle" font-size="13" font-weight="500" fill="#5a5468">9.6</text>
+  <text x="291.9" y="524" text-anchor="middle" font-size="13" fill="#5a5468">Feb 27</text>
+  <rect x="347.7" y="398.5" width="50.1" height="101.5" rx="3" fill="#cfc6f3"/>
+  <text x="372.7" y="390.5" text-anchor="middle" font-size="13" font-weight="500" fill="#5a5468">9.2</text>
+  <text x="372.7" y="524" text-anchor="middle" font-size="13" fill="#5a5468">Mar 6</text>
+  <rect x="428.4" y="401.1" width="50.1" height="98.9" rx="3" fill="#cfc6f3"/>
+  <text x="453.5" y="393.1" text-anchor="middle" font-size="13" font-weight="500" fill="#5a5468">9.0</text>
+  <text x="453.5" y="524" text-anchor="middle" font-size="13" fill="#5a5468">Mar 13</text>
+  <rect x="509.2" y="399.0" width="50.1" height="101.0" rx="3" fill="#cfc6f3"/>
+  <text x="534.2" y="391.0" text-anchor="middle" font-size="13" font-weight="500" fill="#5a5468">9.2</text>
+  <text x="534.2" y="524" text-anchor="middle" font-size="13" fill="#5a5468">Mar 20</text>
+  <rect x="590.0" y="395.2" width="50.1" height="104.8" rx="3" fill="#cfc6f3"/>
+  <text x="615.0" y="387.2" text-anchor="middle" font-size="13" font-weight="500" fill="#5a5468">9.5</text>
+  <text x="615.0" y="524" text-anchor="middle" font-size="13" fill="#5a5468">Mar 27</text>
+  <rect x="670.7" y="374.8" width="50.1" height="125.2" rx="3" fill="#cfc6f3"/>
+  <text x="695.8" y="366.8" text-anchor="middle" font-size="13" font-weight="500" fill="#5a5468">11.4</text>
+  <text x="695.8" y="524" text-anchor="middle" font-size="13" fill="#5a5468">Apr 3</text>
+  <rect x="751.5" y="340.2" width="50.1" height="159.8" rx="3" fill="#cfc6f3"/>
+  <text x="776.5" y="332.2" text-anchor="middle" font-size="13" font-weight="500" fill="#5a5468">14.5</text>
+  <text x="776.5" y="524" text-anchor="middle" font-size="13" fill="#5a5468">Apr 10</text>
+  <rect x="832.3" y="215.2" width="50.1" height="284.8" rx="3" fill="#5b3ef0"/>
+  <text x="857.3" y="207.2" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1a1a">25.9</text>
+  <text x="857.3" y="524" text-anchor="middle" font-size="13" fill="#1a1a1a">Apr 17</text>
+  <rect x="913.0" y="478.0" width="50.1" height="22.0" rx="3" fill="#cfc6f3"/>
+  <text x="938.1" y="470.0" text-anchor="middle" font-size="13" font-weight="500" fill="#5a5468">2.0</text>
+  <text x="938.1" y="524" text-anchor="middle" font-size="13" fill="#5a5468">Apr 24</text>
+  <rect x="993.8" y="484.1" width="50.1" height="15.9" rx="3" fill="#cfc6f3"/>
+  <text x="1018.8" y="476.1" text-anchor="middle" font-size="13" font-weight="500" fill="#5a5468">1.4</text>
+  <text x="1018.8" y="524" text-anchor="middle" font-size="13" fill="#5a5468">May 1</text>
+  <rect x="1074.6" y="485.4" width="50.1" height="14.6" rx="3" fill="#cfc6f3"/>
+  <text x="1099.6" y="477.4" text-anchor="middle" font-size="13" font-weight="500" fill="#5a5468">1.3</text>
+  <text x="1099.6" y="524" text-anchor="middle" font-size="13" fill="#5a5468">May 8</text>
+  <line x1="90" x2="1140" y1="370.3" y2="370.3" stroke="#1a1a1a" stroke-dasharray="4 4" stroke-width="1"/>
+  <text x="1140" y="362.3" text-anchor="end" font-size="12" fill="#1a1a1a">Average week, Feb 13 to Apr 17: 11.8M</text>
+  <text x="60" y="575" font-size="13" fill="#8a8398">Source: IRS filing season statistics, weekly releases February 6 to May 8, 2026. Weekly figures are our subtraction of consecutive cumulative totals.</text>
+  <text x="60" y="597" font-size="13" fill="#8a8398">The season opened January 26; the first release (22.4M) covers two weeks and is not shown. Illustration by AI Receptionist Now.</text>
+</svg>

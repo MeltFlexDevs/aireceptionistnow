@@ -320,6 +320,11 @@ export default function Body() {
         <Internal href="/blog/medical-answering-service-pricing#billable-time">
           breakdown of billable minutes and increments
         </Internal>
+        . What these providers commit to beyond price - answer speed, where
+        the agents are, what happens on hold - is in our{" "}
+        <Internal href="/blog/live-answering-service#promises">
+          live answering service guide
+        </Internal>
         .
       </P>
       <H3>Per-call and AI answering services</H3>
