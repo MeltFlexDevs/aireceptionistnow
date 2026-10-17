@@ -119,6 +119,7 @@ All call data is encrypted in transit and at rest. AI Receptionist Now complies 
 - [Accounting & Financial Answering Service: What to Check](https://aireceptionistnow.com/blog/accounting-answering-service): The deadline-week peak in IRS 2026 data, why a phone message is tax return information under 26 CFR 301.7216, Safeguards Rule and AICPA duties, FINRA order rules for advisers, and contract clauses.
 - [Insurance Answering Service: The Licence Line and the Script](https://aireceptionistnow.com/blog/insurance-answering-service): What state regulators let unlicensed staff say, routing claims to carriers after hours, Medicare TPMO disclaimer and recording rules, NAIC data-security duties, and what providers offer agencies.
 - [The 10 Best AI Interior Design Tools in 2026, Ranked](https://aireceptionistnow.com/blog/best-ai-interior-design-tools): Ten AI interior design tools ranked on whether they keep your walls and windows, whether the furniture is real and shoppable, and what they cost, with vendor prices checked 17 October 2026. MeltFlex AI ranks first.
+- [The 9 Best AI CAD Generators in 2026, Ranked](https://aireceptionistnow.com/blog/best-ai-cad-generator): Nine AI CAD generators sorted by what they hand you (a dimensioned drawing, a STEP solid, native SolidWorks or Fusion features, or a mesh), with a hands-on test and vendor prices checked 17 October 2026. TechDraw AI ranks first.
 - [Privacy Policy](https://aireceptionistnow.com/privacy-policy): How call data is handled and protected.
 
 ## FAQ
