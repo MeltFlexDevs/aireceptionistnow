@@ -118,12 +118,4 @@ export const PLAN = [
     subject:
       "an insurance agent's desk at the end of a stormy day: rain streaks on the window behind, grey light, a desk phone with one small glowing indicator light, a short stack of plain folders, a blank notepad with a pen, a wet umbrella leaning against the desk with a small puddle under it, a half-finished cup of coffee; there is NO laptop and NO computer on the desk; nobody in frame",
   },
-  {
-    out: "ai-interior-design-before-living-room",
-    ref: "home-kitchen",
-    width: 1600,
-    height: 900,
-    subject:
-      "a real photograph, not a 3D render: a dated, tired rented living room in an ordinary apartment shot handheld at eye level from the doorway on an overcast afternoon: beige walls, an old brown fabric sofa, a scuffed laminate floor, a low pine coffee table, a tall window with plain white blinds on the left wall, a ceiling light with a simple glass shade; nothing styled, a bit bare, nobody in frame",
-  },
 ]

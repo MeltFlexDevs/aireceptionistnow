@@ -26,9 +26,9 @@ export const meta = {
   updated: "2026-10-17",
   readingTime: "14 min read",
   tag: "Guides",
-  hero: "/blog/ai-interior-design-after-meltflex.webp",
+  hero: "/blog/best-ai-interior-design-tools-collage.webp",
   heroAlt:
-    "A rented living room redesigned by AI: the same window, door and ceiling light as the original photo, now with a cream boucle sofa, round walnut coffee table, wool rug, brass floor lamp, linen curtains and an olive tree",
+    "A collage of the homepages of the ten AI interior design tools in this ranking, each in a browser window numbered by rank, with MeltFlex AI large in the centre as number one",
   heroWidth: 1600,
   heroHeight: 900,
   keywords: [
@@ -301,21 +301,13 @@ export default function Body() {
         </LI>
       </UL>
       <Callout>
-        <Strong>What we did and didn&apos;t do.</Strong> We ran MeltFlex on the
-        test photo shown below. For the other nine tools we read each
-        vendor&apos;s own pricing, feature and help pages on 17 October 2026,
-        and the public reviews we cite. Where a vendor doesn&apos;t publish a
-        number, we say so rather than guess. Prices change often; check the
-        vendor&apos;s page before you buy.
+        <Strong>What we did and didn&apos;t do.</Strong> We ran MeltFlex on a
+        photo of a real, dated living room. For the other nine tools we read
+        each vendor&apos;s own pricing, feature and help pages on 17 October
+        2026, and the public reviews we cite. Where a vendor doesn&apos;t
+        publish a number, we say so rather than guess. Prices change often;
+        check the vendor&apos;s page before you buy.
       </Callout>
-
-      <Figure
-        src="/blog/ai-interior-design-before-living-room.webp"
-        alt="The test photo: a dated rented living room with beige walls, an old brown sofa, a pine coffee table, a bookcase, vertical blinds on a tall window and a glass ceiling light, seen from the doorway"
-        width={1600}
-        height={900}
-        caption="Our test photo: an ordinary rented living room, shot from the doorway. The window, door and ceiling light are what a good tool has to keep."
-      />
 
       <H2 id="at-a-glance">The ranking at a glance</H2>
       <Table
@@ -415,6 +407,13 @@ export default function Body() {
       <H2 id="ranking">The 10 tools, one by one</H2>
 
       <H3>1. MeltFlex AI: best overall</H3>
+      <Figure
+        src="/blog/ai-interior-tool-meltflex.webp"
+        alt='MeltFlex AI homepage: "Redesign living room with AI in 20 seconds, furniture from" IKEA, Wayfair, Amazon, Pottery Barn and Walmart, with a Start Now button and a render of a minimalist apartment'
+        width={1600}
+        height={776}
+        caption="meltflexai.com, homepage as of 17 October 2026."
+      />
       <P>
         MeltFlex does the job most people actually come to these tools for: you
         upload a photo of your room, pick the room type and a style, and about
@@ -425,13 +424,6 @@ export default function Body() {
         Rooms To Go and Ashley, with prices compared across them, so a design
         turns straight into a shopping list.
       </P>
-      <Figure
-        src="/blog/ai-interior-design-after-meltflex.webp"
-        alt="The same living room after a MeltFlex redesign: the window, door and ceiling light are where they were, now with a cream boucle sofa, round walnut coffee table, wool rug, brass arc lamp, two abstract prints, linen curtains and an olive tree"
-        width={1600}
-        height={900}
-        caption="The test photo after MeltFlex, from a written brief. The window, door and ceiling light stay where they were; the framing tightens slightly."
-      />
       <P>
         It is also the widest tool here. Beyond whole-room redesigns there are
         dedicated tools for kitchens, bathrooms, exteriors, gardens, walls,
@@ -453,22 +445,15 @@ export default function Body() {
       <P>
         <Strong>Where it falls short:</Strong> the preset styles play it safe.
         Our first run, with only the &quot;Modern&quot; preset and a palette
-        picked, kept the room perfectly but changed too little (below). The
-        written brief behind the redesign above (&quot;cream bouclé sofa, round
-        walnut coffee table, wool rug, linen curtains&quot;) made all the
-        difference, so budget a minute to describe what you want. Credits per
-        render vary by model and quality (our two runs used 18 and 15), so the
-        &quot;up to&quot; render counts are a ceiling, not a promise. Commercial
-        use needs Pro. And the user numbers on its site (213,000+ users, 4.8
-        from 1,200+ reviews) are its own figures, not independently audited.
+        picked, kept the room perfectly but changed too little. A written brief
+        (&quot;cream bouclé sofa, round walnut coffee table, wool rug, linen
+        curtains&quot;) made all the difference, so budget a minute to describe
+        what you want. Credits per render vary by model and quality (our two
+        runs used 18 and 15), so the &quot;up to&quot; render counts are a
+        ceiling, not a promise. Commercial use needs Pro. And the user numbers
+        on its site (213,000+ users, 4.8 from 1,200+ reviews) are its own
+        figures, not independently audited.
       </P>
-      <Figure
-        src="/blog/ai-interior-design-meltflex-preset-only.webp"
-        alt="MeltFlex's result from the Modern preset alone: the same room with lighter walls, a light oak floor and a tan leather sofa, but the layout and most furniture barely changed"
-        width={1424}
-        height={800}
-        caption="The same photo with only the Modern preset. Structure perfect, redesign timid: write a brief."
-      />
       <P>
         <Strong>Best for:</Strong> homeowners and renters planning a real
         change, designers who want fast concepts with buyable pieces, and agents
@@ -476,6 +461,13 @@ export default function Body() {
       </P>
 
       <H3>2. Interior AI: best for volume</H3>
+      <Figure
+        src="/blog/ai-interior-tool-interiorai.webp"
+        alt='Interior AI homepage: "Fire your interior designer" over a wall of AI room renders, with an email sign-up box'
+        width={1600}
+        height={895}
+        caption="interiorai.com, homepage as of 17 October 2026."
+      />
       <P>
         <Ext href="https://interiorai.com/">Interior AI</Ext> is one of the
         oldest tools in the category and has the most modes: photo restyle,
@@ -503,6 +495,13 @@ export default function Body() {
       </P>
 
       <H3>3. REimagineHome: best for shoppable redesigns on a budget</H3>
+      <Figure
+        src="/blog/ai-interior-tool-reimaginehome.webp"
+        alt='REimagineHome homepage: "Create spaces you’ll actually show, buy, or commit to", with a Decision Canvas showing Structural Lock and Shoppable toggles over a living room render'
+        width={1600}
+        height={895}
+        caption="reimaginehome.ai, homepage as of 17 October 2026."
+      />
       <P>
         <Ext href="https://www.reimaginehome.ai/">REimagineHome</Ext> combines
         photo redesign with a chat interface and reference photos, and on Pro
@@ -527,6 +526,13 @@ export default function Body() {
       </P>
 
       <H3>4. Paintit.ai: best free tier</H3>
+      <Figure
+        src="/blog/ai-interior-tool-paintit.webp"
+        alt='Paintit.ai homepage: "Design any space" with a chat box to describe a change and add a photo, and a Try for free button'
+        width={1600}
+        height={895}
+        caption="paintit.ai, homepage as of 17 October 2026."
+      />
       <P>
         <Ext href="https://paintit.ai/">Paintit.ai</Ext> works through chat: you
         upload a photo, floor plan or sketch and ask for changes, from a full
@@ -552,6 +558,13 @@ export default function Body() {
       </P>
 
       <H3>5. HomeDesigns AI: cheapest paid redesigns</H3>
+      <Figure
+        src="/blog/ai-interior-tool-homedesigns.webp"
+        alt='HomeDesigns AI homepage: "Redesign patios with AI in less than 30 seconds", with a backyard before-and-after and a shoppable item list'
+        width={1600}
+        height={895}
+        caption="homedesigns.ai, homepage as of 17 October 2026."
+      />
       <P>
         <Ext href="https://homedesigns.ai/">HomeDesigns AI</Ext> covers
         redesign, style transfer, one-click staging, colour and material swaps,
@@ -577,6 +590,13 @@ export default function Body() {
       </P>
 
       <H3>6. Planner 5D: best for accurate layouts</H3>
+      <Figure
+        src="/blog/ai-interior-tool-planner5d.webp"
+        alt='Planner 5D homepage: "Design your dream home", with cards for AI Studio, Design together and Create a floor plan'
+        width={1600}
+        height={895}
+        caption="planner5d.com, homepage as of 17 October 2026."
+      />
       <P>
         <Ext href="https://planner5d.com/">Planner 5D</Ext> is a different kind
         of tool: a 2D and 3D editor where you build the room to its real
@@ -603,6 +623,13 @@ export default function Body() {
       </P>
 
       <H3>7. Homestyler: best budget 3D editor with AI</H3>
+      <Figure
+        src="/blog/ai-interior-tool-homestyler.webp"
+        alt='Homestyler homepage: "Design your dream home in 3D", with a 3D floor-plan render of a bedroom'
+        width={1600}
+        height={895}
+        caption="homestyler.com, homepage as of 17 October 2026."
+      />
       <P>
         <Ext href="https://www.homestyler.com/">Homestyler</Ext> is a cloud 3D
         floor planner with a long list of AI add-ons: AI Planner, Stager,
@@ -625,6 +652,13 @@ export default function Body() {
       </P>
 
       <H3>8. Collov AI: built for real-estate staging</H3>
+      <Figure
+        src="/blog/ai-interior-tool-collov.webp"
+        alt='Collov AI homepage: "Redefine space with Collov AI intelligent design", over a staged living room'
+        width={1600}
+        height={895}
+        caption="collov.ai, homepage as of 17 October 2026."
+      />
       <P>
         <Ext href="https://collov.ai/">Collov AI</Ext> is aimed at agents:
         virtual staging, furniture removal, style swaps, multi-angle staging,
@@ -648,6 +682,13 @@ export default function Body() {
       </P>
 
       <H3>9. Spacely AI: best for architects</H3>
+      <Figure
+        src="/blog/ai-interior-tool-spacely.webp"
+        alt='Spacely AI homepage: "Client-ready renders. In minutes.", with a before-and-after of a restaurant interior'
+        width={1600}
+        height={895}
+        caption="spacely.ai, homepage as of 17 October 2026."
+      />
       <P>
         <Ext href="https://www.spacely.ai/">Spacely AI</Ext> renders interiors
         and architecture from photos, sketches and, most usefully, your own 3D
@@ -670,6 +711,13 @@ export default function Body() {
       </P>
 
       <H3>10. Google Gemini (Nano Banana): best free general-purpose option</H3>
+      <Figure
+        src="/blog/ai-interior-tool-gemini.webp"
+        alt='Google Gemini image generation page: "Nano Banana 2.1 is here", with a Try Nano Banana button'
+        width={1600}
+        height={895}
+        caption="gemini.google, homepage as of 17 October 2026."
+      />
       <P>
         <Ext href="https://gemini.google/">Gemini</Ext>&apos;s image model, Nano
         Banana, will edit a room photo from a plain request (&quot;make this
