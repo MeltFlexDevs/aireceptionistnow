@@ -118,4 +118,20 @@ export const PLAN = [
     subject:
       "an insurance agent's desk at the end of a stormy day: rain streaks on the window behind, grey light, a desk phone with one small glowing indicator light, a short stack of plain folders, a blank notepad with a pen, a wet umbrella leaning against the desk with a small puddle under it, a half-finished cup of coffee; there is NO laptop and NO computer on the desk; nobody in frame",
   },
+  {
+    out: "voicemail-greeting-desk-phone",
+    ref: "small-office",
+    width: 1600,
+    height: 900,
+    subject:
+      "a real photograph, not a 3D render: the reception desk of a small local business after closing time, shot at eye level from the customer side: a plain office desk phone in its cradle with ONE small red message light glowing on it, a closed appointment book, a pen, a coffee mug, the overhead lights switched off so the room is lit only by blue evening light from a window and one warm desk lamp; the phone has NO screen text and NO readable labels; lived-in, small imperfections, nobody in frame",
+  },
+  {
+    out: "outsourced-receptionist-empty-desk",
+    ref: "small-office",
+    width: 1600,
+    height: 900,
+    subject:
+      "a real photograph, not a 3D render: the front desk of a small professional office (an accounting or law practice) at midmorning on a working day, shot from the visitor side: the receptionist chair is empty and pushed in, a desk phone sits on the counter with ONE small green light lit as if a call is being handled elsewhere, a visitor sign-in clipboard and a small bell beside it, a few chairs in the waiting area behind, natural daylight from a side window; the phone and papers have NO readable text, NO logos; calm, ordinary, slightly lived-in, nobody in frame",
+  },
 ]

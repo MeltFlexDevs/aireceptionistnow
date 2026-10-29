@@ -180,6 +180,36 @@ export function Figure({
   );
 }
 
+/** A short audio clip with its caption - used for recorded examples. */
+export function AudioClip({
+  src,
+  title,
+  caption,
+}: {
+  src: string;
+  title: string;
+  caption?: ReactNode;
+}) {
+  return (
+    <figure className="my-6">
+      <audio
+        controls
+        preload="none"
+        src={src}
+        title={title}
+        className="w-full"
+      >
+        <a href={src}>Download the recording: {title}</a>
+      </audio>
+      {caption && (
+        <figcaption className="mt-2 text-[13px] leading-6 text-[#999]">
+          {caption}
+        </figcaption>
+      )}
+    </figure>
+  );
+}
+
 export function VideoEmbed({
   id,
   title,

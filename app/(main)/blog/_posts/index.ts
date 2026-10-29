@@ -164,6 +164,12 @@ import BestAiInteriorDesignTools, {
 import BestAiCadGenerator, {
   meta as bestAiCadGeneratorMeta,
 } from "./best-ai-cad-generator";
+import ProfessionalVoicemailGreeting, {
+  meta as professionalVoicemailGreetingMeta,
+} from "./professional-voicemail-greeting";
+import OutsourcedReceptionist, {
+  meta as outsourcedReceptionistMeta,
+} from "./outsourced-receptionist";
 
 export type PostMeta = {
   slug: string;
@@ -277,6 +283,8 @@ const postAuthors: Record<string, AuthorKey> = {
   "insurance-answering-service": "matus",
   "best-ai-interior-design-tools": "matus",
   "best-ai-cad-generator": "matus",
+  "professional-voicemail-greeting": "matus",
+  "outsourced-receptionist": "matus",
 };
 
 // Every module, retired ones included. Retired posts stay registered only so
@@ -384,6 +392,11 @@ export const allPosts: Post[] = [
   { ...insuranceAnsweringServiceMeta, Body: InsuranceAnsweringService },
   { ...bestAiInteriorDesignToolsMeta, Body: BestAiInteriorDesignTools },
   { ...bestAiCadGeneratorMeta, Body: BestAiCadGenerator },
+  {
+    ...professionalVoicemailGreetingMeta,
+    Body: ProfessionalVoicemailGreeting,
+  },
+  { ...outsourcedReceptionistMeta, Body: OutsourcedReceptionist },
 ]
   .map((p) => ({
     ...p,

@@ -1,0 +1,50 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" role="img" aria-label="Bar chart of the measured length of nine voicemail greetings we recorded with an AI voice at 0.9 speed. Plumber general greeting, 28 words: 7.8 seconds. Salon, with clients, 30 words: 9.5 seconds. Law office, 42 words: 13.3 seconds. Insurance agent away from desk, 41 words: 14.9 seconds. Out of office until Monday, 39 words: 15.7 seconds. Plumber after hours, 47 words: 15.9 seconds. Dental holiday closure, 39 words: 17.3 seconds. Family medicine, 48 words: 18.5 seconds. The 100-word classic greeting: 32.0 seconds. A dashed line marks 20 seconds; eight of the nine fit under it. Greetings with phone numbers, dates and times run longer per word.">
+<rect width="1200" height="630" fill="#faf8ff"/><rect x="0.5" y="0.5" width="1199" height="629" fill="none" stroke="#ece7f6"/>
+<text x="60" y="58" font-size="26" font-weight="600" fill="#1a1a1a">How long nine greetings actually run</text>
+<text x="60" y="88" font-size="16" fill="#8a8398">Seconds, measured from the audio files. Same AI voices, same 0.9 speed. Word count in brackets.</text>
+<line x1="430" y1="136" x2="430" y2="566" stroke="#ece7f6"/>
+<text x="430" y="591" font-size="13" fill="#8a8398" text-anchor="middle">0s</text>
+<line x1="526" y1="136" x2="526" y2="566" stroke="#ece7f6"/>
+<text x="526" y="591" font-size="13" fill="#8a8398" text-anchor="middle">5s</text>
+<line x1="621" y1="136" x2="621" y2="566" stroke="#ece7f6"/>
+<text x="621" y="591" font-size="13" fill="#8a8398" text-anchor="middle">10s</text>
+<line x1="717" y1="136" x2="717" y2="566" stroke="#ece7f6"/>
+<text x="717" y="591" font-size="13" fill="#8a8398" text-anchor="middle">15s</text>
+<line x1="813" y1="136" x2="813" y2="566" stroke="#ece7f6"/>
+<text x="813" y="591" font-size="13" fill="#8a8398" text-anchor="middle">20s</text>
+<line x1="909" y1="136" x2="909" y2="566" stroke="#ece7f6"/>
+<text x="909" y="591" font-size="13" fill="#8a8398" text-anchor="middle">25s</text>
+<line x1="1004" y1="136" x2="1004" y2="566" stroke="#ece7f6"/>
+<text x="1004" y="591" font-size="13" fill="#8a8398" text-anchor="middle">30s</text>
+<line x1="1100" y1="136" x2="1100" y2="566" stroke="#ece7f6"/>
+<text x="1100" y="591" font-size="13" fill="#8a8398" text-anchor="middle">35s</text>
+<line x1="813" y1="128" x2="813" y2="573" stroke="#6d28d9" stroke-width="2" stroke-dasharray="6 6"/>
+<text x="821" y="126" font-size="13" font-weight="600" fill="#6d28d9">20 seconds</text>
+<text x="414" y="172.0" font-size="15" fill="#1a1a1a" text-anchor="end">Plumber, general <tspan fill="#8a8398">(28)</tspan></text>
+<rect x="430" y="150" width="149" height="34" rx="6" fill="#1a1a1a"/>
+<text x="589" y="172.0" font-size="15" font-weight="600" fill="#1a1a1a" stroke="#faf8ff" stroke-width="4" paint-order="stroke">7.8s</text>
+<text x="414" y="219.0" font-size="15" fill="#1a1a1a" text-anchor="end">Salon, with clients <tspan fill="#8a8398">(30)</tspan></text>
+<rect x="430" y="197" width="182" height="34" rx="6" fill="#1a1a1a"/>
+<text x="622" y="219.0" font-size="15" font-weight="600" fill="#1a1a1a" stroke="#faf8ff" stroke-width="4" paint-order="stroke">9.5s</text>
+<text x="414" y="266.0" font-size="15" fill="#1a1a1a" text-anchor="end">Law office <tspan fill="#8a8398">(42)</tspan></text>
+<rect x="430" y="244" width="255" height="34" rx="6" fill="#1a1a1a"/>
+<text x="695" y="266.0" font-size="15" font-weight="600" fill="#1a1a1a" stroke="#faf8ff" stroke-width="4" paint-order="stroke">13.3s</text>
+<text x="414" y="313.0" font-size="15" fill="#1a1a1a" text-anchor="end">Insurance agent, away from desk <tspan fill="#8a8398">(41)</tspan></text>
+<rect x="430" y="291" width="285" height="34" rx="6" fill="#1a1a1a"/>
+<text x="725" y="313.0" font-size="15" font-weight="600" fill="#1a1a1a" stroke="#faf8ff" stroke-width="4" paint-order="stroke">14.9s</text>
+<text x="414" y="360.0" font-size="15" fill="#1a1a1a" text-anchor="end">Out of office until Monday <tspan fill="#8a8398">(39)</tspan></text>
+<rect x="430" y="338" width="301" height="34" rx="6" fill="#1a1a1a"/>
+<text x="741" y="360.0" font-size="15" font-weight="600" fill="#1a1a1a" stroke="#faf8ff" stroke-width="4" paint-order="stroke">15.7s</text>
+<text x="414" y="407.0" font-size="15" fill="#1a1a1a" text-anchor="end">Plumber, after hours <tspan fill="#8a8398">(47)</tspan></text>
+<rect x="430" y="385" width="304" height="34" rx="6" fill="#1a1a1a"/>
+<text x="744" y="407.0" font-size="15" font-weight="600" fill="#1a1a1a" stroke="#faf8ff" stroke-width="4" paint-order="stroke">15.9s</text>
+<text x="414" y="454.0" font-size="15" fill="#1a1a1a" text-anchor="end">Dental, holiday closure <tspan fill="#8a8398">(39)</tspan></text>
+<rect x="430" y="432" width="331" height="34" rx="6" fill="#1a1a1a"/>
+<text x="771" y="454.0" font-size="15" font-weight="600" fill="#1a1a1a" stroke="#faf8ff" stroke-width="4" paint-order="stroke">17.3s</text>
+<text x="414" y="501.0" font-size="15" fill="#1a1a1a" text-anchor="end">Family medicine <tspan fill="#8a8398">(48)</tspan></text>
+<rect x="430" y="479" width="354" height="34" rx="6" fill="#1a1a1a"/>
+<text x="794" y="501.0" font-size="15" font-weight="600" fill="#1a1a1a" stroke="#faf8ff" stroke-width="4" paint-order="stroke">18.5s</text>
+<text x="414" y="548.0" font-size="15" fill="#1a1a1a" text-anchor="end">The 100-word classic <tspan fill="#8a8398">(100)</tspan></text>
+<rect x="430" y="526" width="613" height="34" rx="6" fill="#c2410c"/>
+<text x="1053" y="548.0" font-size="15" font-weight="600" fill="#c2410c">32.0s</text>
+</svg>

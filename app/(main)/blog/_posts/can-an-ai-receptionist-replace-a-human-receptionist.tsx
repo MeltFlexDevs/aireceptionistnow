@@ -203,6 +203,10 @@ export default function Body() {
           <Internal href="/blog/ai-receptionist-vs-virtual-receptionist-vs-answering-service">
             AI vs. virtual receptionist vs. answering service comparison
           </Internal>
+          ; for the hire-or-outsource math, see{" "}
+          <Internal href="/blog/outsourced-receptionist">
+            what an outsourced receptionist costs vs. hiring
+          </Internal>
           .)
         </LI>
       </UL>

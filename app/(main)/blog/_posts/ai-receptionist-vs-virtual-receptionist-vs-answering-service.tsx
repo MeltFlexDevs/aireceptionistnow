@@ -470,7 +470,7 @@ export default function Body() {
           ],
           [
             "In-house hire (context)",
-            "~$3,000+ fully loaded",
+            "~$4,600 fully loaded",
             "Salary + benefits",
             "Overtime, if staffed at all",
           ],
@@ -489,11 +489,18 @@ export default function Body() {
           Entry plans commonly start around $200 to $300 for a small bundle of
           minutes or calls, and a genuinely busy phone line can push past what
           a part-time hire would cost. For context, a full-time in-house
-          receptionist runs about $37,000 a year before benefits, per the{" "}
+          receptionist at the median earns $38,010 a year before benefits
+          (May 2025, per the{" "}
           <Ext href="https://www.bls.gov/ooh/office-and-administrative-support/receptionists.htm">
             Bureau of Labor Statistics
           </Ext>
-          , which is the ceiling this whole market prices under.
+          ), about $4,600 a month once benefits are added, which is the
+          ceiling this whole market prices under. We work out where each
+          plan reaches it in{" "}
+          <Internal href="/blog/outsourced-receptionist">
+            outsourced receptionist vs. hiring
+          </Internal>
+          .
         </LI>
         <LI>
           <Strong>AI receptionist: roughly $30 to $300 a month, flat.</Strong>{" "}
