@@ -1,8 +1,13 @@
 import { getAccountSettings } from "./account";
 
-export async function ownerTimezone(ownerId?: string | null): Promise<string> {
-  if (!ownerId) return "UTC";
-  return (await getAccountSettings(ownerId)).timezone.trim() || "UTC";
+/**
+ * The account's zone, else `fallback`. Only display callers pass a fallback
+ * (the viewer's zone, see lib/mobile/timezone-param.ts); anything a call reads
+ * keeps UTC, so a viewer's zone never leaks into the business.
+ */
+export async function ownerTimezone(ownerId?: string | null, fallback = "UTC"): Promise<string> {
+  if (!ownerId) return fallback;
+  return (await getAccountSettings(ownerId)).timezone.trim() || fallback;
 }
 
 export function dayKeyFn(tz: string): (d: Date) => string {

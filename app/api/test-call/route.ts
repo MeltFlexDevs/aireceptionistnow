@@ -4,10 +4,9 @@ import { provisionDemoAgent } from "@/lib/call-engine/agent/sync";
 import { pickDemoCallerId } from "@/lib/call-engine/demo-caller";
 import { languageFromPhone } from "@/lib/call-engine/voice/phone-language";
 import { assignedElevenLabsNumberIds, listImportedFreeNumbers } from "@/lib/dashboard/db";
+import { normalizePhone } from "@/lib/phone";
 
 export const dynamic = "force-dynamic";
-
-const E164 = /^\+[1-9]\d{6,15}$/;
 
 let demoAgentReady: Promise<{ agentId: string; multilingual: boolean } | null> | null =
   null;
@@ -43,12 +42,12 @@ async function demoCallerNumberId(to: string): Promise<string | null> {
 export async function POST(req: NextRequest): Promise<Response> {
   let to = "";
   try {
-    to = String(((await req.json()) as { to?: unknown }).to ?? "").trim();
+    to = normalizePhone(String(((await req.json()) as { to?: unknown }).to ?? "")) ?? "";
   } catch {
     return json({ ok: false, error: "Invalid request." }, 400);
   }
 
-  if (!E164.test(to)) {
+  if (!to) {
     return json({ ok: false, error: "Enter a valid phone number in international format." }, 400);
   }
 

@@ -20,6 +20,7 @@ export const enPricing: PricingCopy = {
   monthly: "Monthly",
   annually: "Annually",
   perMonth: "/ month",
+  mostPopular: "Most popular",
   billedMonthly: "billed monthly",
   billedYearlyTemplate: "{total} billed yearly",
   includedLabel: "Included",
@@ -27,6 +28,12 @@ export const enPricing: PricingCopy = {
   cta: "Start now",
   ctaBusy: "Starting…",
   checkoutError: "Could not start checkout.",
+  termsAgreePrefix: "I agree to the",
+  termsLink: "Terms of Service",
+  termsAnd: "and the",
+  privacyLink: "Privacy Policy",
+  termsAgreeSuffix: ".",
+  termsRequired: "Please accept the Terms of Service to continue.",
   vatNote: "Prices in EUR, excl. VAT. Extra minutes billed at €0.09/min.",
   // Every figure below is checkable against PLANS in lib/plans.ts. The "Team is
   // not the cheaper plan" answer is deliberate and arithmetically true: Solo at

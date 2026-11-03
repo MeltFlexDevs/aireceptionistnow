@@ -19,10 +19,11 @@ function initialsFrom(name: string, email: string): string {
   return letters.toUpperCase();
 }
 
-export function toAppUser(claims: Claims): AppUser {
+export function toAppUser(claims: Claims, profileName?: string): AppUser {
   const email = claims.email ?? "";
   const meta = claims.user_metadata ?? {};
   const name =
+    profileName?.trim() ||
     (typeof meta.full_name === "string" && meta.full_name) ||
     (typeof meta.name === "string" && meta.name) ||
     email.split("@")[0] ||

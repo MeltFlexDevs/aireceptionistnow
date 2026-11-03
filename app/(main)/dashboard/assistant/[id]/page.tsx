@@ -9,10 +9,13 @@ import {
   listNumbers,
 } from "@/lib/dashboard/db";
 import { getPlanContextCached } from "@/lib/dashboard/plan";
+import { canAddAssistant } from "@/lib/plans";
 import { countryFromPhone, formatPhone } from "@/lib/call-engine/voice/phone-language";
 import { NUMBER_COUNTRIES } from "@/lib/number-pricing";
 import { currentUserId } from "@/lib/auth";
+import { isOwnedBy } from "@/lib/dashboard/ownership";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
+import { localizedHref } from "@/lib/i18n/marketing/href";
 import { ownerTimezone } from "@/lib/dashboard/timezone";
 import { describeEscalation, parseEscalation } from "@/lib/call-engine/escalation";
 import { hasGuardrails, parseDisclosure, parseGuardrails } from "@/lib/call-engine/policy";
@@ -107,7 +110,7 @@ export default async function AssistantSettingsPage({
     listNumbers().catch(() => [] as Awaited<ReturnType<typeof listNumbers>>),
   ]);
   if (!assistant) notFound();
-  if (ownerId && assistant.owner_id && assistant.owner_id !== ownerId) notFound();
+  if (!isOwnedBy(assistant.owner_id, ownerId)) notFound();
 
   // Second batch: the ownerId-scoped reads, run only once the owner check passes.
   const [integrations, planCtx, assistants, accountTimezone] = await Promise.all([
@@ -190,6 +193,8 @@ export default async function AssistantSettingsPage({
   const country = number ? countryFromPhone(number.e164) : null;
   const credits = planCtx?.limits.minutesIncluded ?? 1000;
   const multi = assistants.length > 1;
+  // Same rule createAssistantAction enforces; hidden when the plan read failed.
+  const canAdd = planCtx ? canAddAssistant(assistants.length, planCtx.limits) : false;
 
   const accessCount = calAccess.filter((acc) => acc.level !== "none").length;
 
@@ -222,12 +227,24 @@ export default async function AssistantSettingsPage({
 
   return (
     <div className="rise flex w-full flex-col gap-4 pb-2">
-      <Link
-        href="/dashboard/assistant"
-        className="press inline-flex w-fit shrink-0 items-center gap-1.5 text-sm font-medium text-neutral-500 hover:text-neutral-900"
-      >
-        <span aria-hidden="true">&larr;</span> {a.back}
-      </Link>
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        {/* With one receptionist the list page redirects straight back here,
+            so the back link goes home instead (W8). */}
+        <Link
+          href={multi ? "/dashboard/assistant" : "/dashboard"}
+          className="press inline-flex w-fit shrink-0 items-center gap-1.5 text-sm font-medium text-neutral-500 hover:text-neutral-900"
+        >
+          <span aria-hidden="true">&larr;</span> {multi ? a.back : t.nav.overview}
+        </Link>
+        {canAdd && (
+          <Link
+            href="/dashboard/assistant?add=1"
+            className="press inline-flex w-fit items-center gap-1.5 text-sm font-medium text-neutral-500 hover:text-neutral-900"
+          >
+            <span aria-hidden="true">+</span> {a.addAnother}
+          </Link>
+        )}
+      </div>
 
       {(assistant.elevenlabs_multilingual === false || error || notice) && (
         <div className="shrink-0 space-y-2">
@@ -244,7 +261,7 @@ export default async function AssistantSettingsPage({
           {notice && (
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-700">
               <span>{notice}</span>
-              <Link href="/pricing" className="font-medium underline underline-offset-2">
+              <Link href={localizedHref(locale, "pricing")} className="font-medium underline underline-offset-2">
                 {t.common.viewPlans}
               </Link>
             </div>
@@ -267,7 +284,7 @@ export default async function AssistantSettingsPage({
               </h1>
               <div className="mt-1 flex items-center gap-1.5">
                 <span className={`h-2 w-2 rounded-full ${live ? "bg-emerald-500" : "bg-amber-500"}`} />
-                <span className={`text-sm font-medium ${live ? "text-emerald-600" : "text-amber-600"}`}>
+                <span className={`text-sm font-medium ${live ? "text-emerald-700" : "text-amber-700"}`}>
                   {statusLabel}
                 </span>
               </div>
@@ -366,7 +383,7 @@ export default async function AssistantSettingsPage({
           <div>
             <span className={labelCls}>{a.voice}</span>
             <VoiceSelect name="voice_id" defaultValue={assistant.voice_id} />
-            <p className="mt-1.5 text-xs text-neutral-400">{a.autoLanguageNote}</p>
+            <p className="mt-1.5 text-xs text-neutral-500">{a.autoLanguageNote}</p>
           </div>
           <div>
             <label htmlFor="name" className={labelCls}>
@@ -467,6 +484,7 @@ export default async function AssistantSettingsPage({
               fromLabel: a.transferFrom,
               toLabel: a.transferTo,
               closedNote: a.transferClosedNote,
+              noDayNote: a.transferNoDay,
               days: weekdayLabels,
             }}
           />
@@ -474,7 +492,7 @@ export default async function AssistantSettingsPage({
           <label className={`${toggleRow} border-t-neutral-100`}>
             <span>
               <span className="block text-sm font-medium text-neutral-800">{a.textAlerts}</span>
-              <span className="block text-xs text-neutral-400">{a.textAlertsSub}</span>
+              <span className="block text-xs text-neutral-500">{a.textAlertsSub}</span>
             </span>
             <input type="checkbox" name="sms_alerts" defaultChecked={smsAlerts} className="peer sr-only" />
             <span className={toggle} />
@@ -561,7 +579,7 @@ export default async function AssistantSettingsPage({
               placeholder={a.rolePlaceholder}
               className={`${field} resize-y`}
             />
-            <p className="mt-1.5 text-xs text-neutral-400">{a.roleHint}</p>
+            <p className="mt-1.5 text-xs text-neutral-500">{a.roleHint}</p>
           </div>
 
           <div className="border-t border-neutral-100 pt-4">
@@ -580,7 +598,7 @@ export default async function AssistantSettingsPage({
                 <span className="block text-sm font-medium text-neutral-800">
                   {a.sendEmailTranscripts}
                 </span>
-                <span className="block text-xs text-neutral-400">{a.sendEmailTranscriptsSub}</span>
+                <span className="block text-xs text-neutral-500">{a.sendEmailTranscriptsSub}</span>
               </span>
               <input
                 type="checkbox"
@@ -628,7 +646,7 @@ export default async function AssistantSettingsPage({
               placeholder={a.guardrailNeverPlaceholder}
               className={`${field} resize-y`}
             />
-            <p className="mt-1.5 text-xs text-neutral-400">{a.guardrailNeverSub}</p>
+            <p className="mt-1.5 text-xs text-neutral-500">{a.guardrailNeverSub}</p>
           </div>
 
           <div>
@@ -643,7 +661,7 @@ export default async function AssistantSettingsPage({
               placeholder={a.guardrailEscalatePlaceholder}
               className={`${field} resize-y`}
             />
-            <p className="mt-1.5 text-xs text-neutral-400">{a.guardrailEscalateSub}</p>
+            <p className="mt-1.5 text-xs text-neutral-500">{a.guardrailEscalateSub}</p>
           </div>
 
           <div className="border-t border-neutral-100 pt-4">
@@ -663,7 +681,7 @@ export default async function AssistantSettingsPage({
                   and from 2 August 2026 EU AI Act Art. 50 makes that their
                   problem as well as ours. See DisclosureMode in policy.ts. */}
             </select>
-            <p className="mt-1.5 text-xs text-neutral-400">{a.disclosureNote}</p>
+            <p className="mt-1.5 text-xs text-neutral-500">{a.disclosureNote}</p>
           </div>
         </TopicModal>
 

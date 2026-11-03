@@ -2,28 +2,26 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useT } from "@/lib/i18n/client";
+import { useI18n } from "@/lib/i18n/client";
+import { relTimeOf } from "@/lib/dashboard/rel-time";
+import { callOutcomeLabel, fmtDuration } from "@/lib/dashboard/calls/format";
+import { formatPhone } from "@/lib/call-engine/voice/phone-language";
 import { Bell, Phone } from "../icons";
 
+// The raw call fields from /api/notifications. The bell formats them in the
+// viewer's language; the server's title and subtitle are English.
 interface NotificationItem {
   id: string;
-  title: string;
-  subtitle: string;
   at: string;
   href: string;
+  from: string;
+  outcome: string | null;
+  status: string;
+  durationSec: number;
 }
 
 const SEEN_KEY = "notifications:lastSeenAt";
 const CLEARED_KEY = "notifications:clearedAt";
-
-function relTime(iso: string): string {
-  const m = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
-  if (m < 1) return "just now";
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
-}
 
 export function NotificationsBell() {
   const [items, setItems] = useState<NotificationItem[]>([]);
@@ -31,7 +29,8 @@ export function NotificationsBell() {
   const [clearedAt, setClearedAt] = useState<string>("");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const t = useT();
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const { t, locale } = useI18n();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -61,7 +60,10 @@ export function NotificationsBell() {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     }
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        setOpen(false);
+        buttonRef.current?.focus();
+      }
     }
     document.addEventListener("mousedown", onClick);
     document.addEventListener("keydown", onKey);
@@ -98,9 +100,10 @@ export function NotificationsBell() {
     <div className="relative" ref={ref}>
       <button
         type="button"
+        ref={buttonRef}
         onClick={toggle}
         className="relative rounded-lg p-2 text-neutral-600 transition-colors hover:bg-neutral-100"
-        aria-label="Notifications"
+        aria-label={t.common.notifications}
         aria-haspopup="true"
         aria-expanded={open}
       >
@@ -137,7 +140,7 @@ export function NotificationsBell() {
           </div>
 
           {visible.length === 0 ? (
-            <div className="px-4 py-10 text-center text-sm text-neutral-400">
+            <div className="px-4 py-10 text-center text-sm text-neutral-500">
               No recent calls.
             </div>
           ) : (
@@ -156,12 +159,12 @@ export function NotificationsBell() {
                       </span>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="truncate text-sm font-medium text-neutral-900">{i.title}</span>
+                          <span className="truncate text-sm font-medium text-neutral-900">{i.from ? formatPhone(i.from) : t.data.unknownCaller}</span>
                           {isUnread && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-neutral-900" />}
                         </div>
-                        <div className="truncate text-xs text-neutral-500">{i.subtitle}</div>
+                        <div className="truncate text-xs text-neutral-500">{`${callOutcomeLabel(t.data, i.status, i.outcome, i.at)} · ${fmtDuration(i.durationSec)}`}</div>
                       </div>
-                      <span className="shrink-0 text-xs text-neutral-400">{relTime(i.at)}</span>
+                      <span className="shrink-0 text-xs text-neutral-500">{relTimeOf(i.at, locale)}</span>
                     </Link>
                   </li>
                 );

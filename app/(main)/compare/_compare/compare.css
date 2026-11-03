@@ -3351,7 +3351,7 @@
   font-weight: 400;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #888;
+  color: #6f6f6f;
 }
 .compare-hub-hero h1 {
   font-size: clamp(2.2rem, 4.6vw, 3.4rem);

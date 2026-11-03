@@ -24,12 +24,7 @@ export async function GET(
   if (!isOAuthConfigured(provider)) {
     const back = next ?? "/dashboard/calendar";
     const sep = back.includes("?") ? "&" : "?";
-    return NextResponse.redirect(
-      new URL(
-        `${back}${sep}error=${encodeURIComponent(`${provider} login is not configured`)}`,
-        req.url,
-      ),
-    );
+    return NextResponse.redirect(new URL(`${back}${sep}error=not_configured`, req.url));
   }
 
   const state = randomUUID();

@@ -6,11 +6,7 @@ import { currentUserId } from "@/lib/auth";
 import { deleteIntegration, setPrimaryCalendar } from "@/lib/dashboard/db";
 import { getDictionary } from "@/lib/i18n/server";
 import { ok, fail, type ActionState } from "@/lib/dashboard/action-state";
-import {
-  cancelCalendarEvent,
-  loadBookingForCancel,
-  saveCancellationState,
-} from "@/lib/dashboard/booking-cancel";
+import { cancelBooking, isUndatedBooking, loadBookingForCancel } from "@/lib/dashboard/booking-cancel";
 import { retryBookingSync } from "@/lib/dashboard/booking-retry";
 import { notifyCancelledCustomer } from "@/lib/dashboard/booking-notify";
 
@@ -53,17 +49,15 @@ export async function cancelBookingAction(
   const ownerId = (await currentUserId()) ?? null;
   const booking = await loadBookingForCancel(actionId, ownerId).catch(() => null);
   if (!booking) return fail(c.bookingNotFound);
+  // Either would phone the customer about nothing (same guard as the mobile route).
+  if (booking.cancelled) return fail(c.alreadyCancelled);
+  if (isUndatedBooking(booking)) return fail(c.cancelNoTime);
 
-  const cal = await cancelCalendarEvent(booking, reason);
-
-  await saveCancellationState(actionId, {
-    reason,
-    offerRebook,
-    notifyStatus: "pending",
-    calendarCancelled: cal.ok,
-    calendarError: cal.ok ? undefined : cal.error,
-    at: new Date().toISOString(),
-  });
+  // Claim, cancel the calendar event and save (the same shared sequence as the mobile route).
+  const res = await cancelBooking(booking, { reason, offerRebook, log: "calendar" });
+  if (res.kind === "claimed-elsewhere") return fail(c.alreadyCancelled);
+  if (res.kind === "failed") return fail(c.calendarActionFailed);
+  const { cal } = res;
 
   after(() => notifyCancelledCustomer(actionId, booking, reason, offerRebook, ownerId));
 

@@ -333,6 +333,14 @@ pending bookings safely.
 
 ### 5.5 What NOT to do: async optimistic booking (for now)
 
+**Update:** the code now books optimistically, but not with an ElevenLabs
+async tool. `bookAppointmentAction` in `lib/call-engine/actions.ts` answers
+the caller at once ("I'm getting that booked now", never "confirmed") and
+runs `runBooking` in the background with Next `after()`. If that booking
+fails, `notifyBookingIssue` sends the business an SMS. It is on by default;
+set `routing.optimisticBooking = false` to keep the synchronous path. The
+text below is kept for history.
+
 `executionMode: "async"` looks tempting: confirm verbally, book in the
 background, zero perceived latency. Verified platform reality argues against it:
 

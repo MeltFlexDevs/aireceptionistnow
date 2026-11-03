@@ -17,6 +17,10 @@
 
 import { MAX_CUSTOM_TOOLS, parseParamLines } from "../call-engine/agent/custom-tools";
 import { MAX_TARGETS } from "../call-engine/escalation";
+import { normalizePhone } from "../phone";
+import { SUPPORTED_LANGUAGES } from "../call-engine/voice/phone-language";
+import { isTranscriptEmail } from "../call-engine/summary/email";
+import { findLanguage } from "@/app/(main)/dashboard/numbers/languages";
 
 export const SECTION = {
   basics: "_s_basics",
@@ -53,6 +57,23 @@ export interface AssistantPatch {
   top: Partial<Pick<PatchPrev, "name" | "greeting" | "system_prompt" | "voice_id" | "language">>;
   /** The full routing object to store: previous, with submitted parts applied. */
   routing: Record<string, unknown>;
+  /**
+   * Form keys whose phone number cannot be dialed ("transfer_to",
+   * "esc_<key>_number", "esc_page_number"). Those values are not written; the
+   * caller must reject the save, because a stored bad number turns transfers
+   * off without a word (lib/call-engine/escalation.ts drops it).
+   */
+  phoneErrors: string[];
+  /** The greeting field was submitted empty. Not written; the caller rejects the save. */
+  greetingEmpty: boolean;
+  /** The language is not one the pickers offer (nor the stored one). Not written; the caller rejects the save. */
+  languageInvalid: boolean;
+  /**
+   * The transcript address was submitted but the mailer cannot use it ("owner@",
+   * "owner@localhost"). Not written; the caller rejects the save, because
+   * readEmailConfig skips a bad address and no recap is sent without a word.
+   */
+  emailInvalid: boolean;
 }
 
 function clamp(n: number, lo: number, hi: number): number {
@@ -121,6 +142,14 @@ function buildHours(
   return { hours: { timezone, days } };
 }
 
+/**
+ * A language some client can really send: a picker code (LANGUAGES, with "multi"
+ * and regional codes like "en-GB"), a phone-derived code, or the stored value.
+ */
+function knownLanguage(lang: string, prev: string): boolean {
+  return lang === prev || findLanguage(lang) !== undefined || SUPPORTED_LANGUAGES.includes(lang);
+}
+
 export function buildAssistantPatch(
   form: FormData,
   prev: PatchPrev,
@@ -140,15 +169,25 @@ export function buildAssistantPatch(
   const submitted = (section: string) => form.get(section) !== null;
 
   const top: AssistantPatch["top"] = {};
+  const phoneErrors: string[] = [];
+  let greetingEmpty = false;
+  let languageInvalid = false;
+  let emailInvalid = false;
   if (submitted(SECTION.basics)) {
     // A blank name falls back to the CURRENT name, never to a placeholder.
     if (form.has("name")) top.name = str(form, "name") || prev.name;
-    if (form.has("greeting")) top.greeting = str(form, "greeting");
+    if (form.has("greeting")) {
+      // An empty opening line is a slip, not a setting: report it instead of storing "".
+      const greeting = str(form, "greeting");
+      if (greeting) top.greeting = greeting;
+      else greetingEmpty = true;
+    }
     if (form.has("voice_id")) top.voice_id = str(form, "voice_id");
     // No "en" default: an unsubmitted language stays whatever it was.
     if (form.has("language")) {
       const lang = str(form, "language");
-      if (lang) top.language = lang;
+      if (lang && knownLanguage(lang, prev.language)) top.language = lang;
+      else if (lang) languageInvalid = true;
     }
   }
   if (submitted(SECTION.role) && form.has("system_prompt")) {
@@ -171,10 +210,13 @@ export function buildAssistantPatch(
     // and the reason this module exists.
     if (form.has("transfer_to")) {
       const transferTo = str(form, "transfer_to");
-      if (transferTo) {
-        routing.transferTo = transferTo;
-      } else {
+      if (!transferTo) {
         delete routing.transferTo;
+      } else {
+        const number = normalizePhone(transferTo);
+        // A bad number leaves the stored one alone; the caller rejects the save.
+        if (number) routing.transferTo = number;
+        else phoneErrors.push("transfer_to");
       }
     }
 
@@ -217,11 +259,16 @@ export function buildAssistantPatch(
 
     const targets: Record<string, unknown>[] = [];
     for (const key of keys) {
-      const number = str(form, `esc_${key}_number`);
+      const rawNumber = str(form, `esc_${key}_number`);
       // A row with no number is an empty row the user left behind, not a
       // destination. parseEscalation would drop it anyway; dropping it here
       // keeps the stored config honest about what is configured.
-      if (!number) continue;
+      if (!rawNumber) continue;
+      const number = normalizePhone(rawNumber);
+      if (!number) {
+        phoneErrors.push(`esc_${key}_number`);
+        continue;
+      }
       const warmRaw = str(form, `esc_${key}_warm`);
       targets.push({
         id: key,
@@ -244,7 +291,9 @@ export function buildAssistantPatch(
       .map((line) => line.trim())
       .filter(Boolean);
     const sla = numberOrNull(form, "esc_sla");
-    const pageNumber = str(form, "esc_page_number");
+    const rawPage = str(form, "esc_page_number");
+    const pageNumber = rawPage ? (normalizePhone(rawPage) ?? "") : "";
+    if (rawPage && !pageNumber) phoneErrors.push("esc_page_number");
 
     const escalation: Record<string, unknown> = { targets };
     if (triggers.length) escalation.triggers = triggers;
@@ -350,7 +399,10 @@ export function buildAssistantPatch(
 
   if (submitted(SECTION.email)) {
     const to = str(form, "email_to");
-    if (to) {
+    if (to && !isTranscriptEmail(to)) {
+      // Like a bad phone number: keep what was stored and report the slip.
+      emailInvalid = true;
+    } else if (to) {
       routing.emailTranscripts = { enabled: form.get("email_enabled") === "on", to };
     } else {
       delete routing.emailTranscripts;
@@ -380,5 +432,5 @@ export function buildAssistantPatch(
     else delete routing.voiceByLanguage;
   }
 
-  return { top, routing };
+  return { top, routing, phoneErrors, greetingEmpty, languageInvalid, emailInvalid };
 }

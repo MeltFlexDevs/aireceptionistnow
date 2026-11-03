@@ -1,17 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import Link from "next/link";
 
-import SiteHeader from "@/app/components/SiteHeader";
-import type { LocaleOption } from "@/lib/i18n/marketing/switcher";
-import { EN_NAV_HREFS, type NavHrefs } from "@/lib/i18n/marketing/nav";
 import type { PricingCopy } from "@/content/i18n/_pricing-copy";
-import type { UiCopy } from "@/content/i18n/_ui-copy";
 import { enPricing } from "@/content/i18n/en/pages/pricing";
-import { enUi } from "@/content/i18n/en/ui";
-import SiteFooter from "@/app/components/SiteFooter";
 import { useAuthDialog } from "@/app/components/AuthDialog";
 import { startCheckout } from "@/lib/billing-client";
+import { rememberTermsTick, shouldResumeCheckout, takeTermsTick } from "@/lib/terms-resume";
+import { formatEur } from "@/lib/price-format";
+import type { ContentLocale } from "@/lib/i18n/marketing/locales";
 import {
   PLANS,
   ANNUAL_DISCOUNT,
@@ -19,20 +17,6 @@ import {
   type BillingCycle,
   type Plan,
 } from "@/lib/plans";
-
-const eur = (cents: number) =>
-  new Intl.NumberFormat("en-IE", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: Number.isInteger(cents / 100) ? 0 : 2,
-  }).format(cents / 100);
-
-const eur2 = (cents: number) =>
-  new Intl.NumberFormat("en-IE", {
-    style: "currency",
-    currency: "EUR",
-    minimumFractionDigits: 2,
-  }).format(cents / 100);
 
 function CheckIcon() {
   return (
@@ -64,6 +48,13 @@ const sectionLabel: React.CSSProperties = {
   margin: "0 0 14px",
 };
 
+const legalLink: React.CSSProperties = {
+  color: "#1D1D1D",
+  fontWeight: 400,
+  textDecoration: "underline",
+  textUnderlineOffset: "2px",
+};
+
 function FeatureItem({ children }: { children: React.ReactNode }) {
   return (
     <li
@@ -91,12 +82,14 @@ function PlanCard({
   busy,
   onSelect,
   copy,
+  locale,
 }: {
   plan: Plan;
   cycle: BillingCycle;
   busy: boolean;
   onSelect: (plan: Plan) => void;
   copy: PricingCopy;
+  locale: ContentLocale;
 }) {
   // Display text per plan comes from the copy object; prices and ids stay
   // in lib/plans.ts. Falls back to the English plan data if a translation
@@ -146,7 +139,7 @@ function PlanCard({
               letterSpacing: "0.08em",
             }}
           >
-            Most popular
+            {copy.mostPopular}
           </span>
         ) : null}
       </div>
@@ -154,13 +147,13 @@ function PlanCard({
 
       <div style={{ marginTop: "24px", display: "flex", alignItems: "flex-end", gap: "6px" }}>
         <span style={{ fontSize: "46px", fontWeight: 300, letterSpacing: "-0.03em", color: "#1D1D1D", lineHeight: 1 }}>
-          {eur(perMonth)}
+          {formatEur(perMonth / 100, locale)}
         </span>
         <span style={{ marginBottom: "5px", fontSize: "14px", fontWeight: 300, color: "#6f6f6f" }}>{copy.perMonth}</span>
       </div>
       <p style={{ marginTop: "8px", height: "16px", fontSize: "12px", fontWeight: 300, color: "#6f6f6f" }}>
         {cycle === "annual"
-          ? copy.billedYearlyTemplate.replace("{total}", eur2(annualTotal))
+          ? copy.billedYearlyTemplate.replace("{total}", formatEur(annualTotal / 100, locale, 2))
           : copy.billedMonthly}
       </p>
 
@@ -211,17 +204,26 @@ function PlanCard({
   );
 }
 
-export default function PricingClient({ localeOptions = [], copy = enPricing, ui = enUi, nav = EN_NAV_HREFS }: { localeOptions?: LocaleOption[]; copy?: PricingCopy; ui?: UiCopy; nav?: NavHrefs } = {}) {
+// header and footer are rendered by the server page and passed in, so SiteFooter
+// stays out of this client bundle.
+export default function PricingClient({ header, footer, copy = enPricing, locale = "en" }: { header: ReactNode; footer: ReactNode; copy?: PricingCopy; locale?: ContentLocale }) {
   const { open } = useAuthDialog();
   const [cycle, setCycle] = useState<BillingCycle>("monthly");
   const [busyPlan, setBusyPlan] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Unticked by default: a pre-ticked box is not valid consent, and
+  // /api/checkout refuses a plan without it.
+  const [accepted, setAccepted] = useState(false);
+  const [termsError, setTermsError] = useState(false);
+  const termsRef = useRef<HTMLInputElement>(null);
+  const termsId = useId();
+  const termsErrorId = useId();
 
-  const beginCheckout = async (planId: string, c: BillingCycle) => {
+  const beginCheckout = async (planId: string, c: BillingCycle, acceptedTerms: boolean) => {
     setError(null);
     setBusyPlan(planId);
     try {
-      await startCheckout(planId, c);
+      await startCheckout(planId, c, acceptedTerms);
       // On success the browser navigates to Stripe; this only runs on failure.
     } catch (err) {
       setError(err instanceof Error ? err.message : copy.checkoutError);
@@ -229,7 +231,10 @@ export default function PricingClient({ localeOptions = [], copy = enPricing, ui
     }
   };
 
-  // If we were sent back here after signing in (?plan=&cycle=), resume checkout.
+  // If we were sent back here after signing in (?plan=&cycle=), resume
+  // checkout, but only when this tab holds a recent Terms tick for the same
+  // plan and cycle (handleSelect stores it). A link alone, as from a blog post
+  // or an email, only pre-selects the cycle and checkout waits for the tick.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const planId = params.get("plan");
@@ -238,6 +243,7 @@ export default function PricingClient({ localeOptions = [], copy = enPricing, ui
     const resumeCycle: BillingCycle = c === "annual" ? "annual" : "monthly";
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setCycle(resumeCycle);
+    if (!shouldResumeCheckout(takeTermsTick(), planId, resumeCycle, Date.now())) return;
     // Only visitors returning from auth with a ?plan= param reach here, so the
     // Supabase client is loaded lazily rather than shipped on every pricing view.
     void import("@/lib/supabase/client").then(({ createClient }) => {
@@ -246,24 +252,32 @@ export default function PricingClient({ localeOptions = [], copy = enPricing, ui
       supabase.auth.getSession().then(({ data }) => {
         if (data.session) {
           // Clean the URL so a refresh doesn't re-trigger checkout.
-          window.history.replaceState({}, "", "/pricing");
-          void beginCheckout(planId, resumeCycle);
+          window.history.replaceState({}, "", window.location.pathname);
+          // The visitor ticked the box before signing up: show it ticked.
+          setAccepted(true);
+          void beginCheckout(planId, resumeCycle, true);
         }
       });
     });
   }, []);
 
   const handleSelect = async (plan: Plan) => {
+    if (!accepted) {
+      setTermsError(true);
+      termsRef.current?.focus();
+      return;
+    }
     const { createClient } = await import("@/lib/supabase/client");
     const supabase = createClient();
     const session = supabase ? (await supabase.auth.getSession()).data.session : null;
     if (session) {
-      await beginCheckout(plan.id, cycle);
+      await beginCheckout(plan.id, cycle, accepted);
     } else {
       // Sign in first, then come back here and resume checkout automatically.
+      // The tick crosses the sign-up round trip in sessionStorage, not the URL.
+      rememberTermsTick(plan.id, cycle);
       open("signup", {
-        description: `Create your account to start the ${plan.name} plan.`,
-        next: `/pricing?plan=${plan.id}&cycle=${cycle}`,
+        next: `${window.location.pathname}?plan=${plan.id}&cycle=${cycle}`,
       });
     }
   };
@@ -272,7 +286,7 @@ export default function PricingClient({ localeOptions = [], copy = enPricing, ui
 
   return (
     <>
-      <SiteHeader localeOptions={localeOptions} ui={ui} nav={nav} />
+      {header}
       <main style={{ fontFamily: FONT, fontWeight: 300, background: "#fff", color: "#333", paddingTop: "150px", paddingBottom: "100px" }}>
         <section style={{ maxWidth: "960px", margin: "0 auto", padding: "0 24px", textAlign: "center" }}>
           <p
@@ -396,6 +410,56 @@ export default function PricingClient({ localeOptions = [], copy = enPricing, ui
             </p>
           ) : null}
 
+          {/* Consent sits above the plan cards: it has to be read before the
+              commitment, and /api/checkout refuses a plan without it. */}
+          <div style={{ marginTop: "28px" }}>
+            <label
+              htmlFor={termsId}
+              style={{
+                display: "inline-flex",
+                alignItems: "flex-start",
+                gap: "10px",
+                maxWidth: "520px",
+                textAlign: "left",
+                fontSize: "13px",
+                fontWeight: 300,
+                lineHeight: 1.6,
+                color: "#6f6f6f",
+                cursor: "pointer",
+              }}
+            >
+              <input
+                ref={termsRef}
+                id={termsId}
+                type="checkbox"
+                checked={accepted}
+                onChange={(e) => {
+                  setAccepted(e.target.checked);
+                  if (e.target.checked) setTermsError(false);
+                }}
+                aria-invalid={termsError || undefined}
+                aria-describedby={termsError ? termsErrorId : undefined}
+                style={{ width: "16px", height: "16px", marginTop: "3px", flexShrink: 0, cursor: "pointer", accentColor: "#1D1D1D" }}
+              />
+              <span>
+                {copy.termsAgreePrefix}{" "}
+                <Link href="/terms-of-service" target="_blank" rel="noopener noreferrer" style={legalLink}>
+                  {copy.termsLink}
+                </Link>{" "}
+                {copy.termsAnd}{" "}
+                <Link href="/privacy-policy" target="_blank" rel="noopener noreferrer" style={legalLink}>
+                  {copy.privacyLink}
+                </Link>
+                {copy.termsAgreeSuffix}
+              </span>
+            </label>
+            {termsError ? (
+              <p id={termsErrorId} role="alert" style={{ margin: "8px auto 0", fontSize: "13px", fontWeight: 400, color: "#dc2626" }}>
+                {copy.termsRequired}
+              </p>
+            ) : null}
+          </div>
+
           <div style={{ marginTop: "48px", display: "flex", flexWrap: "wrap", alignItems: "stretch", justifyContent: "center", gap: "24px" }}>
             {PLANS.map((plan) => (
               <PlanCard
@@ -405,6 +469,7 @@ export default function PricingClient({ localeOptions = [], copy = enPricing, ui
                 busy={busyPlan === plan.id}
                 onSelect={handleSelect}
                 copy={copy}
+                locale={locale}
               />
             ))}
           </div>
@@ -476,7 +541,7 @@ export default function PricingClient({ localeOptions = [], copy = enPricing, ui
           </section>
         )}
       </main>
-      <SiteFooter />
+      {footer}
     </>
   );
 }

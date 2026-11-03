@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 
 import { PLANS } from "@/lib/plans";
-import { siteDescription, siteName, siteUrl } from "@/lib/site";
+import { siteDescription, siteName, siteUrl, ogCardImage } from "@/lib/site";
 import { alternatesFor } from "@/lib/i18n/marketing/alternates";
 import { localeOptions } from "@/lib/i18n/marketing/switcher";
 import { enPricing } from "@/content/i18n/en/pages/pricing";
+import SiteHeader from "@/app/components/SiteHeader";
+import SiteFooter from "@/app/components/SiteFooter";
 import PricingClient from "./PricingClient";
 
 const description =
@@ -20,6 +22,7 @@ export const metadata: Metadata = {
     url: `${siteUrl}/pricing`,
     type: "website",
     siteName,
+    images: [ogCardImage],
   },
   // Without an explicit block this inherits the root layout's homepage twitter
   // card, so X previews of the money page showed the generic site title.
@@ -27,6 +30,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Pricing - AI Receptionist Now",
     description,
+    images: [ogCardImage],
   },
 };
 
@@ -84,7 +88,11 @@ export default function PricingPage() {
           ),
         }}
       />
-      <PricingClient localeOptions={localeOptions("pricing", "en")} copy={enPricing} />
+      <PricingClient
+        header={<SiteHeader localeOptions={localeOptions("pricing", "en")} />}
+        footer={<SiteFooter />}
+        copy={enPricing}
+      />
     </>
   );
 }

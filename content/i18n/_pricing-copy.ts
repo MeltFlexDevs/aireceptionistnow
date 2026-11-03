@@ -41,6 +41,8 @@ export interface PricingCopy {
   annually: string;
   /** Suffix after the price, e.g. "/ month". */
   perMonth: string;
+  /** Badge on the highlighted plan card, e.g. "Most popular". */
+  mostPopular: string;
   /** "billed monthly" and the "{total} billed yearly" template. */
   billedMonthly: string;
   /** {total} is substituted with the formatted annual amount. */
@@ -52,6 +54,20 @@ export interface PricingCopy {
   cta: string;
   ctaBusy: string;
   checkoutError: string;
+  /**
+   * Terms consent above the plan cards, rendered as "{termsAgreePrefix}
+   * <Terms link> {termsAnd} <Privacy link>{termsAgreeSuffix}". Same wording
+   * as the onboarding plan step (lib/i18n/dictionaries, onboarding.terms*):
+   * both feed the acceptance that /api/checkout records.
+   */
+  termsAgreePrefix: string;
+  termsLink: string;
+  termsAnd: string;
+  privacyLink: string;
+  /** Text right after the privacy link: "." in most locales, " zu." in German. */
+  termsAgreeSuffix: string;
+  /** Inline error when a plan is clicked before the box is ticked. */
+  termsRequired: string;
   /** Fine print under the plan grid. */
   vatNote: string;
   /** Keyed by plan id from lib/plans.ts. */

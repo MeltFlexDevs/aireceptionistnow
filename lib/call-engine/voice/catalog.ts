@@ -134,15 +134,23 @@ async function importSharedVoiceForLanguage(base: string, key: string): Promise<
   return added.voice_id ?? null;
 }
 
+// ElevenLabs ids: a public_owner_id is 64 hex chars, a voice_id about 20
+// letters and digits. Both come from a voice value the client picks and go into
+// the URL path of a request that carries the platform API key, so anything else
+// ("..", "%2e%2e", "/", "?", "#") is refused before the fetch (cr-mobile-api-11).
+const XI_ID = /^[A-Za-z0-9]{1,64}$/;
+
 export async function addSharedVoice(
   ownerId: string,
   voiceId: string,
   newName: string,
 ): Promise<string | null> {
+  if (!XI_ID.test(ownerId) || !XI_ID.test(voiceId)) return null;
   const key = process.env.ELEVENLABS_API_KEY;
   if (!key) return null;
   try {
-    const res = await fetch(`${XI_API}/v1/voices/add/${ownerId}/${voiceId}`, {
+    const path = `${encodeURIComponent(ownerId)}/${encodeURIComponent(voiceId)}`;
+    const res = await fetch(`${XI_API}/v1/voices/add/${path}`, {
       method: "POST",
       headers: { "xi-api-key": key, "content-type": "application/json" },
       body: JSON.stringify({ new_name: newName }),

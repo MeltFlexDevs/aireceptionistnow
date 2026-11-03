@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { useT } from "@/lib/i18n/client";
 import { SubmitButton } from "../../components/SubmitButton";
 import {
@@ -14,26 +14,37 @@ import { MAX_MESSAGE_CHARS } from "./report-limits";
 
 // Keeps the shared SubmitButton (with its pending spinner) but gates it on the
 // surrounding form's validity - so it can read the ValidatedForm context.
-function ReportSubmit({ label, pendingText }: { label: string; pendingText: string }) {
+// It also stays off for a blank message: required accepts spaces, the server does not.
+function ReportSubmit({ label, pendingText, blank }: { label: string; pendingText: string; blank: boolean }) {
   const { valid } = useFormValidity();
   return (
-    <SubmitButton pendingText={pendingText} className="w-full" disabled={!valid}>
+    <SubmitButton pendingText={pendingText} className="w-full" disabled={!valid || blank}>
       {label}
     </SubmitButton>
   );
 }
 
-export function ReportIssue({ callId }: { callId: string }) {
+export function ReportIssue({ callId, alreadyReported }: { callId: string; alreadyReported: boolean }) {
   const t = useT();
   const d = t.calls.detail;
-  const [state, formAction] = useActionState<ReportState, FormData>(reportCallIssue, {
-    ok: false,
-    error: "",
-  });
+  // A network failure rejects the server action. Keep it inline, so the page
+  // and the typed text stay; reportCallIssue never redirects, so this catches nothing else.
+  const [state, formAction] = useActionState<ReportState, FormData>(
+    async (prev, formData) => {
+      try {
+        return await reportCallIssue(prev, formData);
+      } catch {
+        return { ok: false, error: d.reportErrorNetwork };
+      }
+    },
+    { ok: false, error: "" },
+  );
+  const [message, setMessage] = useState("");
 
   // Reporting is one-shot: a second identical report is noise, so success
   // replaces the form rather than showing a transient pill beside it.
-  if (state.ok) {
+  // A report already on file (sent before a reload, or from the app) shows the same pill.
+  if (state.ok || alreadyReported) {
     return (
       <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
         {d.reportSent}
@@ -57,6 +68,8 @@ export function ReportIssue({ callId }: { callId: string }) {
           <textarea
             id="message"
             name="message"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
             required
             maxLength={MAX_MESSAGE_CHARS}
             rows={4}
@@ -66,7 +79,7 @@ export function ReportIssue({ callId }: { callId: string }) {
         </label>
         <FieldError name="message" />
         {state.error && <p className="text-xs text-rose-600">{state.error}</p>}
-        <ReportSubmit label={d.reportSend} pendingText={d.reportSending} />
+        <ReportSubmit label={d.reportSend} pendingText={d.reportSending} blank={!message.trim()} />
       </ValidatedForm>
     </details>
   );

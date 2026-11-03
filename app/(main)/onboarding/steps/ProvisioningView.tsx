@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatPhone } from "@/lib/call-engine/voice/phone-language";
 import { useT } from "@/lib/i18n/client";
@@ -79,23 +80,40 @@ export function ProvisioningView({ assistantName = "" }: { assistantName?: strin
     setAttempt((a) => a + 1);
   }
 
+  // Waiting for payment: poll once now, keep the first start time so the slow
+  // hint and these actions stay on screen.
+  function checkAgain() {
+    setAttempt((a) => a + 1);
+  }
+
   if (state.status === "error") {
+    // The raw error stays in the server log (lib/dashboard/provision.ts); the
+    // owner gets plain words and a way forward.
     return (
       <section className="rise flex flex-col items-center py-16 text-center">
         <h1 className="text-2xl font-medium tracking-tight text-neutral-900">{o.errorTitle}</h1>
-        {state.error && (
-          <p className="mx-auto mt-3 max-w-md rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-            {state.error}
-          </p>
-        )}
         <p className="mx-auto mt-3 max-w-md text-sm text-neutral-500">{o.errorHint}</p>
-        <button
-          type="button"
-          onClick={retry}
-          className="press mt-6 inline-flex h-10 items-center rounded-lg bg-neutral-900 px-5 text-sm font-medium text-white hover:bg-neutral-800"
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+          <button
+            type="button"
+            onClick={retry}
+            className="press inline-flex h-10 items-center rounded-lg bg-neutral-900 px-5 text-sm font-medium text-white hover:bg-neutral-800"
+          >
+            {o.retry}
+          </button>
+          <Link
+            href="/dashboard"
+            className="press inline-flex h-10 items-center rounded-lg border border-neutral-200 bg-white px-5 text-sm font-medium text-neutral-700 hover:border-neutral-400 hover:text-neutral-900"
+          >
+            {o.doneCta}
+          </Link>
+        </div>
+        <Link
+          href="/support"
+          className="mt-4 text-sm font-medium text-neutral-700 underline underline-offset-4 hover:text-neutral-900"
         >
-          {o.retry}
-        </button>
+          {o.errorSupport}
+        </Link>
       </section>
     );
   }
@@ -137,7 +155,24 @@ export function ProvisioningView({ assistantName = "" }: { assistantName?: strin
             {waiting ? o.waitingPayment : o.buildSub}
           </p>
           {waiting && slow && (
-            <p className="mx-auto mt-3 max-w-md text-xs text-neutral-400">{o.stillWaiting}</p>
+            <>
+              <p className="mx-auto mt-3 max-w-md text-xs text-neutral-500">{o.stillWaiting}</p>
+              <div className="mt-5 flex flex-wrap items-center justify-center gap-4">
+                <button
+                  type="button"
+                  onClick={checkAgain}
+                  className="press inline-flex h-10 items-center rounded-lg border border-neutral-200 bg-white px-5 text-sm font-medium text-neutral-700 hover:border-neutral-400 hover:text-neutral-900"
+                >
+                  {o.retry}
+                </button>
+                <Link
+                  href="/support"
+                  className="text-sm font-medium text-neutral-700 underline underline-offset-4 hover:text-neutral-900"
+                >
+                  {o.errorSupport}
+                </Link>
+              </div>
+            </>
           )}
         </div>
       )}

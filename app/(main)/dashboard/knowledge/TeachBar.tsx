@@ -61,6 +61,7 @@ export function TeachBar({
           type="url"
           required
           placeholder={k.teachWebsitePlaceholder}
+          aria-label={k.teachWebsiteLabel}
           className="h-9 min-w-56 flex-1 rounded-lg border border-neutral-200 bg-white px-3 text-sm text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-neutral-900"
         />
         <WebsiteSubmit />

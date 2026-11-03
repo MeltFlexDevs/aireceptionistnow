@@ -560,3 +560,123 @@ test("a key that is not the shape the editor generates is ignored", () => {
   const targets = (patch.routing.escalation as { targets: { id: string }[] }).targets;
   assert.deepEqual(targets.map((t) => t.id), ["r0"]);
 });
+
+test("a transfer number is stored in E.164 form, separators stripped", () => {
+  const patch = buildAssistantPatch(
+    fd({ id: "a1", [SECTION.alerts]: "1", transfer_to: "+1 (415) 555-0142" }),
+    PREV,
+    CTX,
+  );
+  assert.equal(patch.routing.transferTo, "+14155550142");
+  assert.deepEqual(patch.phoneErrors, []);
+});
+
+test("a transfer number the call engine cannot dial is reported, not stored", () => {
+  for (const bad of ["+1 415 555", "0905 123 456"]) {
+    const patch = buildAssistantPatch(fd({ id: "a1", [SECTION.alerts]: "1", transfer_to: bad }), PREV, CTX);
+    assert.deepEqual(patch.phoneErrors, ["transfer_to"], bad);
+    assert.equal(patch.routing.transferTo, "+14155550199", "the saved number is left alone");
+  }
+});
+
+test("an empty transfer number is not an error: it turns transfers off", () => {
+  const patch = buildAssistantPatch(fd({ id: "a1", [SECTION.alerts]: "1", transfer_to: "" }), PREV, CTX);
+  assert.deepEqual(patch.phoneErrors, []);
+  assert.equal(patch.routing.transferTo, undefined);
+});
+
+test("destination and page numbers are normalized, and bad ones are reported by field", () => {
+  const patch = buildAssistantPatch(
+    fd({
+      id: "a1",
+      [SECTION.escalation]: "1",
+      esc_keys: "r1,r2",
+      esc_r1_number: "+421 905 123 456",
+      esc_r2_number: "+1 415 555",
+      esc_page: "on",
+      esc_page_number: "12345",
+    }),
+    PREV,
+    CTX,
+  );
+  assert.deepEqual(patch.phoneErrors, ["esc_r2_number", "esc_page_number"]);
+  const esc = patch.routing.escalation as { targets: { number: string }[]; page: { number: string } };
+  assert.deepEqual(esc.targets.map((t) => t.number), ["+421905123456"]);
+  assert.equal(esc.page.number, "");
+});
+
+test("an empty greeting is reported instead of being saved", () => {
+  const patch = buildAssistantPatch(fd({ id: "a1", [SECTION.basics]: "1", greeting: "   " }), PREV, CTX);
+  assert.equal(patch.greetingEmpty, true);
+  assert.equal("greeting" in patch.top, false);
+});
+
+test("a basics form without a greeting field is not an empty greeting", () => {
+  const patch = buildAssistantPatch(fd({ id: "a1", [SECTION.basics]: "1", name: "Desk" }), PREV, CTX);
+  assert.equal(patch.greetingEmpty, false);
+  assert.deepEqual(patch.phoneErrors, []);
+});
+
+test("a language no picker offers is reported instead of being saved", () => {
+  const patch = buildAssistantPatch(fd({ id: "a1", [SECTION.basics]: "1", language: "xx" }), PREV, CTX);
+  assert.equal(patch.languageInvalid, true);
+  assert.equal("language" in patch.top, false);
+
+  const blank = buildAssistantPatch(fd({ id: "a1", [SECTION.basics]: "1", language: " " }), PREV, CTX);
+  assert.equal(blank.languageInvalid, false);
+  assert.equal("language" in blank.top, false);
+});
+
+test("picker, phone-derived and stored languages are accepted", () => {
+  // "hr" is phone-derived only; "en-GB", "pt-BR", "th" are picker-only.
+  for (const language of ["de", "hr", "en-GB", "pt-BR", "th", "multi"]) {
+    const patch = buildAssistantPatch(fd({ id: "a1", [SECTION.basics]: "1", language }), PREV, CTX);
+    assert.equal(patch.languageInvalid, false, language);
+    assert.equal(patch.top.language, language, language);
+  }
+  // An older stored value can be sent back unchanged.
+  const legacy = buildAssistantPatch(
+    fd({ id: "a1", [SECTION.basics]: "1", language: "auto" }),
+    { ...PREV, language: "auto" },
+    CTX,
+  );
+  assert.equal(legacy.languageInvalid, false);
+  assert.equal(legacy.top.language, "auto");
+});
+
+test("a transcript address the mailer cannot use is reported, not stored", () => {
+  for (const bad of ["owner@", "owner@localhost"]) {
+    const patch = buildAssistantPatch(
+      fd({ id: "a1", [SECTION.email]: "1", email_enabled: "on", email_to: bad }),
+      PREV,
+      CTX,
+    );
+    assert.equal(patch.emailInvalid, true, bad);
+    assert.deepEqual(patch.routing.emailTranscripts, PREV.routing.emailTranscripts, bad);
+  }
+  // Turning recaps off does not make a bad address acceptable.
+  const off = buildAssistantPatch(fd({ id: "a1", [SECTION.email]: "1", email_to: "owner@" }), PREV, CTX);
+  assert.equal(off.emailInvalid, true);
+  assert.deepEqual(off.routing.emailTranscripts, PREV.routing.emailTranscripts);
+});
+
+test("a full transcript address is stored trimmed, and an empty one turns recaps off", () => {
+  for (const to of ["owner@example.com", " owner@example.com "]) {
+    const patch = buildAssistantPatch(
+      fd({ id: "a1", [SECTION.email]: "1", email_enabled: "on", email_to: to }),
+      PREV,
+      CTX,
+    );
+    assert.equal(patch.emailInvalid, false, to);
+    assert.deepEqual(patch.routing.emailTranscripts, { enabled: true, to: "owner@example.com" }, to);
+  }
+  const cleared = buildAssistantPatch(fd({ id: "a1", [SECTION.email]: "1", email_to: "" }), PREV, CTX);
+  assert.equal(cleared.emailInvalid, false);
+  assert.equal(cleared.routing.emailTranscripts, undefined);
+});
+
+test("a form without the email section never reports a bad address", () => {
+  const patch = buildAssistantPatch(fd({ id: "a1", [SECTION.basics]: "1", name: "Desk" }), PREV, CTX);
+  assert.equal(patch.emailInvalid, false);
+  assert.deepEqual(patch.routing.emailTranscripts, PREV.routing.emailTranscripts);
+});

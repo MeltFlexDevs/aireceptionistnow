@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import type { UiCopy } from "@/content/i18n/_ui-copy";
 import { enUi } from "@/content/i18n/en/ui";
+import { EN_NAV_HREFS, type NavHrefs } from "@/lib/i18n/marketing/nav";
 import { COMPETITOR_NAV } from "@/app/(main)/compare/_compare/nav";
 import { INDUSTRY_MENU } from "@/lib/marketing/industries";
 
@@ -32,12 +33,12 @@ const ElevenLabsLogo = () => (
   </svg>
 );
 
-const VoicePartnerBadge = () => (
+const VoicePartnerBadge = ({ label }: { label: string }) => (
   <a
     href="https://elevenlabs.io"
     target="_blank"
     rel="noopener noreferrer"
-    aria-label="ElevenLabs - Voice Partner"
+    aria-label={`ElevenLabs - ${label}`}
     style={{ display: "inline-flex", flexDirection: "column", alignItems: "flex-end", gap: "8px", textDecoration: "none" }}
   >
     {/* The footer's section labels are white at low alpha over #1D1D1D. At 0.4
@@ -45,7 +46,7 @@ const VoicePartnerBadge = () => (
         composites to ~#929292 (5.4:1) and keeps them subordinate to the links
         below them, which are full white. Same value on the three nav headings. */}
     <span style={{ color: "rgba(255,255,255,0.52)", fontSize: "10px", fontWeight: 400, letterSpacing: "0.12em", textTransform: "uppercase" }}>
-      Voice Partner
+      {label}
     </span>
     <ElevenLabsLogo />
   </a>
@@ -122,7 +123,7 @@ const ASK_AI_PROVIDERS: { name: string; href: string; icon: ReactNode }[] = [
   },
 ];
 
-const AskAI = () => (
+const AskAI = ({ label, providerLabel }: { label: string; providerLabel: string }) => (
   <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "14px", marginTop: "24px" }}>
     <style>{`
       .airn-ask-ai__btn{display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.55);text-decoration:none;transition:color .2s ease}
@@ -130,7 +131,7 @@ const AskAI = () => (
       .airn-ask-ai__btn svg{width:26px;height:26px;flex-shrink:0}
     `}</style>
     <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "11px", fontWeight: 300, letterSpacing: "0.05em", textTransform: "uppercase", margin: 0 }}>
-      Ask AI about AI Receptionist Now
+      {label}
     </p>
     <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
       {ASK_AI_PROVIDERS.map((p) => (
@@ -140,7 +141,7 @@ const AskAI = () => (
           href={p.href}
           target="_blank"
           rel="noopener noreferrer"
-          aria-label={`Ask ${p.name} about AI Receptionist Now`}
+          aria-label={providerLabel.replace("{name}", p.name)}
         >
           {p.icon}
         </a>
@@ -149,23 +150,29 @@ const AskAI = () => (
   </div>
 );
 
-export default function SiteFooter() {
+/**
+ * Labels come from UiCopy.footer, localizable hrefs from NavHrefs. English
+ * callers pass nothing; /<locale>/ pages pass UI_COPY[locale] and navHrefs(locale).
+ */
+export default function SiteFooter({ ui = enUi, nav = EN_NAV_HREFS }: { ui?: UiCopy; nav?: NavHrefs }) {
+  const f = ui.footer;
+  const [gdprBefore, gdprAfter] = f.gdprCompliant.split(f.gdprMark);
   return (
     <footer style={{ background: "#1D1D1D", color: "#fff", fontFamily: "var(--font-inter), Inter, -apple-system, sans-serif", fontWeight: 300 }}>
       <div style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", padding: "60px 0 50px" }}>
         <div className="ar-footer-row" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 40px", display: "flex", justifyContent: "space-between", gap: "40px", flexWrap: "wrap" }}>
           <nav className="ar-footer-nav" style={{ display: "flex", gap: "64px", flexWrap: "wrap" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <span style={{ color: "rgba(255,255,255,0.52)", fontSize: "11px", fontWeight: 400, letterSpacing: "0.08em", textTransform: "uppercase" }}>Resources</span>
+              <span style={{ color: "rgba(255,255,255,0.52)", fontSize: "11px", fontWeight: 400, letterSpacing: "0.08em", textTransform: "uppercase" }}>{f.resources}</span>
               <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
-                {[{ label: "Blog", href: "/blog" }, { label: "Answers", href: "/answers" }, { label: "24/7 AI Receptionist", href: "/blog/24-7-ai-receptionist" }].map((l) => (
+                {[{ label: f.blog, href: nav.blog }, { label: f.answers, href: "/answers" }, { label: f.receptionist247, href: nav.receptionist247 }].map((l) => (
                   <li key={l.label}><Link href={l.href} style={resourceLinkStyle}>{l.label}</Link></li>
                 ))}
-                <li><a href="/llms.txt" style={resourceLinkStyle}>AI Information</a></li>
+                <li><a href="/llms.txt" style={resourceLinkStyle}>{f.aiInformation}</a></li>
               </ul>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <Link href="/industries" style={{ color: "rgba(255,255,255,0.52)", fontSize: "11px", fontWeight: 400, letterSpacing: "0.08em", textTransform: "uppercase", textDecoration: "none" }}>Industries</Link>
+              <Link href={nav.industries} style={{ color: "rgba(255,255,255,0.52)", fontSize: "11px", fontWeight: 400, letterSpacing: "0.08em", textTransform: "uppercase", textDecoration: "none" }}>{f.industries}</Link>
               <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
                 {INDUSTRY_MENU.map((i) => (
                   <li key={i.slug}>
@@ -175,7 +182,7 @@ export default function SiteFooter() {
               </ul>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <Link href="/compare" style={{ color: "rgba(255,255,255,0.52)", fontSize: "11px", fontWeight: 400, letterSpacing: "0.08em", textTransform: "uppercase", textDecoration: "none" }}>Compare</Link>
+              <Link href="/compare" style={{ color: "rgba(255,255,255,0.52)", fontSize: "11px", fontWeight: 400, letterSpacing: "0.08em", textTransform: "uppercase", textDecoration: "none" }}>{f.compare}</Link>
               <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
                 {COMPETITOR_NAV.map((c) => (
                   <li key={c.slug}>
@@ -186,29 +193,30 @@ export default function SiteFooter() {
             </div>
           </nav>
           <div className="ar-footer-side" style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "32px" }}>
-            <VoicePartnerBadge />
-            <AskAI />
+            <VoicePartnerBadge label={f.voicePartner} />
+            <AskAI label={f.askAi} providerLabel={f.askAiProvider} />
           </div>
         </div>
       </div>
       <div style={{ padding: "20px 0" }}>
         <div className="ar-footer-row" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 40px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "20px", flexWrap: "wrap" }}>
-            <Link href="/" style={{ display: "flex", alignItems: "center", gap: "6px", textDecoration: "none", color: "#fff" }}>
+            <Link href={nav.home} style={{ display: "flex", alignItems: "center", gap: "6px", textDecoration: "none", color: "#fff" }}>
               <PauseLogo color="#fff" />
               <span style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontWeight: 500, fontSize: "16px", letterSpacing: "-0.02em" }}>AI RECEPTIONIST</span>
             </Link>
             <span style={{ color: "#fff", fontSize: "11px", fontWeight: 300 }}>© 2026 MeltFlex s. r. o.</span>
-            <Link href="/privacy-policy" style={{ color: "#fff", fontSize: "11px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.02em" }}>Data protection</Link>
-            <Link href="/terms-of-service" style={{ color: "#fff", fontSize: "11px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.02em" }}>Terms</Link>
+            <Link href={nav.privacyPolicy} style={{ color: "#fff", fontSize: "11px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.02em" }}>{f.dataProtection}</Link>
+            <Link href="/terms-of-service" style={{ color: "#fff", fontSize: "11px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.02em" }}>{f.terms}</Link>
+            <Link href="/support" style={{ color: "#fff", fontSize: "11px", fontWeight: 300, textDecoration: "none", letterSpacing: "0.02em" }}>{f.support}</Link>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <img src="/badges/leaf-left.svg" loading="lazy" alt="Laurel branch, left" width={7} height={20} style={{ height: "20px", width: "auto", filter: "brightness(0) invert(1)" }} />
+            <img src="/badges/leaf-left.svg" loading="lazy" alt="" width={7} height={20} style={{ height: "20px", width: "auto", filter: "brightness(0) invert(1)" }} />
             <span style={{ color: "#fff", fontSize: "11px", fontWeight: 300 }}>
-              <strong style={{ color: "#fff", fontWeight: 500 }}>GDPR</strong> compliant
+              {gdprBefore}<strong style={{ color: "#fff", fontWeight: 500 }}>{f.gdprMark}</strong>{gdprAfter}
             </span>
-            <img src="/badges/leaf-right.svg" loading="lazy" alt="Laurel branch, right" width={7} height={20} style={{ height: "20px", width: "auto", filter: "brightness(0) invert(1)" }} />
+            <img src="/badges/leaf-right.svg" loading="lazy" alt="" width={7} height={20} style={{ height: "20px", width: "auto", filter: "brightness(0) invert(1)" }} />
           </div>
         </div>
       </div>

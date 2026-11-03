@@ -66,7 +66,7 @@ export async function CalendarStep({
         {/* Providers to connect - all visible, no inner scroll. */}
         <div className="mt-4">
           {providers.length === 0 ? (
-            <p className="text-sm leading-relaxed text-neutral-400">{o.noProviders}</p>
+            <p className="text-sm leading-relaxed text-neutral-500">{o.noProviders}</p>
           ) : (
             <ul className="space-y-2">
               {providers.map((p) => {
@@ -83,7 +83,7 @@ export async function CalendarStep({
                       {p.name}
                     </p>
                     {isConnected ? (
-                      <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-600">
+                      <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
                         <Check className="h-3.5 w-3.5" />
                         {o.connectedBadge}
                       </span>

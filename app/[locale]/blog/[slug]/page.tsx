@@ -281,7 +281,7 @@ export default async function LocalizedBlogPostPage({
                     />
                   </div>
                   {post.heroCredit && (
-                    <figcaption className="mt-3 text-[13px] leading-6 text-[#999]">
+                    <figcaption className="mt-3 text-[13px] leading-6 text-[#6f6f6f]">
                       {post.heroCreditUrl ? (
                         <a
                           href={post.heroCreditUrl}
@@ -303,7 +303,7 @@ export default async function LocalizedBlogPostPage({
                     aria-label={copy.article.tableOfContents}
                     className="mb-10 border-y border-[#e5e5e5] py-5 lg:hidden"
                   >
-                    <p className="mb-3 text-[10px] font-semibold tracking-[0.08em] text-[#999] uppercase">
+                    <p className="mb-3 text-[10px] font-semibold tracking-[0.08em] text-[#6f6f6f] uppercase">
                       {copy.article.onThisPage}
                     </p>
                     <ol className="space-y-1.5 text-[13px]">
@@ -343,7 +343,7 @@ export default async function LocalizedBlogPostPage({
                           <span className="text-[15px] text-[#1D1D1D]">
                             {other.title}
                           </span>
-                          <span className="shrink-0 text-[11px] font-medium tracking-[0.06em] text-[#999] uppercase">
+                          <span className="shrink-0 text-[11px] font-medium tracking-[0.06em] text-[#6f6f6f] uppercase">
                             {other.tag}
                           </span>
                         </Link>
@@ -368,7 +368,7 @@ export default async function LocalizedBlogPostPage({
           </div>
         </div>
       </main>
-      <SiteFooter />
+      <SiteFooter ui={UI_COPY[locale]} nav={navHrefs(locale)} />
     </div>
   );
 }

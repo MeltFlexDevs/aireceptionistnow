@@ -60,6 +60,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${siteUrl}/answers`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${siteUrl}/privacy-policy`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${siteUrl}/terms-of-service`, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${siteUrl}/support`, changeFrequency: "yearly", priority: 0.3 },
   ];
 
   const comparePages: MetadataRoute.Sitemap = COMPETITORS.map((c) => ({

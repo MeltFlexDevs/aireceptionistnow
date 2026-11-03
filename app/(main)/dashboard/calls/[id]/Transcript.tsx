@@ -9,7 +9,7 @@ function elapsed(ms: number): string {
 
 // Renders originals; TranscriptView translates client-side into the current
 // dashboard locale, so this never blocks a server render on the model.
-export async function Transcript({ turns }: { turns: CallTurn[] }) {
+export async function Transcript({ turns, live }: { turns: CallTurn[]; live: boolean }) {
   const d = (await getDictionary()).calls.detail;
   return (
     <TranscriptView
@@ -20,6 +20,7 @@ export async function Transcript({ turns }: { turns: CallTurn[] }) {
         atLabel: turn.atLabel,
         elapsedTitle: d.elapsedIntoCall.replace("{time}", elapsed(turn.tsMs)),
       }))}
+      live={live}
     />
   );
 }

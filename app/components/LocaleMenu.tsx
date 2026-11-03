@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { MENU_ITEM_SELECTOR, onMenuKeyDown } from "@/lib/ui/menu-keys";
 
 // The one language menu, used by the dashboard topbar and the marketing header.
 //
@@ -57,6 +58,7 @@ export function LocaleMenu({
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -64,7 +66,10 @@ export function LocaleMenu({
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     }
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        setOpen(false);
+        buttonRef.current?.focus();
+      }
     }
     document.addEventListener("mousedown", onDown);
     document.addEventListener("keydown", onKey);
@@ -72,6 +77,11 @@ export function LocaleMenu({
       document.removeEventListener("mousedown", onDown);
       document.removeEventListener("keydown", onKey);
     };
+  }, [open]);
+
+  // Opening moves focus into the menu, so the arrow keys work at once.
+  useEffect(() => {
+    if (open) ref.current?.querySelector<HTMLElement>(MENU_ITEM_SELECTOR)?.focus();
   }, [open]);
 
   // A one-language control is clutter, not a feature.
@@ -93,8 +103,19 @@ export function LocaleMenu({
           setOpen((o) => !o);
           onOpen?.();
         }}
+        ref={buttonRef}
         onMouseEnter={onOpen}
         onFocus={onOpen}
+        onKeyDown={(e) => {
+          if (e.key !== "ArrowDown") return;
+          e.preventDefault();
+          if (open) {
+            ref.current?.querySelector<HTMLElement>(MENU_ITEM_SELECTOR)?.focus();
+          } else {
+            setOpen(true);
+            onOpen?.();
+          }
+        }}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={label}
@@ -111,9 +132,10 @@ export function LocaleMenu({
       {open && (
         <div
           role="menu"
+          onKeyDown={onMenuKeyDown}
           className="absolute right-0 z-50 mt-1 w-44 overflow-hidden rounded-xl border border-neutral-200 bg-white py-1 shadow-lg"
         >
-          <p className="px-3 pb-1 pt-1.5 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
+          <p className="px-3 pb-1 pt-1.5 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
             {label}
           </p>
           {items.map((item) =>
@@ -138,6 +160,7 @@ export function LocaleMenu({
                 aria-checked={item.current}
                 onClick={() => {
                   setOpen(false);
+                  buttonRef.current?.focus();
                   item.onSelect?.();
                 }}
                 className={itemClass(item.current)}

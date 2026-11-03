@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "../globals.css";
 import { AuthDialogProvider } from "../components/AuthDialog";
+import { UI_COPY } from "@/content/i18n/ui-registry";
+import { enUi } from "@/content/i18n/en/ui";
 import {
   siteUrl,
   siteName,
@@ -174,7 +176,7 @@ export default function RootShell({
             }),
           }}
         />
-        <AuthDialogProvider>{children}</AuthDialogProvider>
+        <AuthDialogProvider copy={(UI_COPY[lang as keyof typeof UI_COPY] ?? enUi).auth}>{children}</AuthDialogProvider>
       </body>
     </html>
   );

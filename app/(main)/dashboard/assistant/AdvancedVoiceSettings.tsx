@@ -61,7 +61,7 @@ function Slider({
         onChange={(e) => setValue(Number(e.target.value))}
         className="mt-2 w-full accent-neutral-900"
       />
-      <p className="mt-1 text-xs text-neutral-400">{hint}</p>
+      <p className="mt-1 text-xs text-neutral-500">{hint}</p>
     </div>
   );
 }
@@ -114,7 +114,7 @@ export function AdvancedVoiceSettings({
           <option value="fast">{t.assistants.voiceTierFast}</option>
           <option value="natural">{t.assistants.voiceTierNatural}</option>
         </select>
-        <p className="mt-1 text-xs text-neutral-400">{t.assistants.voiceTierHint}</p>
+        <p className="mt-1 text-xs text-neutral-500">{t.assistants.voiceTierHint}</p>
       </div>
 
       <div className="border-t border-neutral-100 pt-5">

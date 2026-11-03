@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import SiteHeader from "@/app/components/SiteHeader";
 import SiteFooter from "@/app/components/SiteFooter";
-import { siteUrl, siteName, getAuthor } from "@/lib/site";
+import { siteUrl, siteName, getAuthor, ogCardImage } from "@/lib/site";
 import { alternatesFor } from "@/lib/i18n/marketing/alternates";
 import { localeOptions } from "@/lib/i18n/marketing/switcher";
 import { posts, formatDate } from "./_posts";
@@ -25,12 +25,14 @@ export const metadata: Metadata = {
     type: "website",
     url: `${siteUrl}/blog`,
     siteName,
+    images: [ogCardImage],
   },
   // See pricing: an absent twitter block inherits the root homepage card.
   twitter: {
     card: "summary_large_image",
     title: `Blog · ${siteName}`,
     description,
+    images: [ogCardImage],
   },
 };
 
@@ -111,7 +113,7 @@ export default function BlogPage() {
               <p className="mb-4 line-clamp-3 flex-1 text-[14px] leading-[1.6] text-[#666]">
                 {post.description}
               </p>
-              <div className="flex items-center gap-3 text-[13px] text-[#999]">
+              <div className="flex items-center gap-3 text-[13px] text-[#6f6f6f]">
                 <time dateTime={post.date}>{formatDate(post.date)}</time>
                 <span className="size-[3px] rounded-full bg-[#ccc]" />
                 <span>{post.readingTime}</span>

@@ -5,6 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { memo, useEffect, useState, useSyncExternalStore, type CSSProperties } from "react";
 import { Logo, Grid, Phone, Bot, Gear, Sparkle, Calendar } from "../icons";
 import type { Activity } from "@/app/(main)/onboarding/LiveAvatar";
+import { isAwake } from "@/app/(main)/onboarding/presence";
 import { DeferredAvatar } from "./DeferredAvatar";
 
 // Brand re-renders on route/searchParams/state changes; the avatar itself only
@@ -33,6 +34,7 @@ function useReducedMotion(): boolean {
 import type { Mood } from "@/app/(main)/onboarding/personality";
 import { useT } from "@/lib/i18n/client";
 import type { Dictionary } from "@/lib/i18n/dictionaries/en";
+import { assistantsNavHref } from "@/lib/dashboard/assistant-nav";
 import { useShell } from "./ShellProviders";
 import { claimOnce } from "./once";
 
@@ -194,16 +196,27 @@ export function Brand() {
   // On sections without a prop of their own, the receptionist still works the
   // desk now and then: a call comes in, or a booking gets ticked off. A route
   // prop taking over clears any scene in progress (derived while rendering).
+  // The Calls page plays its call once on arrival and then hangs up: a call
+  // that never ended kept the voice light pulsing on every frame.
   const [idle, setIdle] = useState<Activity | null>(null);
+  const [callOver, setCallOver] = useState(false);
   const [prevRoute, setPrevRoute] = useState(routeActivity);
   if (prevRoute !== routeActivity) {
     setPrevRoute(routeActivity);
     if (idle) setIdle(null);
+    if (callOver) setCallOver(false);
   }
+  useEffect(() => {
+    // Under reduced motion the call is a still picture, so it can stay.
+    if (routeActivity !== "phone" || reduce) return;
+    const t = setTimeout(() => setCallOver(true), 7000);
+    return () => clearTimeout(t);
+  }, [routeActivity, reduce]);
   useEffect(() => {
     if (routeActivity || reduce) return;
     let done: ReturnType<typeof setTimeout>;
     const iv = setInterval(() => {
+      if (!isAwake()) return; // ambient: none while nobody is around
       setIdle(Math.random() < 0.6 ? "phone" : "calendar");
       done = setTimeout(() => setIdle(null), 5600);
     }, 12000 + Math.random() * 6000);
@@ -212,6 +225,7 @@ export function Brand() {
       clearTimeout(done);
     };
   }, [routeActivity, reduce]);
+  const deskActivity = routeActivity === "phone" && callOver ? null : routeActivity;
 
   const statusTitle = status === "online" ? t.home.online : status === "paused" ? t.home.paused : t.home.offline;
 
@@ -238,10 +252,11 @@ export function Brand() {
           <span>
             <LiveAvatarMemo
               mood={mood}
-              activity={onCall ? "phone" : (routeActivity ?? idle)}
+              activity={onCall ? "phone" : (deskActivity ?? idle)}
               nudge={nudge}
               celebrate={celebrate}
               className="h-[82%] w-[82%]"
+              label=""
             />
           </span>
         </div>
@@ -266,14 +281,11 @@ export function Brand() {
   );
 }
 
-/**
- * `onNavigate` lets the mobile drawer close itself. Help matters most here:
- * it changes no route, so without this the drawer would stay open and cover
- * the guide overlay it just opened.
- */
+/** `onNavigate` lets the mobile drawer close itself after a tap. */
 export function DashboardNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const nav = useT().nav;
+  const { assistant, assistantCount } = useShell();
 
   return (
     <nav className="mt-7 flex flex-1 flex-col gap-6">
@@ -281,7 +293,7 @@ export function DashboardNav({ onNavigate }: { onNavigate?: () => void }) {
         {NAV.map((item) => (
           <li key={item.href}>
             <NavLink
-              href={item.href}
+              href={item.href === "/dashboard/assistant" ? assistantsNavHref(assistantCount, assistant) : item.href}
               label={nav[item.label]}
               Icon={item.Icon}
               active={isActive(pathname, item.href)}

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Sign-in problem - AI Receptionist",
@@ -32,7 +31,11 @@ export default function AuthErrorPage() {
           a new one.
         </p>
       </div>
-      <Link
+      {/* A plain anchor on purpose: AuthDialogProvider reads ?auth=login once,
+          when it mounts, and a next/link soft navigation would leave it mounted
+          with the dialog closed. */}
+      {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+      <a
         href="/?auth=login"
         style={{
           display: "inline-flex",
@@ -48,7 +51,7 @@ export default function AuthErrorPage() {
         }}
       >
         Back to sign in
-      </Link>
+      </a>
     </main>
   );
 }

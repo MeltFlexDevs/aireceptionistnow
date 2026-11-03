@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import type { TransferHours } from "@/lib/call-engine/transfer-hours";
+import { hasNoOpenDay } from "@/lib/dashboard/transfer-hours-form";
 
 /**
  * The weekly window during which the receptionist may hand a caller to a human.
@@ -35,6 +36,7 @@ export interface TransferHoursLabels {
   fromLabel: string;
   toLabel: string;
   closedNote: string;
+  noDayNote: string;
   days: string[]; // 7 entries, Sunday first
 }
 
@@ -60,6 +62,14 @@ export function TransferHoursFields({
     Array.from({ length: 7 }, (_, i) => hours?.days[i] != null),
   );
 
+  const noDay = hasNoOpenDay(enabled, openDays);
+  // The first listed day carries the validity error, so the browser refuses the
+  // submit and points at the day list. Cleared as soon as a day is ticked.
+  const firstDayRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    firstDayRef.current?.setCustomValidity(noDay ? labels.noDayNote : "");
+  }, [noDay, labels.noDayNote]);
+
   const timezone = hours?.timezone || fallbackTimezone || "UTC";
 
   return (
@@ -69,7 +79,7 @@ export function TransferHoursFields({
           <span className="block text-sm font-medium text-neutral-800">
             {labels.scheduleTitle}
           </span>
-          <span className="block text-xs text-neutral-400">{labels.scheduleSub}</span>
+          <span className="block text-xs text-neutral-500">{labels.scheduleSub}</span>
         </span>
         <span className="shrink-0 text-xs font-medium text-neutral-500">
           {enabled ? labels.scheduledLabel : labels.alwaysLabel}
@@ -100,11 +110,12 @@ export function TransferHoursFields({
             const on = openDays[day];
             const win = hours?.days[day] ?? DEFAULT_WINDOW;
             return (
-              <div key={day} className="flex items-center gap-2">
+              <div key={day} className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
                 <label className="flex w-28 shrink-0 cursor-pointer items-center gap-2">
                   <input
                     type="checkbox"
                     name={names.day(day)}
+                    ref={day === DISPLAY_ORDER[0] ? firstDayRef : undefined}
                     checked={on}
                     onChange={(e) =>
                       setOpenDays((prev) => {
@@ -118,28 +129,35 @@ export function TransferHoursFields({
                   <span className="text-sm text-neutral-700">{labels.days[day]}</span>
                 </label>
 
-                <input
-                  type="time"
-                  name={names.start(day)}
-                  defaultValue={win.start}
-                  disabled={!on}
-                  aria-label={`${labels.days[day]} ${labels.fromLabel}`}
-                  className="w-28 rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-sm text-neutral-900 outline-none transition-colors focus:border-neutral-900 disabled:bg-neutral-50 disabled:text-neutral-300"
-                />
-                <span className="text-xs text-neutral-400">{labels.toLabel}</span>
-                <input
-                  type="time"
-                  name={names.end(day)}
-                  defaultValue={win.end}
-                  disabled={!on}
-                  aria-label={`${labels.days[day]} ${labels.toLabel}`}
-                  className="w-28 rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-sm text-neutral-900 outline-none transition-colors focus:border-neutral-900 disabled:bg-neutral-50 disabled:text-neutral-300"
-                />
+                <div className="flex min-w-[15rem] flex-1 items-center gap-2">
+                  <input
+                    type="time"
+                    name={names.start(day)}
+                    defaultValue={win.start}
+                    disabled={!on}
+                    aria-label={`${labels.days[day]} ${labels.fromLabel}`}
+                    className="min-w-0 flex-1 rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-sm text-neutral-900 outline-none transition-colors focus:border-neutral-900 disabled:bg-neutral-50 disabled:text-neutral-300"
+                  />
+                  <span className="shrink-0 text-xs text-neutral-500">{labels.toLabel}</span>
+                  <input
+                    type="time"
+                    name={names.end(day)}
+                    defaultValue={win.end}
+                    disabled={!on}
+                    aria-label={`${labels.days[day]} ${labels.toLabel}`}
+                    className="min-w-0 flex-1 rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-sm text-neutral-900 outline-none transition-colors focus:border-neutral-900 disabled:bg-neutral-50 disabled:text-neutral-300"
+                  />
+                </div>
               </div>
             );
           })}
 
-          <p className="pt-1 text-xs text-neutral-400">{labels.closedNote}</p>
+          {noDay && (
+            <p role="alert" className="pt-1 text-xs font-medium text-rose-700">
+              {labels.noDayNote}
+            </p>
+          )}
+          <p className="pt-1 text-xs text-neutral-500">{labels.closedNote}</p>
         </div>
       )}
     </div>

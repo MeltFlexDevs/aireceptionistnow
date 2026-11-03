@@ -1,5 +1,6 @@
 import { serviceClient } from "./supabase";
 import type { KnowledgeSource } from "@/lib/knowledge/sources";
+import { updateWithRetry } from "@/lib/onboarding/config-cas";
 
 // Persistence for the /onboarding funnel. The funnel only collects config;
 // nothing is provisioned until payment lands (lib/dashboard/provision.ts).
@@ -50,6 +51,22 @@ export interface OnboardingResult {
   /** The number is imported into ElevenLabs and answering. */
   routed?: boolean;
   error?: string;
+  /** Provisioned on a store sandbox purchase (App Review, TestFlight): the
+   *  assistant exists but no live phone number was bought for it. */
+  sandbox?: boolean;
+}
+
+/**
+ * Whether provisionOnboarding must stand down because the account already has
+ * assistants that this run did not create. A web customer who owns assistants
+ * can still carry an abandoned funnel draft; buying from the app's paywall
+ * then re-enters provisioning, and without this guard it would create a second
+ * organization, assistant, agent and Twilio number. A checkpointed assistantId
+ * means the assistants are this run's own (a resumed partial run), so it
+ * proceeds.
+ */
+export function shouldSkipProvisioning(result: OnboardingResult, assistantCount: number): boolean {
+  return !result.assistantId && assistantCount > 0;
 }
 
 export interface OnboardingProfile {
@@ -89,6 +106,7 @@ export function provisionLeaseExpired(profile: OnboardingProfile): boolean {
 
 // Merge a patch into config. The row is single-writer (its own user walking
 // the funnel), so read-merge-write is safe enough here.
+// Writes that build on the list they read use updateOnboardingConfig.
 export async function saveOnboardingConfig(
   userId: string,
   patch: Partial<OnboardingConfig>,
@@ -108,6 +126,51 @@ export async function saveOnboardingConfig(
       { onConflict: "user_id" },
     );
   if (error) throw error;
+}
+
+// Change config from its current value, with compare-and-swap on updated_at:
+// the write only lands if the row is unchanged since the read, otherwise it
+// reads again (lib/onboarding/config-cas.ts). For writes that build on what
+// they read, such as adding or removing a source: two parallel adds read the
+// same list, and a plain write keeps only the later one.
+export async function updateOnboardingConfig(
+  userId: string,
+  change: (config: OnboardingConfig) => OnboardingConfig,
+  step?: number,
+): Promise<void> {
+  let prevStep = 0;
+  await updateWithRetry<OnboardingConfig>(
+    async () => {
+      const existing = await readProfileStrict(userId);
+      prevStep = existing?.step ?? 0;
+      return { value: existing?.config ?? {}, version: existing?.updated_at ?? null };
+    },
+    async (config, version) => {
+      const row = {
+        config,
+        step: Math.max(prevStep, step ?? 0),
+        updated_at: new Date().toISOString(),
+      };
+      if (version === null) {
+        // No row yet. A parallel insert that won shows as a unique violation.
+        const { error } = await serviceClient()
+          .from("onboarding_profiles")
+          .insert({ user_id: userId, ...row });
+        if (error?.code === "23505") return false;
+        if (error) throw error;
+        return true;
+      }
+      const { data, error } = await serviceClient()
+        .from("onboarding_profiles")
+        .update(row)
+        .eq("user_id", userId)
+        .eq("updated_at", version)
+        .select("user_id");
+      if (error) throw error;
+      return (data?.length ?? 0) > 0;
+    },
+    change,
+  );
 }
 
 // Claim the profile for provisioning. Conditional update so a webhook and a

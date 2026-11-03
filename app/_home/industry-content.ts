@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { siteUrl, siteName } from "@/lib/site";
+import { ogCardImage, siteUrl, siteName } from "@/lib/site";
 import type { HomeCopy } from "@/content/i18n/_home-copy";
 import { enHome } from "@/content/i18n/en/pages/home";
 import type { IndustrySlug } from "@/lib/marketing/industries";
@@ -877,13 +877,13 @@ export function industryMetadata(slug: IndustrySlug): Metadata {
       type: "website",
       url,
       siteName,
-      images: [{ url: `${siteUrl}/opengraph-image.png`, width: 1200, height: 630, alt: c.title }],
+      images: [ogCardImage],
     },
     twitter: {
       card: "summary_large_image",
       title: c.title,
       description: c.description,
-      images: [`${siteUrl}/opengraph-image.png`],
+      images: [ogCardImage],
     },
   };
 }

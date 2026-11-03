@@ -158,3 +158,12 @@ export function useI18n(): I18n {
 export function useT(): Dictionary {
   return useI18n().t;
 }
+
+/**
+ * Like useT(), but null outside an I18nProvider instead of throwing. For
+ * shared components that also render on marketing pages, which have no
+ * provider and keep an English fallback.
+ */
+export function useOptionalT(): Dictionary | null {
+  return use(Ctx)?.t ?? null;
+}

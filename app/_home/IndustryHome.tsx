@@ -1,5 +1,7 @@
 import { INDUSTRY_MENU, type IndustrySlug } from "@/lib/marketing/industries";
 import { siteUrl } from "@/lib/site";
+import SiteHeader from "@/app/components/SiteHeader";
+import SiteFooter from "@/app/components/SiteFooter";
 import HomeClient from "./HomeClient";
 import { industryHomeCopy, INDUSTRY_CONTENT } from "./industry-content";
 import { IndustryResources } from "./IndustryResources";
@@ -8,7 +10,7 @@ import { IndustryBrief } from "./IndustryBrief";
 // An industry landing page IS the home page with its prose swapped: the same
 // HomeClient, the same layout, fed an industry-specific copy object. Rendered
 // from a server component so the copy is built on the server and passed down as
-// plain data. localeOptions is empty because these pages are English-only for
+// plain data. The header has no locale options because these pages are English-only for
 // now (no localized variants to switch to).
 //
 // It adds two things HomeClient does not carry: a "Related resources" module
@@ -50,7 +52,8 @@ export function IndustryHome({ slug }: { slug: IndustrySlug }) {
       />
       <HomeClient
         copy={industryHomeCopy(slug)}
-        localeOptions={[]}
+        header={<SiteHeader />}
+        footer={<SiteFooter />}
         industryBrief={<IndustryBrief slug={slug} />}
         relatedResources={<IndustryResources slug={slug} />}
       />

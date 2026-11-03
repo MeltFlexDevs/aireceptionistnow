@@ -165,7 +165,7 @@ export function VoicePicker({
                   {o.defaultVoice}
                 </span>
               )}
-              <span className="hidden truncate text-xs text-neutral-400 sm:inline">
+              <span className="hidden truncate text-xs text-neutral-500 sm:inline">
                 {voiceDisplay(current, o[voicePersonality(current.name, current.description).tone]).tag}
               </span>
             </>
@@ -269,7 +269,7 @@ export function VoicePicker({
             })}
 
             {loading && (
-              <p className="flex items-center justify-center gap-2 py-3 text-xs text-neutral-400">
+              <p className="flex items-center justify-center gap-2 py-3 text-xs text-neutral-500">
                 <svg className="animate-spin" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
                   <path d="M21 12a9 9 0 1 1-6.219-8.56" strokeLinecap="round" />
                 </svg>
@@ -277,7 +277,7 @@ export function VoicePicker({
               </p>
             )}
             {!loading && filtered.length === 0 && (
-              <p className="py-4 text-center text-xs text-neutral-400">{t.common.noMatches}</p>
+              <p className="py-4 text-center text-xs text-neutral-500">{t.common.noMatches}</p>
             )}
               </div>
             </div>

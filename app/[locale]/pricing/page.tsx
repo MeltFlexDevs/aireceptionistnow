@@ -15,6 +15,8 @@ import { localeOptions } from "@/lib/i18n/marketing/switcher";
 import { navHrefs } from "@/lib/i18n/marketing/href";
 import { PRICING_COPY } from "@/content/i18n/pricing-registry";
 import { UI_COPY } from "@/content/i18n/ui-registry";
+import SiteHeader from "@/app/components/SiteHeader";
+import SiteFooter from "@/app/components/SiteFooter";
 import PricingClient from "@/app/(main)/pricing/PricingClient";
 
 // Gated per locale exactly like the home route. A locale whose pricing page is
@@ -102,10 +104,16 @@ export default async function LocalizedPricing({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareJsonLd) }}
       />
       <PricingClient
-        localeOptions={localeOptions("pricing", locale)}
+        header={
+          <SiteHeader
+            localeOptions={localeOptions("pricing", locale)}
+            ui={UI_COPY[locale]}
+            nav={navHrefs(locale)}
+          />
+        }
+        footer={<SiteFooter ui={UI_COPY[locale]} nav={navHrefs(locale)} />}
         copy={copy}
-        ui={UI_COPY[locale]}
-        nav={navHrefs(locale)}
+        locale={locale}
       />
     </>
   );

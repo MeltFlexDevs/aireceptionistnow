@@ -69,6 +69,7 @@ export function CallFilters({ q }: Props) {
         value={text}
         onChange={(e) => setText(e.target.value)}
         placeholder={t.calls.searchPlaceholder}
+        aria-label={t.calls.searchPlaceholder}
         className="h-10 w-full rounded-lg bg-white pl-9 pr-9 text-sm text-neutral-700 border border-neutral-200 outline-none placeholder:text-neutral-400 focus:ring-2 focus:ring-neutral-300"
       />
       {text && (

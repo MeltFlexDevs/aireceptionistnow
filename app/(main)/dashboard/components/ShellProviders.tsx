@@ -1,7 +1,6 @@
 "use client";
 
 import { createContext, use, useMemo, type ReactNode } from "react";
-import { GuideProvider } from "./guide-context";
 
 /**
  * Operational state of the receptionist, shown as a coloured dot on the avatar:
@@ -18,13 +17,15 @@ export interface ShellState {
   /** Drives the one-off celebrate pulse on the first call / first booking. */
   hasCalls: boolean;
   hasBookings: boolean;
+  /** How many assistants exist; with exactly 1 the sidebar links straight to it. */
+  assistantCount: number;
 }
 
 const Ctx = createContext<ShellState | null>(null);
 
 /**
  * Shell-wide state for the two places <Brand /> renders (sidebar and mobile
- * drawer), plus the guide overlay. Context rather than prop-drilling because
+ * drawer). Context rather than prop-drilling because
  * Topbar - which renders MobileNav - has no use for any of this and would only
  * forward it.
  *
@@ -37,11 +38,11 @@ export function ShellProviders({ shell, children }: { shell: ShellState; childre
   const value = useMemo(
     () => shell,
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [shell.status, shell.number, shell.assistant?.id, shell.assistant?.enabled, shell.hasCalls, shell.hasBookings],
+    [shell.status, shell.number, shell.assistant?.id, shell.assistant?.enabled, shell.hasCalls, shell.hasBookings, shell.assistantCount],
   );
   return (
     <Ctx.Provider value={value}>
-      <GuideProvider>{children}</GuideProvider>
+      {children}
     </Ctx.Provider>
   );
 }

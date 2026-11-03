@@ -1,12 +1,14 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 import Link from "next/link";
 import { PLANS, annualAmountCents, type BillingCycle } from "@/lib/plans";
 import { NUMBER_COUNTRIES } from "@/lib/number-pricing";
-import { useT } from "@/lib/i18n/client";
+import { useI18n } from "@/lib/i18n/client";
 import { Check, Spinner } from "@/app/(main)/dashboard/icons";
 import { setNumberCountryAction } from "../actions";
+import { openBillingPortal } from "@/lib/billing-client";
+import { loginHomePath } from "@/lib/i18n/marketing/login-redirect";
 
 const eur = (cents: number) =>
   new Intl.NumberFormat("en-IE", {
@@ -24,7 +26,7 @@ export function PlanStep({
   assistantName: string;
   companyName: string;
 }) {
-  const t = useT();
+  const { t, locale } = useI18n();
   const o = t.onboarding;
   const [cycle, setCycle] = useState<BillingCycle>("monthly");
   const [loading, setLoading] = useState<string | null>(null);
@@ -34,6 +36,11 @@ export function PlanStep({
   // rejects the request without it anyway.
   const [accepted, setAccepted] = useState(false);
   const termsId = useId();
+  const termsErrorId = `${termsId}-error`;
+  const termsRef = useRef<HTMLInputElement>(null);
+  // Shown under the Terms box when Go live is clicked unticked. The buttons stay
+  // enabled so touch and keyboard users get this reason, not a dead button.
+  const [termsError, setTermsError] = useState(false);
 
   const name = assistantName.trim();
   const company = companyName.trim();
@@ -47,7 +54,8 @@ export function PlanStep({
 
   async function choose(planId: string) {
     if (!accepted) {
-      setError(o.termsRequired);
+      setTermsError(true);
+      termsRef.current?.focus();
       return;
     }
     setLoading(planId);
@@ -65,12 +73,27 @@ export function PlanStep({
         }),
       });
       if (res.status === 401) {
+        // <html lang> is the dashboard locale (I18nProvider), so the dialog opens
+        // on the matching localized home.
+        const home = loginHomePath({ cookieLocale: document.documentElement.lang });
         window.location.assign(
-          `/?auth=login&next=${encodeURIComponent("/onboarding?step=plan")}`,
+          `${home}?auth=login&next=${encodeURIComponent("/onboarding?step=plan")}`,
         );
         return;
       }
-      const data = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
+      const data = (await res.json().catch(() => ({}))) as {
+        url?: string;
+        error?: string;
+        portal?: boolean;
+      };
+      if (res.status === 409 && data.portal === true) {
+        // Stripe still bills this account (past_due, unpaid): a plan change goes
+        // through the Billing Portal, as in startCheckout (lib/billing-client.ts).
+        await openBillingPortal().catch(() => {
+          throw new Error(t.settings.manageBillingError);
+        });
+        return;
+      }
       if (!res.ok || !data.url) throw new Error(data.error || o.checkoutError);
       window.location.assign(data.url);
     } catch (err) {
@@ -121,7 +144,7 @@ export function PlanStep({
             </select>
             <Chevron className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
           </div>
-          <p className="mt-1.5 text-xs text-neutral-400">{o.numberChangeHint}</p>
+          <p className="mt-1.5 text-xs text-neutral-500">{o.numberChangeHint}</p>
         </div>
       </div>
 
@@ -137,7 +160,7 @@ export function PlanStep({
           >
             {c === "monthly" ? o.monthly : o.annual}
             {c === "annual" && (
-              <span className={`ml-1.5 text-[11px] ${cycle === c ? "text-neutral-300" : "text-emerald-600"}`}>
+              <span className={`ml-1.5 text-[11px] ${cycle === c ? "text-neutral-300" : "text-emerald-700"}`}>
                 {o.save15}
               </span>
             )}
@@ -160,12 +183,15 @@ export function PlanStep({
           className="flex cursor-pointer items-start gap-2.5 text-sm leading-relaxed text-neutral-600"
         >
           <input
+            ref={termsRef}
             id={termsId}
             type="checkbox"
             checked={accepted}
+            aria-invalid={termsError || undefined}
+            aria-describedby={termsError ? termsErrorId : undefined}
             onChange={(e) => {
               setAccepted(e.target.checked);
-              if (e.target.checked) setError(null);
+              if (e.target.checked) setTermsError(false);
             }}
             className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded border-neutral-300 accent-neutral-900"
           />
@@ -191,6 +217,11 @@ export function PlanStep({
             {o.termsAgreeSuffix}
           </span>
         </label>
+        {termsError && (
+          <p id={termsErrorId} role="alert" className="mt-1.5 text-sm text-rose-600">
+            {o.termsRequired}
+          </p>
+        )}
       </div>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -200,7 +231,7 @@ export function PlanStep({
               ? Math.round(annualAmountCents(plan.monthlyAmountCents) / 12)
               : plan.monthlyAmountCents;
           const feats = [
-            `${plan.limits.minutesIncluded.toLocaleString()} ${o.featMinutes}`,
+            `${plan.limits.minutesIncluded.toLocaleString(locale)} ${o.featMinutes}`,
             `${plan.limits.phoneNumbers} ${o.featNumbers}`,
             `${plan.limits.concurrentCalls} ${o.featConcurrent}`,
             ...plan.features,
@@ -236,9 +267,8 @@ export function PlanStep({
               <button
                 type="button"
                 onClick={() => choose(plan.id)}
-                disabled={loading !== null || !accepted}
+                disabled={loading !== null}
                 aria-busy={loading === plan.id}
-                title={!accepted ? o.termsRequired : undefined}
                 className="press mt-5 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-neutral-900 text-sm font-medium text-white hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {loading === plan.id && <Spinner className="h-4 w-4 animate-spin" />}

@@ -6,17 +6,19 @@ import { currentUserId } from "@/lib/auth";
 import { authConfigured, devDashboardBypass } from "@/lib/supabase/config";
 import { listAssistants, getOwnedNumbers, listIntegrations, type Assistant } from "@/lib/dashboard/db";
 import { listBookings, type Booking } from "@/lib/dashboard/calendar";
-import { ownerTimezone } from "@/lib/dashboard/timezone";
+import { displayTimezone } from "@/lib/dashboard/display-timezone";
 import { formatPhone } from "@/lib/call-engine/voice/phone-language";
 import { getOnboardingProfile } from "@/lib/dashboard/onboarding-profile";
 import { getPlanContextCached } from "@/lib/dashboard/plan";
 import { relTimeFrom } from "@/lib/dashboard/rel-time";
+import { callOutcomeLabel } from "@/lib/dashboard/calls/format";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
+import { localizedHref } from "@/lib/i18n/marketing/href";
 import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 import { SectionCard } from "./components/SectionCard";
 import { ActivityFeed, type ActivityRow } from "./components/ActivityFeed";
 import { UpcomingAppointments } from "./components/UpcomingAppointments";
-import { AssistantPowerToggle } from "./components/AssistantPowerToggle";
+import { HomeStatusBand } from "./components/HomeStatusBand";
 import { BarChart } from "./components/BarChart";
 import { DonutChart } from "./components/DonutChart";
 import { Skeleton } from "./components/Skeleton";
@@ -25,10 +27,12 @@ import { AiAvatar } from "@/app/(main)/onboarding/AiAvatar";
 
 export const dynamic = "force-dynamic";
 
-// The one-screen cap. 7rem below lg (h-16 topbar + py-6), 8rem at lg where the
-// main padding grows to py-8. Mirrored by OverviewSkeleton so hydration does
-// not jump.
-const CAP = "md:h-[calc(100dvh-7rem)] md:overflow-hidden lg:h-[calc(100dvh-8rem)]";
+// The one-screen cap, at lg only (8rem = h-16 topbar + py-8). It never goes
+// below 48rem: on short windows (1280x720, 1366x768) the cards were squeezed
+// until the upcoming list ran under Plan usage, so there the page scrolls a
+// little instead. Below lg the cards sit in one column and the page flows,
+// as on a phone. Mirrored by OverviewSkeleton so hydration does not jump.
+const CAP = "lg:h-[max(100dvh_-_8rem,48rem)] lg:overflow-hidden";
 
 function OverviewSkeleton() {
   return (
@@ -84,12 +88,12 @@ function PlanMeter({
   return (
     <div>
       <div className="flex items-center justify-between gap-3 text-sm">
-        <dt className="text-neutral-500">{label}</dt>
-        <dd className="font-medium tabular-nums text-neutral-900">
+        <span className="text-neutral-500">{label}</span>
+        <span className="font-medium tabular-nums text-neutral-900">
           {used}
           {capped ? ` / ${limit}` : ""}
           {unit ? ` ${unit}` : ""}
-        </dd>
+        </span>
       </div>
       {capped && (
         <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-neutral-100">
@@ -116,25 +120,6 @@ function Tile({ label, value, alert }: { label: string; value: number | string; 
       </p>
     </div>
   );
-}
-
-// Raw DB outcome -> localized headline. analytics.ts deliberately leaves the
-// value alone (its cache has no locale in the key), so the mapping lives here.
-function outcomeLabel(outcome: string | null, d: Dictionary["data"]): string {
-  switch (outcome) {
-    case "booked":
-      return d.outcomeBooked;
-    case "message":
-      return d.outcomeMessage;
-    case "transferred":
-      return d.outcomeTransferred;
-    case "resolved":
-      return d.outcomeResolved;
-    case "abandoned":
-      return d.outcomeAbandoned;
-    default:
-      return d.outcomeUnknown;
-  }
 }
 
 function sentimentLabel(seg: Segment, d: Dictionary["data"]): string {
@@ -165,35 +150,46 @@ export default async function OverviewPage({
   // "Dev: continue to dashboard" shortcut lands here instead of bouncing back -
   // works for both the guest Workspace user and a real signed-in dev account.
   const ownerId = await currentUserId();
+  let setupFailed = false;
   if (authConfigured() && ownerId && !devDashboardBypass()) {
     const [assistants, profile] = await Promise.all([
       listAssistants(ownerId).catch(() => []),
       getOnboardingProfile(ownerId),
     ]);
-    if (assistants.length === 0 && profile?.status !== "done") redirect("/onboarding");
+    // A failed setup still counts as done (owner decision): let the owner in,
+    // and the banner below offers the retry.
+    if (assistants.length === 0 && profile?.status !== "done" && profile?.status !== "error") {
+      redirect("/onboarding");
+    }
+    setupFailed = profile?.status === "error";
   }
 
   const [t, sp] = await Promise.all([getDictionary(), searchParams]);
   const month = sp.range === "month";
   return (
-    <Suspense key={month ? "month" : "today"} fallback={<OverviewSkeleton />}>
-      <OverviewBody t={t} month={month} />
-    </Suspense>
+    <>
+      <h1 className="sr-only">{t.nav.overview}</h1>
+      <Suspense key={month ? "month" : "today"} fallback={<OverviewSkeleton />}>
+        <OverviewBody t={t} month={month} setupFailed={setupFailed} />
+      </Suspense>
+    </>
   );
 }
 
-async function OverviewBody({ t, month }: { t: Dictionary; month: boolean }) {
+async function OverviewBody({ t, month, setupFailed }: { t: Dictionary; month: boolean; setupFailed: boolean }) {
   const o = t.overview;
   const h = t.home;
   const ownerId = await currentUserId();
-  const [data, analytics, assistants, numbers, integrations, plan, locale, tz, bookings] =
+  // Account zone, else the browser zone (TimezoneSync), else UTC. Display only.
+  const tz = await displayTimezone(ownerId).catch(() => "UTC");
+  const [data, analytics, assistants, numbers, integrations, plan, locale, bookings] =
     await Promise.all([
-      getOverviewCached(ownerId).catch((err: Error) => {
+      getOverviewCached(ownerId, tz).catch((err: Error) => {
         console.error("[overview] load failed", err);
         return null;
       }),
       // Only the month view needs the 30-day rollup; today's view skips the query.
-      month ? getAnalyticsCached(ownerId).catch(() => null) : Promise.resolve(null),
+      month ? getAnalyticsCached(ownerId, null, null, tz).catch(() => null) : Promise.resolve(null),
       listAssistants(ownerId ?? undefined).catch(() => [] as Assistant[]),
       ownerId ? getOwnedNumbers(ownerId).catch(() => []) : Promise.resolve([]),
       ownerId ? listIntegrations(ownerId).catch(() => []) : Promise.resolve([]),
@@ -201,7 +197,6 @@ async function OverviewBody({ t, month }: { t: Dictionary; month: boolean }) {
       getLocale(),
       // Upcoming appointments used to fetch these inside its own render, which
       // serialized a DB round trip behind this batch; run them here in parallel.
-      ownerTimezone(ownerId),
       listBookings(ownerId ?? undefined).catch(() => [] as Booking[]),
     ]);
 
@@ -212,9 +207,33 @@ async function OverviewBody({ t, month }: { t: Dictionary; month: boolean }) {
   const assistantNumber = numbers[0]?.e164 ?? "";
   const calendarConnected = integrations.some((i) => i.type === "calendar" && i.enabled);
 
+  // Shown in both returns: a failed overview load must still offer the retry.
+  const setupBanner = setupFailed ? (
+    <div
+      role="status"
+      className="shape-card flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2 border border-rose-200 bg-rose-50 px-5 py-3 text-sm text-rose-800"
+    >
+      <span className="font-medium">{t.onboarding.errorTitle}</span>
+      <span>{t.onboarding.errorNotLive}</span>
+      <span className="ml-auto flex items-center gap-3">
+        {/* The go view re-runs provisioning on mount: that is the retry. */}
+        <Link
+          href="/onboarding?step=go"
+          className="press inline-flex h-8 items-center rounded-full bg-neutral-900 px-3.5 text-[13px] font-medium text-white hover:bg-neutral-800"
+        >
+          {t.onboarding.retry}
+        </Link>
+        <Link href="/support" className="text-[13px] font-medium underline underline-offset-4 hover:text-rose-900">
+          {t.onboarding.errorSupport}
+        </Link>
+      </span>
+    </div>
+  ) : null;
+
   if (!data) {
     return (
       <div className="rise space-y-6">
+        {setupBanner}
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
           {o.loadError}.
         </div>
@@ -222,47 +241,31 @@ async function OverviewBody({ t, month }: { t: Dictionary; month: boolean }) {
     );
   }
 
-  // Status band. Same extended rule as the shell: no receptionist or no number
-  // means nobody is answering, whatever the enabled flag says.
-  const offline = !assistant || !assistantNumber;
-  const statusText = offline
-    ? h.statusNoNumber
-    : online
-      ? h.statusAnsweringAt.replace("{number}", formatPhone(assistantNumber))
-      : h.statusPaused;
-
+  // Status band: the client component keeps the dot, the headline and the
+  // Pause/Resume button on one optimistic state. Pausing "the receptionist"
+  // is only unambiguous with exactly one.
   const statusBand = (
-    <div className="shape-card glass flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2.5 px-5 py-3.5">
-      <p className="flex min-w-0 items-center gap-2.5 text-sm font-medium text-neutral-900">
-        <span
-          aria-hidden
-          className={`h-2.5 w-2.5 shrink-0 rounded-full ${
-            offline ? "bg-rose-500" : online ? "bg-emerald-500" : "bg-amber-500"
-          }`}
-        />
-        <span className="truncate">{statusText}</span>
-      </p>
-      <div className="ml-auto flex items-center gap-2">
-        {/* Pausing "the receptionist" is only unambiguous with exactly one. */}
-        {assistant && assistants.length === 1 && (
-          <AssistantPowerToggle
-            id={assistant.id}
-            enabled={assistant.enabled}
-            pauseLabel={h.pause}
-            resumeLabel={h.resume}
-          />
-        )}
-        {assistantNumber && (
-          <a
-            href={`tel:${assistantNumber}`}
-            className="press inline-flex h-8 items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-3.5 text-[13px] font-medium text-neutral-700 hover:border-neutral-400 hover:text-neutral-900"
-          >
-            <Phone className="h-3.5 w-3.5" />
-            {h.callToTry}
-          </a>
-        )}
-      </div>
-    </div>
+    <HomeStatusBand
+      toggleId={assistant && assistants.length === 1 ? assistant.id : null}
+      enabled={online}
+      hasAssistant={!!assistant}
+      hasNumber={!!assistantNumber}
+      answeringText={h.statusAnsweringAt.replace("{number}", formatPhone(assistantNumber))}
+      pausedText={h.statusPaused}
+      noNumberText={h.statusNoNumber}
+      pauseLabel={h.pause}
+      resumeLabel={h.resume}
+    >
+      {assistantNumber && (
+        <a
+          href={`tel:${assistantNumber}`}
+          className="press inline-flex h-8 items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-3.5 text-[13px] font-medium text-neutral-700 hover:border-neutral-400 hover:text-neutral-900"
+        >
+          <Phone className="h-3.5 w-3.5" />
+          {h.callToTry}
+        </a>
+      )}
+    </HomeStatusBand>
   );
 
   const rangeToggle = (
@@ -319,7 +322,7 @@ async function OverviewBody({ t, month }: { t: Dictionary; month: boolean }) {
   if (!calendarConnected)
     issues.push({ level: "amber", text: o.issueNoCalendar, action: o.fixConnectCalendar, href: "/dashboard/calendar" });
   if (minutesIncluded > 0 && minutesUsed / minutesIncluded >= 0.9)
-    issues.push({ level: "amber", text: o.issueMinutes, action: o.fixMinutes, href: "/pricing" });
+    issues.push({ level: "amber", text: o.issueMinutes, action: o.fixMinutes, href: localizedHref(locale, "pricing") });
 
   const needsAttention = (
     <SectionCard title={o.needsAttention} className="shrink-0">
@@ -341,7 +344,7 @@ async function OverviewBody({ t, month }: { t: Dictionary; month: boolean }) {
                   aria-hidden
                 />
                 <span className="min-w-0 flex-1 truncate">{issue.text}</span>
-                <span className="shrink-0 text-xs font-medium text-neutral-400">{issue.action} →</span>
+                <span className="shrink-0 text-xs font-medium text-neutral-500">{issue.action} →</span>
               </Link>
             </li>
           ))}
@@ -352,8 +355,8 @@ async function OverviewBody({ t, month }: { t: Dictionary; month: boolean }) {
 
   const rows: ActivityRow[] = data.recentCalls.map((c) => ({
     id: c.id,
-    headline: outcomeLabel(c.outcome, t.data),
-    caller: c.name,
+    headline: callOutcomeLabel(t.data, c.status, c.outcome, c.startedAt),
+    caller: c.name ? formatPhone(c.name) : t.data.unknownCaller,
     when: relTimeFrom(c.agoMinutes, locale),
     href: `/dashboard/calls?selected=${c.id}`,
   }));
@@ -381,7 +384,7 @@ async function OverviewBody({ t, month }: { t: Dictionary; month: boolean }) {
         className="flex min-h-0 flex-col lg:col-span-2"
         bodyClassName="flex min-h-0 flex-1 flex-col items-center justify-center text-center"
       >
-        <AiAvatar mood="greeting" className="h-20 w-20" />
+        <AiAvatar mood="greeting" className="h-20 w-20" label="" />
         <h2 className="mt-4 text-base font-semibold text-neutral-900">{o.noCallsTitle}</h2>
         <p className="mt-1.5 max-w-sm text-sm leading-relaxed text-neutral-500">{o.noCallsBody}</p>
         {assistantNumber && (
@@ -406,7 +409,7 @@ async function OverviewBody({ t, month }: { t: Dictionary; month: boolean }) {
   const monthPanel = (
     <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto lg:col-span-2">
       <SectionCard title={t.analytics.callVolume} subtitle={t.analytics.callVolumeSub} className="shrink-0">
-        <BarChart data={analytics?.volume ?? []} countTemplate={t.data.callsCount} />
+        <BarChart data={analytics?.volume ?? []} countForms={t.data.callsCount} locale={locale} />
       </SectionCard>
       <SectionCard title={o.howCallersFelt} className="shrink-0">
         {analytics && analytics.sentiment.length > 0 ? (
@@ -424,6 +427,7 @@ async function OverviewBody({ t, month }: { t: Dictionary; month: boolean }) {
 
   return (
     <div className={`rise flex flex-col gap-3 ${CAP}`}>
+      {setupBanner}
       {statusBand}
       {/* Latency is the one quality problem that never announces itself: calls
           still complete, summaries still read fine, and the only symptom is
@@ -448,7 +452,7 @@ async function OverviewBody({ t, month }: { t: Dictionary; month: boolean }) {
           <SectionCard
             title={o.upcoming}
             className="flex min-h-0 flex-1 flex-col"
-            bodyClassName="min-h-0 flex-1"
+            bodyClassName="min-h-0 flex-1 overflow-y-auto"
             action={
               <Link
                 href="/dashboard/calendar"
@@ -469,7 +473,7 @@ async function OverviewBody({ t, month }: { t: Dictionary; month: boolean }) {
                   href="/dashboard/settings"
                   className="text-xs font-medium text-neutral-500 transition-colors hover:text-neutral-900"
                 >
-                  {plan.planName}
+                  {plan.planId ? plan.planName : t.settings.noPlan}
                 </Link>
               }
             >

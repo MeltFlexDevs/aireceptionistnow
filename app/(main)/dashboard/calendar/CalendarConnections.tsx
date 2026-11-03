@@ -21,6 +21,8 @@ export interface ConnectableProvider {
   id: string;
   name: string;
   href: string;
+  /** False when the server has no OAuth app for this provider: Connect is disabled. */
+  available: boolean;
 }
 
 const ROW = "rounded-xl border border-neutral-200/70 bg-white/60 p-3";
@@ -114,19 +116,35 @@ function ConnectedRow({ row, showPrimary }: { row: CalendarRow; showPrimary: boo
   );
 }
 
-/** A provider you haven't linked yet: name plus its OAuth "Connect" entry point. */
+/** A provider you haven't linked yet: name plus its OAuth "Connect" entry point (disabled when the server cannot connect it). */
 function ConnectRow({ provider }: { provider: ConnectableProvider }) {
   const t = useT();
   return (
     <li className={`${ROW} flex flex-wrap items-center gap-x-2 gap-y-1`}>
       <ProviderIcon id={provider.id} />
       <span className="text-sm font-medium text-neutral-900">{provider.name}</span>
-      <a
-        href={provider.href}
-        className="press ml-auto inline-flex h-8 shrink-0 items-center rounded-lg border border-neutral-200 bg-white px-3 text-xs font-medium text-neutral-700 hover:bg-neutral-50"
-      >
-        {t.common.connect}
-      </a>
+      {provider.available ? (
+        <a
+          href={provider.href}
+          className="press ml-auto inline-flex h-8 shrink-0 items-center rounded-lg border border-neutral-200 bg-white px-3 text-xs font-medium text-neutral-700 hover:bg-neutral-50"
+        >
+          {t.common.connect}
+        </a>
+      ) : (
+        <>
+          <button
+            type="button"
+            disabled
+            aria-describedby={`connect-unavailable-${provider.id}`}
+            className="ml-auto inline-flex h-8 shrink-0 cursor-not-allowed items-center rounded-lg border border-neutral-200 bg-white px-3 text-xs font-medium text-neutral-400"
+          >
+            {t.common.connect}
+          </button>
+          <p id={`connect-unavailable-${provider.id}`} className="w-full text-xs text-neutral-500">
+            {t.calendar.connectErrorNotConfigured}
+          </p>
+        </>
+      )}
     </li>
   );
 }

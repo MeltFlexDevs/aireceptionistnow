@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 
 import { syncAssistantAgent } from "@/lib/call-engine/agent/sync";
+import { withDeadline } from "@/lib/call-engine/net";
 import { getAccountSettings } from "@/lib/dashboard/account";
 import {
   connectedCalendarCount,
@@ -11,6 +12,8 @@ import {
   summarizeOrgKnowledgeCached,
   summarizeSourceMarkdown,
 } from "@/lib/dashboard/ai-knowledge";
+import { dismissDemand, listOpenDemand, markDemandAnswered } from "@/lib/dashboard/demand";
+import { MAX_GAP_ANSWER_CHARS, mergeVerifiedAnswer } from "@/lib/dashboard/knowledge-gaps";
 import {
   createOrganization,
   getOrganization,
@@ -24,12 +27,14 @@ import {
   addSource,
   formatVerifiedLines,
   MAX_SOURCE_CHARS,
+  MAX_VERIFIED,
+  noteTitle,
   parseVerifiedLines,
   readKnowledge,
   removeSource,
   type KnowledgeSource,
 } from "@/lib/knowledge/sources";
-import { mobileUserId } from "@/lib/mobile/auth";
+import { mobileAuth } from "@/lib/mobile/auth";
 import { ownsOrganization } from "@/lib/mobile/link";
 
 export const runtime = "nodejs";
@@ -78,33 +83,71 @@ async function saveKnowledge(orgId: string, next: Record<string, unknown>): Prom
       ),
     );
   });
+  after(() => warmDigest(orgId));
   revalidatePath("/dashboard/knowledge");
 }
 
+/**
+ * Summarize the org's new knowledge now, so the refetch after this write finds
+ * the digest cached instead of waiting on Gemini. The cache key hashes the org
+ * row as read back from the database (jsonb reorders keys), so re-read it
+ * rather than hashing the object that was written.
+ */
+async function warmDigest(orgId: string): Promise<void> {
+  const org = await getOrganization(orgId).catch(() => null);
+  if (!org) return;
+  await summarizeOrgKnowledgeCached({ org, assistants: [], notes: "", sources: [], charCount: 0 });
+}
+
+// The app gives up on the whole request at 20 s. The digest is decoration next
+// to the notes and sources, so it gets a short budget of its own.
+const DIGEST_DEADLINE_MS = 2500;
+
 export async function GET(req: Request): Promise<Response> {
-  const userId = await mobileUserId(req);
+  const auth = await mobileAuth(req, "knowledge");
+  if (auth instanceof Response) return auth;
+  const userId = auth;
   if (!userId) return Response.json({ error: "Not signed in." }, { status: 401 });
 
   const requested = new URL(req.url).searchParams.get("business") ?? "";
 
-  const [knowledge, calendars] = await Promise.all([
+  const [knowledge, calendars, demand] = await Promise.all([
     getAiKnowledge(userId),
     connectedCalendarCount(userId).catch(() => 0),
+    listOpenDemand(userId).catch(() => []),
   ]);
 
   const orgs = knowledge.organizations;
   const active = orgs.find((o) => o.org.id === requested) ?? orgs[0] ?? null;
   const stored = readKnowledge(active?.org.knowledge);
 
-  // The digest is an LLM call behind a content-keyed cache. The web streams it
-  // in with Suspense; a phone has no equivalent, so a miss returns null and the
-  // app shows the fallback rather than blocking the whole screen on it.
-  const digest = active ? await summarizeOrgKnowledgeCached(active).catch(() => null) : null;
+  // The digest is an LLM call behind a content-keyed cache, so every edit is a
+  // miss. The web streams it in with Suspense; a phone has no equivalent, so it
+  // gets a deadline: past it the screen ships without the digest and
+  // `digestPending` tells the app to refetch shortly. The summary keeps running
+  // in after() so that refetch finds it cached.
+  let digest: string | null = null;
+  let digestPending = false;
+  if (active) {
+    const summary = summarizeOrgKnowledgeCached(active).catch(() => null);
+    const settled = await withDeadline<{ text: string | null } | null>(
+      summary.then((text) => ({ text })),
+      DIGEST_DEADLINE_MS,
+      null,
+    );
+    if (settled) {
+      digest = settled.text;
+    } else {
+      digestPending = true;
+      after(() => summary);
+    }
+  }
 
   return Response.json({
     businesses: orgs.map((o) => ({ id: o.org.id, name: o.org.name })),
     activeBusinessId: active?.org.id ?? "",
     digest: digest ?? "",
+    digestPending,
     notes: stored.notes ?? "",
     verified: formatVerifiedLines(stored.verified ?? []),
     sources: (stored.sources ?? []).map((s) => ({
@@ -118,6 +161,15 @@ export async function GET(req: Request): Promise<Response> {
     })),
     ownerNotesShared: Boolean(knowledge.ownerNotes),
     calendarsConnected: calendars,
+    // "Questions it could not answer" - the same open list the web shows.
+    gaps: demand.map((g) => ({
+      id: g.id,
+      kind: g.kind,
+      topic: g.topic,
+      quote: g.quote,
+      createdAt: g.createdAt,
+      callId: g.callId || null,
+    })),
   });
 }
 
@@ -128,10 +180,20 @@ interface PostBody {
   verified?: unknown;
   url?: unknown;
   text?: unknown;
+  signalId?: unknown;
+  answer?: unknown;
+}
+
+/** A demand_signals id: a positive integer, sent as a number or a numeric string. */
+function signalIdOf(value: unknown): number | null {
+  const id = typeof value === "string" && value.trim() ? Number(value) : value;
+  return typeof id === "number" && Number.isSafeInteger(id) && id > 0 ? id : null;
 }
 
 export async function POST(req: Request): Promise<Response> {
-  const userId = await mobileUserId(req);
+  const auth = await mobileAuth(req, "knowledge-write");
+  if (auth instanceof Response) return auth;
+  const userId = auth;
   if (!userId) return Response.json({ error: "Not signed in." }, { status: 401 });
 
   let body: PostBody;
@@ -141,13 +203,67 @@ export async function POST(req: Request): Promise<Response> {
     return Response.json({ error: "Bad request." }, { status: 400 });
   }
 
+  const action = String(body.action ?? "");
+
+  // Dismissing touches only the signal row (owner-scoped in its predicate), so
+  // it must not create a business the way the teaching actions below may.
+  if (action === "dismissGap") {
+    const signalId = signalIdOf(body.signalId);
+    if (!signalId) return Response.json({ error: "Bad request." }, { status: 400 });
+    try {
+      await dismissDemand(signalId, userId);
+    } catch (err) {
+      console.error("[mobile:knowledge-dismiss-gap]", err);
+      return Response.json({ error: "Could not save." }, { status: 500 });
+    }
+    revalidatePath("/dashboard/knowledge");
+    return Response.json({ ok: true });
+  }
+
+  // Validated before the business is resolved or created: a bad answer must
+  // not have side effects.
+  let gap: { signalId: number; answer: string } | null = null;
+  if (action === "answerGap") {
+    const signalId = signalIdOf(body.signalId);
+    const answer = typeof body.answer === "string" ? body.answer.trim() : "";
+    if (!signalId) return Response.json({ error: "Bad request." }, { status: 400 });
+    if (!answer || answer.length > MAX_GAP_ANSWER_CHARS) {
+      return Response.json(
+        { error: `Type an answer of up to ${MAX_GAP_ANSWER_CHARS} characters.` },
+        { status: 400 },
+      );
+    }
+    gap = { signalId, answer };
+  }
+
   const org = await ensureOrganization(userId, String(body.business ?? "")).catch(() => null);
   if (!org) return Response.json({ error: "Business not found." }, { status: 404 });
 
   const knowledge = readKnowledge(org.knowledge);
-  const action = String(body.action ?? "");
 
   try {
+    if (gap) {
+      // As in answerKnowledgeGapAction, the signal is claimed before anything
+      // is written to the knowledge base, so an answer sent twice (two taps,
+      // web and phone) adds one verified pair, not two. The claim is
+      // owner-scoped in its update predicate.
+      const signal = await markDemandAnswered(gap.signalId, userId, gap.answer);
+      if (!signal) {
+        return Response.json(
+          { error: "That question was already answered or dismissed." },
+          { status: 404 },
+        );
+      }
+      const verified = mergeVerifiedAnswer(
+        knowledge.verified ?? [],
+        signal.topic,
+        gap.answer,
+        MAX_VERIFIED,
+      );
+      await saveKnowledge(org.id, { ...knowledge, verified });
+      return Response.json({ ok: true, businessId: org.id });
+    }
+
     if (action === "notes") {
       knowledge.notes = String(body.notes ?? "").trim();
       // Guarded on presence, not on the submit: a screen that carries only the
@@ -195,8 +311,7 @@ export async function POST(req: Request): Promise<Response> {
     if (action === "text") {
       const markdown = String(body.text ?? "").trim().slice(0, MAX_SOURCE_CHARS);
       if (!markdown) return Response.json({ error: "Type something to teach first." }, { status: 400 });
-      const firstLine = markdown.split("\n").map((l) => l.trim()).find(Boolean) ?? "";
-      const title = firstLine ? firstLine.slice(0, 50) : "Note";
+      const title = noteTitle(markdown, "Note");
       const summary = await summarizeSourceMarkdown(title, markdown).catch(() => null);
       const added = addSource(knowledge, {
         id: randomUUID(),
@@ -220,7 +335,9 @@ export async function POST(req: Request): Promise<Response> {
 }
 
 export async function DELETE(req: Request): Promise<Response> {
-  const userId = await mobileUserId(req);
+  const auth = await mobileAuth(req, "knowledge-remove");
+  if (auth instanceof Response) return auth;
+  const userId = auth;
   if (!userId) return Response.json({ error: "Not signed in." }, { status: 401 });
 
   const params = new URL(req.url).searchParams;

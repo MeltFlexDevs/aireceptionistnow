@@ -7,7 +7,8 @@ import { PageHeader } from "../components/PageHeader";
 import { ListSkeleton } from "../components/ListSkeleton";
 import { CreateAssistantForm } from "./CreateAssistantForm";
 import { AssistantsList } from "./AssistantsList";
-import { getDictionary } from "@/lib/i18n/server";
+import { getDictionary, getLocale } from "@/lib/i18n/server";
+import { localizedHref } from "@/lib/i18n/marketing/href";
 import { AiAvatar } from "@/app/(main)/onboarding/AiAvatar";
 
 export const dynamic = "force-dynamic";
@@ -17,10 +18,11 @@ export default async function AssistantsPage({
 }: {
   searchParams: Promise<{ error?: string; notice?: string; add?: string }>;
 }) {
-  const [{ error, notice, add }, t, ownerId] = await Promise.all([
+  const [{ error, notice, add }, t, ownerId, locale] = await Promise.all([
     searchParams,
     getDictionary(),
     currentUserId(),
+    getLocale(),
   ]);
   const assistants = await listAssistants(ownerId ?? undefined).catch(() => []);
 
@@ -50,7 +52,7 @@ export default async function AssistantsPage({
       {notice && (
         <div className="shape-pill flex flex-wrap items-center justify-between gap-3 border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-700">
           <span>{notice}</span>
-          <Link href="/pricing" className="font-medium underline underline-offset-2">
+          <Link href={localizedHref(locale, "pricing")} className="font-medium underline underline-offset-2">
             {t.common.viewPlans}
           </Link>
         </div>

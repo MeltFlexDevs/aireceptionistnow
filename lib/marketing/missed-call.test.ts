@@ -4,8 +4,10 @@ import { test } from "node:test";
 import { EXTRA_MINUTE_EUR, PLANS } from "@/lib/plans";
 import {
   AVG_CALL_MINUTES,
+  MAX_CUSTOMER_VALUE,
   MISSED_CALL_DEFAULTS,
   calculateMissedCallLoss,
+  parseCustomerValue,
   planFor,
 } from "./missed-call";
 
@@ -177,4 +179,14 @@ test("the shipped defaults produce a believable figure, not a fantasy", () => {
     r.lostCustomers < MISSED_CALL_DEFAULTS.callsPerMonth * 0.1,
     "lost customers must stay a small fraction of total call volume",
   );
+});
+
+test("parseCustomerValue keeps the field forgiving and bounded", () => {
+  assert.equal(parseCustomerValue(""), 0);
+  assert.equal(parseCustomerValue("2.5"), 2.5);
+  assert.equal(parseCustomerValue("2,5"), 2.5);
+  assert.equal(parseCustomerValue("-5"), 0);
+  assert.equal(parseCustomerValue("abc"), 0);
+  assert.equal(parseCustomerValue("1e9"), MAX_CUSTOMER_VALUE);
+  assert.equal(parseCustomerValue(" 300 "), 300);
 });

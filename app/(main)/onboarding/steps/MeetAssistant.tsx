@@ -10,6 +10,7 @@ import {
 } from "react";
 import { AnimatePresence, motion, MotionConfig, type Variants } from "motion/react";
 import { useT } from "@/lib/i18n/client";
+import { clearBasicsDraft, loadBasicsDraft, parseBasicsDraft, saveBasicsDraft } from "@/lib/onboarding-draft";
 import {
   DIAL_OPTIONS,
   NUMBER_COUNTRIES,
@@ -90,7 +91,8 @@ export function MeetAssistant({
   );
 
   const done = step > LAST_STEP;
-  const dial = DIAL_OPTIONS.find((d) => d.code === phoneCode)?.dial ?? "";
+  const dialOption = DIAL_OPTIONS.find((d) => d.code === phoneCode);
+  const dial = dialOption?.dial ?? "";
   const phoneE164 = joinPhone(dial, phoneLocal);
   const country = getCountryPricing(countryCode);
   const trimmedName = name.trim();
@@ -112,9 +114,57 @@ export function MeetAssistant({
   // On the success beat, hold the celebration, then submit once to move on.
   useEffect(() => {
     if (!done) return;
-    const t = setTimeout(() => formRef.current?.requestSubmit(), 1300);
+    const t = setTimeout(() => {
+      clearBasicsDraft();
+      formRef.current?.requestSubmit();
+    }, 1300);
     return () => clearTimeout(t);
   }, [done]);
+
+  // Restore this tab's draft once, after mount: reading sessionStorage in a
+  // useState initializer would break hydration. A saved config always wins,
+  // so the draft is only read and written while the config is still empty.
+  const draftApplies = !config.companyName && !config.companyWebsite && !config.assistantName;
+  const draftRead = useRef(false);
+  const [draftReady, setDraftReady] = useState(false);
+  useEffect(() => {
+    if (draftRead.current) return;
+    draftRead.current = true;
+    /* eslint-disable react-hooks/set-state-in-effect */
+    const d = draftApplies ? parseBasicsDraft(loadBasicsDraft(), emailDefault, LAST_STEP) : null;
+    if (d) {
+      setBusiness(d.business);
+      setWebsite(d.website);
+      setName(d.name);
+      if (NUMBER_COUNTRIES.some((c) => c.code === d.countryCode)) setCountryCode(d.countryCode);
+      if (DIAL_OPTIONS.some((x) => x.code === d.phoneCode)) setPhoneCode(d.phoneCode);
+      setPhoneLocal(d.phoneLocal);
+      setVoiceId(d.voiceId);
+      setVoice(defaults.find((v) => v.voiceId === d.voiceId) ?? null);
+      setGender(d.gender);
+      setStep(d.step);
+    }
+    setDraftReady(true);
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, [draftApplies, emailDefault, defaults]);
+
+  // Keep the draft in step with every answer. The done beat is skipped: its
+  // submit clears the draft.
+  useEffect(() => {
+    if (!draftReady || !draftApplies || done) return;
+    saveBasicsDraft({
+      email: emailDefault,
+      step,
+      business,
+      website,
+      name,
+      countryCode,
+      phoneCode,
+      phoneLocal,
+      voiceId,
+      gender,
+    });
+  }, [draftReady, draftApplies, done, emailDefault, step, business, website, name, countryCode, phoneCode, phoneLocal, voiceId, gender]);
 
   function go(target: number) {
     const next = Math.max(0, Math.min(target, LAST_STEP + 1));
@@ -149,11 +199,14 @@ export function MeetAssistant({
   // Business is the only required substep; the name is optional and every step
   // after it has a default, so a filled business unlocks advancing throughout.
   const canAdvance = hasBusiness;
+  // Next stays focusable while blocked, so a click or Enter can say why.
+  const [showNeed, setShowNeed] = useState(false);
 
   function onEnter(e: KeyboardEvent) {
     if (e.key === "Enter") {
       e.preventDefault();
       if (canAdvance) move(1);
+      else setShowNeed(true);
     }
   }
 
@@ -236,9 +289,10 @@ export function MeetAssistant({
                   transition={{ duration: 0.26, ease: "easeOut" }}
                 >
                   {step === 0 && (
-                    <Question label={o.qBusiness}>
+                    <Question label={o.qBusiness} htmlFor={`co-${uid}`}>
                       <input
                         autoFocus
+                        id={`co-${uid}`}
                         name={`co-${uid}`}
                         autoComplete="off"
                         autoCapitalize="words"
@@ -257,14 +311,14 @@ export function MeetAssistant({
                           after payment, so step 2 only adds PDFs/notes on top. */}
                       <div className="my-3.5 flex items-center gap-3" aria-hidden>
                         <span className="h-px flex-1 bg-neutral-200" />
-                        <span className="text-xs font-medium uppercase tracking-wide text-neutral-400">
+                        <span className="text-xs font-medium uppercase tracking-wide text-neutral-500">
                           {o.orLabel}
                         </span>
                         <span className="h-px flex-1 bg-neutral-200" />
                       </div>
                       <label
                         htmlFor={`ws-${uid}`}
-                        className="mb-1.5 flex items-center justify-center gap-1.5 text-xs font-medium text-neutral-400"
+                        className="mb-1.5 flex items-center justify-center gap-1.5 text-xs font-medium text-neutral-500"
                       >
                         <Globe className="h-3.5 w-3.5" />
                         {o.websiteUrl}
@@ -289,9 +343,10 @@ export function MeetAssistant({
                   )}
 
                   {step === 1 && (
-                    <Question label={o.qName}>
+                    <Question label={o.qName} htmlFor={`nm-${uid}`}>
                       <input
                         autoFocus
+                        id={`nm-${uid}`}
                         name={`nm-${uid}`}
                         autoComplete="off"
                         spellCheck={false}
@@ -304,7 +359,7 @@ export function MeetAssistant({
                         placeholder={o.assistantPlaceholder}
                         className={field}
                       />
-                      <p className="mt-2 text-center text-xs leading-snug text-neutral-400">
+                      <p className="mt-2 text-center text-xs leading-snug text-neutral-500">
                         {o.nameHint}
                       </p>
                       <div className="mt-3 flex justify-center gap-2">
@@ -327,11 +382,11 @@ export function MeetAssistant({
                   )}
 
                   {step === 2 && (
-                    <Question label={o.qCountry}>
+                    <Question label={o.qCountry} htmlFor={`ct-${uid}`}>
                       <div className="mb-3 flex justify-center">
                         <span className="text-5xl leading-none">{country.flag}</span>
                       </div>
-                      <SelectField value={countryCode} onChange={setCountryCode}>
+                      <SelectField id={`ct-${uid}`} value={countryCode} onChange={setCountryCode}>
                         {NUMBER_COUNTRIES.map((c) => (
                           <option key={c.code} value={c.code}>
                             {c.flag}  {c.name}
@@ -360,7 +415,7 @@ export function MeetAssistant({
                           <select
                             value={phoneCode}
                             onChange={(e) => setPhoneCode(e.target.value)}
-                            aria-label="Country code"
+                            aria-label={o.countryCode}
                             className="h-full appearance-none rounded-l-xl bg-transparent py-3 pl-4 pr-7 text-base text-neutral-900 outline-none"
                           >
                             {DIAL_OPTIONS.map((d) => (
@@ -378,7 +433,8 @@ export function MeetAssistant({
                           value={phoneLocal}
                           onChange={(e) => setPhoneLocal(e.target.value)}
                           onKeyDown={onEnter}
-                          placeholder="903 123 456"
+                          aria-label={o.qPhone}
+                          placeholder={dialOption?.example || "415 555 0142"}
                           className="w-full rounded-r-xl bg-transparent py-3 pl-1 pr-4 text-base text-neutral-900 outline-none placeholder:text-neutral-300"
                         />
                       </div>
@@ -399,22 +455,33 @@ export function MeetAssistant({
                   type="button"
                   onClick={() => move(1)}
                   disabled={!canAdvance}
-                  className="press text-sm font-medium text-neutral-400 hover:text-neutral-700 disabled:opacity-40"
+                  className="press text-sm font-medium text-neutral-500 hover:text-neutral-700 disabled:opacity-40"
                 >
                   {o.skipForNow}
                 </button>
               )}
               <motion.button
                 type="button"
-                whileTap={{ scale: 0.98 }}
-                disabled={!canAdvance}
+                whileTap={canAdvance ? { scale: 0.98 } : undefined}
+                aria-disabled={!canAdvance || undefined}
                 data-ready={canAdvance ? "true" : undefined}
-                onClick={() => move(1)}
+                onClick={() => {
+                  if (!canAdvance) {
+                    setShowNeed(true);
+                    return;
+                  }
+                  move(1);
+                }}
                 className="onb-cta w-full"
               >
                 {step === LAST_STEP ? o.continue : o.next}
                 <Arrow />
               </motion.button>
+              {showNeed && !canAdvance && (
+                <p role="alert" className="text-sm text-rose-600">
+                  {o.needBusiness}
+                </p>
+              )}
             </div>
           )}
         </div>
@@ -473,7 +540,7 @@ function StepRail({
                 isCurrent
                   ? "text-neutral-900"
                   : openable
-                    ? "text-neutral-400 group-hover:text-neutral-700"
+                    ? "text-neutral-500 group-hover:text-neutral-700"
                     : "text-neutral-300"
               }`}
             >
@@ -495,20 +562,36 @@ function StepRail({
   );
 }
 
-function Question({ label, children }: { label: string; children: ReactNode }) {
+function Question({
+  label,
+  htmlFor,
+  children,
+}: {
+  label: string;
+  htmlFor?: string;
+  children: ReactNode;
+}) {
   return (
     <div>
-      <p className="mb-3 text-center text-lg font-medium text-neutral-900">{label}</p>
+      {htmlFor ? (
+        <label htmlFor={htmlFor} className="mb-3 block text-center text-lg font-medium text-neutral-900">
+          {label}
+        </label>
+      ) : (
+        <p className="mb-3 text-center text-lg font-medium text-neutral-900">{label}</p>
+      )}
       {children}
     </div>
   );
 }
 
 function SelectField({
+  id,
   value,
   onChange,
   children,
 }: {
+  id?: string;
   value: string;
   onChange: (v: string) => void;
   children: ReactNode;
@@ -516,6 +599,7 @@ function SelectField({
   return (
     <div className="relative">
       <select
+        id={id}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className={`${field} appearance-none pr-9`}

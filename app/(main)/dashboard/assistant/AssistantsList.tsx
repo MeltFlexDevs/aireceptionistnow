@@ -95,7 +95,7 @@ export async function AssistantsList() {
   return (
     <section className="space-y-3">
       <div className="flex items-center gap-2 px-1">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-400">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-600">
           {L.yourAssistants}
         </h2>
         <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600">
@@ -145,7 +145,7 @@ export async function AssistantsList() {
                       : L.noNumberTooltip
                   }
                   className={`hidden text-xs sm:inline-flex ${
-                    number ? "font-medium text-neutral-700" : "text-neutral-400"
+                    number ? "font-medium text-neutral-700" : "text-neutral-500"
                   }`}
                 >
                   <span className="inline-flex min-w-0 items-center gap-1.5">

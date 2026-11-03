@@ -5,11 +5,12 @@ import {
   claimFreeNumber,
   existingNumberE164s,
   getAssistantNumber,
+  listAssistants,
   listIntegrations,
   setNumberElevenLabsId,
 } from "./db";
 import { createOrganization, setAssistantOrganization, updateOrganizationKnowledge } from "./organizations";
-import { canAssignNumber } from "./plan";
+import { canAssignNumber, sandboxNumbersAllowed } from "./plan";
 import {
   getOnboardingProfile,
   claimProvisioning,
@@ -17,8 +18,10 @@ import {
   saveOnboardingConfig,
   saveOnboardingResult,
   setOnboardingStatus,
+  shouldSkipProvisioning,
   type OnboardingProfile,
 } from "./onboarding-profile";
+import { getBilling, isStoreSandbox } from "@/lib/billing";
 import { syncAssistantAgent } from "@/lib/call-engine/agent/sync";
 import { resolvePickedVoiceId } from "@/lib/call-engine/voice/catalog";
 import { routeNumberToAgent } from "@/lib/call-engine/elevenlabs";
@@ -28,36 +31,61 @@ import { DEFAULT_COUNTRY } from "@/lib/number-pricing";
 import { randomUUID } from "node:crypto";
 import { domainToUnicode } from "node:url";
 import { fetchWebsiteMarkdown } from "@/lib/knowledge/website";
+import { normalizeWebsite } from "@/lib/onboarding/website";
 import { summarizeSourceMarkdown } from "@/lib/dashboard/ai-knowledge";
 import { MAX_SOURCES, type KnowledgeSource } from "@/lib/knowledge/sources";
-
-const PHONE_RE = /^\+[1-9]\d{6,15}$/;
+import { normalizePhone } from "@/lib/phone";
 
 export interface ProvisionOutcome {
   status: "done" | "provisioning" | "error" | "nothing";
   e164?: string;
   error?: string;
+  /** Deployed on a store sandbox entitlement: no live number was bought. */
+  sandbox?: boolean;
+  /** Marked done without provisioning because the account already had assistants. */
+  skipped?: "existing-assistants";
+}
+
+function doneOutcome(result: OnboardingProfile["result"]): ProvisionOutcome {
+  return {
+    status: "done",
+    e164: result.e164,
+    ...(result.sandbox ? { sandbox: true } : {}),
+  };
 }
 
 // Turns a paid onboarding profile into a working receptionist: organization,
 // assistant (voice, routing, alerts), knowledge, ElevenLabs agent, and a phone
 // number for the chosen country. Idempotent: created ids are checkpointed into
 // profile.result, so a retry after a partial failure resumes where it stopped.
-// Callable from the Stripe webhook (via after()) and from the onboarding
-// provisioning screen as a fallback - claimProvisioning ensures a single
-// runner, and a dead runner's claim expires after the lease.
+// Callable from the Stripe webhook (via after()), from a store purchase
+// (lib/store-billing/entitle.ts) and from the onboarding provisioning screen
+// as a fallback - claimProvisioning ensures a single runner, and a dead
+// runner's claim expires after the lease.
 export async function provisionOnboarding(userId: string): Promise<ProvisionOutcome> {
   const profile = await getOnboardingProfile(userId);
   if (!profile) return { status: "nothing" };
-  if (profile.status === "done") return { status: "done", e164: profile.result.e164 };
+  if (profile.status === "done") return doneOutcome(profile.result);
   if (profile.status === "provisioning" && !provisionLeaseExpired(profile)) {
     return { status: "provisioning" };
+  }
+
+  // An account that already owns assistants (a web customer with an abandoned
+  // funnel draft who buys from the app's paywall) is set up already: mark the
+  // draft done rather than creating a second org, assistant, agent and number.
+  // Checked here so every entry point - Stripe webhook, store purchase, the
+  // app's 'provision' action - is covered. Strict read on purpose: guessing
+  // "no assistants" on a transient failure is how a duplicate would be born.
+  if (shouldSkipProvisioning(profile.result, (await listAssistants(userId)).length)) {
+    console.log(`[provision] user ${userId} already owns assistants - onboarding marked done without provisioning`);
+    await setOnboardingStatus(userId, "done");
+    return { status: "done", skipped: "existing-assistants" };
   }
 
   const claimed = await claimProvisioning(userId).catch(() => false);
   if (!claimed) {
     const fresh = await getOnboardingProfile(userId);
-    if (fresh?.status === "done") return { status: "done", e164: fresh.result.e164 };
+    if (fresh?.status === "done") return doneOutcome(fresh.result);
     if (fresh?.status === "error") return { status: "error", error: fresh.result.error };
     return { status: "provisioning" };
   }
@@ -65,9 +93,9 @@ export async function provisionOnboarding(userId: string): Promise<ProvisionOutc
   try {
     // Re-read after the claim so a resumed run sees the latest checkpoints.
     const claimedProfile = (await getOnboardingProfile(userId)) ?? profile;
-    const e164 = await runProvisioning(userId, claimedProfile);
+    const { e164, sandbox } = await runProvisioning(userId, claimedProfile);
     await setOnboardingStatus(userId, "done");
-    return { status: "done", e164 };
+    return { status: "done", e164, ...(sandbox ? { sandbox: true } : {}) };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Provisioning failed.";
     console.error(`[provision] user ${userId} failed: ${message}`);
@@ -181,7 +209,18 @@ async function importWebsiteKnowledge(
   }
 }
 
-async function runProvisioning(userId: string, profile: OnboardingProfile): Promise<string | undefined> {
+// A store sandbox purchase (App Review, TestFlight, a Play test track) is
+// recorded like a real subscription but must never spend money on a Twilio
+// number. STORE_SANDBOX_PROVISION_NUMBERS=1 lifts that for a test stack.
+async function sandboxEntitlement(userId: string): Promise<boolean> {
+  if (sandboxNumbersAllowed()) return false;
+  return isStoreSandbox(await getBilling(userId).catch(() => null));
+}
+
+async function runProvisioning(
+  userId: string,
+  profile: OnboardingProfile,
+): Promise<{ e164?: string; sandbox?: boolean }> {
   const cfg = profile.config;
   const result = { ...profile.result };
   const assistantName = (cfg.assistantName ?? "").trim() || "Receptionist";
@@ -190,7 +229,9 @@ async function runProvisioning(userId: string, profile: OnboardingProfile): Prom
   // 0. Learn from the company website now, inside this loading screen. Deferred
   //    here from step 1 so the funnel stays instant and the whole setup runs in
   //    one place. Best-effort - a slow or failed scrape never fails the deploy.
-  const website = (cfg.companyWebsite ?? "").trim();
+  // Plain words saved as a website (older drafts, or the web step, which
+  // saves before it validates) count as no website: no scrape, no name.
+  const website = normalizeWebsite(cfg.companyWebsite ?? "") ?? "";
   const sources = await importWebsiteKnowledge(userId, website, cfg.sources ?? []);
 
   // Company name: an explicit name wins; a website-only signup derives one from
@@ -229,8 +270,7 @@ async function runProvisioning(userId: string, profile: OnboardingProfile): Prom
 
   // Step 1 persists even invalid drafts so the form never loses input; only a
   // valid E.164 number may drive transfers/SMS.
-  const rawPhone = (cfg.alertPhone ?? "").trim();
-  const alertPhone = PHONE_RE.test(rawPhone) ? rawPhone : "";
+  const alertPhone = normalizePhone(cfg.alertPhone ?? "") ?? "";
   const alertsEmail = (cfg.alertsEmail ?? "").trim();
   const calendars = (await listIntegrations(userId).catch(() => [])).filter(
     (i) => i.type === "calendar" && i.enabled,
@@ -304,14 +344,22 @@ async function runProvisioning(userId: string, profile: OnboardingProfile): Prom
       }
       // 3) Nothing available -> deploy without a number (dashboard shows "no
       //    number yet"); add one from Numbers when needed.
+    } else if (!e164 && (await sandboxEntitlement(userId))) {
+      // Sandbox entitlement: deploy the assistant without a number - no pool
+      // claim, no Twilio purchase. Checkpointed so the app and the dashboard
+      // can say why there is none; the run still finishes 'done'.
+      result.sandbox = true;
+      await saveOnboardingResult(userId, { sandbox: true });
+      console.log(`[provision] user ${userId}: sandbox entitlement, no phone number bought`);
     } else if (!e164) {
       const gate = await canAssignNumber(userId);
       if (!gate.ok) throw new Error(gate.reason ?? "No active subscription.");
 
-      // The free pool is seeded with US numbers and ignores country - only use
-      // it when the user actually picked the default country.
+      // The free pool is seeded with US numbers, but numbers released by a
+      // deleted assistant or account go back to it whatever their country, so
+      // the claim is filtered by country too.
       if (country === DEFAULT_COUNTRY) {
-        const claimed = await claimFreeNumber(result.assistantId).catch(() => null);
+        const claimed = await claimFreeNumber(result.assistantId, country).catch(() => null);
         if (claimed) {
           e164 = claimed.e164;
           numberId = claimed.id;
@@ -354,5 +402,5 @@ async function runProvisioning(userId: string, profile: OnboardingProfile): Prom
     await saveOnboardingResult(userId, { routed: true, error: undefined });
   }
 
-  return result.e164;
+  return { e164: result.e164, sandbox: result.sandbox };
 }

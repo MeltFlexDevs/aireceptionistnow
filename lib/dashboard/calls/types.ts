@@ -52,6 +52,8 @@ export interface CallDetail {
   sid: string;
   date: string;
   dateLabel: string;
+  /** The zone dateLabel and the action times are shown in. */
+  timezone: string;
   status: string;
   statusLabel: string;
   direction: string;

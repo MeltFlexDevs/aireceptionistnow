@@ -33,7 +33,7 @@ export function UploadDropzone() {
           <span className="text-[13px] font-medium leading-snug text-neutral-700">
             {t.knowledge.dropPdf}
           </span>
-          <span className="text-xs text-neutral-400">{t.knowledge.dropPdfHint}</span>
+          <span className="text-xs text-neutral-500">{t.knowledge.dropPdfHint}</span>
         </>
       )}
       <input

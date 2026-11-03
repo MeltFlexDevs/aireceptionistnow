@@ -3,6 +3,8 @@ import { unstable_cache } from "next/cache";
 import { getOwnedNumbers } from "./db";
 import { serviceClient } from "./supabase";
 import { dayKeyFn, ownerTimezone, timeFmt } from "./timezone";
+import { dashboardCacheTag } from "./cache-tags";
+import { fmtDuration } from "./calls/format";
 import { countryFromPhone, flagEmoji } from "../call-engine/voice/phone-language";
 
 // Dashboard analytics from the calls / call_turns tables (read-only, one business).
@@ -74,7 +76,15 @@ export interface Call {
   sentiment: Sentiment;
   /** Minutes since the call started. Formatted at render, for the same reason. */
   agoMinutes: number;
+  /** Clock label in the owner's timezone. Display only - not a date. */
   at: string;
+  /**
+   * Raw DB status (completed / no-answer / in-progress ...), so the app can
+   * apply the stale-live rule (calls/format isLiveStatus) with `startedAt`.
+   */
+  status: string;
+  /** ISO start time; `at` is a formatted label and cannot be parsed back. */
+  startedAt: string;
 }
 export interface Summary {
   id: string;
@@ -143,10 +153,6 @@ const SENTIMENT_COLORS: Record<string, string> = {
   angry: "#b91c1c",
 };
 
-function fmtDuration(sec: number | null): string {
-  const s = Math.max(0, Math.round(sec ?? 0));
-  return `${Math.floor(s / 60)}m ${String(s % 60).padStart(2, "0")}s`;
-}
 function relTime(iso: string): string {
   const m = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
   if (m < 1) return "just now";
@@ -379,8 +385,16 @@ async function bookedCallIds(callIds: string[]): Promise<Set<string>> {
   return out;
 }
 
-export async function getOverview(ownerId?: string | null): Promise<Overview> {
-  const [scope, tz] = await Promise.all([ownerScope(ownerId), ownerTimezone(ownerId)]);
+// Normalized to `toISOString()` form: Postgres hands back microseconds and a
+// "+00:00" offset, which not every client date parser accepts.
+function isoOf(raw: string): string {
+  const ms = Date.parse(raw);
+  return Number.isFinite(ms) ? new Date(ms).toISOString() : raw;
+}
+
+/** `displayTz`: the zone to show times in when the account has none (display only). */
+export async function getOverview(ownerId?: string | null, displayTz?: string): Promise<Overview> {
+  const [scope, tz] = await Promise.all([ownerScope(ownerId), ownerTimezone(ownerId, displayTz)]);
   const toKey = dayKeyFn(tz);
   const atFmt = timeFmt(tz);
   const now = new Date();
@@ -482,11 +496,13 @@ export async function getOverview(ownerId?: string | null): Promise<Overview> {
     name: c.from_number || "",
     number: c.from_number || "",
     flag: countryFromPhone(c.from_number ?? "")?.flag ?? "",
-    duration: fmtDuration(c.duration_seconds),
+    duration: fmtDuration(c.duration_seconds ?? 0),
     outcome: c.outcome ?? null,
     sentiment: (c.sentiment as Sentiment) || "neutral",
     agoMinutes: Math.max(0, Math.floor((Date.now() - new Date(c.started_at).getTime()) / 60000)),
     at: atFmt(c.started_at),
+    status: c.status ?? "",
+    startedAt: isoOf(c.started_at),
   }));
 
   const summaries: Summary[] = calls
@@ -670,11 +686,13 @@ export async function getAnalytics(
   ownerId?: string | null,
   assistantId?: string | null,
   organizationId?: string | null,
+  /** As in getOverview. */
+  displayTz?: string,
 ): Promise<Analytics> {
   const [scope, org, tz] = await Promise.all([
     ownerScope(ownerId),
     organizationId ? organizationScope(organizationId) : null,
-    ownerTimezone(ownerId),
+    ownerTimezone(ownerId, displayTz),
   ]);
   const toKey = dayKeyFn(tz);
   const now = new Date();
@@ -733,10 +751,12 @@ export async function getAnalytics(
 
 const DASH_TTL = 30;
 
-export const getOverviewCached = (ownerId?: string | null): Promise<Overview> =>
-  unstable_cache(() => getOverview(ownerId), ["dash-overview", ownerId ?? "anon"], {
+// The key carries a shape version: a cached Overview from before recentCalls
+// gained status/startedAt must not be served to a client that reads them.
+export const getOverviewCached = (ownerId?: string | null, displayTz?: string): Promise<Overview> =>
+  unstable_cache(() => getOverview(ownerId, displayTz), ["dash-overview-v2", ownerId ?? "anon", displayTz ?? ""], {
     revalidate: DASH_TTL,
-    tags: ["dashboard-data"],
+    tags: ownerId ? [dashboardCacheTag(ownerId)] : [],
   })();
 
 export const getAssistantStatsCached = (
@@ -747,16 +767,17 @@ export const getAssistantStatsCached = (
   unstable_cache(
     () => getAssistantStats(ownerId, days, organizationId),
     ["dash-assistant-stats", ownerId ?? "anon", String(days), organizationId ?? ""],
-    { revalidate: DASH_TTL, tags: ["dashboard-data"] },
+    { revalidate: DASH_TTL, tags: ownerId ? [dashboardCacheTag(ownerId)] : [] },
   )();
 
 export const getAnalyticsCached = (
   ownerId?: string | null,
   assistantId?: string | null,
   organizationId?: string | null,
+  displayTz?: string,
 ): Promise<Analytics> =>
   unstable_cache(
-    () => getAnalytics(ownerId, assistantId, organizationId),
-    ["dash-analytics", ownerId ?? "anon", assistantId ?? "", organizationId ?? ""],
-    { revalidate: DASH_TTL, tags: ["dashboard-data"] },
+    () => getAnalytics(ownerId, assistantId, organizationId, displayTz),
+    ["dash-analytics", ownerId ?? "anon", assistantId ?? "", organizationId ?? "", displayTz ?? ""],
+    { revalidate: DASH_TTL, tags: ownerId ? [dashboardCacheTag(ownerId)] : [] },
   )();

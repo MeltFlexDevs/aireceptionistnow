@@ -7,12 +7,12 @@ import {
   getAssistantNumber,
   listImportedFreeNumbers,
 } from "@/lib/dashboard/db";
-import { mobileUserId } from "@/lib/mobile/auth";
+import { isOwnedBy } from "@/lib/dashboard/ownership";
+import { normalizePhone } from "@/lib/phone";
+import { mobileAuth } from "@/lib/mobile/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const E164 = /^\+[1-9]\d{6,15}$/;
 
 /**
  * Ring the owner so they can hear their own receptionist. Same caller-id
@@ -24,26 +24,26 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  const userId = await mobileUserId(req);
+  const auth = await mobileAuth(req, "test-call");
+  if (auth instanceof Response) return auth;
+  const userId = auth;
   if (!userId) return Response.json({ error: "Not signed in." }, { status: 401 });
 
   const { id } = await params;
   const assistant = await getAssistant(id).catch(() => null);
-  if (!assistant || (assistant.owner_id && assistant.owner_id !== userId)) {
+  if (!assistant || !isOwnedBy(assistant.owner_id, userId)) {
     return Response.json({ error: "Not found." }, { status: 404 });
   }
 
   let to = "";
   try {
-    to = String(((await req.json()) as { to?: unknown }).to ?? "")
-      .trim()
-      .replace(/[\s().-]/g, "");
+    to = normalizePhone(String(((await req.json()) as { to?: unknown }).to ?? "")) ?? "";
   } catch {
     return Response.json({ error: "Bad request." }, { status: 400 });
   }
-  if (!E164.test(to)) {
+  if (!to) {
     return Response.json(
-      { error: "Enter the number with its country code, like +1 555 123 4567." },
+      { error: "Enter the number with its country code, like +1 415 555 0142.", code: "invalid_phone" },
       { status: 400 },
     );
   }

@@ -157,21 +157,23 @@
     0 1px 0 0 rgb(255 255 255 / 0.1) inset,
     0 16px 32px -12px rgb(24 24 27 / 0.75);
 }
-.onb-cta:active {
+.onb-cta:not([aria-disabled="true"]):active {
   transform: scale(0.985);
 }
-.onb-cta:disabled {
+.onb-cta:disabled,
+.onb-cta[aria-disabled="true"] {
   cursor: not-allowed;
   opacity: 0.35;
   box-shadow: none;
 }
-.onb-cta:disabled:hover {
+.onb-cta:disabled:hover,
+.onb-cta[aria-disabled="true"]:hover {
   filter: none;
 }
 .onb-cta svg {
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.onb-cta:not(:disabled):hover svg {
+.onb-cta:not(:disabled):not([aria-disabled="true"]):hover svg {
   transform: translateX(3px);
 }
 /* Gentle attention ring once the form is valid and ready to submit. */

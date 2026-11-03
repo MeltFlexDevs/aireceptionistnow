@@ -1,4 +1,5 @@
 import type { CallSummary, NumberConfig, TranscriptTurn } from "../types";
+import { maskEmail } from "@/lib/log-mask";
 
 export interface EmailTranscriptConfig {
   enabled?: boolean;
@@ -16,9 +17,14 @@ export interface TranscriptEmailInput {
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const AVATAR_CID = "assistant-avatar";
 
+/** The one address check: the editor rejects what readEmailConfig would skip. */
+export function isTranscriptEmail(to: string): boolean {
+  return EMAIL_RE.test(to);
+}
+
 export function readEmailConfig(routing: Record<string, unknown>): EmailTranscriptConfig | null {
   const cfg = (routing.emailTranscripts as EmailTranscriptConfig) ?? null;
-  if (!cfg || !cfg.enabled || !cfg.to || !EMAIL_RE.test(cfg.to)) return null;
+  if (!cfg || !cfg.enabled || !cfg.to || !isTranscriptEmail(cfg.to)) return null;
   return cfg;
 }
 
@@ -167,11 +173,11 @@ export async function sendTranscriptEmail(
   if (!apiKey || !from) {
     if (apiKey || from) {
       console.error(
-        `[email] transcript email for ${cfg.to} NOT sent: ${apiKey ? "EMAIL_FROM" : "RESEND_API_KEY"} is missing while ${apiKey ? "RESEND_API_KEY" : "EMAIL_FROM"} is set - check the env var names`,
+        `[email] transcript email for ${maskEmail(cfg.to)} NOT sent: ${apiKey ? "EMAIL_FROM" : "RESEND_API_KEY"} is missing while ${apiKey ? "RESEND_API_KEY" : "EMAIL_FROM"} is set - check the env var names`,
       );
     } else {
       console.info(
-        `[email] transcript ready for ${cfg.to} but no email provider configured (set RESEND_API_KEY + EMAIL_FROM) - skipping send`,
+        `[email] transcript ready for ${maskEmail(cfg.to)} but no email provider configured (set RESEND_API_KEY + EMAIL_FROM) - skipping send`,
       );
     }
     return { ok: false, skipped: true };

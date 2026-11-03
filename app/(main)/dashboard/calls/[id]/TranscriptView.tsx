@@ -16,14 +16,15 @@ export interface TranscriptTurnView {
 // the right in a light one, each labelled with who spoke and when. Originals
 // render instantly; the whole transcript translates client-side in one batched
 // request and re-translates the moment the locale changes.
-export function TranscriptView({ turns }: { turns: TranscriptTurnView[] }) {
+export function TranscriptView({ turns, live }: { turns: TranscriptTurnView[]; live: boolean }) {
   const t = useT();
   const [showOriginal, setShowOriginal] = useState(false);
   const texts = useMemo(() => turns.map((turn) => turn.text), [turns]);
   const { texts: display, translating, hasTranslation } = useTranslated(texts);
 
   if (turns.length === 0) {
-    return <p className="text-sm text-neutral-500">{t.data.noTranscript}</p>;
+    // Turns are written during the call, so an ended call without any will not get one.
+    return <p className="text-sm text-neutral-500">{live ? t.data.noTranscript : t.data.noTranscriptEnded}</p>;
   }
 
   return (
@@ -33,7 +34,7 @@ export function TranscriptView({ turns }: { turns: TranscriptTurnView[] }) {
           <button
             type="button"
             onClick={() => setShowOriginal((v) => !v)}
-            className="press -m-1.5 p-1.5 text-[11px] font-medium text-neutral-400 transition-colors hover:text-neutral-900"
+            className="press -m-1.5 p-1.5 text-[11px] font-medium text-neutral-500 transition-colors hover:text-neutral-900"
           >
             {showOriginal ? t.data.showTranslation : t.data.showOriginal}
           </button>
@@ -43,7 +44,7 @@ export function TranscriptView({ turns }: { turns: TranscriptTurnView[] }) {
         {turns.map((turn, i) => (
           <li key={turn.id} className={`flex ${turn.caller ? "justify-start" : "justify-end"}`}>
             <div className={`min-w-0 max-w-[80%] ${turn.caller ? "" : "text-right"}`}>
-              <div className={`mb-1 flex items-center gap-2 text-[11px] text-neutral-400 ${turn.caller ? "" : "justify-end"}`}>
+              <div className={`mb-1 flex items-center gap-2 text-[11px] text-neutral-500 ${turn.caller ? "" : "justify-end"}`}>
                 <span className="font-medium uppercase tracking-wide">
                   {turn.caller ? t.data.talkCaller : t.data.talkAi}
                 </span>

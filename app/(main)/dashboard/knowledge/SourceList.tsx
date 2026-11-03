@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { useT } from "@/lib/i18n/client";
 import { IDLE, type ActionState } from "@/lib/dashboard/action-state";
 import { SavePill } from "../components/SavePill";
@@ -24,6 +24,11 @@ function RemoveButton({ orgId, sourceId }: { orgId: string; sourceId: string }) 
     removeKnowledgeSourceAction,
     IDLE,
   );
+  // Two steps, like disconnecting a calendar: a removed source is gone for
+  // good, so the first click only asks.
+  const [confirming, setConfirming] = useState(false);
+  // After Cancel, focus goes back to the Remove button that opened the confirm.
+  const [returnFocus, setReturnFocus] = useState(false);
   return (
     <form action={formAction} className="flex shrink-0 items-center gap-2">
       <input type="hidden" name="id" value={orgId} />
@@ -31,13 +36,40 @@ function RemoveButton({ orgId, sourceId }: { orgId: string; sourceId: string }) 
       {/* Success is self-evident - the row disappears on revalidate - so only
           a failure needs the pill. */}
       {state.ok === false && <SavePill state={state} />}
-      <button
-        type="submit"
-        disabled={pending}
-        className="press rounded-lg border border-neutral-200 bg-white inline-flex min-h-9 items-center px-3 py-1 text-xs font-medium text-neutral-600 transition-colors hover:border-rose-200 hover:text-rose-600 disabled:cursor-wait disabled:opacity-60"
-      >
-        {pending ? k.removing : k.remove}
-      </button>
+      {confirming ? (
+        <>
+          <span className="text-xs text-neutral-500">{k.removeConfirm}</span>
+          <button
+            type="submit"
+            disabled={pending}
+            className="press rounded-lg border border-rose-200 bg-white inline-flex min-h-9 items-center px-3 py-1 text-xs font-medium text-rose-600 transition-colors hover:bg-rose-50 disabled:cursor-wait disabled:opacity-60"
+          >
+            {pending ? k.removing : k.remove}
+          </button>
+          {/* Focus lands on the safe choice, so a second Enter does not delete. */}
+          <button
+            type="button"
+            autoFocus
+            disabled={pending}
+            onClick={() => {
+              setConfirming(false);
+              setReturnFocus(true);
+            }}
+            className="press inline-flex min-h-9 items-center rounded-lg px-2 text-xs font-medium text-neutral-500 hover:text-neutral-900"
+          >
+            {t.common.cancel}
+          </button>
+        </>
+      ) : (
+        <button
+          type="button"
+          autoFocus={returnFocus}
+          onClick={() => setConfirming(true)}
+          className="press rounded-lg border border-neutral-200 bg-white inline-flex min-h-9 items-center px-3 py-1 text-xs font-medium text-neutral-600 transition-colors hover:border-rose-200 hover:text-rose-600"
+        >
+          {k.remove}
+        </button>
+      )}
     </form>
   );
 }
@@ -60,6 +92,13 @@ export function SourceList({
 }) {
   const t = useT();
   const k = t.knowledge;
+  // One label per kind. A Record, so a new kind fails tsc instead of falling
+  // through to "PDF" again.
+  const kindLabel: Record<SourceRow["kind"], string> = {
+    website: k.sourceWebsite,
+    pdf: k.sourcePdf,
+    text: k.sourceText,
+  };
   const [notesState, notesAction, notesPending] = useActionState<ActionState, FormData>(
     updateKnowledgeNotesAction,
     IDLE,
@@ -120,7 +159,7 @@ export function SourceList({
                   {row.title}
                 </span>
                 <span className="block truncate text-xs text-neutral-500">
-                  {row.kind === "website" ? k.sourceWebsite : k.sourcePdf}
+                  {kindLabel[row.kind]}
                   {row.added ? ` · ${row.added}` : ""}
                 </span>
               </span>

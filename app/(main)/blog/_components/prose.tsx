@@ -155,7 +155,7 @@ export function Figure({
         sizes="(min-width: 768px) 720px, 100vw"
       />
       {(caption || credit) && (
-        <figcaption className="mt-3 text-[13px] leading-6 text-[#999]">
+        <figcaption className="mt-3 text-[13px] leading-6 text-[#6f6f6f]">
           {caption}
           {credit && (
             <span>
@@ -223,7 +223,7 @@ export function VideoEmbed({
     <figure className="my-9">
       <YouTubeFacade id={id} title={title} />
       {caption && (
-        <figcaption className="mt-3 text-[13px] leading-6 text-[#999]">
+        <figcaption className="mt-3 text-[13px] leading-6 text-[#6f6f6f]">
           {caption}
         </figcaption>
       )}
@@ -244,7 +244,7 @@ export function KeyTakeaways({
 }) {
   return (
     <aside className="mb-10 border-l-2 border-[#1D1D1D] bg-[#fafafa] px-6 py-5">
-      <p className="mb-3 text-[10px] font-semibold tracking-[0.08em] text-[#999] uppercase">
+      <p className="mb-3 text-[10px] font-semibold tracking-[0.08em] text-[#6f6f6f] uppercase">
         {heading}
       </p>
       <ul className="space-y-2 text-[15px] leading-[1.7] font-light text-[#444]">
@@ -273,7 +273,7 @@ export function Table({
   return (
     <div className="my-7 overflow-x-auto">
       {caption && (
-        <p className="mb-2 text-[12px] font-medium tracking-[0.04em] text-[#888] uppercase">
+        <p className="mb-2 text-[12px] font-medium tracking-[0.04em] text-[#6f6f6f] uppercase">
           {caption}
         </p>
       )}
@@ -284,7 +284,7 @@ export function Table({
               <th
                 key={i}
                 scope="col"
-                className="border-b-2 border-[#e5e5e5] px-3.5 py-2.5 text-left text-[12px] font-medium tracking-[0.04em] text-[#888] uppercase"
+                className="border-b-2 border-[#e5e5e5] px-3.5 py-2.5 text-left text-[12px] font-medium tracking-[0.04em] text-[#6f6f6f] uppercase"
               >
                 {h}
               </th>
@@ -359,7 +359,7 @@ export function Sources({
 }) {
   return (
     <section className="mt-14 border-t border-[#e5e5e5] pt-8">
-      <h2 className="mb-4 text-[11px] font-medium tracking-[0.06em] text-[#999] uppercase">
+      <h2 className="mb-4 text-[11px] font-medium tracking-[0.06em] text-[#6f6f6f] uppercase">
         {heading}
       </h2>
       <ol className="list-decimal space-y-1.5 pl-6 text-[14px] leading-6 font-light text-[#666] marker:text-[#bbb]">

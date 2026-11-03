@@ -182,7 +182,7 @@ export default async function LocalizedBlogIndex({
                   <p className="mb-4 line-clamp-3 flex-1 text-[14px] leading-[1.6] text-[#666]">
                     {post.description}
                   </p>
-                  <div className="flex items-center gap-3 text-[13px] text-[#999]">
+                  <div className="flex items-center gap-3 text-[13px] text-[#6f6f6f]">
                     <time dateTime={post.date}>
                       {formatDate(post.date, locale)}
                     </time>
@@ -195,7 +195,7 @@ export default async function LocalizedBlogIndex({
           </div>
         </div>
       </main>
-      <SiteFooter />
+      <SiteFooter ui={UI_COPY[locale]} nav={navHrefs(locale)} />
     </div>
   );
 }

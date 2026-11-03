@@ -11,7 +11,7 @@ import { SubmitButton } from "../components/SubmitButton";
 import { SavePill } from "../components/SavePill";
 import { IDLE, type ActionState } from "@/lib/dashboard/action-state";
 import { getAgentNumberAction } from "./actions";
-import { useT } from "@/lib/i18n/client";
+import { useI18n } from "@/lib/i18n/client";
 
 const field =
   "w-full appearance-none rounded-lg border border-neutral-200 bg-white py-2 pl-3 pr-9 text-sm text-neutral-900 outline-none transition-colors hover:border-neutral-300 focus:border-neutral-900";
@@ -27,7 +27,7 @@ interface Props {
 }
 
 export function GetNumberForm({ assistantId, credits, availableCount = 0, poolCountries = [] }: Props) {
-  const t = useT();
+  const { t, locale } = useI18n();
   const [code, setCode] = useState(DEFAULT_COUNTRY);
   const [poolCode, setPoolCode] = useState(
     poolCountries.find((c) => c.code === DEFAULT_COUNTRY)?.code ??
@@ -113,10 +113,10 @@ export function GetNumberForm({ assistantId, credits, availableCount = 0, poolCo
       <div className="grid grid-cols-1 divide-y divide-neutral-200/70 overflow-hidden rounded-lg border border-neutral-200/70 bg-white/60 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
         <Stat label={t.numbers.country} value={`${country.flag} ${country.name}`} />
         <Stat label={t.numbers.rate} value={`${cpm} credit${cpm === 1 ? "" : "s"}/min`} />
-        <Stat label={t.numbers.estTalkTime} value={`~${minutes.toLocaleString()} min`} />
+        <Stat label={t.numbers.estTalkTime} value={`~${minutes.toLocaleString(locale)} min`} />
       </div>
 
-      <p className="text-xs text-neutral-400">{t.numbers.billedNote}</p>
+      <p className="text-xs text-neutral-500">{t.numbers.billedNote}</p>
     </div>
   );
 }
@@ -141,7 +141,7 @@ function Chevron() {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="px-3 py-2.5">
-      <div className="text-[11px] font-medium uppercase tracking-wide text-neutral-400">{label}</div>
+      <div className="text-[11px] font-medium uppercase tracking-wide text-neutral-500">{label}</div>
       <div className="mt-0.5 truncate text-sm font-medium text-neutral-900">{value}</div>
     </div>
   );

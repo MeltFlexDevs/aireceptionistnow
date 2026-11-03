@@ -37,7 +37,19 @@ const MAX_SUGGESTIONS = 3;
 // Fuzzy-matches the mistyped URL against the site's real pages and offers the
 // closest ones. Renders nothing until mounted (the requested path only exists
 // in the browser) and nothing at all when no match clears the bar.
-export function NotFoundSuggestions({ links }: { links: SuggestionLink[] }) {
+export function NotFoundSuggestions({
+  links,
+  src,
+  lead = "Did you mean",
+  or = "or",
+}: {
+  links?: SuggestionLink[];
+  /** A URL that returns the links as JSON, used when `links` is not given. */
+  src?: string;
+  /** "Did you mean" in the page language, without the trailing space. */
+  lead?: string;
+  or?: string;
+}) {
   const [matches, setMatches] = useState<SuggestionLink[]>([]);
 
   useEffect(() => {
@@ -46,31 +58,48 @@ export function NotFoundSuggestions({ links }: { links: SuggestionLink[] }) {
     const whole = normalize(path);
     if (!segment) return;
 
-    const scored = links
-      .map((l) => {
-        const slug = normalize(l.href.split("/").pop() ?? "");
-        const score = Math.max(
-          similarity(segment, slug),
-          similarity(segment, normalize(l.label)),
-          similarity(whole, normalize(l.href)),
-        );
-        return { link: l, score };
-      })
-      .filter((s) => s.score >= THRESHOLD)
-      .sort((x, y) => y.score - x.score)
-      .slice(0, MAX_SUGGESTIONS);
+    const closest = (all: SuggestionLink[]) =>
+      all
+        .map((l) => {
+          const slug = normalize(l.href.split("/").pop() ?? "");
+          const score = Math.max(
+            similarity(segment, slug),
+            similarity(segment, normalize(l.label)),
+            similarity(whole, normalize(l.href)),
+          );
+          return { link: l, score };
+        })
+        .filter((s) => s.score >= THRESHOLD)
+        .sort((x, y) => y.score - x.score)
+        .slice(0, MAX_SUGGESTIONS)
+        .map((s) => s.link);
 
-    setMatches(scored.map((s) => s.link));
-  }, [links]);
+    if (links) {
+      setMatches(closest(links));
+      return;
+    }
+    if (!src) return;
+    let live = true;
+    // No suggestions is the fallback: the page still has its home link.
+    fetch(src)
+      .then((r) => (r.ok ? r.json() : []))
+      .then((all: SuggestionLink[]) => {
+        if (live) setMatches(closest(all));
+      })
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [links, src]);
 
   if (matches.length === 0) return null;
 
   return (
     <div style={{ marginTop: "20px", fontSize: "14px", fontWeight: 300, color: "#888" }}>
-      <span>Did you mean </span>
+      <span>{lead} </span>
       {matches.map((m, i) => (
         <span key={m.href}>
-          {i > 0 && <span>{i === matches.length - 1 ? " or " : ", "}</span>}
+          {i > 0 && <span>{i === matches.length - 1 ? ` ${or} ` : ", "}</span>}
           <Link
             href={m.href}
             style={{

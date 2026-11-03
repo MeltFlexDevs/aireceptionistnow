@@ -8,9 +8,9 @@ const DOT: Record<StatusTone, string> = {
   error: "bg-rose-500",
 };
 const TEXT: Record<StatusTone, string> = {
-  ok: "text-emerald-600",
-  warn: "text-amber-600",
-  error: "text-rose-600",
+  ok: "text-emerald-700",
+  warn: "text-amber-700",
+  error: "text-rose-700",
 };
 
 function resolveTone(tone?: StatusTone, ok?: boolean): StatusTone {

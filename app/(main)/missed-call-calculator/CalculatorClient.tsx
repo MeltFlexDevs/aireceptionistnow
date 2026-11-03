@@ -5,10 +5,13 @@ import Link from "next/link";
 
 import { useAuthDialog } from "@/app/components/AuthDialog";
 import {
+  MAX_CUSTOMER_VALUE,
   MISSED_CALL_DEFAULTS,
   calculateMissedCallLoss,
+  parseCustomerValue,
   type MissedCallInputs,
 } from "@/lib/marketing/missed-call";
+import { formatEur } from "@/lib/price-format";
 
 // All formatting pins "en-US" explicitly. This component server-renders before
 // hydrating, and a locale-dependent toLocaleString would format differently on
@@ -62,6 +65,8 @@ function Slider({
 
 export default function CalculatorClient() {
   const [input, setInput] = useState<MissedCallInputs>(MISSED_CALL_DEFAULTS);
+  // The field keeps its own text so "" and "2." survive typing; the model gets the parsed number.
+  const [valueText, setValueText] = useState(String(MISSED_CALL_DEFAULTS.avgCustomerValue));
   const { open } = useAuthDialog();
 
   const set = <K extends keyof MissedCallInputs>(key: K) => (value: number) =>
@@ -124,9 +129,14 @@ export default function CalculatorClient() {
                 id="mcc-value"
                 type="number"
                 min={0}
-                step={25}
-                value={input.avgCustomerValue}
-                onChange={(e) => set("avgCustomerValue")(Number(e.target.value))}
+                max={MAX_CUSTOMER_VALUE}
+                step="any"
+                inputMode="decimal"
+                value={valueText}
+                onChange={(e) => {
+                  setValueText(e.target.value);
+                  set("avgCustomerValue")(parseCustomerValue(e.target.value));
+                }}
               />
             </div>
             <p className="mcc-hint">
@@ -190,7 +200,7 @@ export default function CalculatorClient() {
               </li>
               <li>
                 <span>{num1.format(r.lostCustomers)}</span> would have bought, at{" "}
-                {eur.format(input.avgCustomerValue)} each
+                {formatEur(input.avgCustomerValue, "en")} each
               </li>
             </ol>
           </div>

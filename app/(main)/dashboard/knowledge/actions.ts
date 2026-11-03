@@ -19,6 +19,8 @@ import { fetchWebsiteMarkdown } from "@/lib/knowledge/website";
 import { parsePdfMarkdown } from "@/lib/knowledge/pdf";
 import { summarizeSourceMarkdown } from "@/lib/dashboard/ai-knowledge";
 import { dismissDemand, markDemandAnswered } from "@/lib/dashboard/demand";
+import { mergeVerifiedAnswer } from "@/lib/dashboard/knowledge-gaps";
+import { isOwnedBy } from "@/lib/dashboard/ownership";
 import {
   addSource,
   parseVerifiedLines,
@@ -26,6 +28,7 @@ import {
   removeSource,
   MAX_SOURCE_CHARS,
   MAX_VERIFIED,
+  type AssistantKnowledge,
   type KnowledgeSource,
 } from "@/lib/knowledge/sources";
 import { getDictionary } from "@/lib/i18n/server";
@@ -34,9 +37,9 @@ import { ok, fail, type ActionState } from "@/lib/dashboard/action-state";
 /**
  * Teaching actions for /dashboard/knowledge.
  *
- * These moved out of company/actions.ts and swapped ?saved=1 redirects for
- * returned state, so a save shows an inline pill without reloading the page or
- * losing the reader's place in the source list.
+ * These return state instead of ?saved=1 redirects, so a save shows an inline
+ * pill without reloading the page or losing the reader's place in the source
+ * list.
  */
 
 /**
@@ -89,7 +92,7 @@ async function ensureActiveOrganization(requestedId: string): Promise<Organizati
   if (requestedId) {
     const org = await getOrganization(requestedId).catch(() => null);
     if (!org) bail(t.knowledge.businessNotFound);
-    if (authConfigured() && org.owner_id && org.owner_id !== ownerId) {
+    if (!isOwnedBy(org.owner_id, ownerId)) {
       bail(t.knowledge.businessNotFound);
     }
     return org;
@@ -111,10 +114,27 @@ async function ensureActiveOrganization(requestedId: string): Promise<Organizati
   return created;
 }
 
-async function saveKnowledge(orgId: string, next: Record<string, unknown>): Promise<void> {
+/**
+ * Write one action's change to the business's knowledge.
+ *
+ * The org row is read again here, right before the update, and `change` runs
+ * on that fresh copy. Callers do their slow work (fetch a site, parse a PDF,
+ * summarize) before they call this. Each action used to write back the copy
+ * it read at its start, so a website added while a gap was answered dropped
+ * the answer. Not atomic: a save that lands between this read and the update
+ * can still be lost, but that window is one query, not a website fetch.
+ * `change` may bail(); nothing is written then.
+ */
+async function saveKnowledge(
+  orgId: string,
+  change: (fresh: AssistantKnowledge) => AssistantKnowledge,
+): Promise<void> {
   const t = await getDictionary();
+  const current = await getOrganization(orgId).catch(() => null);
+  if (!current) bail(t.knowledge.saveFailed);
+  const next = change(readKnowledge(current.knowledge));
   try {
-    await updateOrganizationKnowledge(orgId, next);
+    await updateOrganizationKnowledge(orgId, { ...next });
   } catch {
     bail(t.knowledge.saveFailed);
   }
@@ -129,15 +149,16 @@ export async function updateKnowledgeNotesAction(
   return run(async () => {
     const t = await getDictionary();
     const org = await ensureActiveOrganization(String(formData.get("id") ?? ""));
-    const knowledge = readKnowledge(org.knowledge);
-    knowledge.notes = String(formData.get("knowledge_notes") ?? "").trim();
-    // Guarded on presence, not on the submit: an older form that carries only
-    // the notes must not wipe the verified answers. Same rule as the assistant
-    // patch layer - see lib/dashboard/assistant-patch.ts.
-    if (formData.has("knowledge_verified")) {
-      knowledge.verified = parseVerifiedLines(String(formData.get("knowledge_verified") ?? ""));
-    }
-    await saveKnowledge(org.id, { ...knowledge });
+    await saveKnowledge(org.id, (fresh) => {
+      fresh.notes = String(formData.get("knowledge_notes") ?? "").trim();
+      // Guarded on presence, not on the submit: an older form that carries only
+      // the notes must not wipe the verified answers. Same rule as the assistant
+      // patch layer - see lib/dashboard/assistant-patch.ts.
+      if (formData.has("knowledge_verified")) {
+        fresh.verified = parseVerifiedLines(String(formData.get("knowledge_verified") ?? ""));
+      }
+      return fresh;
+    });
     return ok(t.knowledge.saved);
   });
 }
@@ -173,9 +194,11 @@ export async function addWebsiteKnowledgeAction(
 
     source.summary = (await summarizeSourceMarkdown(source.title, source.markdown)) ?? undefined;
 
-    const added = addSource(readKnowledge(org.knowledge), source);
-    if (!added.ok) bail(t.knowledge.errorTooManySources);
-    await saveKnowledge(org.id, { ...added.knowledge });
+    await saveKnowledge(org.id, (fresh) => {
+      const added = addSource(fresh, source);
+      if (!added.ok) bail(t.knowledge.errorTooManySources);
+      return added.knowledge;
+    });
     return ok(truncated ? t.knowledge.savedTruncated : t.knowledge.saved);
   });
 }
@@ -215,9 +238,11 @@ export async function addPdfKnowledgeAction(
 
     source.summary = (await summarizeSourceMarkdown(source.title, source.markdown)) ?? undefined;
 
-    const added = addSource(readKnowledge(org.knowledge), source);
-    if (!added.ok) bail(t.knowledge.errorTooManySources);
-    await saveKnowledge(org.id, { ...added.knowledge });
+    await saveKnowledge(org.id, (fresh) => {
+      const added = addSource(fresh, source);
+      if (!added.ok) bail(t.knowledge.errorTooManySources);
+      return added.knowledge;
+    });
     return ok(truncated ? t.knowledge.savedTruncated : t.knowledge.saved);
   });
 }
@@ -257,18 +282,13 @@ export async function answerKnowledgeGapAction(
     if (!signal) bail(t.knowledge.saveFailed);
 
     const org = await ensureActiveOrganization(String(formData.get("id") ?? ""));
-    const knowledge = readKnowledge(org.knowledge);
-    const verified = knowledge.verified ?? [];
 
     // Re-answering the same question replaces it rather than stacking a second
-    // pair the model would have to choose between.
-    const question = signal.topic;
-    const next = [
-      { q: question, a: answer },
-      ...verified.filter((v) => v.q.trim().toLowerCase() !== question.trim().toLowerCase()),
-    ].slice(0, MAX_VERIFIED);
-
-    await saveKnowledge(org.id, { ...knowledge, verified: next });
+    // pair the model would have to choose between. Shared with the mobile route.
+    await saveKnowledge(org.id, (fresh) => ({
+      ...fresh,
+      verified: mergeVerifiedAnswer(fresh.verified ?? [], signal.topic, answer, MAX_VERIFIED),
+    }));
     return ok(t.knowledge.saved);
   });
 }
@@ -309,8 +329,7 @@ export async function removeKnowledgeSourceAction(
     if (!sourceId) bail(t.knowledge.saveFailed);
 
     const org = await ensureActiveOrganization(String(formData.get("id") ?? ""));
-    const next = removeSource(readKnowledge(org.knowledge), sourceId);
-    await saveKnowledge(org.id, { ...next });
+    await saveKnowledge(org.id, (fresh) => removeSource(fresh, sourceId));
     return ok(t.knowledge.removed);
   });
 }

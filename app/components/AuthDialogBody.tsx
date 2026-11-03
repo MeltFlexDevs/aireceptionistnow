@@ -4,6 +4,10 @@ import * as React from "react";
 import Image from "next/image";
 
 import { createClient } from "@/lib/supabase/client";
+import { resolveSameOriginNext } from "@/lib/safe-redirect";
+import { authErrorKey } from "@/lib/auth-error-key";
+import type { UiCopy } from "@/content/i18n/_ui-copy";
+import type { AuthMode } from "./AuthDialog";
 import { ValidatedForm, Field, FieldError, ValidatedSubmit } from "@/app/components/forms/validated-form";
 
 // The heavy half of the auth dialog: the Supabase browser client plus the full
@@ -61,10 +65,14 @@ function CloseGlyph() {
 type Pending = "google" | "apple" | "email" | "verify" | null;
 
 export default function AuthDialogBody({
+  copy,
+  mode,
   description,
   nextPath,
   onClose,
 }: {
+  copy: UiCopy["auth"];
+  mode: AuthMode;
   description: string | null;
   nextPath: string;
   onClose: () => void;
@@ -76,6 +84,11 @@ export default function AuthDialogBody({
   const [pending, setPending] = React.useState<Pending>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [sentTo, setSentTo] = React.useState<string | null>(null);
+  const [emailInvalid, setEmailInvalid] = React.useState(false);
+
+  // Never show error.message: it is raw English GoTrue text. Map the error to a
+  // localized text instead.
+  const authError = (e: Parameters<typeof authErrorKey>[0]) => copy.errors[authErrorKey(e)];
 
   const resetState = React.useCallback(() => {
     setPending(null);
@@ -84,12 +97,58 @@ export default function AuthDialogBody({
     setCode("");
   }, []);
 
-  // Lock body scroll + close on Escape while mounted (mounted === open).
+  const panelRef = React.useRef<HTMLDivElement>(null);
+  const emailRef = React.useRef<HTMLInputElement>(null);
+  const titleId = React.useId();
+  const errorId = React.useId();
+
+  // Remember what had focus when the dialog opened (the trigger) and give
+  // focus back to it on every close path: Escape, Close, overlay click.
+  React.useEffect(() => {
+    const opener = document.activeElement as HTMLElement | null;
+    return () => {
+      if (opener?.isConnected) opener.focus();
+    };
+  }, []);
+
+  // Focus the email input on open and after "Use a different email". The
+  // code input focuses itself (autoFocus).
+  React.useEffect(() => {
+    if (!sentTo) emailRef.current?.focus();
+  }, [sentTo]);
+
+  // Lock body scroll, close on Escape and keep Tab inside the panel while
+  // mounted (mounted === open).
   React.useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key !== "Tab") return;
+      // Wrap at both ends so aria-modal is honest: focus never reaches the
+      // page behind the overlay.
+      const panel = panelRef.current;
+      if (!panel) return;
+      const items = panel.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+      if (items.length === 0) {
+        e.preventDefault();
+        return;
+      }
+      const first = items[0];
+      const last = items[items.length - 1];
+      const active = document.activeElement;
+      if (e.shiftKey && (active === first || !panel.contains(active))) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && (active === last || !panel.contains(active))) {
+        e.preventDefault();
+        first.focus();
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => {
@@ -99,8 +158,9 @@ export default function AuthDialogBody({
   }, [onClose]);
 
   async function signInWithGoogle() {
-    if (!supabase) return setError("Sign-in isn’t configured yet.");
+    if (!supabase) return setError(copy.errors.notConfigured);
     setError(null);
+    setEmailInvalid(false);
     setPending("google");
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -109,14 +169,15 @@ export default function AuthDialogBody({
       },
     });
     if (error) {
-      setError(error.message);
+      setError(authError(error));
       setPending(null);
     }
   }
 
   async function signInWithApple() {
-    if (!supabase) return setError("Sign-in isn’t configured yet.");
+    if (!supabase) return setError(copy.errors.notConfigured);
     setError(null);
+    setEmailInvalid(false);
     setPending("apple");
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "apple",
@@ -125,7 +186,7 @@ export default function AuthDialogBody({
       },
     });
     if (error) {
-      setError(error.message);
+      setError(authError(error));
       setPending(null);
     }
   }
@@ -133,7 +194,7 @@ export default function AuthDialogBody({
   async function signInWithEmail(event: React.FormEvent) {
     event.preventDefault();
     if (!email) return;
-    if (!supabase) return setError("Sign-in isn’t configured yet.");
+    if (!supabase) return setError(copy.errors.notConfigured);
     setError(null);
     setPending("email");
     const { error } = await supabase.auth.signInWithOtp({
@@ -141,7 +202,8 @@ export default function AuthDialogBody({
       options: { shouldCreateUser: true },
     });
     setPending(null);
-    if (error) setError(error.message);
+    setEmailInvalid(error ? authErrorKey(error) === "invalidEmail" : false);
+    if (error) setError(authError(error));
     else {
       setCode("");
       setSentTo(email);
@@ -151,7 +213,7 @@ export default function AuthDialogBody({
   async function verifyCode(event: React.FormEvent) {
     event.preventDefault();
     if (!sentTo || code.length < 6) return;
-    if (!supabase) return setError("Sign-in isn’t configured yet.");
+    if (!supabase) return setError(copy.errors.notConfigured);
     setError(null);
     setPending("verify");
     const { error } = await supabase.auth.verifyOtp({
@@ -160,28 +222,30 @@ export default function AuthDialogBody({
       type: "email",
     });
     if (error) {
-      setError(error.message);
+      setError(authError(error));
       setPending(null);
       return;
     }
-    window.location.assign(nextPath);
+    window.location.assign(resolveSameOriginNext(nextPath, window.location.origin));
   }
 
   return (
     <div
       role="dialog"
       aria-modal="true"
+      aria-labelledby={titleId}
       onClick={onClose}
-      className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-black/50 p-4 backdrop-blur-sm sm:items-center"
+      className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-black/50 p-4 backdrop-blur-sm"
       style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
     >
       <div
+        ref={panelRef}
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-[880px] overflow-hidden rounded-2xl bg-white shadow-2xl"
+        className="relative my-auto w-full max-w-[880px] overflow-hidden rounded-2xl bg-white shadow-2xl"
       >
         <button
           type="button"
-          aria-label="Close"
+          aria-label={copy.close}
           onClick={onClose}
           className="absolute right-4 top-4 z-10 flex size-8 items-center justify-center rounded-full text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-700"
         >
@@ -210,40 +274,45 @@ export default function AuthDialogBody({
 
             {sentTo ? (
               <>
-                <h2 className="mb-2 text-2xl font-light uppercase tracking-[0.04em] text-neutral-900">
-                  Enter your code
+                <h2 id={titleId} className="mb-2 text-2xl font-light uppercase tracking-[0.04em] text-neutral-900">
+                  {copy.codeTitle}
                 </h2>
                 <p className="mb-8 text-[13px] font-light tracking-[0.3px] text-neutral-500">
-                  We sent a 6-digit code to{" "}
-                  <span className="font-normal text-neutral-900">{sentTo}</span>.
+                  {copy.codeSent.split("{email}")[0]}
+                  <span className="font-normal text-neutral-900">{sentTo}</span>
+                  {copy.codeSent.split("{email}")[1]}
                 </p>
 
-                {error ? <ErrorBox message={error} /> : null}
+                {error ? <ErrorBox id={errorId} message={error} /> : null}
 
                 <ValidatedForm className="w-full" onSubmit={verifyCode}>
                   <input
                     id="auth-code"
                     name="auth-code"
+                    aria-labelledby={titleId}
+                    aria-invalid={error ? true : undefined}
+                    aria-describedby={error ? errorId : undefined}
                     inputMode="numeric"
                     autoComplete="one-time-code"
                     autoFocus
                     required
                     pattern="\d{6}"
                     maxLength={6}
-                    data-error-patternmismatch="Enter the 6-digit code."
+                    data-error-valuemissing={copy.required}
+                    data-error-patternmismatch={copy.codePattern}
                     value={code}
                     onChange={(e) =>
                       setCode(e.target.value.replace(/\D/g, "").slice(0, 6))
                     }
                     placeholder="••••••"
-                    className="mb-3.5 w-full rounded-[10px] border border-neutral-200 bg-white px-3.5 py-3 text-center text-2xl font-light tracking-[0.4em] outline-none transition focus:border-neutral-400"
+                    className="mb-3.5 w-full rounded-[10px] border border-neutral-200 bg-white px-3.5 py-3 text-center text-2xl font-light tracking-[0.4em] outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2"
                   />
                   <FieldError name="auth-code" className="mb-3.5 text-center" />
                   <ValidatedSubmit
                     disabled={pending !== null || code.length < 6}
                     className="w-full rounded-[10px] bg-neutral-900 px-4 py-3 text-[13px] font-light uppercase tracking-[0.08em] text-white transition hover:opacity-90 disabled:opacity-60"
                   >
-                    {pending === "verify" ? "Verifying…" : "Verify & continue"}
+                    {pending === "verify" ? copy.verifying : copy.verify}
                   </ValidatedSubmit>
                 </ValidatedForm>
 
@@ -252,19 +321,19 @@ export default function AuthDialogBody({
                   onClick={resetState}
                   className="mt-4 text-[11px] uppercase tracking-[0.08em] text-neutral-500 transition-colors hover:text-neutral-900"
                 >
-                  Use a different email
+                  {copy.differentEmail}
                 </button>
               </>
             ) : (
               <>
-                <h2 className="mb-2 text-2xl font-light uppercase tracking-[0.04em] text-neutral-900">
-                  Welcome
+                <h2 id={titleId} className="mb-2 text-2xl font-light uppercase tracking-[0.04em] text-neutral-900">
+                  {copy.welcome}
                 </h2>
                 <p className="mb-10 text-[13px] font-light tracking-[0.3px] text-neutral-500">
-                  {description ?? "Sign in to manage your AI receptionist"}
+                  {description ?? (mode === "signup" ? copy.signupDescription : copy.defaultDescription)}
                 </p>
 
-                {error ? <ErrorBox message={error} /> : null}
+                {error ? <ErrorBox id={errorId} message={error} /> : null}
 
                 <button
                   type="button"
@@ -273,7 +342,7 @@ export default function AuthDialogBody({
                   className="mb-3 flex w-full items-center justify-center gap-3 rounded-[10px] border border-neutral-200 bg-white px-6 py-3.5 text-sm font-light tracking-[0.2px] text-neutral-900 transition hover:border-neutral-400 disabled:opacity-60"
                 >
                   <GoogleGlyph />
-                  {pending === "google" ? "Redirecting…" : "Continue with Google"}
+                  {pending === "google" ? copy.redirecting : copy.continueGoogle}
                 </button>
 
                 <button
@@ -283,44 +352,49 @@ export default function AuthDialogBody({
                   className="mb-3 flex w-full items-center justify-center gap-3 rounded-[10px] border border-neutral-200 bg-white px-6 py-3.5 text-sm font-light tracking-[0.2px] text-neutral-900 transition hover:border-neutral-400 disabled:opacity-60"
                 >
                   <AppleGlyph />
-                  {pending === "apple" ? "Redirecting…" : "Continue with Apple"}
+                  {pending === "apple" ? copy.redirecting : copy.continueApple}
                 </button>
 
                 <div className="mb-5 flex w-full items-center gap-3 text-[11px] uppercase tracking-[0.5px] text-neutral-500">
                   <span className="h-px flex-1 bg-neutral-200" />
-                  or
+                  {copy.or}
                   <span className="h-px flex-1 bg-neutral-200" />
                 </div>
 
                 <ValidatedForm className="w-full text-left" onSubmit={signInWithEmail}>
                   <Field
                     name="auth-email"
-                    label="Email"
+                    label={copy.emailLabel}
                     required
                     labelClassName="mb-1.5 block text-[11px] font-normal uppercase tracking-[0.08em] text-neutral-500"
                   >
                     <input
+                      ref={emailRef}
                       id="auth-email"
                       name="auth-email"
+                      aria-invalid={error && emailInvalid ? true : undefined}
+                      aria-describedby={error && emailInvalid ? errorId : undefined}
                       type="email"
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
+                      data-error-valuemissing={copy.required}
+                      data-error-typemismatch={copy.emailInvalid}
                       placeholder="you@example.com"
-                      className="mb-3.5 w-full rounded-[10px] border border-neutral-200 bg-white px-3.5 py-3 text-base font-light outline-none transition focus:border-neutral-400"
+                      className="mb-3.5 w-full rounded-[10px] border border-neutral-200 bg-white px-3.5 py-3 text-base font-light outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2"
                     />
                   </Field>
                   <ValidatedSubmit
                     disabled={pending !== null}
                     className="w-full rounded-[10px] bg-neutral-900 px-4 py-3 text-[13px] font-light uppercase tracking-[0.08em] text-white transition hover:opacity-90 disabled:opacity-60"
                   >
-                    {pending === "email" ? "Sending code…" : "Continue with email"}
+                    {pending === "email" ? copy.sendingCode : copy.continueEmail}
                   </ValidatedSubmit>
                 </ValidatedForm>
 
                 <div className="mt-3.5 flex items-center justify-center gap-1.5 text-[11px] font-light text-neutral-500">
                   <LockGlyph />
-                  <span>Your data is safe, secure and fully private.</span>
+                  <span>{copy.privacy}</span>
                 </div>
               </>
             )}
@@ -331,9 +405,9 @@ export default function AuthDialogBody({
   );
 }
 
-function ErrorBox({ message }: { message: string }) {
+function ErrorBox({ id, message }: { id: string; message: string }) {
   return (
-    <div className="mb-4 flex w-full items-start gap-2 rounded-[10px] bg-red-50 px-3 py-2.5 text-left text-[13px] text-red-600">
+    <div id={id} role="alert" className="mb-4 flex w-full items-start gap-2 rounded-[10px] bg-red-50 px-3 py-2.5 text-left text-[13px] text-red-600">
       <span>{message}</span>
     </div>
   );

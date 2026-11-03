@@ -91,7 +91,7 @@ export function KnowledgeStep({ sources }: { sources: KnowledgeSource[] }) {
             <h2 className="text-sm font-medium text-neutral-700">{o.importedTitle}</h2>
             <div className="mt-2 min-h-0 flex-1 overflow-y-auto overscroll-contain">
               {!has ? (
-                <p className="text-sm leading-relaxed text-neutral-400">{o.knowledgeEmpty}</p>
+                <p className="text-sm leading-relaxed text-neutral-500">{o.knowledgeEmpty}</p>
               ) : (
                 <ul className="space-y-2">
                   {sources.map((s) => (
@@ -144,7 +144,7 @@ function RemoveButton({ label }: { label: string }) {
       type="submit"
       disabled={pending}
       aria-label={label}
-      className="press shrink-0 rounded-lg px-2 py-1 text-xs font-medium text-neutral-400 transition-colors hover:text-rose-600 disabled:opacity-50"
+      className="press shrink-0 rounded-lg px-2 py-1 text-xs font-medium text-neutral-500 transition-colors hover:text-rose-600 disabled:opacity-50"
     >
       {pending ? "…" : label}
     </button>

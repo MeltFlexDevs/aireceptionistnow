@@ -1,4 +1,5 @@
 import type { PageId } from "@/content/i18n/_types";
+import { blogPostLocales } from "./blog-nav";
 import { localizedPageIdToPath, pageIdToPath } from "./ids";
 import type { ContentLocale } from "./locales";
 import { isPublished } from "./manifest";
@@ -18,12 +19,15 @@ export function localizedHref(locale: ContentLocale, pageId: PageId): string {
     : pageIdToPath(pageId);
 }
 
+const RECEPTIONIST_247 = "24-7-ai-receptionist";
+
 /**
- * Header nav hrefs for a locale.
+ * Header and footer nav hrefs for a locale.
  *
  * Server-only, because it reads the publish gate: call it in the server page
  * and pass the result down to SiteHeader. A locale whose /pricing is not
  * reviewed yet gets the English /pricing here rather than a 404.
+ * Blog articles are not in the manifest, so the 24/7 link asks the blog registry (blog-nav).
  */
 export function navHrefs(locale: ContentLocale): NavHrefs {
   if (locale === "en") return EN_NAV_HREFS;
@@ -31,5 +35,10 @@ export function navHrefs(locale: ContentLocale): NavHrefs {
     home: localizedHref(locale, "home"),
     industries: localizedHref(locale, "industries"),
     pricing: localizedHref(locale, "pricing"),
+    blog: localizedHref(locale, "blog"),
+    receptionist247: blogPostLocales(RECEPTIONIST_247).some((l) => l === locale)
+      ? localizedPageIdToPath(locale, `blog/${RECEPTIONIST_247}`)
+      : EN_NAV_HREFS.receptionist247,
+    privacyPolicy: localizedHref(locale, "privacy-policy"),
   };
 }

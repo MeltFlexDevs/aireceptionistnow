@@ -98,6 +98,9 @@ export function BusinessForm({
             className={field}
             disabled={!canEdit}
           />
+          {state.fields?.phone && (
+            <p className="mt-1 text-xs text-rose-600">{state.fields.phone}</p>
+          )}
         </Field>
         <div>
           <label htmlFor="timezone" className={labelCls}>
@@ -130,7 +133,7 @@ export function BusinessForm({
       <label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-neutral-200 px-4 py-3 transition-colors hover:border-neutral-300">
         <span>
           <span className="block text-sm font-medium text-neutral-800">{s.shareTitle}</span>
-          <span className="block text-xs text-neutral-400">{s.shareBody}</span>
+          <span className="block text-xs text-neutral-500">{s.shareBody}</span>
         </span>
         <input
           type="checkbox"

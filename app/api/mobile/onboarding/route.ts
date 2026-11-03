@@ -1,22 +1,25 @@
 import { randomUUID } from "node:crypto";
 
 import { getBilling } from "@/lib/billing";
-import { listIntegrations } from "@/lib/dashboard/db";
+import { listAssistants, listIntegrations } from "@/lib/dashboard/db";
 import {
   getOnboardingProfile,
+  provisionLeaseExpired,
   saveOnboardingConfig,
+  updateOnboardingConfig,
 } from "@/lib/dashboard/onboarding-profile";
 import { provisionOnboarding } from "@/lib/dashboard/provision";
 import { summarizeSourceMarkdown } from "@/lib/dashboard/ai-knowledge";
-import { MAX_SOURCE_CHARS, MAX_SOURCES } from "@/lib/knowledge/sources";
-import { DEFAULT_COUNTRY, NUMBER_COUNTRIES } from "@/lib/number-pricing";
-import { PLANS } from "@/lib/plans";
-import { mobileUserId } from "@/lib/mobile/auth";
+import { MAX_SOURCE_CHARS, MAX_SOURCES, noteTitle } from "@/lib/knowledge/sources";
+import { NUMBER_COUNTRIES } from "@/lib/number-pricing";
+import { mobilePlans, planTerms } from "@/lib/mobile/plans";
+import { mobileAuth } from "@/lib/mobile/auth";
+import { normalizePhone } from "@/lib/phone";
+import { normalizeWebsite } from "@/lib/onboarding/website";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const PHONE_RE = /^\+[1-9]\d{6,15}$/;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
@@ -28,39 +31,67 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  * the saved config exactly the way `page.tsx` computes `firstIncomplete`.
  *
  * PDF import is not offered (see the knowledge route for why); typed notes are.
- * Payment is not taken here either - it opens Stripe in a browser through
- * /api/mobile/web-link, because in-binary payment would fall under App Store
- * in-app purchase rules.
+ *
+ * Payment is an in-app purchase (App Store on iOS, Google Play via RevenueCat
+ * on Android), verified server-side by /api/mobile/billing/apple/verify and
+ * /api/mobile/billing/google/sync, which write user_billing and start
+ * provisioning. `paid` here is the same active/trialing read the web uses, so
+ * the funnel treats a store subscription exactly like a Stripe one.
+ *
+ * `done` mirrors the web dashboard's rule (app/(main)/dashboard/page.tsx): a
+ * user is sent to onboarding only when they own no assistants and the profile
+ * is not done. A web customer with assistants and an abandoned draft must not
+ * be pushed through the funnel again - that path once created a second
+ * organization, assistant and number.
  */
 
 function firstIncompleteStep(cfg: Record<string, unknown>): number {
-  if (!((cfg.companyName || cfg.companyWebsite) && cfg.assistantName)) return 1;
+  const website = typeof cfg.companyWebsite === "string" ? normalizeWebsite(cfg.companyWebsite) : null;
+  if (!((cfg.companyName || website) && cfg.assistantName)) return 1;
   if (!cfg.knowledgeDone) return 2;
   if (!cfg.calendarDone) return 3;
   return 4;
 }
 
 export async function GET(req: Request): Promise<Response> {
-  const userId = await mobileUserId(req);
+  const auth = await mobileAuth(req, "onboarding");
+  if (auth instanceof Response) return auth;
+  const userId = auth;
   if (!userId) return Response.json({ error: "Not signed in." }, { status: 401 });
 
-  const [profile, billing, integrations] = await Promise.all([
-    getOnboardingProfile(userId),
-    getBilling(userId).catch(() => null),
-    listIntegrations(userId).catch(() => []),
-  ]);
+  // Assistants are read strictly: an empty list on a failed read would tell an
+  // existing customer's app to run the setup funnel again.
+  let profile, billing, integrations, assistants;
+  try {
+    [profile, billing, integrations, assistants] = await Promise.all([
+      getOnboardingProfile(userId),
+      getBilling(userId).catch(() => null),
+      listIntegrations(userId).catch(() => []),
+      listAssistants(userId),
+    ]);
+  } catch (err) {
+    console.error("[mobile:onboarding]", err);
+    return Response.json({ error: "Something went wrong." }, { status: 500 });
+  }
 
   const cfg = (profile?.config ?? {}) as Record<string, unknown>;
   const paid = billing?.status === "active" || billing?.status === "trialing";
   const step = firstIncompleteStep(cfg);
+  const status = profile?.status ?? "draft";
+  const hasAssistants = assistants.length > 0;
 
   return Response.json({
-    status: profile?.status ?? "draft",
+    status,
     // The app opens this step and no later one - the native equivalent of the
     // funnel's URL gate.
     step,
     paid,
-    done: profile?.status === "done",
+    // A run in flight is still shown as provisioning even for an account with
+    // assistants (it may be this very run's).
+    done: status === "done" || (hasAssistants && status !== "provisioning"),
+    hasAssistants,
+    // Includes `sandbox: true` when the assistant was deployed on a store
+    // sandbox purchase and therefore has no live number.
     result: profile?.result ?? null,
     config: {
       companyName: (cfg.companyName as string) ?? "",
@@ -68,7 +99,9 @@ export async function GET(req: Request): Promise<Response> {
       assistantName: (cfg.assistantName as string) ?? "",
       voiceId: (cfg.voiceId as string) ?? "",
       voiceGender: cfg.voiceGender === "m" ? "m" : "f",
-      country: (cfg.country as string) ?? DEFAULT_COUNTRY,
+      // Empty until the user picks one: the app must be able to tell "not
+      // chosen yet" from "US", which a default here would hide.
+      country: (cfg.country as string) ?? "",
       alertsEmail: (cfg.alertsEmail as string) ?? "",
       alertPhone: (cfg.alertPhone as string) ?? "",
       knowledgeDone: Boolean(cfg.knowledgeDone),
@@ -85,17 +118,10 @@ export async function GET(req: Request): Promise<Response> {
     },
     calendarsConnected: integrations.filter((i) => i.type === "calendar" && i.enabled).length,
     countries: NUMBER_COUNTRIES.map((c) => ({ code: c.code, name: c.name, flag: c.flag })),
-    plans: PLANS.map((p) => ({
-      id: p.id,
-      name: p.name,
-      tagline: p.tagline,
-      monthlyAmountCents: p.monthlyAmountCents,
-      currency: p.currency,
-      highlight: p.highlight,
-      included: p.included,
-      features: p.features,
-      minutesIncluded: p.limits.minutesIncluded,
-    })),
+    // Same shape the public /api/mobile/catalog route serves, so the funnel's
+    // plan step and the standalone pricing screen cannot disagree on a price.
+    plans: mobilePlans(),
+    planTerms: planTerms(),
   });
 }
 
@@ -114,7 +140,9 @@ interface PostBody {
 }
 
 export async function POST(req: Request): Promise<Response> {
-  const userId = await mobileUserId(req);
+  const auth = await mobileAuth(req, "onboarding-submit");
+  if (auth instanceof Response) return auth;
+  const userId = auth;
   if (!userId) return Response.json({ error: "Not signed in." }, { status: 401 });
 
   let body: PostBody;
@@ -132,6 +160,18 @@ export async function POST(req: Request): Promise<Response> {
       const alertPhone = str(body.alertPhone).replace(/[\s().-]/g, "");
       const alertsEmail = str(body.alertsEmail);
 
+      // The website is checked BEFORE the write, unlike the phone and email
+      // below: the app runs the same rule first (lib/website.ts there) and
+      // keeps its own form, so this 400 wipes nothing. Words saved as a
+      // website would pass step 1 and name the business after them.
+      const companyWebsite = normalizeWebsite(str(body.companyWebsite));
+      if (companyWebsite === null) {
+        return Response.json(
+          { error: "Enter a website like example.com, or leave it empty.", code: "invalid_website" },
+          { status: 400 },
+        );
+      }
+
       // Persist BEFORE validating, exactly like the web action: a validation
       // error must never wipe what the user already typed. The provisioner
       // re-validates and ignores a bad phone/email, so a draft holding one can
@@ -148,14 +188,14 @@ export async function POST(req: Request): Promise<Response> {
           country: str(body.country).toUpperCase(),
           alertsEmail,
           alertPhone,
-          companyWebsite: str(body.companyWebsite),
+          companyWebsite,
         },
         1,
       );
 
-      if (alertPhone && !PHONE_RE.test(alertPhone)) {
+      if (alertPhone && !normalizePhone(alertPhone)) {
         return Response.json(
-          { error: "Enter the alert number with its country code, like +1 555 123 4567." },
+          { error: "Enter the alert number with its country code, starting with +.", code: "invalid_phone" },
           { status: 400 },
         );
       }
@@ -168,32 +208,33 @@ export async function POST(req: Request): Promise<Response> {
     if (action === "add-text") {
       const markdown = str(body.text).slice(0, MAX_SOURCE_CHARS);
       if (!markdown) return Response.json({ error: "Type something first." }, { status: 400 });
-      const firstLine = markdown.split("\n").map((l) => l.trim()).find(Boolean) ?? "";
-      const title = firstLine ? firstLine.slice(0, 50) : "What I told it";
+      const title = noteTitle(markdown, "What I told it");
       const summary = await summarizeSourceMarkdown(title, markdown).catch(() => null);
-      const profile = await getOnboardingProfile(userId);
-      const sources = [
-        ...(profile?.config.sources ?? []),
-        {
-          id: randomUUID(),
-          kind: "text" as const,
-          title,
-          markdown,
-          charCount: markdown.length,
-          addedAt: new Date().toISOString(),
-          ...(summary ? { summary } : {}),
-        },
-      ].slice(-MAX_SOURCES);
-      await saveOnboardingConfig(userId, { sources }, 2);
+      const source = {
+        id: randomUUID(),
+        kind: "text" as const,
+        title,
+        markdown,
+        charCount: markdown.length,
+        addedAt: new Date().toISOString(),
+        ...(summary ? { summary } : {}),
+      };
+      // Compare-and-swap, so an add from the app and one from a web tab both stay.
+      await updateOnboardingConfig(
+        userId,
+        (config) => ({ ...config, sources: [...(config.sources ?? []), source].slice(-MAX_SOURCES) }),
+        2,
+      );
       return Response.json({ ok: true });
     }
 
     if (action === "remove-source") {
       const id = str(body.id);
       if (id) {
-        const profile = await getOnboardingProfile(userId);
-        const sources = (profile?.config.sources ?? []).filter((s) => s.id !== id);
-        await saveOnboardingConfig(userId, { sources });
+        await updateOnboardingConfig(userId, (config) => ({
+          ...config,
+          sources: (config.sources ?? []).filter((s) => s.id !== id),
+        }));
       }
       return Response.json({ ok: true });
     }
@@ -215,15 +256,26 @@ export async function POST(req: Request): Promise<Response> {
     }
 
     if (action === "provision") {
-      // The Stripe webhook normally starts the provisioner; this is the same
-      // fallback + poll target the web screen uses, and it only runs once
-      // payment has landed.
+      // The purchase (Stripe webhook, store verify/sync) normally starts the
+      // provisioner; this is the same fallback + poll target the web screen
+      // uses, and it only runs once payment has landed. provisionOnboarding's
+      // own guard answers 'done' without provisioning for an account that
+      // already owns assistants - not duplicated here on purpose.
       const profile = await getOnboardingProfile(userId);
       if (!profile) return Response.json({ status: "nothing" });
       if (profile.status === "done") {
-        return Response.json({ status: "done", e164: profile.result?.e164 });
+        return Response.json({
+          status: "done",
+          e164: profile.result?.e164,
+          sandbox: profile.result?.sandbox,
+        });
       }
-      if (profile.status === "provisioning") return Response.json({ status: "provisioning" });
+      // A live runner holds the lease. An expired one (the background run
+      // died) falls through, so provisionOnboarding re-claims it - the same
+      // recovery the web screen's poll gets.
+      if (profile.status === "provisioning" && !provisionLeaseExpired(profile)) {
+        return Response.json({ status: "provisioning" });
+      }
 
       const billing = await getBilling(userId).catch(() => null);
       const paid = billing?.status === "active" || billing?.status === "trialing";
@@ -234,6 +286,7 @@ export async function POST(req: Request): Promise<Response> {
         status: outcome.status,
         e164: outcome.e164,
         error: outcome.error,
+        sandbox: outcome.sandbox,
       });
     }
   } catch (err) {

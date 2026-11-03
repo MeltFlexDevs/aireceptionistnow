@@ -1,14 +1,10 @@
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 
-import {
-  cancelCalendarEvent,
-  loadBookingForCancel,
-  saveCancellationState,
-} from "@/lib/dashboard/booking-cancel";
+import { cancelBooking, isUndatedBooking, loadBookingForCancel } from "@/lib/dashboard/booking-cancel";
 import { notifyCancelledCustomer } from "@/lib/dashboard/booking-notify";
-import { retryBookingSync } from "@/lib/dashboard/booking-retry";
-import { mobileUserId } from "@/lib/mobile/auth";
+import { retryBookingSync, retryResponseStatus } from "@/lib/dashboard/booking-retry";
+import { mobileAuth } from "@/lib/mobile/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -21,13 +17,17 @@ export const dynamic = "force-dynamic";
  * call them without it.
  *
  * The customer notification runs in `after()`: it places an outbound call and
- * can take tens of seconds, which is far past what a phone will wait for.
+ * can take tens of seconds, which is far past what a phone will wait for. That
+ * call is also why a cancel is refused (409) for a booking that is already
+ * cancelled or has no time yet: either would phone a customer about nothing.
  */
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  const userId = await mobileUserId(req);
+  const auth = await mobileAuth(req, "calendar-booking");
+  if (auth instanceof Response) return auth;
+  const userId = auth;
   if (!userId) return Response.json({ error: "Not signed in." }, { status: 401 });
 
   const { id: actionId } = await params;
@@ -48,7 +48,10 @@ export async function POST(
     revalidatePath("/dashboard/calendar");
     // The provider's own error text never reaches the user - it is operator
     // diagnostics and there is nothing they could do with it.
-    if (!res.ok) return Response.json({ error: "That did not sync. Try again shortly." }, { status: 502 });
+    const status = retryResponseStatus(res);
+    // Gone or not this user's: 404, since "try again" would make the app retry forever.
+    if (status === 404) return Response.json({ error: "Appointment not found." }, { status });
+    if (status === 502) return Response.json({ error: "That did not sync. Try again shortly." }, { status });
     return Response.json({ ok: true });
   }
 
@@ -58,17 +61,26 @@ export async function POST(
 
     const booking = await loadBookingForCancel(actionId, userId).catch(() => null);
     if (!booking) return Response.json({ error: "Appointment not found." }, { status: 404 });
+    if (booking.cancelled) {
+      return Response.json({ error: "This booking is already cancelled." }, { status: 409 });
+    }
+    if (isUndatedBooking(booking)) {
+      return Response.json(
+        { error: "This request has no time yet - call the customer to arrange one." },
+        { status: 409 },
+      );
+    }
 
-    const cal = await cancelCalendarEvent(booking, reason);
-
-    await saveCancellationState(actionId, {
-      reason,
-      offerRebook,
-      notifyStatus: "pending",
-      calendarCancelled: cal.ok,
-      calendarError: cal.ok ? undefined : cal.error,
-      at: new Date().toISOString(),
-    });
+    // Claim, cancel the calendar event and save, in one shared sequence (it
+    // gives the row back when a step after the claim fails).
+    const res = await cancelBooking(booking, { reason, offerRebook, log: "mobile:calendar-booking" });
+    if (res.kind === "claimed-elsewhere") {
+      return Response.json({ error: "This booking is already cancelled." }, { status: 409 });
+    }
+    if (res.kind === "failed") {
+      return Response.json({ error: "That did not cancel. Try again." }, { status: 500 });
+    }
+    const { cal } = res;
 
     after(() => notifyCancelledCustomer(actionId, booking, reason, offerRebook, userId));
 

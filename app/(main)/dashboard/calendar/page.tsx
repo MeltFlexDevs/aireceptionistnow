@@ -25,9 +25,12 @@ import {
 import { clockFmt, dayKeyFn, timeFmt } from "@/lib/dashboard/timezone";
 import { displayTimezone } from "@/lib/dashboard/display-timezone";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
+import { plural } from "@/lib/i18n/plural";
 import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 import { MAX_SYNC_ATTEMPTS } from "@/lib/dashboard/booking-retry";
 import { CALENDAR_PROVIDERS, providerName } from "@/lib/calendar/providers";
+import { connectErrorCode, connectErrorKey } from "@/lib/integrations/connect-error";
+import { isOAuthConfigured } from "@/lib/dashboard/oauth";
 import { ChevronLeft, ChevronRight } from "../icons";
 import { PageHeader } from "../components/PageHeader";
 import { StatusDot } from "../components/StatusBadge";
@@ -40,7 +43,6 @@ import {
   type CalendarRow,
   type ConnectableProvider,
 } from "./CalendarConnections";
-import { TimezoneSync } from "./TimezoneSync";
 import { AiAvatar } from "@/app/(main)/onboarding/AiAvatar";
 
 export const dynamic = "force-dynamic";
@@ -133,8 +135,8 @@ async function CalendarConnectionsPanel({ ownerId }: { ownerId: string | null })
   }));
 
   // Every bookable provider that has no connection yet gets a Connect button -
-  // all three stay visible so the user always sees what they can link, even
-  // when a provider's OAuth env is not set up (the connect route reports that).
+  // all three stay visible so the user always sees what they can link. When a
+  // provider's OAuth env is not set up, its button is disabled with a note.
   const connectedProviders = new Set(connections.map((cn) => cn.provider));
   const connectable: ConnectableProvider[] = CALENDAR_PROVIDERS.filter(
     (p) => p.oauth && !connectedProviders.has(p.id),
@@ -142,6 +144,7 @@ async function CalendarConnectionsPanel({ ownerId }: { ownerId: string | null })
     id: p.id,
     name: p.name,
     href: `/api/integrations/${p.id}/connect?next=/dashboard/calendar`,
+    available: isOAuthConfigured(p.id),
   }));
 
   return <CalendarConnections rows={rows} connectable={connectable} />;
@@ -311,7 +314,7 @@ async function CalendarBody({
             {atTime(b.startTime)}
           </p>
           {b.endTime && (
-            <p className="text-[11px] leading-4 tabular-nums text-neutral-400">{atTime(b.endTime)}</p>
+            <p className="text-[11px] leading-4 tabular-nums text-neutral-500">{atTime(b.endTime)}</p>
           )}
         </div>
 
@@ -332,7 +335,7 @@ async function CalendarBody({
           <p className="mt-1 text-xs leading-relaxed text-neutral-500">
             <span className="tabular-nums">{callerLabel(b, c.unknownCaller)}</span>
             <span className="mx-1.5 text-neutral-300">·</span>
-            <span className="text-neutral-400">{c.bookedBy}</span> {b.assistant ?? c.unknownAssistant}
+            <span className="text-neutral-500">{c.bookedBy}</span> {b.assistant ?? c.unknownAssistant}
             {b.provider && (
               <>
                 <span className="mx-1.5 text-neutral-300">·</span>
@@ -340,7 +343,7 @@ async function CalendarBody({
               </>
             )}
             <span className="mx-1.5 text-neutral-300">·</span>
-            <span className="text-neutral-400">{c.addedOn}</span>{" "}
+            <span className="text-neutral-500">{c.addedOn}</span>{" "}
             <span className="tabular-nums">{atFull(b.bookedAt)}</span>
           </p>
 
@@ -405,18 +408,18 @@ async function CalendarBody({
       <li className={`flex flex-wrap items-start gap-x-3 gap-y-2 py-3.5 ${past ? "opacity-70" : ""}`}>
         <div className="w-12 shrink-0 pt-px text-right">
           {e.allDay ? (
-            <p className="text-[11px] font-medium uppercase leading-5 tracking-wide text-neutral-400">
+            <p className="text-[11px] font-medium uppercase leading-5 tracking-wide text-neutral-500">
               {c.allDay}
             </p>
           ) : (
             <>
               <p
-                className={`text-sm font-medium leading-5 tabular-nums ${past ? "text-neutral-400" : "text-neutral-900"}`}
+                className={`text-sm font-medium leading-5 tabular-nums ${past ? "text-neutral-500" : "text-neutral-900"}`}
               >
                 {atTime(e.start)}
               </p>
               {e.end && (
-                <p className="text-[11px] leading-4 tabular-nums text-neutral-400">{atTime(e.end)}</p>
+                <p className="text-[11px] leading-4 tabular-nums text-neutral-500">{atTime(e.end)}</p>
               )}
             </>
           )}
@@ -425,7 +428,7 @@ async function CalendarBody({
         <div className="min-w-0 flex-1 basis-56">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <span
-              className={`text-sm font-medium ${past ? "text-neutral-400" : "text-neutral-900"}`}
+              className={`text-sm font-medium ${past ? "text-neutral-500" : "text-neutral-900"}`}
             >
               {e.title || c.untitledEvent}
             </span>
@@ -468,9 +471,7 @@ async function CalendarBody({
               href={`/dashboard/calendar?${monthQ}view=requests`}
               className={`${PILL_BASE} border-amber-200 bg-amber-50 text-amber-800 press`}
             >
-              {undated.length === 1
-                ? c.chipRequestsOne
-                : c.chipRequests.replace("{n}", String(undated.length))}
+              {plural(locale, undated.length, c.chipRequests)}
             </Link>
           )}
           {failed.length > 0 && (
@@ -506,7 +507,7 @@ async function CalendarBody({
               {weekdays.map((w) => (
                 <div
                   key={w}
-                  className="pb-1 text-center text-[10px] font-medium uppercase tracking-wide text-neutral-400"
+                  className="pb-1 text-center text-[10px] font-medium uppercase tracking-wide text-neutral-500"
                 >
                   {w}
                 </div>
@@ -526,7 +527,7 @@ async function CalendarBody({
                           ? "ring-2 ring-inset ring-neutral-900 text-neutral-900"
                           : cell.inMonth
                             ? "text-neutral-600 hover:bg-neutral-100"
-                            : "text-neutral-300"
+                            : "text-neutral-500"
                     }`}
                   >
                     <span className="font-medium tabular-nums leading-none">{cell.day}</span>
@@ -643,6 +644,7 @@ export default async function CalendarPage({
     currentUserId(),
   ]);
   const c = t.calendar;
+  const errorCode = connectErrorCode(error);
 
   const ownerId = owner ?? null;
   const tz = await displayTimezone(ownerId);
@@ -656,7 +658,6 @@ export default async function CalendarPage({
 
   return (
     <div className={`rise flex flex-col gap-3 ${CAP}`}>
-      <TimezoneSync />
       {/* A: header */}
       <div className="shrink-0">
         <PageHeader title={c.title} />
@@ -667,8 +668,10 @@ export default async function CalendarPage({
           {c.calendarConnected}
         </span>
       )}
-      {error && (
-        <span className={`${PILL_BASE} ${PILL_TONE.error} shrink-0 self-start`}>{error}</span>
+      {errorCode && (
+        <span role="alert" className={`${PILL_BASE} ${PILL_TONE.error} shrink-0 self-start`}>
+          {c[connectErrorKey(errorCode)]}
+        </span>
       )}
 
       {/* B: chips + (month grid + calendar connections) + day agenda.

@@ -21,6 +21,7 @@
 import { assertUnderCallCaps, placeAgentCall } from "./elevenlabs";
 import { pageNumber, parseEscalation } from "./escalation";
 import type { NumberConfig } from "./types";
+import { maskPhone } from "@/lib/log-mask";
 
 /**
  * One page per line per window. Keyed by number rather than by caller: the
@@ -133,7 +134,7 @@ export async function pageOwner(config: NumberConfig, details: PageDetails): Pro
       prompt,
       language: config.ownerLocale ? config.ownerLocale.split("-")[0] : undefined,
     });
-    console.log("[paging] placed", { line: config.e164, to });
+    console.log("[paging] placed", { line: config.e164, to: maskPhone(to) });
     return true;
   } catch (err) {
     // Let the next urgent message try again rather than burning the window on

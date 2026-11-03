@@ -2,11 +2,18 @@ import { NextResponse } from "next/server";
 
 import { createClient } from "@/lib/supabase/server";
 import { getStripe } from "@/lib/stripe";
-import { getCustomerId, saveCustomerId, saveSubscription } from "@/lib/billing";
+import {
+  checkoutBlock,
+  getBilling,
+  getCustomerId,
+  saveCustomerId,
+  saveSubscription,
+} from "@/lib/billing";
 import { getPlan, priceIdFor, type BillingCycle } from "@/lib/plans";
 import { saveOnboardingConfig } from "@/lib/dashboard/onboarding-profile";
 import { isCompEmail, COMP_CUSTOMER_PREFIX } from "@/lib/comp-accounts";
 import { TERMS_VERSION } from "@/lib/legal";
+import { getDictionary } from "@/lib/i18n/server";
 
 export const runtime = "nodejs";
 
@@ -62,6 +69,40 @@ export async function POST(req: Request) {
     return NextResponse.json(
       { error: "Please accept the Terms of Service to continue." },
       { status: 400 },
+    );
+  }
+
+  // One biller per account. A subscription bought in the app (App Store /
+  // Google Play) is managed on the phone; a second one here would double-bill,
+  // and the webhook's set_subscription would refuse to record it anyway. A
+  // live Stripe subscription changes plan in the Billing Portal (one
+  // subscription, prorated); a second checkout would bill twice.
+  // Fails closed: not knowing is not a reason to let Stripe charge.
+  let block: ReturnType<typeof checkoutBlock>;
+  try {
+    block = checkoutBlock(await getBilling(userId));
+  } catch (err) {
+    console.error(`[checkout] billing check failed: ${err}`);
+    return NextResponse.json(
+      { error: "Could not start checkout. Please try again." },
+      { status: 500 },
+    );
+  }
+  if (block === "store") {
+    return NextResponse.json(
+      {
+        error:
+          "You already subscribe through the App Store or Google Play. Manage that subscription on your phone.",
+      },
+      { status: 409 },
+    );
+  }
+  if (block === "portal") {
+    // startCheckout (lib/billing-client.ts) opens the Billing Portal on this.
+    const t = await getDictionary();
+    return NextResponse.json(
+      { error: t.onboarding.checkoutHasPlan, portal: true },
+      { status: 409 },
     );
   }
 

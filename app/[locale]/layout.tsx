@@ -1,5 +1,3 @@
-import { notFound } from "next/navigation";
-
 import RootShell, { baseMetadata, baseViewport } from "@/app/_shared/root-shell";
 import { isMarketingLocale } from "@/lib/i18n/marketing/locales";
 
@@ -24,7 +22,9 @@ import { isMarketingLocale } from "@/lib/i18n/marketing/locales";
 export const metadata = baseMetadata;
 export const viewport = baseViewport;
 
-export const dynamicParams = false;
+// No dynamicParams here. Child segments inherit it, and false would also block
+// app/[locale]/[...rest] (the localized 404), which has no static params. Each
+// leaf page sets dynamicParams = false itself; locale-routes.test.ts checks it.
 
 export default async function LocaleLayout({
   children,
@@ -34,9 +34,10 @@ export default async function LocaleLayout({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  // dynamicParams=false already 404s unknown params; this is belt and braces
-  // for the dev server, where dynamicParams is not enforced the same way.
-  if (!isMarketingLocale(locale)) notFound();
-
-  return <RootShell lang={locale}>{children}</RootShell>;
+  // Unknown first segments (/blog/old-post, /xx/nope) reach this layout through
+  // [...rest] and get lang "en"; [...rest]/layout.tsx shows the English 404.
+  // Do not call notFound here: a root layout has no not-found boundary, so
+  // Next would send its bare error page. The leaf pages keep their own guards
+  // and dynamicParams = false.
+  return <RootShell lang={isMarketingLocale(locale) ? locale : "en"}>{children}</RootShell>;
 }

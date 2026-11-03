@@ -4,6 +4,7 @@ import { fetchTwilioCall } from "../twilio";
 import { assistantName, assistantOwnerId, num, str } from "./embed";
 import { dateTimeFmt, fmtDuration, isLiveStatus, normalizeDirection, statusLabel } from "./format";
 import type { CallActionItem, CallDetail, CallTurn } from "./types";
+import { isUuid } from "../../uuid";
 
 const SELECT =
   "id,twilio_call_sid,elevenlabs_conversation_id,from_number,to_number,direction,status,started_at,duration_seconds,outcome,sentiment,summary,needs_review,review_claims,recording_url,owner_id,assistant:assistants!assistant_id(name),phone_number:phone_numbers(assistant:assistants(name,owner_id))";
@@ -13,7 +14,10 @@ export async function getCallDetail(
   viewerId?: string | null,
   /** Viewer's locale for the date label; the page threads it in. */
   locale?: string,
+  /** The zone to show times in when the account has none (display only). */
+  displayTz?: string,
 ): Promise<CallDetail | null> {
+  if (!isUuid(id)) return null;
   const sb = serviceClient();
   const { data, error } = await sb.from("calls").select(SELECT).eq("id", id).maybeSingle();
   if (error) throw error;
@@ -29,7 +33,7 @@ export async function getCallDetail(
     sb.from("call_turns").select("id,role,text,ts_ms").eq("call_id", id).order("id", { ascending: true }),
     sb.from("call_actions").select("id,type,status,payload,error").eq("call_id", id).order("created_at", { ascending: true }),
     sid ? fetchTwilioCall(sid).catch(() => null) : Promise.resolve(null),
-    ownerTimezone(ownerId),
+    ownerTimezone(ownerId, displayTz),
   ]);
   const status = tw?.status || str(c.status);
   const durationSec = tw?.durationSec ?? num(c.duration_seconds);
@@ -61,6 +65,7 @@ export async function getCallDetail(
     date,
     // Owner's timezone, matching the call log and Calendar (tz resolved above).
     dateLabel: dateTimeFmt(tz, locale)(date),
+    timezone: tz,
     status,
     statusLabel: statusLabel(status),
     direction: normalizeDirection(str(c.direction)),
@@ -76,8 +81,10 @@ export async function getCallDetail(
     // finalized once the call ends - so a live call reports no audio even
     // though the id already exists. Streamed through
     // /api/mobile/calls/[id]/recording; there is no public URL to hand out.
-    hasAudio: Boolean(str(c.elevenlabs_conversation_id)) && !isLiveStatus(status),
-    isLive: isLiveStatus(status),
+    // The start date applies the stale-live age limit, so a row stuck in a live
+    // status stops reading live (and gets its audio back) like it does in the log.
+    hasAudio: Boolean(str(c.elevenlabs_conversation_id)) && !isLiveStatus(status, date),
+    isLive: isLiveStatus(status, date),
     needsReview: c.needs_review === true,
     reviewClaims: Array.isArray(c.review_claims)
       ? (c.review_claims as unknown[]).filter((x): x is string => typeof x === "string")
@@ -99,10 +106,11 @@ export async function getCallAudioRef(
   id: string,
   viewerId: string,
 ): Promise<{ conversationId: string; isLive: boolean } | null> {
+  if (!isUuid(id)) return null;
   const { data, error } = await serviceClient()
     .from("calls")
     .select(
-      "id,status,owner_id,elevenlabs_conversation_id,phone_number:phone_numbers(assistant:assistants(owner_id))",
+      "id,status,started_at,owner_id,elevenlabs_conversation_id,phone_number:phone_numbers(assistant:assistants(owner_id))",
     )
     .eq("id", id)
     .maybeSingle();
@@ -115,7 +123,9 @@ export async function getCallAudioRef(
 
   const conversationId = str(c.elevenlabs_conversation_id);
   if (!conversationId) return null;
-  return { conversationId, isLive: isLiveStatus(str(c.status)) };
+  // Same age limit as the detail's isLive: without the date a stuck row made the
+  // recording route answer 409 forever.
+  return { conversationId, isLive: isLiveStatus(str(c.status), str(c.started_at)) };
 }
 
 /**
@@ -131,6 +141,7 @@ export async function getCallContactRef(
   id: string,
   viewerId: string,
 ): Promise<{ from: string; to: string } | null> {
+  if (!isUuid(id)) return null;
   const { data, error } = await serviceClient()
     .from("calls")
     .select(

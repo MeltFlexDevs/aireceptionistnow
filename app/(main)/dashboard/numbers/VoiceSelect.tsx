@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { loadVoices, loadLibraryVoices } from "./voiceActions";
 import { FALLBACK_VOICES, type VoiceOption } from "./voices";
+import { useT } from "@/lib/i18n/client";
 
 interface Props {
   name?: string;
@@ -53,6 +54,7 @@ export function VoiceSelect({
   pinnedVoices = [],
   onChange,
 }: Props) {
+  const t = useT();
   const [selected, setSelected] = useState(defaultValue);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -182,16 +184,17 @@ export function VoiceSelect({
                   if (filtered[0]) pick(filtered[0].voiceId);
                 }
               }}
-              placeholder="Search voices..."
+              placeholder={t.numbers.searchVoices}
+              aria-label={t.numbers.searchVoices}
               className="w-full rounded-md border border-neutral-200 px-2.5 py-1.5 text-sm text-neutral-900 outline-none focus:border-neutral-900"
             />
           </div>
 
           <ul className="max-h-64 overflow-y-auto py-1" role="listbox">
             {loading && filtered.length === 0 ? (
-              <li className="px-3 py-3 text-sm text-neutral-400">Loading voices…</li>
+              <li className="px-3 py-3 text-sm text-neutral-500">Loading voices…</li>
             ) : filtered.length === 0 ? (
-              <li className="px-3 py-3 text-sm text-neutral-400">
+              <li className="px-3 py-3 text-sm text-neutral-500">
                 {langBase && !q
                   ? "No voices for this language on your account yet - paste a voice ID below."
                   : "No voices found"}
@@ -235,7 +238,8 @@ export function VoiceSelect({
             <input
               defaultValue={selected}
               onChange={(e) => setSelected(e.target.value.trim())}
-              placeholder="Or paste a voice ID"
+              placeholder={t.numbers.pasteVoiceId}
+              aria-label={t.numbers.pasteVoiceId}
               className="w-full rounded-md border border-neutral-200 px-2.5 py-1.5 text-xs text-neutral-700 outline-none focus:border-neutral-900"
             />
           </div>

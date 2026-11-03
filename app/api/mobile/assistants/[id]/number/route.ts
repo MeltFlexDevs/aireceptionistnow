@@ -3,16 +3,15 @@ import { revalidatePath } from "next/cache";
 import { syncAssistantAgent } from "@/lib/call-engine/agent/sync";
 import { releaseNumberFromAgent, routeNumberToAgent } from "@/lib/call-engine/elevenlabs";
 import {
-  claimFreeNumber,
-  createNumber,
   getAssistant,
   getAssistantNumber,
   setNumberAssistant,
   setNumberElevenLabsId,
 } from "@/lib/dashboard/db";
+import { assignNumber, numberAssignDeps } from "@/lib/dashboard/number-assign";
+import { isOwnedBy } from "@/lib/dashboard/ownership";
 import { canAssignNumber } from "@/lib/dashboard/plan";
-import { buyTwilioNumber } from "@/lib/dashboard/twilio";
-import { mobileUserId } from "@/lib/mobile/auth";
+import { mobileAuth } from "@/lib/mobile/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -29,7 +28,7 @@ export const dynamic = "force-dynamic";
 async function owned(id: string, userId: string) {
   const assistant = await getAssistant(id).catch(() => null);
   if (!assistant) return null;
-  if (assistant.owner_id && assistant.owner_id !== userId) return null;
+  if (!isOwnedBy(assistant.owner_id, userId)) return null;
   return assistant;
 }
 
@@ -37,7 +36,9 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  const userId = await mobileUserId(req);
+  const auth = await mobileAuth(req, "number-claim");
+  if (auth instanceof Response) return auth;
+  const userId = auth;
   if (!userId) return Response.json({ error: "Not signed in." }, { status: 401 });
 
   const { id } = await params;
@@ -57,25 +58,41 @@ export async function POST(
 
   const allowance = await canAssignNumber(userId);
   if (!allowance.ok) {
-    return Response.json({ error: allowance.reason || "Could not add a number." }, { status: 403 });
+    // `code` tells the app which way out to offer: the paywall for
+    // 'plan_required', an upgrade note for 'limit_reached'.
+    return Response.json(
+      { error: allowance.reason || "Could not add a number.", code: allowance.code ?? "plan_required" },
+      { status: 403 },
+    );
   }
 
   try {
     const agentId = assistant.elevenlabs_agent_id ?? (await syncAssistantAgent(id));
 
-    let numberId: string;
-    let e164: string;
-    // Prefer a pool number for the chosen country, then any pool number, and
-    // only then buy - a purchase is the one step here that costs money.
-    const claimed = (await claimFreeNumber(id, country)) ?? (await claimFreeNumber(id));
-    if (claimed) {
-      numberId = claimed.id;
-      e164 = claimed.e164;
-    } else {
-      const bought = await buyTwilioNumber({ country }, { configureWebhook: false });
-      numberId = await createNumber({ e164: bought.e164, twilioSid: bought.sid, assistantId: id });
-      e164 = bought.e164;
+    // Reserve, claim a pool number or buy one, and store it (number-assign.ts).
+    // A parallel request for this assistant gets "busy" and buys nothing.
+    const assigned = await assignNumber(
+      { ownerId: userId, assistantId: id, country, limit: allowance.limit ?? null },
+      await numberAssignDeps(),
+    );
+    if (assigned.status !== "ok") {
+      if (assigned.status === "limit") {
+        // A parallel request took the plan's last number slot first.
+        return Response.json(
+          { error: allowance.limitReason || "Could not add a number.", code: "limit_reached" },
+          { status: 403 },
+        );
+      }
+      // "exists": a parallel request stored this assistant's number first.
+      const current =
+        assigned.status === "exists" ? await getAssistantNumber(id).catch(() => null) : null;
+      if (current) return Response.json({ e164: current.e164, id: current.id });
+      return Response.json(
+        { error: "Your number is still being set up. Try again in a minute.", code: "busy" },
+        { status: 409 },
+      );
     }
+    const { numberId, e164 } = assigned;
 
     let elevenLabsPhoneNumberId: string;
     try {
@@ -103,7 +120,9 @@ export async function DELETE(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  const userId = await mobileUserId(req);
+  const auth = await mobileAuth(req, "number-unlink");
+  if (auth instanceof Response) return auth;
+  const userId = auth;
   if (!userId) return Response.json({ error: "Not signed in." }, { status: 401 });
 
   const { id } = await params;

@@ -1,9 +1,10 @@
 import { withDeadline } from "@/lib/call-engine/net";
 import { fetchExternalEvents } from "@/lib/dashboard/calendar-events";
 import { listBookings } from "@/lib/dashboard/calendar";
+import { getAccountSettings } from "@/lib/dashboard/account";
 import { listIntegrations } from "@/lib/dashboard/db";
-import { ownerTimezone } from "@/lib/dashboard/timezone";
 import { mobileRoute } from "@/lib/mobile/auth";
+import { resolveTimezone } from "@/lib/mobile/timezone-param";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,7 +14,9 @@ const DAY_MS = 86_400_000;
 /**
  * The Calendar tab: what the receptionist booked AND what is already on the
  * connected calendar, plus the owner's display timezone so the app formats
- * times the way the dashboard does rather than in the phone's local zone.
+ * times the way the dashboard does rather than in the phone's local zone. An
+ * account with no zone set falls back to the phone's `?tz=` (see
+ * lib/mobile/timezone-param.ts), never silently to UTC.
  *
  * The external events are not decoration. The dashboard's calendar merges them
  * in, so a phone that showed bookings alone reported a different day than the
@@ -24,16 +27,19 @@ const DAY_MS = 86_400_000;
  * rolling agenda instead, so it asks for a week back (recent past stays
  * readable) and sixty days forward, which covers anything an agenda scrolls to.
  */
-export const GET = mobileRoute(async (userId) => {
+export const GET = mobileRoute(async (userId, req) => {
   const now = Date.now();
   const timeMin = new Date(now - 7 * DAY_MS).toISOString();
   const timeMax = new Date(now + 60 * DAY_MS).toISOString();
 
-  const [bookings, timezone, integrations] = await Promise.all([
+  const [bookings, accountTz, integrations] = await Promise.all([
     listBookings(userId),
-    ownerTimezone(userId),
+    getAccountSettings(userId)
+      .then((a) => a.timezone)
+      .catch(() => ""),
     listIntegrations(userId).catch(() => []),
   ]);
+  const { timezone, timezoneIsAccount } = resolveTimezone(accountTz, req);
 
   // Each provider is a network call that can hang or 401 on a stale token.
   // `fetchExternalEvents` already swallows a per-calendar failure into an empty
@@ -53,5 +59,6 @@ export const GET = mobileRoute(async (userId) => {
       .sort((a, b) => Date.parse(b.startTime) - Date.parse(a.startTime)),
     events,
     timezone,
+    timezoneIsAccount,
   };
 }, "calendar");

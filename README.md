@@ -217,7 +217,7 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-Edit the landing page in [app/page.tsx](app/page.tsx); it hot-reloads on save.
+Edit the landing page in [app/_home/HomeClient.tsx](app/_home/HomeClient.tsx) (rendered by `app/(main)/page.tsx` at `/` and `app/[locale]/page.tsx` at `/<locale>`); it hot-reloads on save.
 
 ### Scripts
 

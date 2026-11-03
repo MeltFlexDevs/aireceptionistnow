@@ -1,8 +1,10 @@
 import { revalidatePath } from "next/cache";
 
 import { syncAssistantAgent } from "@/lib/call-engine/agent/sync";
+import { mayAddAssistant } from "@/lib/dashboard/assistant-cap";
 import { createAssistant, getAssistantNumber, listAssistants } from "@/lib/dashboard/db";
-import { mobileRoute, mobileUserId } from "@/lib/mobile/auth";
+import { getPlanContext } from "@/lib/dashboard/plan";
+import { mobileAuth, mobileRoute } from "@/lib/mobile/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -33,11 +35,13 @@ export const GET = mobileRoute(async (userId) => {
  * Create one. Mirrors `createAssistantAction`, including the awaited agent sync:
  * an assistant with no ElevenLabs agent behind it looks created but answers
  * nothing, so a sync failure is reported rather than logged and swallowed.
- * `createAssistant` enforces the plan's assistant cap itself and throws with a
- * message worth showing, so that check is not duplicated here.
+ * The plan's receptionist cap is checked first with `mayAddAssistant`, the
+ * same check as the web action; a refusal answers 403 `assistant_limit`.
  */
 export async function POST(req: Request): Promise<Response> {
-  const userId = await mobileUserId(req);
+  const auth = await mobileAuth(req, "assistant-create");
+  if (auth instanceof Response) return auth;
+  const userId = auth;
   if (!userId) return Response.json({ error: "Not signed in." }, { status: 401 });
 
   let name = "";
@@ -47,12 +51,23 @@ export async function POST(req: Request): Promise<Response> {
     // An empty body is fine - the default name covers it.
   }
 
+  if (!(await mayAddAssistant(userId, getPlanContext))) {
+    return Response.json(
+      {
+        error: "Your plan doesn't include another receptionist. Upgrade to add more.",
+        code: "assistant_limit",
+      },
+      { status: 403 },
+    );
+  }
+
   let id: string;
   try {
     id = await createAssistant(name || "My assistant", userId);
   } catch (err) {
-    console.error("[mobile:assistant-create]", err);
-    return Response.json({ error: (err as Error).message || "Could not create." }, { status: 400 });
+    // createAssistant throws only Supabase errors: log them, never send their text.
+    console.error("[mobile:assistant-create] create failed", err);
+    return Response.json({ error: "Could not create." }, { status: 500 });
   }
 
   let warning: string | null = null;

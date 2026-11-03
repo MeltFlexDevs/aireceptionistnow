@@ -3,12 +3,14 @@ import { currentUserId } from "@/lib/auth";
 import { authConfigured } from "@/lib/supabase/config";
 import { translateTextsOrThrow } from "@/lib/dashboard/translate";
 import { isLocale } from "@/lib/i18n/config";
+import { translateLimiter } from "@/lib/rate-limit";
 
 // Translates dynamic dashboard content (summaries, transcripts) into the
 // dashboard locale for the client-side useTranslated hook. translateTextsOrThrow
 // caches per (content, locale), so repeats never re-hit the model. `ok: false`
 // tells the client the model failed (originals returned) so it won't cache
-// the fallback as a translation.
+// the fallback as a translation. The native app has a bearer-token twin at
+// /api/mobile/translate with the same body, caps and limiter - keep them in step.
 
 const Body = z.object({
   texts: z.array(z.string().max(8000)).min(1).max(300),
@@ -16,29 +18,6 @@ const Body = z.object({
 });
 
 const MAX_TOTAL_CHARS = 60_000;
-
-// Best-effort, per-instance rate limit - enough to blunt cost abuse against
-// the translation model without extra infra. Keyed by user id (or IP before
-// auth is configured).
-const WINDOW_MS = 60_000;
-const MAX_REQUESTS_PER_WINDOW = 30;
-const MAX_CHARS_PER_WINDOW = 150_000;
-const usage = new Map<string, { start: number; requests: number; chars: number }>();
-
-function allowUsage(key: string, chars: number): boolean {
-  const now = Date.now();
-  if (usage.size > 5000) {
-    for (const [k, u] of usage) if (now - u.start > WINDOW_MS) usage.delete(k);
-  }
-  const u = usage.get(key);
-  if (!u || now - u.start > WINDOW_MS) {
-    usage.set(key, { start: now, requests: 1, chars });
-    return true;
-  }
-  u.requests += 1;
-  u.chars += chars;
-  return u.requests <= MAX_REQUESTS_PER_WINDOW && u.chars <= MAX_CHARS_PER_WINDOW;
-}
 
 export async function POST(request: Request): Promise<Response> {
   let userId: string | null = null;
@@ -63,8 +42,11 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "too large" }, { status: 413 });
   }
 
+  // Best-effort, per-instance rate limit (lib/rate-limit) - enough to blunt
+  // cost abuse against the translation model without extra infra. Keyed by
+  // user id (or IP before auth is configured).
   const limitKey = userId ?? request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "anon";
-  if (!allowUsage(limitKey, totalChars)) {
+  if (!translateLimiter.allow(limitKey, totalChars)) {
     return Response.json({ error: "rate limited" }, { status: 429 });
   }
 

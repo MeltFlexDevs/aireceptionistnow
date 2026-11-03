@@ -1,7 +1,10 @@
 "use server";
 
 import { unstable_cache } from "next/cache";
+import { currentUserId } from "@/lib/auth";
 import { voicePreferenceScore } from "@/lib/call-engine/voice/catalog";
+import { isSupportedLanguageBase } from "@/lib/call-engine/voice/phone-language";
+import { authConfigured, devDashboardBypass } from "@/lib/supabase/config";
 import type { VoiceOption } from "./voices";
 
 interface ElevenVoice {
@@ -22,8 +25,23 @@ const loadVoicesCached = unstable_cache(loadVoicesLive, ["eleven-account-voices"
   revalidate: 600,
 });
 
-export async function loadVoices(): Promise<VoiceOption[]> {
+// Both exports are server actions any client can call, and each list costs
+// ElevenLabs calls: signed-in owners only. Dev mode (auth off or the
+// DEV_DASHBOARD preview) has no user, so it passes - the isOwnedBy rule.
+async function signedIn(): Promise<boolean> {
+  if (!authConfigured() || devDashboardBypass()) return true;
+  return (await currentUserId()) !== null;
+}
+
+// No sign-in check: for use after one, and inside the cached library loader,
+// where cookies cannot be read.
+function accountVoices(): Promise<VoiceOption[]> {
   return loadVoicesCached().catch(() => []);
+}
+
+export async function loadVoices(): Promise<VoiceOption[]> {
+  if (!(await signedIn())) return [];
+  return accountVoices();
 }
 
 async function loadVoicesLive(): Promise<VoiceOption[]> {
@@ -85,13 +103,17 @@ const loadLibraryVoicesCached = unstable_cache(
 );
 
 export async function loadLibraryVoices(language: string): Promise<VoiceOption[]> {
+  if (!(await signedIn())) return [];
+  // An unknown code would be a new cache entry and a new paid library search.
+  // The cache key is the base: "pt-BR" and "pt" load the same list.
+  if (typeof language !== "string" || !isSupportedLanguageBase(language)) return [];
   // On a library failure fall back to (uncached-on-failure) account voices.
-  return loadLibraryVoicesCached(language).catch(() => loadVoices());
+  return loadLibraryVoicesCached(baseLang(language)).catch(() => accountVoices());
 }
 
 async function loadLibraryVoicesLive(language: string): Promise<VoiceOption[]> {
   const base = language.split("-")[0].toLowerCase();
-  if (!base) return loadVoices();
+  if (!base) return accountVoices();
   const key = process.env.ELEVENLABS_API_KEY;
   if (!key) return [];
 

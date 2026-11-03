@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import SiteHeader from "@/app/components/SiteHeader";
 import SiteFooter from "@/app/components/SiteFooter";
-import { siteName, siteUrl } from "@/lib/site";
+import { ogCardImage, siteName, siteUrl } from "@/lib/site";
 
 const PATH = "/ai-receptionist-demo";
 const url = `${siteUrl}${PATH}`;
@@ -50,13 +50,13 @@ export const metadata: Metadata = {
     type: "website",
     url,
     siteName,
-    images: [{ url: `${siteUrl}/opengraph-image.png`, width: 1200, height: 630, alt: title }],
+    images: [ogCardImage],
   },
   twitter: {
     card: "summary_large_image",
     title,
     description,
-    images: [`${siteUrl}/opengraph-image.png`],
+    images: [ogCardImage],
   },
 };
 

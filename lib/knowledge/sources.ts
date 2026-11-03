@@ -40,6 +40,24 @@ export interface AssistantKnowledge {
 export const MAX_SOURCE_CHARS = 12_000;
 export const MAX_SOURCES = 25;
 export const MAX_VERIFIED = 25;
+
+/**
+ * A typed note's title: its first line, cut at a word with "…" when it is
+ * longer than `max`, so a source list never ends in "Free parking beh".
+ */
+export function noteTitle(markdown: string, fallback: string, max = 50): string {
+  const firstLine = markdown.split("\n").map((l) => l.trim()).find(Boolean) ?? "";
+  if (!firstLine) return fallback;
+  if (firstLine.length <= max) return firstLine;
+  // The last space at or before max - 1 ends the longest run of whole words
+  // that still leaves room for the "…".
+  const space = firstLine.lastIndexOf(" ", max - 1);
+  // One long word (a URL) has no space worth cutting at, so it is cut by length.
+  const head = (space >= max / 2 ? firstLine.slice(0, space) : firstLine.slice(0, max - 1)).replace(/[\s,;:.-]+$/, "");
+  // A line of only dashes or dots (a pasted rule) leaves nothing to show.
+  return head ? `${head}…` : fallback;
+}
+
 const MAX_VERIFIED_Q_CHARS = 200;
 const MAX_VERIFIED_A_CHARS = 600;
 

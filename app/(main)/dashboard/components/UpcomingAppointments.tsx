@@ -35,10 +35,10 @@ export async function UpcomingAppointments({ bookings, tz }: { bookings: Booking
 
   const statusOf = (b: Booking) =>
     b.status === "done"
-      ? { tone: "ok" as const, text: "text-emerald-600", label: c.statusDone }
+      ? { tone: "ok" as const, text: "text-emerald-700", label: c.statusDone }
       : b.status === "failed"
-        ? { tone: "error" as const, text: "text-rose-600", label: c.statusFailed }
-        : { tone: "warn" as const, text: "text-amber-600", label: c.statusPending };
+        ? { tone: "error" as const, text: "text-rose-700", label: c.statusFailed }
+        : { tone: "warn" as const, text: "text-amber-700", label: c.statusPending };
 
   return (
     <>

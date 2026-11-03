@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import {
   siteUrl,
   siteName,
+  ogCardImage,
   authors,
   authorKeys,
   getAuthorBySlug,
@@ -49,6 +50,7 @@ export async function generateMetadata({
       type: "profile",
       url,
       siteName,
+      images: [ogCardImage],
     },
     twitter: { card: "summary", title: `${a.name} · ${siteName}`, description },
   };

@@ -10,6 +10,7 @@
  */
 
 import { serviceClient } from "@/lib/dashboard/supabase";
+import { ownerTimezone } from "@/lib/dashboard/timezone";
 import { isReceiptToken } from "@/lib/call-engine/receipts";
 import { languageFromPhone } from "@/lib/call-engine/voice/phone-language";
 
@@ -22,6 +23,8 @@ export interface PublicReceipt {
   /** The recap, in the caller's language. Empty while the summary is in flight. */
   recap: string;
   startedAt: string;
+  /** The business's zone (account setting, else "UTC"); times on the page use it. */
+  timezone: string;
   /** BCP-47-ish two-letter code inferred from the caller's own number. */
   language: string;
   booking: {
@@ -70,7 +73,7 @@ export async function getPublicReceipt(token: string): Promise<PublicReceipt | n
   const { data: call, error: callErr } = await db
     .from("calls")
     .select(
-      "id, from_number, started_at, caller_recap, summary, elevenlabs_conversation_id, phone_number:phone_numbers(assistant:assistants(name, organization:organizations(name)))",
+      "id, owner_id, from_number, started_at, caller_recap, summary, elevenlabs_conversation_id, phone_number:phone_numbers(assistant:assistants(name, owner_id, organization:organizations(name)))",
     )
     .eq("id", receipt.call_id)
     .maybeSingle();
@@ -101,6 +104,8 @@ export async function getPublicReceipt(token: string): Promise<PublicReceipt | n
     : null;
 
   const from = str(row.from_number);
+  // Read with the service client, so it works for a caller with no session.
+  const timezone = await ownerTimezone(ownerIdOf(row) || null).catch(() => "UTC");
 
   return {
     token: receipt.token,
@@ -114,6 +119,7 @@ export async function getPublicReceipt(token: string): Promise<PublicReceipt | n
     // up" state instead, which is honest and self-correcting.
     recap: str(row.caller_recap),
     startedAt: str(row.started_at),
+    timezone,
     language: languageFromPhone(from) ?? "en",
     booking: booking && booking.startTime ? booking : null,
     hasAudio: Boolean(str(row.elevenlabs_conversation_id)),
@@ -252,4 +258,9 @@ function businessNameOf(row: Record<string, unknown>): string {
   const assistant = pn?.assistant ?? null;
   const org = (assistant?.organization ?? null) as { name?: string } | null;
   return (org?.name ?? "").trim() || String(assistant?.name ?? "").trim();
+}
+
+function ownerIdOf(row: Record<string, unknown>): string {
+  const pn = row.phone_number as { assistant?: Record<string, unknown> | null } | null;
+  return str(row.owner_id) || str(pn?.assistant?.owner_id);
 }

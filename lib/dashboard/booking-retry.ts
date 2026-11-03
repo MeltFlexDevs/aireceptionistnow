@@ -1,4 +1,6 @@
 import { serviceClient } from "./supabase";
+import { isOwnedBy } from "./ownership";
+import { isUuid } from "../uuid";
 import { bookingRequestFromPayload, calendarAccessFrom } from "../call-engine/actions";
 import { checkAvailability } from "../call-engine/integrations/availability";
 import { clearSnapshot } from "../call-engine/integrations/snapshot-store";
@@ -28,20 +30,51 @@ export function bookingSyncState(payload: Record<string, unknown>): BookingSyncS
 
 export interface RetryResult {
   ok: boolean;
+  /** No such booking, or not this owner's: a retry can never work. */
+  notFound?: boolean;
   message: string;
+}
+
+/**
+ * The HTTP status for a retry result. Not found is 404, not the 502 "try again"
+ * of a failed sync, so the app stops retrying a booking it can never reach.
+ */
+export function retryResponseStatus(res: Pick<RetryResult, "ok" | "notFound">): 200 | 404 | 502 {
+  if (res.ok) return 200;
+  return res.notFound ? 404 : 502;
 }
 
 function str(v: unknown): string {
   return typeof v === "string" ? v : "";
 }
 
-// Re-attempt pushing a failed booking onto the calendar. Only status "failed"
-// rows are eligible: a "pending" row means a create may have landed despite a
-// timeout, and retrying those could double-book the caller.
+/**
+ * Re-attempt pushing a failed booking onto the calendar, scoped to the
+ * signed-in owner. Strict (SEC-1, see isOwnedBy): the booking's call must name
+ * `ownerId`, so a null `ownerId` or an owner-less call matches nothing outside
+ * dev mode.
+ */
 export async function retryBookingSync(
   actionId: string,
   ownerId: string | null,
 ): Promise<RetryResult> {
+  return retry(actionId, { ownerId });
+}
+
+/** The cron sweep only - never call it from a request. */
+export async function retryBookingSyncUnscoped(actionId: string): Promise<RetryResult> {
+  return retry(actionId, null);
+}
+
+// Only status "failed" rows are eligible: a "pending" row means a create may
+// have landed despite a timeout, and retrying those could double-book the
+// caller. `scope: null` is the system path (the sweep).
+async function retry(
+  actionId: string,
+  scope: { ownerId: string | null } | null,
+): Promise<RetryResult> {
+  // A malformed id would make Postgres throw (22P02) and read as a failed sync.
+  if (!isUuid(actionId)) return { ok: false, notFound: true, message: "booking not found" };
   const sb = serviceClient();
   const { data, error } = await sb
     .from("call_actions")
@@ -50,15 +83,15 @@ export async function retryBookingSync(
     .eq("type", "booking")
     .maybeSingle();
   if (error) throw error;
-  if (!data) return { ok: false, message: "booking not found" };
+  if (!data) return { ok: false, notFound: true, message: "booking not found" };
 
   const call = (Array.isArray(data.call) ? data.call[0] : data.call) as
     | Record<string, unknown>
     | null;
-  if (!call) return { ok: false, message: "booking not found" };
-  // Owner scoping: with auth on, only the booking's owner may retry it.
-  if (ownerId && str(call.owner_id) && str(call.owner_id) !== ownerId) {
-    return { ok: false, message: "booking not found" };
+  if (!call) return { ok: false, notFound: true, message: "booking not found" };
+  // Owner scoping: only the booking's owner may retry it.
+  if (scope && !isOwnedBy(str(call.owner_id) || null, scope.ownerId)) {
+    return { ok: false, notFound: true, message: "booking not found" };
   }
   if (data.status !== "failed") {
     return { ok: false, message: "only failed bookings can be retried" };

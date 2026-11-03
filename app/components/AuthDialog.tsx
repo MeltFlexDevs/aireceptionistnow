@@ -3,6 +3,9 @@
 import * as React from "react";
 import dynamic from "next/dynamic";
 
+import { sameOriginNextPath } from "@/lib/safe-redirect";
+import type { UiCopy } from "@/content/i18n/_ui-copy";
+
 // Lean provider: owns only open/close state and the description/next passed to
 // the modal. It imports NO Supabase code, so @supabase/supabase-js stays out of
 // the shared marketing bundle that this provider (via app/_shared/root-shell)
@@ -27,14 +30,20 @@ export function useAuthDialog() {
   return ctx;
 }
 
-export function AuthDialogProvider({ children }: { children: React.ReactNode }) {
+// `copy` is only the small auth block of the page locale's UiCopy (picked in
+// app/_shared/root-shell.tsx), so the dialog text is localized without
+// serializing the whole UI copy.
+export function AuthDialogProvider({ copy, children }: { copy: UiCopy["auth"]; children: React.ReactNode }) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [description, setDescription] = React.useState<string | null>(null);
   const [nextPath, setNextPath] = React.useState("/dashboard");
+  const [mode, setMode] = React.useState<AuthMode>("login");
 
-  const open = React.useCallback<AuthDialogContextValue["open"]>((_mode, opts) => {
+  const open = React.useCallback<AuthDialogContextValue["open"]>((nextMode, opts) => {
+    setMode(nextMode ?? "login");
     setDescription(opts?.description ?? null);
-    setNextPath(opts?.next ?? "/dashboard");
+    // `next` can come from the page URL (?next=), so keep only a same-origin path.
+    setNextPath(sameOriginNextPath(opts?.next));
     setIsOpen(true);
   }, []);
   const close = React.useCallback(() => setIsOpen(false), []);
@@ -54,6 +63,8 @@ export function AuthDialogProvider({ children }: { children: React.ReactNode }) 
       {children}
       {isOpen ? (
         <AuthDialogBody
+          copy={copy}
+          mode={mode}
           description={description}
           nextPath={nextPath}
           onClose={close}

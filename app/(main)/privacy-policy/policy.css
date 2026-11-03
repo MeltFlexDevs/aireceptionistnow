@@ -1,6 +1,6 @@
 /* Privacy / Terms page styling, extracted from globals.css so it loads only on
    the policy pages instead of as render-blocking CSS on every route. Imported by
-   app/(main)/privacy-policy/page.tsx. */
+   app/(main)/privacy-policy/PrivacyContent.tsx. */
 .policy-page {
   min-height: 100vh;
   background: #ffffff;
@@ -37,7 +37,7 @@
 
 .policy-updated {
   font-size: 14px;
-  color: #888;
+  color: #6f6f6f;
   margin-bottom: 48px;
   padding-bottom: 28px;
   border-bottom: 1px solid #eee;

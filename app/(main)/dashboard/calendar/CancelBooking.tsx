@@ -54,7 +54,7 @@ export function CancelBooking({ actionId }: { actionId: string }) {
         />
         {c.cancelOfferRebook}
       </label>
-      <p className="mt-1.5 text-[11px] leading-relaxed text-neutral-400">{c.cancelExplainer}</p>
+      <p className="mt-1.5 text-[11px] leading-relaxed text-neutral-500">{c.cancelExplainer}</p>
       <div className="mt-2.5 flex items-center gap-2">
         <SubmitButton variant="danger" pendingText={c.cancelPending} className="press h-8 px-3 text-xs">
           {c.cancelConfirm}

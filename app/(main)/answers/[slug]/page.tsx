@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { siteUrl, siteName, getAuthor, authorId } from "@/lib/site";
+import { siteUrl, siteName, getAuthor, authorId, ogCardImage } from "@/lib/site";
 import { answers, getAnswer } from "../_answers";
 
 function formatDate(date: string): string {
@@ -47,13 +47,14 @@ export async function generateMetadata({
       siteName,
       publishedTime: a.date,
       modifiedTime: a.updated,
+      images: [ogCardImage],
     },
     twitter: {
       // Consistent with every other template - large card with the site OG image.
       card: "summary_large_image",
       title: a.question,
       description: a.description,
-      images: [`${siteUrl}/opengraph-image.png`],
+      images: [ogCardImage],
     },
   };
 }
@@ -99,7 +100,7 @@ export default async function AnswerPage({
       "@type": "Article",
       headline: a.question,
       description: a.description,
-      image: `${siteUrl}/opengraph-image.png`,
+      image: ogCardImage.url,
       inLanguage: "en",
       author: authorPerson,
       publisher: { "@id": `${siteUrl}/#organization` },

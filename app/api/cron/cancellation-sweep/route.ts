@@ -5,9 +5,10 @@ import {
 } from "@/lib/dashboard/booking-cancel";
 import {
   bookingSyncState,
-  retryBookingSync,
+  retryBookingSyncUnscoped,
   MAX_SYNC_ATTEMPTS,
 } from "@/lib/dashboard/booking-retry";
+import { sweepQueuedRecordingDeletions } from "@/lib/dashboard/account-deletion";
 
 export const dynamic = "force-dynamic";
 
@@ -48,7 +49,7 @@ async function retryFailedBookings(now: number): Promise<{ checked: number; retr
     Array.from({ length: Math.min(3, due.length) }, async () => {
       while (next < due.length) {
         const id = String(due[next++].id);
-        const res = await retryBookingSync(id, null).catch((err) => {
+        const res = await retryBookingSyncUnscoped(id).catch((err) => {
           console.error("[booking-retry-sweep] retry threw", id, err);
           return { ok: false as const, message: "threw" };
         });
@@ -102,9 +103,15 @@ export async function GET(req: Request): Promise<Response> {
   const CONCURRENCY = 5;
   let swept = 0;
   let next = 0;
-  // The two sweeps are independent - run the booking retries alongside.
-  const [retry] = await Promise.all([
+  // The sweeps are independent - run the booking retries and the queued
+  // recording deletes of deleted accounts alongside. A failed recording retry
+  // is logged and never fails the sweep.
+  const [retry, recordingDeletes] = await Promise.all([
     retryFailedBookings(now),
+    sweepQueuedRecordingDeletions().catch((err) => {
+      console.error("[recording-delete-sweep] retry failed", err);
+      return null;
+    }),
     Promise.all(
       Array.from({ length: Math.min(CONCURRENCY, stale.length) }, async () => {
         while (next < stale.length) {
@@ -118,7 +125,7 @@ export async function GET(req: Request): Promise<Response> {
     ),
   ]);
   return new Response(
-    JSON.stringify({ checked: data?.length ?? 0, swept, bookingRetries: retry }),
+    JSON.stringify({ checked: data?.length ?? 0, swept, bookingRetries: retry, recordingDeletes }),
     { headers: { "content-type": "application/json" } },
   );
 }

@@ -6,6 +6,8 @@ import { authConfigured, devDashboardBypass } from "@/lib/supabase/config";
 import { getAuthClaims } from "@/lib/auth";
 import { I18nProvider } from "@/lib/i18n/client";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
+import { loginHomePath } from "@/lib/i18n/marketing/login-redirect";
+import { SkipLink } from "@/app/components/SkipLink";
 
 export const metadata: Metadata = {
   title: "Get started - AI Receptionist",
@@ -25,10 +27,11 @@ export default async function OnboardingLayout({ children }: { children: React.R
   // (`DEV_DASHBOARD=1 npm run dev`) fall through and render the funnel as a
   // guest, so /onboarding can be eyeballed without a real session.
   if (authConfigured() && !claims && !devDashboardBypass()) {
-    redirect(`/?auth=login&next=${encodeURIComponent("/onboarding")}`);
+    redirect(`${loginHomePath({ cookieLocale: locale })}?auth=login&next=${encodeURIComponent("/onboarding")}`);
   }
   return (
     <I18nProvider value={{ locale, dict }}>
+      <SkipLink label={dict.common.skipToContent} />
       <div className="onb dash-bg min-h-screen text-neutral-900">{children}</div>
     </I18nProvider>
   );

@@ -5,9 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
   assignedElevenLabsNumberIds,
-  claimFreeNumber,
   createAssistant,
-  createNumber,
   deleteAssistant,
   setAssistantEnabled,
   freeAssistantNumbers,
@@ -20,10 +18,14 @@ import {
   updateAssistant,
 } from "@/lib/dashboard/db";
 import { readKnowledge } from "@/lib/knowledge/sources";
-import { buyTwilioNumber, registerCnam } from "@/lib/dashboard/twilio";
+import { registerCnam } from "@/lib/dashboard/twilio";
 import { currentUserId } from "@/lib/auth";
 import { authConfigured } from "@/lib/supabase/config";
-import { canAssignNumber } from "@/lib/dashboard/plan";
+import { assignNumber, numberAssignDeps } from "@/lib/dashboard/number-assign";
+import { canAssignNumber, getPlanContext } from "@/lib/dashboard/plan";
+import { isOwnedBy } from "@/lib/dashboard/ownership";
+import { normalizePhone } from "@/lib/phone";
+import { mayAddAssistant } from "@/lib/dashboard/assistant-cap";
 import {
   assertUnderCallCaps,
   placeAgentCall,
@@ -31,6 +33,7 @@ import {
   routeNumberToAgent,
 } from "@/lib/call-engine/elevenlabs";
 import { pickDemoCallerId } from "@/lib/call-engine/demo-caller";
+import { isSetupMissing, voiceConfigured } from "@/lib/call-engine/setup-check";
 import { syncAssistantAgent, deleteAssistantAgent } from "@/lib/call-engine/agent/sync";
 import { checkToolUrl, isBlockedHost } from "@/lib/call-engine/agent/custom-tools";
 import { storeWorkspaceSecret } from "@/lib/call-engine/agent/tools";
@@ -39,9 +42,6 @@ import { getDictionary } from "@/lib/i18n/server";
 import { ok, fail, type ActionState } from "@/lib/dashboard/action-state";
 import { SUPPORTED_LANGUAGES } from "@/lib/call-engine/voice/phone-language";
 import { addSharedVoice } from "@/lib/call-engine/voice/catalog";
-
-const E164 = /^\+[1-9]\d{6,15}$/;
-const clamp = (n: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, n));
 
 function libVoiceName(encoded: string | undefined, lang: string): string {
   if (encoded) {
@@ -119,7 +119,7 @@ async function requireAssistantOwner(assistantId: string): Promise<void> {
   const assistant = assistantId
     ? await getAssistant(assistantId).catch(() => null)
     : null;
-  if (!assistant || (assistant.owner_id && assistant.owner_id !== ownerId)) {
+  if (!assistant || !isOwnedBy(assistant.owner_id, ownerId)) {
     redirect(`/dashboard/assistant?error=${encodeURIComponent("Not authorized.")}`);
   }
 }
@@ -128,6 +128,12 @@ export async function createAssistantAction(formData: FormData): Promise<void> {
   const name = String(formData.get("name") ?? "").trim() || "My assistant";
 
   const ownerId = await currentUserId();
+  // Same rule as the "Add another receptionist" link on the assistant page
+  // and the mobile create route. Fails open (see mayAddAssistant).
+  if (ownerId && !(await mayAddAssistant(ownerId, getPlanContext))) {
+    const a = (await getDictionary()).assistants;
+    redirect(`/dashboard/assistant?notice=${encodeURIComponent(a.assistantLimitReached)}`);
+  }
   let id: string;
   try {
     id = await createAssistant(name, ownerId ?? undefined);
@@ -206,7 +212,7 @@ export async function updateAssistantAction(
 
   // Patch, not rebuild: only sections this submit actually carried change.
   // See lib/dashboard/assistant-patch.ts and its regression suite.
-  const { top, routing } = buildAssistantPatch(
+  const { top, routing, phoneErrors, greetingEmpty, emailInvalid } = buildAssistantPatch(
     formData,
     {
       name: existing.name,
@@ -223,6 +229,11 @@ export async function updateAssistantAction(
     voiceByLanguage,
     toolSecrets.secrets,
   );
+  // A number the call engine cannot dial would be dropped at call time and
+  // transfers would stop without a word, so refuse the save instead.
+  if (phoneErrors.length) return fail(a.badPhoneFormat);
+  if (greetingEmpty) return fail(a.greetingRequired);
+  if (emailInvalid) return fail(a.badEmailFormat);
 
   try {
     await updateAssistant(id, {
@@ -295,8 +306,11 @@ export async function getAgentNumberAction(
     return ok(a.numberReady);
   }
 
-  const allowance = await canAssignNumber(await currentUserId());
+  const ownerId = await currentUserId();
+  const allowance = await canAssignNumber(ownerId);
   if (!allowance.ok) return fail(allowance.reason || a.saveFailed);
+  // No ElevenLabs key: no number can be routed to the receptionist, so a retry cannot help.
+  if (!voiceConfigured()) return fail(a.numberUnavailable);
 
   try {
     // Make sure this assistant has its managed agent before we point a number at it.
@@ -304,20 +318,21 @@ export async function getAgentNumberAction(
     const agentId =
       assistant?.elevenlabs_agent_id ?? (await syncAssistantAgent(assistantId));
 
-    let numberId: string;
-    let e164: string;
-    // Prefer a pool number for the chosen country; fall back to any available
-    // pool number before purchasing a new one.
-    const claimed =
-      (await claimFreeNumber(assistantId, country)) ?? (await claimFreeNumber(assistantId));
-    if (claimed) {
-      numberId = claimed.id;
-      e164 = claimed.e164;
-    } else {
-      const bought = await buyTwilioNumber({ country }, { configureWebhook: false });
-      numberId = await createNumber({ e164: bought.e164, twilioSid: bought.sid, assistantId });
-      e164 = bought.e164;
+    // Reserve, claim a pool number or buy one, and store it (number-assign.ts).
+    // A parallel request for this assistant gets "busy" and buys nothing.
+    const assigned = await assignNumber(
+      { ownerId, assistantId, country, limit: allowance.limit ?? null },
+      await numberAssignDeps(),
+    );
+    if (assigned.status !== "ok") {
+      // "limit": a parallel request took the plan's last number slot first.
+      if (assigned.status === "limit") return fail(allowance.limitReason || a.saveFailed);
+      if (assigned.status === "busy") return fail(a.numberFailed);
+      // "exists": a parallel request stored this assistant's number first.
+      revalidatePath(`/dashboard/assistant/${assistantId}`);
+      return ok(a.numberReady);
     }
+    const { numberId, e164 } = assigned;
 
     let elevenLabsPhoneNumberId: string;
     try {
@@ -333,7 +348,7 @@ export async function getAgentNumberAction(
     );
   } catch (err) {
     console.error("[assistant] get number failed", err);
-    return fail(a.numberFailed);
+    return fail(isSetupMissing(err) ? a.numberUnavailable : a.numberFailed);
   }
   revalidatePath(`/dashboard/assistant/${assistantId}`);
   revalidatePath("/dashboard");
@@ -362,11 +377,11 @@ export async function testCallAction(
 ): Promise<ActionState> {
   const a = (await getDictionary()).assistants;
   const assistantId = String(formData.get("assistant_id") ?? formData.get("id") ?? "");
-  const to = String(formData.get("to") ?? formData.get("transfer_to") ?? "").trim();
+  const to = normalizePhone(String(formData.get("to") ?? formData.get("transfer_to") ?? ""));
   if (!assistantId) return fail(a.saveFailed);
   await requireAssistantOwner(assistantId);
   // "E.164" is a spec name, not something to put in front of a business owner.
-  if (!E164.test(to)) return fail(a.badPhoneFormat);
+  if (!to) return fail(a.badPhoneFormat);
 
   try {
     await assertUnderCallCaps();
@@ -374,6 +389,8 @@ export async function testCallAction(
     // Over the hourly/daily cap - surface the friendly message it throws.
     return fail((err as Error).message);
   }
+  // No ElevenLabs key: calls cannot be placed at all, so a retry cannot help.
+  if (!voiceConfigured()) return fail(a.testCallUnavailable);
 
   try {
     const assistant = await getAssistant(assistantId).catch(() => null);
@@ -393,7 +410,7 @@ export async function testCallAction(
       agentPhoneNumberId =
         pickDemoCallerId(to, pool, inUse, process.env.ELEVENLABS_AGENT_PHONE_NUMBER_ID) ?? "";
     }
-    if (!agentPhoneNumberId) return fail(a.testCallFailed);
+    if (!agentPhoneNumberId) return fail(a.testCallUnavailable);
 
     await placeAgentCall(to, { agentId: agentId ?? undefined, agentPhoneNumberId });
   } catch (err) {

@@ -2,6 +2,7 @@ import "server-only";
 
 import { getOwnedNumbers } from "./db";
 import { serviceClient } from "./supabase";
+import { fmtDuration } from "./calls/format";
 
 export interface NotificationItem {
   id: string;
@@ -9,6 +10,17 @@ export interface NotificationItem {
   subtitle: string;
   at: string;
   href: string;
+  // Raw fields for the native app, which localizes and formats its own rows
+  // instead of parsing the web bell's English title/subtitle/href.
+  /** The call this item is about. */
+  callId: string | null;
+  /** Caller's number as stored, "" when unknown. */
+  from: string;
+  /** Raw DB outcome (booked / message / ...), null when the call had none. */
+  outcome: string | null;
+  /** Raw DB status (completed / no-answer / in-progress ...). */
+  status: string;
+  durationSec: number;
 }
 
 interface CallRow {
@@ -20,18 +32,13 @@ interface CallRow {
   from_number: string | null;
 }
 
-function fmtDuration(sec: number | null): string {
-  const s = Math.max(0, Math.round(sec ?? 0));
-  return `${Math.floor(s / 60)}m ${String(s % 60).padStart(2, "0")}s`;
-}
-
 function capitalize(s: string): string {
   return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 }
 
 function subtitleFor(c: CallRow): string {
   const label = capitalize(c.outcome ?? c.status ?? "Call");
-  return `${label} · ${fmtDuration(c.duration_seconds)}`;
+  return `${label} · ${fmtDuration(c.duration_seconds ?? 0)}`;
 }
 
 // ownerId is required, not optional. This reads through serviceClient(), which
@@ -59,5 +66,10 @@ export async function getNotifications(
     subtitle: subtitleFor(c),
     at: c.started_at,
     href: `/dashboard/calls/${c.id}`,
+    callId: c.id || null,
+    from: c.from_number ?? "",
+    outcome: c.outcome || null,
+    status: c.status ?? "",
+    durationSec: Math.max(0, Math.round(c.duration_seconds ?? 0)),
   }));
 }

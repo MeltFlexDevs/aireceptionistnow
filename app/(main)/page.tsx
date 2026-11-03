@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 
 import { alternatesFor } from "@/lib/i18n/marketing/alternates";
 import { localeOptions } from "@/lib/i18n/marketing/switcher";
+import SiteHeader from "@/app/components/SiteHeader";
+import SiteFooter from "@/app/components/SiteFooter";
 import HomeClient from "../_home/HomeClient";
 import { HomeExplore } from "../_home/HomeExplore";
 
@@ -21,7 +23,8 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <HomeClient
-      localeOptions={localeOptions("home", "en")}
+      header={<SiteHeader localeOptions={localeOptions("home", "en")} />}
+      footer={<SiteFooter />}
       relatedResources={<HomeExplore />}
     />
   );

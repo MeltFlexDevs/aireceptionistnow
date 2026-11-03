@@ -2,28 +2,35 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
-  AnimatePresence,
   motion,
-  MotionConfig,
   useMotionValue,
   useSpring,
   useAnimationControls,
   useReducedMotion,
 } from "motion/react";
 import type { Mood } from "./personality";
-import { MOUTHS, SPARKS, sparkPath } from "./AiAvatar";
+import { AvatarArt, type AvatarActivity } from "./AiAvatar";
+import { isAwake } from "./presence";
 
-// Contextual desk props the receptionist can work with: a phone that rings and
-// gets picked up, a calendar it ticks, a growing chart, a book, a settings gear.
-export type Activity = "phone" | "calendar" | "chart" | "study" | "gear";
+// Contextual activities: a phone that rings (then the mic's voice light glows on
+// the call), or one small badge at the top right (calendar, chart, book, gear).
+export type Activity = AvatarActivity;
 
 // The interactive Step 1 character. Same monochrome look as AiAvatar, but alive:
 // the eyes track the cursor (spring 250/22), it blinks on idle, glances around
 // when you stop moving, waves on arrival, nods when you advance, and pops on
-// success. Everything is compositor-cheap (transform/opacity) and reduced-motion
-// safe (the CSS-driven blink/float honour the media query in onboarding.css).
+// success. Reduced-motion safe (the CSS-driven blink honours the media query in
+// surfaces.css). Not compositor-cheap: the eyes are an SVG group, so every frame
+// of an eye move is a style and layout pass. That is why the idle life (glances,
+// talk bursts, badge glances, reading) is sparse and rests while nobody is
+// around (presence.ts).
 
 const SPRING = { stiffness: 250, damping: 22 } as const;
+// The eyes move a few viewBox units. motion's default rest thresholds for a
+// followed value (0.001 units, 0.01 units/s) kept each glance animating for
+// about 0.7 s, 80+ frames on a 120 Hz screen. Resting at 0.05 units (under
+// 0.1 px) about halves that and looks the same.
+const EYE_SPRING = { ...SPRING, restDelta: 0.05, restSpeed: 1 } as const;
 
 export function LiveAvatar({
   mood,
@@ -51,15 +58,21 @@ export function LiveAvatar({
 
   const eyeXRaw = useMotionValue(0);
   const eyeYRaw = useMotionValue(0);
-  const eyeX = useSpring(eyeXRaw, SPRING);
-  const eyeY = useSpring(eyeYRaw, SPRING);
+  const eyeX = useSpring(eyeXRaw, EYE_SPRING);
+  const eyeY = useSpring(eyeYRaw, EYE_SPRING);
   const pop = useSpring(1, SPRING);
 
   const [hover, setHover] = useState(false);
   const [reacting, setReacting] = useState(false);
   const [talking, setTalking] = useState(false);
   const mounted = useRef(true);
-  useEffect(() => () => void (mounted.current = false), []);
+  // Set on every mount: React's dev StrictMode runs the cleanup once and mounts
+  // again, which left it false, so talk bursts, the phone pickup and the end of
+  // a boop never ran under next dev.
+  useEffect(() => {
+    mounted.current = true;
+    return () => void (mounted.current = false);
+  }, []);
 
   // Eye tracking + idle glances. Suspended while studying (the eyes read
   // instead of following the cursor).
@@ -76,30 +89,49 @@ export function LiveAvatar({
       eyeYRaw.set(ny * 2.2);
       lastMove = Date.now();
     }
-    const glance = setInterval(() => {
-      if (Date.now() - lastMove < 2600) return;
-      eyeXRaw.set((Math.random() - 0.5) * 4);
-      eyeYRaw.set((Math.random() - 0.5) * 2.4);
-    }, 2800);
+    // A glance every 6-10 s once the cursor has been still for a moment (it was
+    // every 2.8 s), and none while nobody is around.
+    let glance: ReturnType<typeof setTimeout>;
+    const look = () => {
+      if (isAwake() && Date.now() - lastMove >= 2600) {
+        eyeXRaw.set((Math.random() - 0.5) * 4);
+        eyeYRaw.set((Math.random() - 0.5) * 2.4);
+      }
+      glance = setTimeout(look, 6000 + Math.random() * 4000);
+    };
+    glance = setTimeout(look, 6000 + Math.random() * 4000);
     window.addEventListener("pointermove", onMove);
     return () => {
       window.removeEventListener("pointermove", onMove);
-      clearInterval(glance);
+      clearTimeout(glance);
     };
   }, [eyeXRaw, eyeYRaw, reduce, mood]);
 
   // Studying: look down at the material and sweep the eyes left-to-right like
-  // reading a line, then drop to the next.
+  // reading a line, then drop to the next. A pause of 4-6 s after each line, and
+  // the eyes stay on the page while nobody is around: reading without pauses
+  // kept the eyes moving on every frame for as long as the page was open.
   useEffect(() => {
     if (reduce || mood !== "studying") return;
     eyeYRaw.set(2.6);
     let x = -2.8;
-    const read = setInterval(() => {
-      eyeXRaw.set(x);
-      x = x >= 2.8 ? -2.8 : x + 1.9; // sweep right, then snap back to line start
-    }, 700);
+    let read: ReturnType<typeof setTimeout>;
+    const step = () => {
+      let wait = 700;
+      if (isAwake()) {
+        eyeXRaw.set(x);
+        if (x >= 2.8) {
+          x = -2.8; // line done: pause, then snap back to the line start
+          wait = 4000 + Math.random() * 2000;
+        } else {
+          x += 1.9; // sweep right
+        }
+      }
+      read = setTimeout(step, wait);
+    };
+    read = setTimeout(step, 700);
     return () => {
-      clearInterval(read);
+      clearTimeout(read);
       eyeXRaw.set(0);
       eyeYRaw.set(0);
     };
@@ -145,20 +177,21 @@ export function LiveAvatar({
   }, [hover, reacting, celebrate, pop, reduce]);
 
   // Occasional soft "talking" flutter of the mouth, so it reads as speaking the
-  // caller's language - played in short bursts rather than constantly.
+  // caller's language - played in short bursts every 9-15 s rather than
+  // constantly, and not while nobody is around.
   useEffect(() => {
     if (reduce) return;
-    let off: ReturnType<typeof setTimeout>;
+    let next: ReturnType<typeof setTimeout>;
     const say = () => {
-      if (!mounted.current) return;
-      setTalking(true);
-      off = setTimeout(() => mounted.current && setTalking(false), 900);
+      if (mounted.current && isAwake()) {
+        setTalking(true);
+        // Not cleared on cleanup, so a burst always ends.
+        setTimeout(() => mounted.current && setTalking(false), 900);
+      }
+      next = setTimeout(say, 9000 + Math.random() * 6000);
     };
-    const iv = setInterval(say, 5200 + Math.random() * 2600);
-    return () => {
-      clearInterval(iv);
-      clearTimeout(off);
-    };
+    next = setTimeout(say, 9000 + Math.random() * 6000);
+    return () => clearTimeout(next);
   }, [reduce]);
 
   // Phone scene: the handset buzzes in its cradle (eyes clock it), swings up
@@ -209,23 +242,28 @@ export function LiveAvatar({
     return () => clearInterval(iv);
   }, [onCall, reduce]);
 
-  // The other props sit at the bottom-right of the desk; glance down at them
-  // every so often, then back to the caller's cursor.
+  // The activity badge sits at the top right; glance up at it when it shows,
+  // then every 9-13 s while someone is around, and back to the caller's cursor.
   useEffect(() => {
     if (reduce || !activity || activity === "phone" || mood === "studying") return;
     let back: ReturnType<typeof setTimeout>;
+    let next: ReturnType<typeof setTimeout>;
     const look = () => {
       eyeXRaw.set(2.8);
-      eyeYRaw.set(2.4);
+      eyeYRaw.set(-2.4);
       back = setTimeout(() => {
         eyeXRaw.set(0);
         eyeYRaw.set(0);
       }, 1500);
     };
+    const again = () => {
+      if (isAwake()) look();
+      next = setTimeout(again, 9000 + Math.random() * 4000);
+    };
     look();
-    const iv = setInterval(look, 4200);
+    next = setTimeout(again, 9000 + Math.random() * 4000);
     return () => {
-      clearInterval(iv);
+      clearTimeout(next);
       clearTimeout(back);
       eyeXRaw.set(0);
       eyeYRaw.set(0);
@@ -245,8 +283,6 @@ export function LiveAvatar({
     setTimeout(() => mounted.current && (setReacting(false), setTalking(false)), 640);
   }
 
-  const mouth = reacting ? MOUTHS.bright ?? MOUTHS.friendly : MOUTHS[mood] ?? MOUTHS.friendly;
-
   return (
     <motion.svg
       ref={svgRef}
@@ -258,301 +294,25 @@ export function LiveAvatar({
       onPointerLeave={() => setHover(false)}
       onPointerDown={boop}
       data-mood={mood}
-      role="img"
-      aria-label={label}
+      {...(label ? { role: "img", "aria-label": label } : { "aria-hidden": true })}
     >
-      <defs>
-        <linearGradient id="liveHead" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#3c3c3c" />
-          <stop offset="1" stopColor="#141414" />
-        </linearGradient>
-        <radialGradient id="liveSheen" cx="0.36" cy="0.28" r="0.75">
-          <stop offset="0" stopColor="#ffffff" stopOpacity="0.22" />
-          <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
-        </radialGradient>
-      </defs>
-
       <motion.g style={{ scale: pop, transformOrigin: "50% 56%", transformBox: "fill-box" }}>
-        <g className="ai-float">
-          {/* Nudged up so the face sits optically centred in the viewBox. Kept
-              on a nested g: CSS animates transform on .ai-float itself. */}
-          <g transform="translate(0 -4.5)">
-          {/* head */}
-          <rect x="22" y="27" width="56" height="55" rx="23" fill="url(#liveHead)" />
-          <rect x="22" y="27" width="56" height="55" rx="23" fill="url(#liveSheen)" />
-
-          {/* eyes: spring-tracked group, CSS blink nested inside */}
-          <motion.g className="ai-eyewrap" style={{ x: eyeX, y: eyeY }}>
-            <g className="ai-eyes" fill="#ffffff">
-              <rect x="37" y="48" width="6" height="9" rx="3" />
-              <rect x="57" y="48" width="6" height="9" rx="3" />
-            </g>
-          </motion.g>
-
-          {/* mouth (subtle talking flutter via CSS; chats on a call, pauses to listen) */}
-          <g className="ai-mouth" data-talk={talking || (onCall && !reduce && !listening) ? "true" : undefined}>
-            <path
-              d={mouth.d}
-              fill={mouth.filled ? "#ffffff" : "none"}
-              stroke={mouth.filled ? "none" : "#ffffff"}
-              strokeWidth="4.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </g>
-
-          {/* sparkles on success */}
-          {celebrate &&
-            SPARKS.map((s, i) => (
-              <path key={i} className="ai-spark" style={{ animationDelay: s.delay }} d={sparkPath(s.x, s.y, s.r)} fill="#1d1d1d" />
-            ))}
-
-          {/* contextual desk props (phone, calendar, chart, book, gear) */}
-          <DeskProps activity={activity} onCall={onCall} listening={listening} reduce={!!reduce} />
-          </g>
-        </g>
+        {/* Eyes in a spring-tracked group (CSS blink nested inside). The mouth
+            chats on a call and pauses to listen; a boop shows a brief grin. */}
+        <AvatarArt
+          mood={mood}
+          activity={activity}
+          celebrate={celebrate}
+          onCall={onCall}
+          talking={talking || (onCall && !reduce && !listening)}
+          grin={reacting}
+          eyes={(n) => (
+            <motion.g className="ai-eyewrap" style={{ x: eyeX, y: eyeY }}>
+              {n}
+            </motion.g>
+          )}
+        />
       </motion.g>
     </motion.svg>
-  );
-}
-
-const PROP_SPRING = { type: "spring", stiffness: 300, damping: 22 } as const;
-const PROP_STYLE = { transformBox: "fill-box", transformOrigin: "center" } as const;
-const PROP_ENTER = { opacity: 0, scale: 0.6, y: 8 };
-const PROP_EXIT = { opacity: 0, scale: 0.85, transition: { duration: 0.16 } };
-
-// The receptionist's desk props, drawn bottom-right in the same monochrome ink
-// as the sparkles. AnimatePresence pops the active one in and out; MotionConfig
-// stills the transform loops for reduced-motion users.
-function DeskProps({
-  activity,
-  onCall,
-  listening,
-  reduce,
-}: {
-  activity: Activity | null;
-  onCall: boolean;
-  listening: boolean;
-  reduce: boolean;
-}) {
-  return (
-    <MotionConfig reducedMotion="user">
-      <AnimatePresence>
-        {activity === "phone" && (
-          <motion.g
-            key="phone"
-            initial={PROP_ENTER}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={PROP_EXIT}
-            transition={PROP_SPRING}
-            style={PROP_STYLE}
-          >
-            {/* the cradle stays behind on the desk, so the pickup reads */}
-            <g transform="translate(86 77)">
-              <rect x="-8.5" y="-2.6" width="17" height="5.2" rx="2.4" fill="#1d1d1d" />
-              <rect x="-4.5" y="-4.4" width="9" height="2.6" rx="1.3" fill="#1d1d1d" opacity="0.45" />
-            </g>
-
-            {/* handset: buzzes in the cradle, then swings up to the ear in an arc */}
-            <motion.g
-              animate={
-                onCall
-                  ? reduce
-                    ? { x: -2, y: -22, rotate: 8 }
-                    : { x: [0, 7, -2], y: [0, -13, -22], rotate: [0, 26, 8] }
-                  : { x: 0, y: 0, rotate: 0 }
-              }
-              transition={
-                onCall && !reduce
-                  ? { duration: 0.55, times: [0, 0.45, 1], ease: ["easeOut", "easeInOut"] }
-                  : { duration: 0.2 }
-              }
-              style={PROP_STYLE}
-            >
-              <motion.g
-                animate={!onCall && !reduce ? { rotate: [0, -9, 8, -7, 6, 0] } : { rotate: 0 }}
-                transition={
-                  !onCall && !reduce
-                    ? { duration: 0.55, repeat: Infinity, repeatDelay: 0.5, ease: "easeInOut" }
-                    : { duration: 0.2 }
-                }
-                style={PROP_STYLE}
-              >
-                <g transform="translate(86 71) rotate(-42)">
-                  <path d="M-6.5 0 Q0 -6 6.5 0" fill="none" stroke="#1d1d1d" strokeWidth="4" strokeLinecap="round" />
-                  <rect x="-10.4" y="-3.2" width="6.4" height="7.6" rx="2.8" fill="#1d1d1d" />
-                  <rect x="4" y="-3.2" width="6.4" height="7.6" rx="2.8" fill="#1d1d1d" />
-                </g>
-              </motion.g>
-            </motion.g>
-
-            {/* ring chirps, in step with the buzz */}
-            {!onCall && !reduce && (
-              <g fill="none" stroke="#1d1d1d" strokeWidth="2" strokeLinecap="round">
-                <motion.path
-                  d="M91 60.5 a7.5 7.5 0 0 0 -2.3 -5.6"
-                  animate={{ opacity: [0, 1, 0] }}
-                  transition={{ duration: 0.55, repeat: Infinity, repeatDelay: 0.5 }}
-                />
-                <motion.path
-                  d="M95.5 59 a12 12 0 0 0 -3.8 -9"
-                  animate={{ opacity: [0, 1, 0] }}
-                  transition={{ duration: 0.55, repeat: Infinity, repeatDelay: 0.5, delay: 0.12 }}
-                />
-              </g>
-            )}
-
-            {/* the caller's turn: sound ticks by the ear while listening */}
-            {onCall && !reduce && (
-              <motion.g
-                fill="none"
-                stroke="#1d1d1d"
-                strokeWidth="2"
-                strokeLinecap="round"
-                animate={{ opacity: listening ? 1 : 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <motion.path
-                  d="M89.5 46 a7 7 0 0 0 -2.1 -5.3"
-                  animate={{ opacity: [0.2, 1, 0.2] }}
-                  transition={{ duration: 0.8, repeat: Infinity }}
-                />
-                <motion.path
-                  d="M93.5 44.5 a11 11 0 0 0 -3.4 -8.3"
-                  animate={{ opacity: [0.2, 1, 0.2] }}
-                  transition={{ duration: 0.8, repeat: Infinity, delay: 0.15 }}
-                />
-              </motion.g>
-            )}
-          </motion.g>
-        )}
-
-        {activity === "calendar" && (
-          <motion.g
-            key="calendar"
-            initial={PROP_ENTER}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={PROP_EXIT}
-            transition={PROP_SPRING}
-            style={PROP_STYLE}
-          >
-            <g transform="translate(75 71)">
-              <rect x="-5.6" y="-11" width="2.6" height="5" rx="1.3" fill="#1d1d1d" />
-              <rect x="3" y="-11" width="2.6" height="5" rx="1.3" fill="#1d1d1d" />
-              <rect x="-11" y="-8" width="22" height="17" rx="3" fill="#1d1d1d" />
-              <path d="M-11 -3.5 L11 -3.5" stroke="#ffffff" strokeWidth="1.4" opacity="0.45" />
-              <g fill="#ffffff" opacity="0.5">
-                <circle cx="-6.5" cy="0.5" r="1.1" />
-                <circle cx="-2" cy="0.5" r="1.1" />
-                <circle cx="2.5" cy="0.5" r="1.1" />
-                <circle cx="7" cy="0.5" r="1.1" />
-                <circle cx="-6.5" cy="4.5" r="1.1" />
-                <circle cx="-2" cy="4.5" r="1.1" />
-              </g>
-              {/* booking lands: the tick draws itself in */}
-              <motion.path
-                d="M0.5 2.6 L3.6 5.8 L9 -1"
-                fill="none"
-                stroke="#ffffff"
-                strokeWidth="2.4"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ delay: 0.4, duration: 0.45, ease: "easeOut" }}
-              />
-            </g>
-          </motion.g>
-        )}
-
-        {activity === "chart" && (
-          <motion.g
-            key="chart"
-            initial={PROP_ENTER}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={PROP_EXIT}
-            transition={PROP_SPRING}
-            style={PROP_STYLE}
-          >
-            <g transform="translate(67 84)">
-              {[8, 13, 18].map((h, i) => (
-                <motion.rect
-                  key={h}
-                  x={i * 7}
-                  y={-h}
-                  width="4.6"
-                  height={h}
-                  rx="1.8"
-                  fill="#1d1d1d"
-                  initial={{ scaleY: 0 }}
-                  animate={{ scaleY: 1 }}
-                  transition={{ delay: 0.18 + i * 0.14, type: "spring", stiffness: 300, damping: 20 }}
-                  style={{ transformBox: "fill-box", transformOrigin: "bottom" }}
-                />
-              ))}
-            </g>
-          </motion.g>
-        )}
-
-        {activity === "study" && (
-          <motion.g
-            key="study"
-            initial={PROP_ENTER}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={PROP_EXIT}
-            transition={PROP_SPRING}
-            style={PROP_STYLE}
-          >
-            <motion.g
-              animate={{ y: [0, -1.6, 0] }}
-              transition={{ duration: 3.4, repeat: Infinity, ease: "easeInOut" }}
-              style={PROP_STYLE}
-            >
-              <g transform="translate(74 75) rotate(5)">
-                <path d="M0 -4.5 Q-6 -8 -12 -6 L-12 4.5 Q-6 2.5 0 6 Z" fill="#1d1d1d" />
-                <path d="M0 -4.5 Q6 -8 12 -6 L12 4.5 Q6 2.5 0 6 Z" fill="#1d1d1d" />
-                <path d="M0 -4.5 L0 6" stroke="#ffffff" strokeWidth="1.2" opacity="0.55" />
-                <path d="M-9 -3.2 Q-5 -4.6 -2.6 -3.6" fill="none" stroke="#ffffff" strokeWidth="1" opacity="0.45" />
-                <path d="M2.6 -3.6 Q5 -4.6 9 -3.2" fill="none" stroke="#ffffff" strokeWidth="1" opacity="0.45" />
-              </g>
-            </motion.g>
-          </motion.g>
-        )}
-
-        {activity === "gear" && (
-          <motion.g
-            key="gear"
-            initial={PROP_ENTER}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={PROP_EXIT}
-            transition={PROP_SPRING}
-            style={PROP_STYLE}
-          >
-            <motion.g
-              animate={reduce ? undefined : { rotate: 360 }}
-              transition={{ repeat: Infinity, duration: 7, ease: "linear" }}
-              style={PROP_STYLE}
-            >
-              <g transform="translate(78 73)">
-                {Array.from({ length: 8 }, (_, i) => (
-                  <rect
-                    key={i}
-                    x="-1.7"
-                    y="-10.2"
-                    width="3.4"
-                    height="4.4"
-                    rx="1.4"
-                    fill="#1d1d1d"
-                    transform={`rotate(${i * 45})`}
-                  />
-                ))}
-                <circle r="7" fill="#1d1d1d" />
-                <circle r="2.6" fill="#ffffff" />
-              </g>
-            </motion.g>
-          </motion.g>
-        )}
-      </AnimatePresence>
-    </MotionConfig>
   );
 }

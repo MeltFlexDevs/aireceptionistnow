@@ -30,7 +30,7 @@ export function ToggleText({
       <button
         type="button"
         onClick={() => setShowOriginal((v) => !v)}
-        className="press mt-1.5 text-[11px] font-medium text-neutral-400 transition-colors hover:text-neutral-900"
+        className="press mt-1.5 text-[11px] font-medium text-neutral-500 transition-colors hover:text-neutral-900"
       >
         {showOriginal ? t.data.showTranslation : t.data.showOriginal}
       </button>

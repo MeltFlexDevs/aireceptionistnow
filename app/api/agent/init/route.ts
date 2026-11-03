@@ -16,6 +16,7 @@ import { TRANSFER_POLICY_OPEN } from "@/lib/call-engine/transfer-hours";
 import { withDeadline } from "@/lib/call-engine/net";
 import { voiceForLanguage, baseLanguage } from "@/lib/call-engine/voice/catalog";
 import { languageFromPhone } from "@/lib/call-engine/voice/phone-language";
+import { maskPhone } from "@/lib/log-mask";
 
 const OVERRIDE_BUDGET_MS = 1500;
 /** Recognising a caller is a nicety; it must never make the phone ring longer. */
@@ -136,7 +137,7 @@ export async function POST(req: Request): Promise<Response> {
   const language = config.multilingual ? languageFromPhone(callerId) : null;
   console.log("[agent/init]", {
     called: calledNumber,
-    caller: callerId,
+    caller: maskPhone(callerId),
     language: language ?? "(agent default)",
     multilingual: config.multilingual,
   });

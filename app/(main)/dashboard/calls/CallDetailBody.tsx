@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import type { CallDetail } from "@/lib/dashboard/calls";
+import { callOutcomeLabel } from "@/lib/dashboard/calls/format";
+import { serviceClient } from "@/lib/dashboard/supabase";
 import { formatPhone } from "@/lib/call-engine/voice/phone-language";
 import { getDictionary } from "@/lib/i18n/server";
 import type { Dictionary } from "@/lib/i18n/dictionaries/en";
@@ -16,9 +18,9 @@ import { Transcript } from "./[id]/Transcript";
 const SENTIMENT_TONE: Record<string, string> = {
   positive: "bg-emerald-50 text-emerald-700",
   neutral: "bg-neutral-100 text-neutral-600",
-  negative: "bg-rose-50 text-rose-600",
+  negative: "bg-rose-50 text-rose-700",
   frustrated: "bg-amber-50 text-amber-700",
-  angry: "bg-rose-50 text-rose-600",
+  angry: "bg-rose-50 text-rose-700",
 };
 
 const summaryCls = "text-sm leading-relaxed text-neutral-600";
@@ -36,21 +38,6 @@ function Section({ title, action, children }: { title: string; action?: ReactNod
       {children}
     </section>
   );
-}
-
-function outcomeLabel(outcome: string, d: Dictionary["data"]): string {
-  switch (outcome.toLowerCase()) {
-    case "booked":
-      return d.outcomeBooked;
-    case "message":
-      return d.outcomeMessage;
-    case "transferred":
-      return d.outcomeTransferred;
-    case "resolved":
-      return d.outcomeResolved;
-    default:
-      return d.outcomeUnknown;
-  }
 }
 
 function sentimentLabel(sentiment: string, d: Dictionary["data"]): string {
@@ -89,6 +76,12 @@ export async function CallDetailBody({
 }) {
   const t = await getDictionary();
   const d = t.calls.detail;
+  // The call is already scoped to this owner, so counting its reports by id is safe.
+  // On a query error count is null and the form shows as before.
+  const { count: reportCount } = await serviceClient()
+    .from("call_reports")
+    .select("id", { count: "exact", head: true })
+    .eq("call_id", call.id);
   const outbound = call.direction === "outbound";
   const summaryText = call.isLive ? d.summaryLive : d.summaryNone;
 
@@ -103,9 +96,11 @@ export async function CallDetailBody({
         </span>
       )}
       <CallStatusBadge bucket={bucketOf(call.status, call.date)} label={bucketLabel(t, call.status, call.date)} />
-      {call.outcome && call.outcome.toLowerCase() !== "abandoned" && (
+      {/* The status badge already says Missed or In progress. An answered call
+          adds what came of it, a caller who hung up included. */}
+      {call.outcome && bucketOf(call.status, call.date) === "completed" && (
         <span className={`${flatBadge} bg-neutral-100 text-neutral-700`}>
-          {outcomeLabel(call.outcome, t.data)}
+          {callOutcomeLabel(t.data, call.status, call.outcome, call.date)}
         </span>
       )}
       {call.sentiment && (
@@ -134,12 +129,12 @@ export async function CallDetailBody({
             {call.from ? formatPhone(call.from) : t.data.unknownCaller}
           </h1>
         </div>
-        {metaLine && <p className="mt-1.5 pl-8 text-xs tabular-nums text-neutral-400">{metaLine}</p>}
+        {metaLine && <p className="mt-1.5 pl-8 text-xs tabular-nums text-neutral-500">{metaLine}</p>}
         <div className="mt-2.5 pl-8">{badges}</div>
       </div>
       {/* Reporting is about the whole call, so it lives here in the call header,
           not tucked into the transcript section. */}
-      <ReportIssue callId={call.id} />
+      <ReportIssue callId={call.id} alreadyReported={(reportCount ?? 0) > 0} />
     </div>
   );
 
@@ -186,10 +181,10 @@ export async function CallDetailBody({
         </Section>
       )}
       <Section title={d.actions}>
-        <ActionItems actions={call.actions} />
+        <ActionItems actions={call.actions} timeZone={call.timezone} />
       </Section>
       <Section title={d.transcript}>
-        <Transcript turns={call.turns} />
+        <Transcript turns={call.turns} live={call.isLive} />
       </Section>
     </>
   );
@@ -209,7 +204,14 @@ export async function CallDetailBody({
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="shrink-0 border-b border-neutral-100 px-5 py-4">{header}</div>
       {recording && <div className="shrink-0 border-b border-neutral-100 px-5 py-3">{recording}</div>}
-      <div className="min-h-0 flex-1 overflow-y-auto p-5">{sections}</div>
+      <div
+        tabIndex={0}
+        role="region"
+        aria-label={t.calls.detailsRegion}
+        className="min-h-0 flex-1 overflow-y-auto p-5 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-neutral-900"
+      >
+        {sections}
+      </div>
     </div>
   );
 }

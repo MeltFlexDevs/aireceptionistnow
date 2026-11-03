@@ -1,8 +1,9 @@
 import "server-only";
 
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { createClient, isAuthSessionMissingError, type SupabaseClient } from "@supabase/supabase-js";
 
 import { publicSupabaseEnv } from "@/lib/supabase/config";
+import { checkMobileAuth } from "@/lib/mobile/auth-check";
 
 /**
  * Bearer-token auth for the native app (`aireceptionistnowapp`).
@@ -39,19 +40,42 @@ function bearer(req: Request): string {
   return /^Bearer\s+/i.test(header) ? header.replace(/^Bearer\s+/i, "").trim() : "";
 }
 
-/** The signed-in user's id, or null when the token is missing, bad or expired. */
+/**
+ * The signed-in user's id, or null when the token is missing, bad or expired.
+ *
+ * Throws when the token could not be checked (Supabase down, a 5xx, a timeout,
+ * rate limited): the app signs out on a 401, so an outage must surface as a
+ * 5xx it retries, not as "Not signed in."
+ */
 export async function mobileUserId(req: Request): Promise<string | null> {
   const token = bearer(req);
   if (!token) return null;
   const client = authClient();
-  if (!client) return null;
-  try {
-    const { data, error } = await client.auth.getUser(token);
-    if (error || !data.user) return null;
-    return data.user.id;
-  } catch {
-    return null;
+  if (!client) throw new Error("Supabase auth is not configured");
+  const { data, error } = await client.auth.getUser(token);
+  if (error) {
+    // GoTrue rejects a token with a 4xx and an error code (bad_jwt,
+    // user_not_found; session_not_found arrives as AuthSessionMissingError).
+    // A 4xx without a code is the gateway, not GoTrue - a rotated anon key
+    // answers 401 "Invalid API key" for every token - so it throws like a 5xx.
+    const status = error.status ?? 0;
+    const rejected =
+      isAuthSessionMissingError(error) ||
+      (status >= 400 && status < 500 && status !== 429 && typeof error.code === "string");
+    if (rejected) return null;
+    throw error;
   }
+  return data.user?.id ?? null;
+}
+
+/**
+ * Auth for a route handler that builds its own responses. Returns the user id,
+ * null when the token was rejected (answer 401), or a 503 Response to return as
+ * is when the check itself failed. Handlers that only return data use
+ * `mobileRoute`, which does the same.
+ */
+export function mobileAuth(req: Request, label: string): Promise<string | null | Response> {
+  return checkMobileAuth(req, label, mobileUserId);
 }
 
 export interface MobileUser {
@@ -71,7 +95,8 @@ export function mobileRoute<T>(
   label: string,
 ) {
   return async (req: Request): Promise<Response> => {
-    const userId = await mobileUserId(req);
+    const userId = await mobileAuth(req, label);
+    if (userId instanceof Response) return userId;
     if (!userId) {
       return Response.json({ error: "Not signed in." }, { status: 401 });
     }

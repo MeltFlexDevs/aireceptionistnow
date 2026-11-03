@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { ChevronDown } from "../icons";
 import { useT } from "@/lib/i18n/client";
+import { MENU_ITEM_SELECTOR, onMenuKeyDown } from "@/lib/ui/menu-keys";
 import type { AppUser } from "@/lib/auth-user";
 
 function LogoutIcon({ className }: { className?: string }) {
@@ -23,6 +24,7 @@ export function UserMenu({ user }: { user: AppUser }) {
   const [open, setOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   // Close on outside click / Escape.
   useEffect(() => {
@@ -31,7 +33,10 @@ export function UserMenu({ user }: { user: AppUser }) {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        setOpen(false);
+        buttonRef.current?.focus();
+      }
     };
     document.addEventListener("mousedown", onClick);
     document.addEventListener("keydown", onKey);
@@ -39,6 +44,11 @@ export function UserMenu({ user }: { user: AppUser }) {
       document.removeEventListener("mousedown", onClick);
       document.removeEventListener("keydown", onKey);
     };
+  }, [open]);
+
+  // Opening moves focus into the menu, so the arrow keys work at once.
+  useEffect(() => {
+    if (open) ref.current?.querySelector<HTMLElement>(MENU_ITEM_SELECTOR)?.focus();
   }, [open]);
 
   // @supabase/supabase-js is ~240kB - nearly half the dashboard's client JS -
@@ -58,7 +68,14 @@ export function UserMenu({ user }: { user: AppUser }) {
     <div className="relative" ref={ref}>
       <button
         type="button"
+        ref={buttonRef}
         onClick={() => setOpen((v) => !v)}
+        onKeyDown={(e) => {
+          if (e.key !== "ArrowDown") return;
+          e.preventDefault();
+          if (open) ref.current?.querySelector<HTMLElement>(MENU_ITEM_SELECTOR)?.focus();
+          else setOpen(true);
+        }}
         aria-haspopup="menu"
         aria-expanded={open}
         className="flex items-center gap-2 rounded-lg p-1 pr-2 text-left hover:bg-neutral-100"
@@ -68,7 +85,7 @@ export function UserMenu({ user }: { user: AppUser }) {
         </span>
         <span className="hidden leading-tight sm:block">
           <span className="block max-w-[160px] truncate text-sm font-medium text-neutral-900">{user.name}</span>
-          <span className="block max-w-[160px] truncate text-xs text-neutral-400">{user.email}</span>
+          <span className="block max-w-[160px] truncate text-xs text-neutral-500">{user.email}</span>
         </span>
         <ChevronDown className="hidden h-4 w-4 text-neutral-400 sm:block" />
       </button>
@@ -76,6 +93,7 @@ export function UserMenu({ user }: { user: AppUser }) {
       {open ? (
         <div
           role="menu"
+          onKeyDown={onMenuKeyDown}
           className="absolute right-0 top-full z-50 mt-2 w-64 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-lg"
         >
           <div className="flex items-center gap-3 border-b border-neutral-100 px-4 py-3">

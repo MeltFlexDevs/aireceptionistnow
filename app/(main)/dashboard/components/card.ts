@@ -30,4 +30,4 @@ export const CARD_INTERACTIVE =
  * still renders as a label.
  */
 export const SECTION_HEADING =
-  "mb-3 text-[13px] font-semibold tracking-wide text-neutral-400 uppercase";
+  "mb-3 text-[13px] font-semibold tracking-wide text-neutral-600 uppercase";

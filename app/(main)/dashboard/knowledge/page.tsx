@@ -7,6 +7,7 @@ import {
   summarizeOrgKnowledgeCached,
   type OrgKnowledge,
 } from "@/lib/dashboard/ai-knowledge";
+import { digestText, hasDigestInput } from "@/lib/dashboard/knowledge-digest";
 import { formatVerifiedLines, readKnowledge } from "@/lib/knowledge/sources";
 import { relTimeOf } from "@/lib/dashboard/rel-time";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
@@ -23,14 +24,19 @@ import { AiAvatar } from "@/app/(main)/onboarding/AiAvatar";
 
 export const dynamic = "force-dynamic";
 
-const CAP = "md:h-[calc(100dvh-7rem)] md:overflow-hidden lg:h-[calc(100dvh-8rem)]";
+// Fits the window like the other dashboard pages, but scrolls rather than
+// clipping: the gap list and the digest grow with content, and on a laptop
+// screen they used to squeeze the Sources card to nothing.
+const CAP = "md:h-[calc(100dvh-7rem)] md:overflow-y-auto lg:h-[calc(100dvh-8rem)]";
 
 // The digest is an LLM call behind a content-keyed cache, so it streams in
 // rather than blocking the page.
 async function Digest({ entry }: { entry: OrgKnowledge }) {
   const [t, summary] = await Promise.all([getDictionary(), summarizeOrgKnowledgeCached(entry)]);
   return (
-    <p className="text-sm leading-relaxed text-neutral-700">{summary || t.knowledge.digestEmpty}</p>
+    <p className="text-sm leading-relaxed text-neutral-700">
+      {digestText(summary, hasDigestInput(entry.org), t.knowledge)}
+    </p>
   );
 }
 
@@ -129,13 +135,13 @@ export default async function KnowledgePage({
 
       {/* D: the page's only scroll region */}
       {isEmpty ? (
-        <div className={`${CARD} flex min-h-0 flex-1 flex-col items-center justify-center p-10 text-center`}>
+        <div className={`${CARD} flex min-h-0 flex-1 flex-col items-center justify-center p-10 text-center md:min-h-fit`}>
           <AiAvatar mood="studying" className="h-20 w-20" />
           <h2 className="mt-4 text-base font-semibold text-neutral-900">{k.emptyTitle}</h2>
           <p className="mt-1.5 max-w-sm text-sm leading-relaxed text-neutral-500">{k.emptyBody}</p>
         </div>
       ) : (
-        <section className={`${CARD} flex min-h-0 flex-1 flex-col`}>
+        <section className={`${CARD} flex min-h-0 flex-1 flex-col md:min-h-60`}>
           <header className="shrink-0 border-b border-neutral-200/70 px-5 py-3">
             <h2 className="text-sm font-medium text-neutral-900">{k.sources}</h2>
           </header>

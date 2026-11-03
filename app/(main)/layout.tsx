@@ -1,4 +1,8 @@
 import RootShell, { baseMetadata, baseViewport } from "@/app/_shared/root-shell";
+// Not used here on purpose: it puts next/link into this layout's client chunk,
+// which every page loads. Without it Turbopack copies next/link into the page,
+// header and 404 chunks, and a page downloads it twice.
+import "next/link";
 
 // Root layout for the English tree (marketing at /, plus dashboard, onboarding
 // and auth). Sibling root layout: app/[locale]/layout.tsx.

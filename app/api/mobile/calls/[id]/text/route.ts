@@ -1,7 +1,8 @@
 import { getRepository } from "@/lib/call-engine/persistence/supabase";
+import { twilioConfigured } from "@/lib/call-engine/setup-check";
 import { sendSms } from "@/lib/call-engine/telephony";
 import { getCallContactRef } from "@/lib/dashboard/calls";
-import { mobileUserId } from "@/lib/mobile/auth";
+import { mobileAuth } from "@/lib/mobile/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -32,7 +33,9 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  const userId = await mobileUserId(req);
+  const auth = await mobileAuth(req, "call-text");
+  if (auth instanceof Response) return auth;
+  const userId = auth;
   if (!userId) return Response.json({ error: "Not signed in." }, { status: 401 });
 
   const { id } = await params;
@@ -63,6 +66,15 @@ export async function POST(
   const config = await getRepository()
     .resolveInboundNumber(contact.to)
     .catch(() => null);
+
+  // No Twilio keys: texting cannot work until we set it up, so say so instead of "try again".
+  // The app shows a 503's own words (aireceptionistnowapp lib/api.ts `ownWords`).
+  if (!twilioConfigured()) {
+    return Response.json(
+      { error: "Texting back is not set up yet. Please contact support.", code: "sms_unavailable" },
+      { status: 503 },
+    );
+  }
 
   try {
     await sendSms(contact.from, contact.to, message, config?.businessName);

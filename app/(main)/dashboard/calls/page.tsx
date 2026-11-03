@@ -1,6 +1,8 @@
 import { Suspense } from "react";
-import { getCallLog, getCallDetail, type CallLogRow } from "@/lib/dashboard/calls";
+import { getCallLog, getCallDetail } from "@/lib/dashboard/calls";
+import { pickActiveCallId } from "@/lib/dashboard/calls/format";
 import { currentUserId } from "@/lib/auth";
+import { displayTimezone } from "@/lib/dashboard/display-timezone";
 import { listAssistants } from "@/lib/dashboard/db";
 import { PageHeader } from "../components/PageHeader";
 import { Skeleton } from "../components/Skeleton";
@@ -103,11 +105,12 @@ async function CallLogBody({
   // Independent reads - the locale is a cookie lookup, not a function of who
   // is signed in.
   const [ownerId, locale] = await Promise.all([currentUserId(), getLocale()]);
+  const tz = await displayTimezone(ownerId).catch(() => "UTC");
 
   let log: Awaited<ReturnType<typeof getCallLog>> | null = null;
   let loadError = "";
   try {
-    log = await getCallLog(filters, ownerId, undefined, locale);
+    log = await getCallLog(filters, ownerId, undefined, locale, {}, tz);
   } catch (err) {
     loadError = (err as Error).message;
   }
@@ -141,10 +144,9 @@ async function CallLogBody({
     );
   }
 
-  // Default selection: the newest row that actually has a record behind it, so
-  // a plain /dashboard/calls lands with the pane already populated.
-  const selectable = rows.filter((r): r is CallLogRow & { dbId: string } => Boolean(r.dbId));
-  const activeId = selectable.some((r) => r.dbId === selected) ? selected : (selectable[0]?.dbId ?? "");
+  // The pane opens the call the URL asks for, even when the list does not show
+  // it; a plain /dashboard/calls lands on the newest row with a record behind it.
+  const activeId = pickActiveCallId(selected, rows);
 
   const countLabel = `${rows.length} ${rows.length === 1 ? t.calls.callOne : t.calls.callMany}`;
 
@@ -163,7 +165,7 @@ async function CallLogBody({
           /dashboard/calls/[id] route instead. */}
       <section className={`${CARD} hidden min-h-0 min-w-0 flex-col md:flex`}>
         <Suspense key={activeId} fallback={<DetailSkeleton />}>
-          <DetailPane id={activeId} locale={locale} t={t} assistantCount={assistants.length} />
+          <DetailPane id={activeId} asked={Boolean(selected)} locale={locale} t={t} assistantCount={assistants.length} />
         </Suspense>
       </section>
     </div>
@@ -172,22 +174,30 @@ async function CallLogBody({
 
 async function DetailPane({
   id,
+  asked,
   locale,
   t,
   assistantCount,
 }: {
   id: string;
+  /** The id came from the URL: a miss says "not found", not "pick a call". */
+  asked: boolean;
   locale: string;
   t: Dictionary;
   assistantCount: number;
 }) {
-  const call = id ? await getCallDetail(id, await currentUserId(), locale).catch(() => null) : null;
+  let call: Awaited<ReturnType<typeof getCallDetail>> = null;
+  if (id) {
+    const viewerId = await currentUserId();
+    const tz = await displayTimezone(viewerId).catch(() => "UTC");
+    call = await getCallDetail(id, viewerId, locale, tz).catch(() => null);
+  }
 
   if (!call) {
     return (
       <div className="flex min-h-0 flex-1 flex-col items-center justify-center p-10 text-center">
         <AiAvatar mood="greeting" className="h-20 w-20" />
-        <p className="mt-4 text-sm text-neutral-500">{t.calls.detail.selectPrompt}</p>
+        <p className="mt-4 text-sm text-neutral-500">{asked ? t.calls.detail.notFound : t.calls.detail.selectPrompt}</p>
       </div>
     );
   }

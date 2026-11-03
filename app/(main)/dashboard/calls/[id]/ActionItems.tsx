@@ -1,4 +1,5 @@
 import type { CallActionItem } from "@/lib/dashboard/calls";
+import { bookingWhenLabel } from "@/lib/dashboard/calls/format";
 import { formatPhone } from "@/lib/call-engine/voice/phone-language";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import type { Dictionary } from "@/lib/i18n/dictionaries/en";
@@ -36,36 +37,17 @@ function statusLabel(status: string, d: Dictionary["calls"]["detail"]): string {
   }
 }
 
-// Render the timestamp on the wall clock its offset encodes (the business's
-// local time), not the server's timezone.
-function wallClock(iso: string): Date | null {
-  const ms = Date.parse(iso);
-  if (!Number.isFinite(ms)) return null;
-  const m = iso.match(/([+-])(\d{2}):?(\d{2})$/);
-  const offsetMin = m ? (m[1] === "-" ? -1 : 1) * (Number(m[2]) * 60 + Number(m[3])) : 0;
-  return new Date(ms + offsetMin * 60_000);
-}
-
-function fmtWhen(startIso: string, endIso: string, locale: string): string {
-  const start = wallClock(startIso);
-  if (!start) return "";
-  // timeZone stays UTC: wallClock already shifted the instant so that reading
-  // it in UTC yields the business's local time.
-  const day = start.toLocaleDateString(locale, {
-    timeZone: "UTC",
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  });
-  const time = (d: Date) =>
-    d.toLocaleTimeString(locale, { timeZone: "UTC", hour: "2-digit", minute: "2-digit" });
-  const end = wallClock(endIso);
-  return `${day} · ${time(start)}${end ? ` - ${time(end)}` : ""}`;
-}
-
-function BookingDetail({ payload, locale }: { payload: Record<string, unknown>; locale: string }) {
+function BookingDetail({
+  payload,
+  locale,
+  timeZone,
+}: {
+  payload: Record<string, unknown>;
+  locale: string;
+  timeZone: string;
+}) {
   const title = str(payload.title);
-  const when = fmtWhen(str(payload.start_time), str(payload.end_time), locale);
+  const when = bookingWhenLabel(str(payload.start_time), str(payload.end_time), locale, timeZone);
   const notes = str(payload.notes);
   const who = str(payload.attendee_name);
   const phone = str(payload.attendee_phone);
@@ -81,7 +63,7 @@ function BookingDetail({ payload, locale }: { payload: Record<string, unknown>; 
           {phone ? formatPhone(phone) : ""}
         </p>
       )}
-      {notes && <p className="text-xs text-neutral-400">{notes}</p>}
+      {notes && <p className="text-xs text-neutral-500">{notes}</p>}
     </div>
   );
 }
@@ -110,7 +92,7 @@ function MessageDetail({
         <p className="text-xs text-neutral-500">
           {[who, callback ? formatPhone(callback) : ""].filter(Boolean).join(" · ")}
           {urgent && (
-            <span className="ml-1.5 rounded-full bg-rose-50 px-1.5 py-0.5 text-[11px] font-medium text-rose-600">
+            <span className="ml-1.5 rounded-full bg-rose-50 px-1.5 py-0.5 text-[11px] font-medium text-rose-700">
               {urgentLabel}
             </span>
           )}
@@ -120,7 +102,7 @@ function MessageDetail({
   );
 }
 
-export async function ActionItems({ actions }: { actions: CallActionItem[] }) {
+export async function ActionItems({ actions, timeZone }: { actions: CallActionItem[]; timeZone: string }) {
   const [t, locale] = await Promise.all([getDictionary(), getLocale()]);
   const d = t.calls.detail;
   if (actions.length === 0) {
@@ -138,7 +120,7 @@ export async function ActionItems({ actions }: { actions: CallActionItem[] }) {
               {statusLabel(a.status, d)}
             </span>
           </div>
-          {a.type === "booking" && <BookingDetail payload={a.payload} locale={locale} />}
+          {a.type === "booking" && <BookingDetail payload={a.payload} locale={locale} timeZone={timeZone} />}
           {a.type === "message" && <MessageDetail payload={a.payload} urgentLabel={d.urgent} />}
           {/* Deliberately no generic payload dump for other types: raw DB keys
               are not something a business owner can act on. A failure still

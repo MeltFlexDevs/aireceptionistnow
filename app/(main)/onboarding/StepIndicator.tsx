@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { motion, MotionConfig } from "motion/react";
+import { useT } from "@/lib/i18n/client";
 
 // Top-right funnel progress: one line per step, filled up to the current one,
 // with a dot under the step you're on. Completed/reachable steps are clickable
@@ -16,9 +17,10 @@ export function StepIndicator({
   /** Highest step the funnel will actually let you open. */
   reachable?: number;
 }) {
+  const o = useT().onboarding;
   return (
     <MotionConfig reducedMotion="user">
-      <nav aria-label="Setup steps" className="flex items-start gap-1.5">
+      <nav aria-label={o.setupSteps} className="flex items-start gap-1.5">
         {Array.from({ length: total }, (_, i) => {
           const step = i + 1;
           const active = step === current;

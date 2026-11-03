@@ -4,9 +4,8 @@ import { useState } from "react";
 import Image from "next/image";
 
 import { useAuthDialog } from "@/app/components/AuthDialog";
-import { startCheckout } from "@/lib/billing-client";
 
-// The plan a generic "Start now" sends a signed-in user to pay for.
+// The plan and cycle a generic "Start now" passes to /pricing for a signed-in user.
 const DEFAULT_PLAN = "team";
 const DEFAULT_CYCLE = "monthly" as const;
 
@@ -38,9 +37,10 @@ export function BlogCtaCard({ copy = EN_CTA }: { copy?: CtaCopy }) {
         ? (await supabase.auth.getSession()).data.session
         : null;
       if (session) {
-        // Already signed in → straight to the payment gateway.
-        await startCheckout(DEFAULT_PLAN, DEFAULT_CYCLE);
-        return; // browser navigates to Stripe on success
+        // Already signed in → /pricing, which holds the Terms box that
+        // /api/checkout requires before it starts a payment.
+        window.location.assign(`/pricing?plan=${DEFAULT_PLAN}&cycle=${DEFAULT_CYCLE}`);
+        return;
       }
       // Not signed in → same as clicking START NOW in the header.
       open("signup");

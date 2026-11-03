@@ -3,6 +3,7 @@ import { currentUserId } from "@/lib/auth";
 import { authConfigured } from "@/lib/supabase/config";
 import { exchangeCode } from "@/lib/dashboard/oauth";
 import { upsertCalendarIntegration } from "@/lib/dashboard/db";
+import { connectErrorCode, type ConnectErrorCode } from "@/lib/integrations/connect-error";
 
 export const dynamic = "force-dynamic";
 
@@ -34,8 +35,13 @@ function redirectTo(req: NextRequest, params: Record<string, string>): Response 
   return res;
 }
 
-function fail(req: NextRequest, message: string): Response {
-  return redirectTo(req, { error: message });
+function fail(req: NextRequest, code: ConnectErrorCode): Response {
+  return redirectTo(req, { error: code });
+}
+
+// The raw reason stays in the server log; the URL carries only the code.
+function logFailure(provider: string, reason: unknown): void {
+  console.error(`[integrations:${provider}] connect failed`, reason);
 }
 
 export async function GET(
@@ -46,32 +52,37 @@ export async function GET(
   const url = new URL(req.url);
 
   const oauthError = url.searchParams.get("error");
-  if (oauthError) return fail(req, oauthError);
+  if (oauthError) {
+    logFailure(provider, oauthError);
+    return fail(req, connectErrorCode(oauthError) ?? "failed");
+  }
 
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
   const cookieState = req.cookies.get("oauth_state")?.value;
   if (!code || !state || !cookieState || state !== cookieState) {
-    return fail(req, "Login session expired or invalid. Please try again.");
+    return fail(req, "expired");
   }
 
   let result: Awaited<ReturnType<typeof exchangeCode>>;
   try {
     result = await exchangeCode(provider, code);
   } catch (err) {
-    return fail(req, (err as Error).message);
+    logFailure(provider, (err as Error).message);
+    return fail(req, "failed");
   }
-  if (!result) return fail(req, `Could not finish login with ${provider}.`);
+  if (!result) return fail(req, "failed");
 
   const ownerId = await currentUserId();
   if (authConfigured() && ownerId === null) {
-    return fail(req, "Please sign in to connect a calendar.");
+    return fail(req, "sign_in");
   }
 
   try {
     await upsertCalendarIntegration(provider, result.config, ownerId ?? undefined);
   } catch (err) {
-    return fail(req, (err as Error).message);
+    logFailure(provider, (err as Error).message);
+    return fail(req, "failed");
   }
 
   return redirectTo(req, { connected: "1" });

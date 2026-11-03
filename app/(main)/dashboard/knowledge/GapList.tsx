@@ -40,11 +40,15 @@ export function GapList({ orgId, rows }: { orgId: string; rows: DemandRow[] }) {
         <p className="mt-0.5 text-xs text-neutral-500">{k.gapsNote}</p>
       </div>
 
-      <ul className="divide-y divide-neutral-200/70">
-        {answerable.map((row) => (
-          <GapRow key={row.id} orgId={orgId} row={row} />
-        ))}
-      </ul>
+      {answerable.length === 0 ? (
+        <p className="text-xs text-neutral-500">{k.gapsAllAnswered}</p>
+      ) : (
+        <ul className="divide-y divide-neutral-200/70">
+          {answerable.map((row) => (
+            <GapRow key={row.id} orgId={orgId} row={row} />
+          ))}
+        </ul>
+      )}
 
       {market.length > 0 ? (
         <div className="rounded-xl bg-neutral-50 p-3">
@@ -79,39 +83,83 @@ function GapRow({ orgId, row }: { orgId: string; row: DemandRow }) {
         <p className="mt-0.5 text-xs text-neutral-500">&ldquo;{row.quote}&rdquo;</p>
       ) : null}
 
-      <form action={action} className="mt-2 flex flex-wrap items-center gap-2">
-        <input type="hidden" name="id" value={orgId} />
-        <input type="hidden" name="signal_id" value={row.id} />
-        <input
-          name="answer"
-          value={answer}
-          onChange={(e) => setAnswer(e.target.value)}
-          placeholder={k.gapsAnswerPlaceholder}
-          maxLength={600}
-          className="min-w-0 flex-1 rounded-lg border border-neutral-200 px-3 py-2 text-sm"
-        />
-        {/* Gated on a non-empty answer: an empty verified answer is worse than
-            no verified answer, because the agent believes it has one. */}
-        <SubmitButton disabled={!answer.trim()}>{k.gapsAnswer}</SubmitButton>
+      {/* Dismiss renders its own form, so it sits next to the answer form,
+          never inside it: a nested form is invalid HTML. */}
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        <form action={action} className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+          <input type="hidden" name="id" value={orgId} />
+          <input type="hidden" name="signal_id" value={row.id} />
+          <input
+            name="answer"
+            value={answer}
+            onChange={(e) => setAnswer(e.target.value)}
+            placeholder={k.gapsAnswerPlaceholder}
+            maxLength={600}
+            className="min-w-0 flex-1 rounded-lg border border-neutral-200 px-3 py-2 text-sm"
+          />
+          {/* Gated on a non-empty answer: an empty verified answer is worse than
+              no verified answer, because the agent believes it has one. */}
+          <SubmitButton disabled={!answer.trim()}>{k.gapsAnswer}</SubmitButton>
+          <SavePill state={state} />
+        </form>
         <DismissButton row={row} />
-        <SavePill state={state} />
-      </form>
+      </div>
     </li>
   );
 }
 
 function DismissButton({ row }: { row: DemandRow }) {
   const t = useT();
-  const [, action] = useActionState<ActionState, FormData>(dismissKnowledgeGapAction, IDLE);
+  const k = t.knowledge;
+  const [state, action, pending] = useActionState<ActionState, FormData>(
+    dismissKnowledgeGapAction,
+    IDLE,
+  );
+  // Two steps, like removing a source: there is no undo, so the first click
+  // only asks.
+  const [confirming, setConfirming] = useState(false);
+  // After Cancel, focus goes back to the Dismiss button that opened the confirm.
+  const [returnFocus, setReturnFocus] = useState(false);
   return (
-    <form action={action}>
+    <form action={action} className="flex shrink-0 items-center gap-2">
       <input type="hidden" name="signal_id" value={row.id} />
-      <button
-        type="submit"
-        className="rounded-lg px-2 py-1 text-xs text-neutral-500 hover:text-neutral-900"
-      >
-        {t.knowledge.gapsDismiss}
-      </button>
+      {/* Success is self-evident - the row disappears on revalidate - so only
+          a failure needs the pill. */}
+      {state.ok === false && <SavePill state={state} />}
+      {confirming ? (
+        <>
+          <span className="text-xs text-neutral-500">{k.gapsDismissConfirm}</span>
+          <button
+            type="submit"
+            disabled={pending}
+            className="rounded-lg px-2 py-1 text-xs font-medium text-rose-600 hover:text-rose-700 disabled:cursor-wait disabled:opacity-60"
+          >
+            {k.gapsDismiss}
+          </button>
+          {/* Focus lands on the safe choice, so a second Enter does not dismiss. */}
+          <button
+            type="button"
+            autoFocus
+            disabled={pending}
+            onClick={() => {
+              setConfirming(false);
+              setReturnFocus(true);
+            }}
+            className="rounded-lg px-2 py-1 text-xs text-neutral-500 hover:text-neutral-900"
+          >
+            {t.common.cancel}
+          </button>
+        </>
+      ) : (
+        <button
+          type="button"
+          autoFocus={returnFocus}
+          onClick={() => setConfirming(true)}
+          className="rounded-lg px-2 py-1 text-xs text-neutral-500 hover:text-neutral-900"
+        >
+          {k.gapsDismiss}
+        </button>
+      )}
     </form>
   );
 }

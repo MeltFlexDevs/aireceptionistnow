@@ -58,6 +58,21 @@ interface DeviceRow {
 }
 
 /**
+ * Whether the failure is "migration 0012 has not added push_devices.device_id".
+ * Postgres answers 42703 for an undefined column; PostgREST wraps it as PGRST204.
+ */
+function isMissingDeviceColumn(err: unknown): boolean {
+  const message =
+    err instanceof Error ? err.message : String((err as { message?: unknown })?.message ?? err ?? "");
+  const code = String((err as { code?: unknown })?.code ?? "");
+  return (
+    code === "42703" ||
+    code === "PGRST204" ||
+    (/device_id/i.test(message) && /column|schema cache/i.test(message))
+  );
+}
+
+/**
  * Register (or refresh) one install's push token.
  *
  * Upserts on `token` rather than inserting, because the app re-registers on
@@ -65,25 +80,60 @@ interface DeviceRow {
  * on the same handset, the row must move to them or they would receive the
  * previous user's call alerts. That re-assignment is the reason `owner_id` is
  * in the update set.
+ *
+ * `deviceId` is the keychain install id the app sends as `X-Device-Id`; it is
+ * what lets `revokeDevice` (lib/mobile/devices.ts) find and drop this row. Only
+ * written when given, so an older build without the header does not blank a
+ * value a newer build stored.
  */
 export async function registerPushDevice(
   ownerId: string,
   token: string,
   platform: string,
+  deviceId?: string | null,
 ): Promise<void> {
+  const row: Record<string, unknown> = {
+    owner_id: ownerId,
+    token,
+    platform: platform === "ios" || platform === "android" ? platform : "unknown",
+    enabled: true,
+    last_seen_at: new Date().toISOString(),
+  };
+  if (deviceId) row.device_id = deviceId;
+
+  const { error } = await serviceClient().from("push_devices").upsert(row, { onConflict: "token" });
+  if (!error) return;
+
+  // An unmigrated project must still register for alerts: retry without the
+  // column and say why, rather than failing every registration until 0012 runs.
+  if (deviceId && isMissingDeviceColumn(error)) {
+    console.warn("[push] push_devices.device_id is missing - run migration 0012");
+    delete row.device_id;
+    const retry = await serviceClient().from("push_devices").upsert(row, { onConflict: "token" });
+    if (retry.error) throw retry.error;
+    return;
+  }
+  throw error;
+}
+
+/**
+ * Drop every push row this owner registered from one install. Called by
+ * `revokeDevice` so a revoked handset stops receiving call alerts, not just
+ * its listing. Scoped by owner: a device id is client-supplied.
+ */
+export async function deletePushDevicesByDeviceId(ownerId: string, deviceId: string): Promise<void> {
   const { error } = await serviceClient()
     .from("push_devices")
-    .upsert(
-      {
-        owner_id: ownerId,
-        token,
-        platform: platform === "ios" || platform === "android" ? platform : "unknown",
-        enabled: true,
-        last_seen_at: new Date().toISOString(),
-      },
-      { onConflict: "token" },
-    );
-  if (error) throw error;
+    .delete()
+    .eq("owner_id", ownerId)
+    .eq("device_id", deviceId);
+  if (!error) return;
+  if (isMissingDeviceColumn(error)) {
+    // Nothing to match on yet; the revoke of the account_devices row stands.
+    console.warn("[push] push_devices.device_id is missing - run migration 0012");
+    return;
+  }
+  throw error;
 }
 
 /** Sign-out and the alerts toggle both land here. Scoped to the owner so one user cannot mute another's device. */

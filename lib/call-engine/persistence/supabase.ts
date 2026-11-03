@@ -71,14 +71,15 @@ export class SupabaseCallRepository implements CallRepository {
 
     const ownerId = cfg.owner_id ? String(cfg.owner_id) : "";
 
-    // Fail closed on a missing owner: only global (owner-less) integrations
+    // An owned number gets exactly its owner's integrations - owner-less rows
+    // are not shared with tenants (they may hold someone's calendar OAuth).
+    // Fail closed on a missing owner: only owner-less (demo/unowned) rows
     // apply. Skipping the filter entirely would attach every tenant's
     // integrations to this number.
-    const integrationsQuery = db()
-      .from("integrations")
-      .select("*")
-      .eq("enabled", true)
-      .or(ownerId ? `owner_id.eq.${ownerId},owner_id.is.null` : "owner_id.is.null");
+    const integrationsBase = db().from("integrations").select("*").eq("enabled", true);
+    const integrationsQuery = ownerId
+      ? integrationsBase.eq("owner_id", ownerId)
+      : integrationsBase.is("owner_id", null);
     // Both queries depend only on the first lookup - run them together.
     const [{ data: integrations }, acctRes] = await Promise.all([
       integrationsQuery,

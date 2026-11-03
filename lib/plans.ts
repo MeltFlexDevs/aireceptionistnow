@@ -115,6 +115,11 @@ export function limitsFor(planId: PlanId | null | undefined): PlanLimits {
   return plan ? plan.limits : FALLBACK_LIMITS;
 }
 
+/** True while an owner with `count` receptionists may create another one. */
+export function canAddAssistant(count: number, limits: PlanLimits): boolean {
+  return count < limits.assistants;
+}
+
 export function getPlan(id: string): Plan | undefined {
   return PLANS.find((p) => p.id === id);
 }

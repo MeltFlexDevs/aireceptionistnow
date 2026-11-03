@@ -109,7 +109,7 @@ export function EscalationFields({
 
       <div>
         <span className={labelCls}>{labels.destinations}</span>
-        <p className="mb-2 text-xs text-neutral-400">{labels.destinationsSub}</p>
+        <p className="mb-2 text-xs text-neutral-500">{labels.destinationsSub}</p>
 
         {rows.length === 0 && <p className="text-sm text-neutral-500">{labels.empty}</p>}
 
@@ -225,7 +225,7 @@ export function EscalationFields({
         <label className={labelCls} htmlFor="esc_triggers">
           {labels.triggers}
         </label>
-        <p className="mb-1.5 text-xs text-neutral-400">{labels.triggersSub}</p>
+        <p className="mb-1.5 text-xs text-neutral-500">{labels.triggersSub}</p>
         <textarea
           id="esc_triggers"
           name="esc_triggers"
@@ -249,14 +249,14 @@ export function EscalationFields({
           defaultValue={escalation.callbackSlaMinutes ?? ""}
           className={field}
         />
-        <p className="mt-1.5 text-xs text-neutral-400">{labels.slaSub}</p>
+        <p className="mt-1.5 text-xs text-neutral-500">{labels.slaSub}</p>
       </div>
 
       <div className="space-y-3 border-t border-neutral-100 pt-4">
         <label className="flex cursor-pointer items-center justify-between gap-4 rounded-lg border border-neutral-200/70 bg-white/60 px-4 py-3 transition-colors hover:border-neutral-300">
           <span>
             <span className="block text-sm font-medium text-neutral-800">{labels.page}</span>
-            <span className="block text-xs text-neutral-400">{labels.pageSub}</span>
+            <span className="block text-xs text-neutral-500">{labels.pageSub}</span>
           </span>
           <input
             type="checkbox"
@@ -280,7 +280,7 @@ export function EscalationFields({
               inputMode="tel"
               className={field}
             />
-            <p className="mt-1.5 text-xs text-neutral-400">{labels.pageNumberSub}</p>
+            <p className="mt-1.5 text-xs text-neutral-500">{labels.pageNumberSub}</p>
           </div>
         )}
       </div>

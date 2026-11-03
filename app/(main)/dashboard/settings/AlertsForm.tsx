@@ -48,7 +48,7 @@ export function AlertsForm({
         >
           <span>
             <span className="block text-sm font-medium text-neutral-800">{row.title}</span>
-            <span className="block text-xs text-neutral-400">{row.body}</span>
+            <span className="block text-xs text-neutral-500">{row.body}</span>
           </span>
           <input
             type="checkbox"

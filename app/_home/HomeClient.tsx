@@ -1,21 +1,18 @@
 "use client";
 
-import { useState, useEffect, useRef, type ReactNode } from "react";
-import SiteHeader from "@/app/components/SiteHeader";
-import type { LocaleOption } from "@/lib/i18n/marketing/switcher";
+import { useState, useEffect, useRef, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
+import { useAuthDialog } from "@/app/components/AuthDialog";
 import type { ContentLocale } from "@/lib/i18n/marketing/locales";
 import { LOCALE_DIAL_CODE } from "@/lib/i18n/marketing/dial";
-import SiteFooter from "@/app/components/SiteFooter";
 import VoiceOrb from "@/app/components/VoiceOrb";
 import Image from "next/image";
 import Link from "next/link";
 import { siteUrl, siteName, siteDescription } from "@/lib/site";
+import { hasSupabaseAuthCookie } from "@/lib/supabase/config";
 import { PLANS } from "@/lib/plans";
-import { EN_NAV_HREFS, type NavHrefs } from "@/lib/i18n/marketing/nav";
+import { normalizePhone } from "@/lib/phone";
 import type { HomeCopy } from "@/content/i18n/_home-copy";
-import type { UiCopy } from "@/content/i18n/_ui-copy";
 import { enHome } from "@/content/i18n/en/pages/home";
-import { enUi } from "@/content/i18n/en/ui";
 
 const ChevronRight = () => (
   <svg width="8" height="13" viewBox="0 0 8 13" fill="none">
@@ -48,6 +45,41 @@ const UseCaseCard = ({ href, children }: { href?: string; children: ReactNode })
     <div className="use-case-card" style={{ ...style, cursor: "default" }}>
       {children}
     </div>
+  );
+};
+
+// Sign-up CTA for the use-cases and closing sections. These were plain links
+// to /dashboard, which were dead for signed-out visitors: the proxy redirects
+// them to /?auth=login, and on a client navigation the dialog provider never
+// reads that query (it checks it once, on mount). A signed-out visitor now
+// gets the sign-up dialog in place, like the header CTA. The auth-cookie sniff
+// is the one SiteHeader uses, so no Supabase SDK loads here. The server render
+// and hydration use the signed-out button; a visitor with an auth cookie
+// switches to the dashboard link right after hydration.
+const noSubscribe = () => () => {};
+const StartCta = ({ style, hoverOpacity, children }: { style: CSSProperties; hoverOpacity: string; children: ReactNode }) => {
+  const { open } = useAuthDialog();
+  const hasAuthCookie = useSyncExternalStore(noSubscribe, hasSupabaseAuthCookie, () => false);
+  const onMouseOver = (e: { currentTarget: HTMLElement }) => { e.currentTarget.style.opacity = hoverOpacity; };
+  const onMouseOut = (e: { currentTarget: HTMLElement }) => { e.currentTarget.style.opacity = "1"; };
+  return hasAuthCookie ? (
+    <>
+      {/* A full page load, so an expired session's redirect to /?auth=login opens the dialog. */}
+      {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+      <a href="/dashboard" style={style} onMouseOver={onMouseOver} onMouseOut={onMouseOut}>
+        {children}
+      </a>
+    </>
+  ) : (
+    <button
+      type="button"
+      onClick={() => open("signup", { next: "/onboarding" })}
+      style={style}
+      onMouseOver={onMouseOver}
+      onMouseOut={onMouseOut}
+    >
+      {children}
+    </button>
   );
 };
 
@@ -223,18 +255,18 @@ const heroAvatarSrcs = [
 // `copy` defaults to the English source, so every existing caller (app/page.tsx)
 // keeps working untouched and the English page has exactly one source of truth.
 export default function Home({
-  localeOptions = [],
+  header,
+  footer,
   copy = enHome,
-  ui = enUi,
-  nav = EN_NAV_HREFS,
   locale = "en",
   relatedResources,
   industryBrief,
 }: {
-  localeOptions?: LocaleOption[];
+  // SiteHeader and SiteFooter are rendered by the server page and passed in, so
+  // the footer stays out of this client bundle.
+  header: ReactNode;
+  footer: ReactNode;
   copy?: HomeCopy;
-  ui?: UiCopy;
-  nav?: NavHrefs;
   locale?: ContentLocale;
   // Optional cross-link module rendered just above the footer. The home page
   // passes nothing (so it is unchanged); industry landing pages pass a
@@ -249,7 +281,7 @@ export default function Home({
   // site. This slot sits high on purpose - unique prose above the cloned
   // sections, not buried near the footer like relatedResources.
   industryBrief?: ReactNode;
-} = {}) {
+}) {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [phone, setPhone] = useState("");
   // Seed from the page locale rather than a hardcoded "+1". Starting on the
@@ -287,7 +319,7 @@ export default function Home({
     const digits = phone.replace(/[^\d]/g, "");
     const national = dialCode === "+39" ? digits : digits.replace(/^0+/, "");
     const to = `${dialCode}${national}`;
-    if (!/^\+[1-9]\d{6,15}$/.test(to)) {
+    if (!normalizePhone(to)) {
       setCallMsg(copy.hero.invalidPhone);
       return;
     }
@@ -586,9 +618,13 @@ export default function Home({
         @media (max-width: 600px) {
           .phone-input { font-size: 16px !important; }
         }
+        /* globals.css drops the outline on inputs, and so does the tel input
+           itself, so ring the whole phone field while the input has keyboard
+           focus. Scoped to the input: the flag button keeps its own ring. */
+        .hero-phone-field:has(.phone-input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
       `}</style>
 
-      <SiteHeader localeOptions={localeOptions} ui={ui} nav={nav} />
+      {header}
 
       <section className="lp-hero" style={{
         position: "relative", background: "#fff", minHeight: "100vh",
@@ -604,7 +640,7 @@ export default function Home({
         <div style={{ position: "relative", zIndex: 2, width: "100%", maxWidth: "860px", padding: "0 24px", textAlign: "center" }}>
           <div style={{ maxWidth: "380px", margin: "0 auto 64px" }}>
             <div style={{ background: "#fff", border: "1px solid #e8e8e8", borderRadius: "16px", padding: "22px", display: "flex", flexDirection: "column", gap: "10px" }}>
-              <div style={{ display: "flex", alignItems: "center", background: "#f8f8f8", border: "1px solid #e8e8e8", borderRadius: "10px", overflow: "visible", position: "relative" }}>
+              <div className="hero-phone-field" style={{ display: "flex", alignItems: "center", background: "#f8f8f8", border: "1px solid #e8e8e8", borderRadius: "10px", overflow: "visible", position: "relative" }}>
                 <div style={{ position: "relative", flexShrink: 0, borderRight: "1px solid #e8e8e8" }}>
                   <button
                     onClick={() => setFlagOpen(!flagOpen)}
@@ -850,12 +886,9 @@ export default function Home({
                 {copy.useCases.sub}
               </p>
             </div>
-            <Link href="/dashboard" style={{ display: "inline-flex", alignItems: "center", height: "42px", padding: "0 22px", background: "#fff", color: "#1D1D1D", borderRadius: "20px", fontSize: "13px", fontWeight: 400, textDecoration: "none", letterSpacing: "0.02em", transition: "opacity 0.2s", flexShrink: 0 }}
-              onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.opacity = "0.85")}
-              onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.opacity = "1")}
-            >
+            <StartCta hoverOpacity="0.85" style={{ display: "inline-flex", alignItems: "center", height: "42px", padding: "0 22px", background: "#fff", color: "#1D1D1D", borderRadius: "20px", fontSize: "13px", fontWeight: 400, textDecoration: "none", letterSpacing: "0.02em", transition: "opacity 0.2s", flexShrink: 0 }}>
               {copy.useCases.cta}
-            </Link>
+            </StartCta>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "16px" }}>
             {/* `useCases` merges useCaseMeta (icon + href) with the localized
@@ -906,16 +939,19 @@ export default function Home({
           {faqs.map((faq, i) => (
             <div key={i} style={{ borderBottom: "1px solid #f0f0f0" }}>
               <button
+                type="button"
+                aria-expanded={openFaq === i}
+                aria-controls={`faq-panel-${i}`}
                 onClick={() => setOpenFaq(openFaq === i ? null : i)}
                 style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 0", background: "none", border: "none", cursor: "pointer", textAlign: "left", gap: "16px", fontFamily: "var(--font-inter), Inter, sans-serif" }}
               >
                 <span style={{ fontSize: "15px", fontWeight: 300, color: "#1D1D1D" }}>{faq.q}</span>
-                <span style={{ flexShrink: 0, transition: "transform 0.2s", transform: openFaq === i ? "rotate(90deg)" : "rotate(0deg)", display: "flex" }}>
+                <span aria-hidden="true" style={{ flexShrink: 0, transition: "transform 0.2s", transform: openFaq === i ? "rotate(90deg)" : "rotate(0deg)", display: "flex" }}>
                   <ChevronRight />
                 </span>
               </button>
               {openFaq === i && (
-                <div style={{ paddingBottom: "20px" }}>
+                <div id={`faq-panel-${i}`} style={{ paddingBottom: "20px" }}>
                   <p style={{ color: "#666", fontSize: "14px", fontWeight: 300, lineHeight: 1.72, margin: 0 }}>{faq.a}</p>
                 </div>
               )}
@@ -933,19 +969,16 @@ export default function Home({
             <p style={{ color: "#6f6f6f", fontSize: "16px", fontWeight: 300, lineHeight: 1.65, maxWidth: "560px", margin: "0 auto 36px" }}>
               {copy.footerCta.body}
             </p>
-            <Link href="/dashboard" style={{ display: "inline-flex", alignItems: "center", height: "46px", padding: "0 28px", background: "#1D1D1D", color: "#fff", borderRadius: "23px", fontSize: "14px", fontWeight: 400, textDecoration: "none", transition: "opacity 0.2s" }}
-              onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.opacity = "0.88")}
-              onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.opacity = "1")}
-            >
+            <StartCta hoverOpacity="0.88" style={{ display: "inline-flex", alignItems: "center", height: "46px", padding: "0 28px", background: "#1D1D1D", color: "#fff", borderRadius: "23px", fontSize: "14px", fontWeight: 400, textDecoration: "none", transition: "opacity 0.2s" }}>
               {copy.footerCta.cta}
-            </Link>
+            </StartCta>
           </div>
         </div>
       </section>
 
       {relatedResources}
 
-      <SiteFooter />
+      {footer}
     </main>
   );
 }

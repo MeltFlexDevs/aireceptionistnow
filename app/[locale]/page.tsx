@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import HomeClient from "@/app/_home/HomeClient";
+import SiteHeader from "@/app/components/SiteHeader";
+import SiteFooter from "@/app/components/SiteFooter";
 import { ogCardImage, siteName, siteUrl } from "@/lib/site";
 import { alternatesFor } from "@/lib/i18n/marketing/alternates";
 import {
@@ -89,11 +91,16 @@ export default async function LocalizedHome({
 
   return (
     <HomeClient
-      localeOptions={localeOptions("home", locale)}
+      header={
+        <SiteHeader
+          localeOptions={localeOptions("home", locale)}
+          ui={UI_COPY[locale]}
+          nav={navHrefs(locale)}
+        />
+      }
+      footer={<SiteFooter ui={UI_COPY[locale]} nav={navHrefs(locale)} />}
       locale={locale}
       copy={copy}
-      ui={UI_COPY[locale]}
-      nav={navHrefs(locale)}
     />
   );
 }

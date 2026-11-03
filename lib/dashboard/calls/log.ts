@@ -6,8 +6,8 @@ import { assistantName, num, str } from "./embed";
 import {
   dateTimeFmt,
   fmtDuration,
-  isLiveStatus,
   normalizeDirection,
+  showInCallLog,
   statusBucket,
   statusLabel,
 } from "./format";
@@ -47,9 +47,17 @@ async function fetchAllNumbers(): Promise<Map<string, number>> {
   return owned;
 }
 
-async function fetchDbCalls(limit: number, ownerId?: string | null): Promise<DbCallRow[]> {
+async function fetchDbCalls(
+  limit: number,
+  ownerId?: string | null,
+  beforeIso?: string,
+): Promise<DbCallRow[]> {
   let query = serviceClient().from("calls").select(SELECT);
-  if (ownerId) query = query.or(`owner_id.eq.${ownerId},owner_id.is.null`);
+  // Strictly the owner's rows. Owner-less calls belong to no tenant (the dev
+  // preview passes no ownerId and sees them all); they used to be listed for
+  // every signed-in user.
+  if (ownerId) query = query.eq("owner_id", ownerId);
+  if (beforeIso) query = query.lt("started_at", beforeIso);
   const { data, error } = await query.order("started_at", { ascending: false }).limit(limit);
   if (error) throw error;
   return (data ?? []).map((r) => {
@@ -138,22 +146,55 @@ async function ownedNumberMap(ownerId?: string | null): Promise<Map<string, numb
   return owned;
 }
 
+/** Keyset paging for the app's Calls list. The web page reads everything at once. */
+export interface CallLogPaging {
+  /** Only rows whose `date` is strictly older than this ISO timestamp. */
+  before?: string;
+  /** Page size. Without it every scanned row is returned and nextCursor is null. */
+  limit?: number;
+}
+
+export interface CallLogPage extends CallLog {
+  /** The owner's IANA zone every `dateLabel` was formatted in. */
+  timezone: string;
+  /** The last row's `date` when older rows remain - pass it back as `before`. */
+  nextCursor: string | null;
+}
+
+/**
+ * How far past `before` the DB read reaches. A merged row is dated by Twilio's
+ * start time, which runs a few seconds off the row's own `started_at`; cutting
+ * the DB read exactly at the cursor would drop the DB half of a call whose
+ * Twilio start sits just under it (and without an assistant the row is then
+ * hidden). The exact cut happens on the merged `date` below.
+ */
+const CURSOR_SLACK_MS = 2 * 60_000;
+
 export async function getCallLog(
   filters: CallFilters = {},
   ownerId?: string | null,
   limit?: number,
   /** Viewer's locale for date labels; the page threads it in. */
   locale?: string,
-): Promise<CallLog> {
+  paging: CallLogPaging = {},
+  /** The zone to show times in when the account has none (display only). */
+  displayTz?: string,
+): Promise<CallLogPage> {
   // Search/status filters run in memory, so a filtered view must scan deep
   // enough that older calls stay findable; the plain view stays light.
   const filtered = Boolean((filters.q ?? "").trim()) || (filters.status ?? "all") !== "all";
   const scan = limit ?? (filtered ? 1000 : 200);
+  const beforeMs = paging.before ? Date.parse(paging.before) : NaN;
+  const paged = Number.isFinite(beforeMs);
   const [dbCalls, owned, twilioCalls, tz] = await Promise.all([
-    fetchDbCalls(scan, ownerId),
+    fetchDbCalls(
+      scan,
+      ownerId,
+      paged ? new Date(beforeMs + CURSOR_SLACK_MS).toISOString() : undefined,
+    ),
     ownedNumberMap(ownerId),
     listTwilioCallsCached(Math.max(scan, 500)).catch(() => [] as TwilioCallLog[]),
-    ownerTimezone(ownerId),
+    ownerTimezone(ownerId, displayTz),
   ]);
   const fmtDateTime = dateTimeFmt(tz, locale);
 
@@ -183,10 +224,23 @@ export async function getCallLog(
 
   const cleaned = rows.filter(
     (r) =>
-      r.assistant &&
-      (r.durationSec > 0 || isLiveStatus(r.status, r.date) || statusBucket(r.status) === "completed"),
+      showInCallLog(r) &&
+      // The cursor compares against the same `date` the list is sorted by, so a
+      // page never repeats the previous page's last row. An undated row (NaN)
+      // stays on the first page rather than repeating on every later one.
+      (!paged || Date.parse(r.date) < beforeMs),
   );
 
   cleaned.sort((a, b) => (b.date > a.date ? 1 : b.date < a.date ? -1 : 0));
-  return { rows: applyFilters(cleaned, filters), twilioConnected: twilioCalls.length > 0 };
+  const all = applyFilters(cleaned, filters);
+  const twilioConnected = twilioCalls.length > 0;
+
+  const size = paging.limit;
+  if (!size || size < 1) return { rows: all, twilioConnected, timezone: tz, nextCursor: null };
+  const page = all.slice(0, size);
+  // Older rows remain when this scan matched more than a page, or when the DB
+  // read was cut short by the scan size (older calls may still match there).
+  const more = all.length > size || dbCalls.length >= scan;
+  const nextCursor = more && page.length > 0 ? page[page.length - 1].date : null;
+  return { rows: page, twilioConnected, timezone: tz, nextCursor };
 }

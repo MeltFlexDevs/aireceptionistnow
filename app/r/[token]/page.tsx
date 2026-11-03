@@ -1,6 +1,7 @@
 import { after } from "next/server";
 import { getPublicReceipt, markReceiptViewed } from "@/lib/receipts/store";
 import { receiptLang, receiptStrings } from "@/lib/receipts/strings";
+import { receiptWhen } from "@/lib/receipts/format";
 import ReceiptActions from "./ReceiptActions";
 
 export const runtime = "nodejs";
@@ -61,7 +62,7 @@ export default async function ReceiptPage({
         <header style={S.header}>
           <p style={S.eyebrow}>{t.heading}</p>
           <h1 style={S.title}>{receipt.businessName}</h1>
-          <p style={S.when}>{formatWhen(receipt.startedAt, lang)}</p>
+          <p style={S.when}>{receiptWhen(receipt.startedAt, lang, receipt.timezone)}</p>
         </header>
 
         {receipt.recap ? (
@@ -81,7 +82,7 @@ export default async function ReceiptPage({
         {receipt.booking ? (
           <section style={S.booking}>
             <p style={S.bookingLabel}>{t.appointment}</p>
-            <p style={S.bookingWhen}>{formatWhen(receipt.booking.startTime, lang)}</p>
+            <p style={S.bookingWhen}>{receiptWhen(receipt.booking.startTime, lang, receipt.timezone)}</p>
             {receipt.booking.title ? (
               <p style={S.bookingTitle}>{receipt.booking.title}</p>
             ) : null}
@@ -113,23 +114,6 @@ export default async function ReceiptPage({
       </article>
     </main>
   );
-}
-
-function formatWhen(iso: string, lang: string): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "";
-  try {
-    return d.toLocaleString(lang, {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      hour: "numeric",
-      minute: "2-digit",
-    });
-  } catch {
-    return d.toISOString().slice(0, 16).replace("T", " ");
-  }
 }
 
 /**

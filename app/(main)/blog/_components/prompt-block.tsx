@@ -24,7 +24,7 @@ export function PromptBlock({
   return (
     <div className="my-7 overflow-hidden rounded-md border border-[#e5e5e5] bg-[#fafafa]">
       <div className="flex items-center justify-between border-b border-[#e5e5e5] px-4 py-2.5">
-        <span className="text-[10px] font-semibold tracking-[0.08em] text-[#999] uppercase">
+        <span className="text-[10px] font-semibold tracking-[0.08em] text-[#6f6f6f] uppercase">
           {label}
         </span>
         <button

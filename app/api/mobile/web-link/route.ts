@@ -1,61 +1,80 @@
-import { getCustomerId } from "@/lib/billing";
-import { isCompCustomerId } from "@/lib/comp-accounts";
-import { mobileUserId } from "@/lib/mobile/auth";
-import { appBaseUrl, safeNextPath, webHandoffUrl } from "@/lib/mobile/link";
+import { CALENDAR_PROVIDERS } from "@/lib/calendar/providers";
+import { mobileAuth } from "@/lib/mobile/auth";
+import {
+  APP_RETURN_URL,
+  appBaseUrl,
+  safeAppReturnUrl,
+  safeNextPath,
+  webHandoffUrl,
+} from "@/lib/mobile/link";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * A signed-in browser URL for the three things a phone cannot do in-process:
- * Stripe checkout, the Stripe billing portal, and calendar OAuth consent.
+ * A signed-in browser URL for the one thing a phone cannot do in-process:
+ * calendar OAuth consent, which needs a cookie session on the site.
  *
- * Anything that takes a payment inside an iOS binary falls under App Store
- * in-app purchase rules; a SaaS subscription bought on the web does not - which
- * is why these open a browser rather than a screen.
+ * There is no handoff to web billing, checkout or the Stripe portal. The app
+ * sells subscriptions through the App Store / Google Play only, and a link out
+ * to a web purchase from inside the binary is exactly what store review
+ * rejects - so 'billing' and 'checkout' are refused outright rather than
+ * quietly redirected somewhere else.
+ *
+ * 'calendar' is minted at tap time, once per tap, and ends on /mobile/done,
+ * which sends the browser back into the app at `returnUrl` (an app-scheme URL;
+ * aireceptionistnow://handoff when missing or invalid). 'dashboard',
+ * 'onboarding' and 'knowledge' remain only for app builds already in the field.
  *
  * The response is a single-use credential. The app must open it immediately and
  * never store or log it.
  */
 
-const ALLOWED = new Set(["billing", "checkout", "dashboard", "onboarding", "knowledge"]);
+const REFUSED = new Set(["billing", "checkout"]);
 
 const PATHS: Record<string, string> = {
-  billing: "/dashboard/settings",
-  checkout: "/onboarding?step=plan",
   dashboard: "/dashboard",
   onboarding: "/onboarding",
   knowledge: "/dashboard/knowledge",
 };
 
+interface Body {
+  target?: unknown;
+  path?: unknown;
+  provider?: unknown;
+  returnUrl?: unknown;
+}
+
 export async function POST(req: Request): Promise<Response> {
-  const userId = await mobileUserId(req);
+  const auth = await mobileAuth(req, "web-link");
+  if (auth instanceof Response) return auth;
+  const userId = auth;
   if (!userId) return Response.json({ error: "Not signed in." }, { status: 401 });
 
-  let target = "dashboard";
-  let raw = "";
+  let body: Body = {};
   try {
-    const body = (await req.json()) as { target?: unknown; path?: unknown };
-    if (typeof body.target === "string" && ALLOWED.has(body.target)) target = body.target;
-    if (typeof body.path === "string") raw = body.path;
+    body = (await req.json()) as Body;
   } catch {
     // Defaults are fine.
   }
 
-  // An explicit path is only honoured when it is same-origin; anything else
-  // falls back to the named target, so this can never become an open redirect.
-  const next = raw ? safeNextPath(raw, PATHS[target]) : PATHS[target];
+  const target = typeof body.target === "string" ? body.target : "dashboard";
+  if (REFUSED.has(target)) {
+    return Response.json({ error: "Unsupported target." }, { status: 400 });
+  }
 
-  if (target === "billing") {
-    // Complimentary accounts have no Stripe customer, so the portal would open
-    // on an error page. Say so here instead.
-    const customerId = await getCustomerId(userId).catch(() => null);
-    if (customerId && isCompCustomerId(customerId)) {
-      return Response.json(
-        { error: "This is a complimentary account with no billing to manage." },
-        { status: 400 },
-      );
-    }
+  let next: string;
+  if (target === "calendar") {
+    const provider = CALENDAR_PROVIDERS.find((p) => p.oauth && p.id === body.provider);
+    if (!provider) return Response.json({ error: "Unsupported calendar." }, { status: 400 });
+    const returnUrl = safeAppReturnUrl(body.returnUrl) ?? APP_RETURN_URL;
+    const done = `/mobile/done?return=${encodeURIComponent(returnUrl)}`;
+    next = `/api/integrations/${provider.id}/connect?next=${encodeURIComponent(done)}`;
+  } else {
+    const fallback = Object.hasOwn(PATHS, target) ? PATHS[target] : PATHS.dashboard;
+    // An explicit path is only honoured when it is same-origin; anything else
+    // falls back to the named target, so this can never become an open redirect.
+    next = typeof body.path === "string" && body.path ? safeNextPath(body.path, fallback) : fallback;
   }
 
   const url = await webHandoffUrl(userId, next);

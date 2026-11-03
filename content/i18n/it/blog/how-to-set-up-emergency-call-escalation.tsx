@@ -493,7 +493,7 @@ export default function Body() {
         <LI>
           <Strong>Date loro la via di fuga.</Strong> Chiunque chieda una persona
           ottiene un{" "}
-          <Internal href="/answers/can-an-receptionist-transfer-calls-to-a-human">
+          <Internal href="/answers/can-an-ai-receptionist-transfer-calls-to-a-human">
             trasferimento
           </Internal>
           , e lo script lo dice prima che debbano chiederlo due volte. Cosa

@@ -73,7 +73,7 @@ export function CustomToolFields({
           action was removed. */}
       <input type="hidden" name="ct_keys" value={rows.map((r) => r.key).join(",")} />
 
-      <p className="text-xs text-neutral-400">{labels.intro}</p>
+      <p className="text-xs text-neutral-500">{labels.intro}</p>
       {rows.length === 0 && <p className="text-sm text-neutral-500">{labels.empty}</p>}
 
       <div className="space-y-3">
@@ -91,7 +91,7 @@ export function CustomToolFields({
                   placeholder="check_order_status"
                   className={field}
                 />
-                <p className="mt-1 text-xs text-neutral-400">{labels.nameHint}</p>
+                <p className="mt-1 text-xs text-neutral-500">{labels.nameHint}</p>
               </div>
               <button
                 type="button"
@@ -125,7 +125,7 @@ export function CustomToolFields({
                 defaultValue={tool?.description ?? ""}
                 className={`${field} resize-y`}
               />
-              <p className="mt-1 text-xs text-neutral-400">{labels.descriptionHint}</p>
+              <p className="mt-1 text-xs text-neutral-500">{labels.descriptionHint}</p>
             </div>
 
             <div className="flex gap-2">
@@ -170,7 +170,7 @@ export function CustomToolFields({
                 placeholder={labels.paramsPlaceholder}
                 className={`${field} resize-y font-mono text-xs`}
               />
-              <p className="mt-1 text-xs text-neutral-400">{labels.paramsHint}</p>
+              <p className="mt-1 text-xs text-neutral-500">{labels.paramsHint}</p>
             </div>
 
             <div className="flex gap-2">
@@ -200,7 +200,7 @@ export function CustomToolFields({
                 />
               </div>
             </div>
-            <p className="text-xs text-neutral-400">{labels.authValueHint}</p>
+            <p className="text-xs text-neutral-500">{labels.authValueHint}</p>
 
             <div className="w-32">
               <label className={labelCls} htmlFor={`ct_${key}_timeout`}>
@@ -216,7 +216,7 @@ export function CustomToolFields({
                 className={field}
               />
             </div>
-            <p className="text-xs text-neutral-400">{labels.timeoutHint}</p>
+            <p className="text-xs text-neutral-500">{labels.timeoutHint}</p>
           </div>
         ))}
       </div>

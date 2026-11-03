@@ -76,26 +76,29 @@ export function minutesForCredits(credits: number, perMinute: number): number {
   return Math.floor(credits / perMinute);
 }
 
-const DIAL_PREFIXES: { dial: string; code: string }[] = [
-  { dial: "+1", code: "US" },
-  { dial: "+1", code: "CA" },
-  { dial: "+44", code: "GB" },
-  { dial: "+353", code: "IE" },
-  { dial: "+31", code: "NL" },
-  { dial: "+33", code: "FR" },
-  { dial: "+49", code: "DE" },
-  { dial: "+34", code: "ES" },
-  { dial: "+39", code: "IT" },
-  { dial: "+46", code: "SE" },
-  { dial: "+351", code: "PT" },
-  { dial: "+32", code: "BE" },
-  { dial: "+48", code: "PL" },
-  { dial: "+61", code: "AU" },
-  { dial: "+64", code: "NZ" },
-  { dial: "+43", code: "AT" },
-  { dial: "+41", code: "CH" },
-  { dial: "+420", code: "CZ" },
-  { dial: "+421", code: "SK" },
+// example: a local number for the phone field's placeholder, in national format
+// without the trunk "0" (the prefix picker shows the +code). Fictional or
+// reserved ranges where the country has one (NANP 555-01xx, UK 07700 900xxx).
+const DIAL_PREFIXES: { dial: string; code: string; example: string }[] = [
+  { dial: "+1", code: "US", example: "415 555 0142" },
+  { dial: "+1", code: "CA", example: "416 555 0142" },
+  { dial: "+44", code: "GB", example: "7700 900123" },
+  { dial: "+353", code: "IE", example: "85 012 3456" },
+  { dial: "+31", code: "NL", example: "6 12345678" },
+  { dial: "+33", code: "FR", example: "6 12 34 56 78" },
+  { dial: "+49", code: "DE", example: "1512 3456789" },
+  { dial: "+34", code: "ES", example: "612 34 56 78" },
+  { dial: "+39", code: "IT", example: "312 345 6789" },
+  { dial: "+46", code: "SE", example: "70 123 45 67" },
+  { dial: "+351", code: "PT", example: "912 345 678" },
+  { dial: "+32", code: "BE", example: "470 12 34 56" },
+  { dial: "+48", code: "PL", example: "512 345 678" },
+  { dial: "+61", code: "AU", example: "412 345 678" },
+  { dial: "+64", code: "NZ", example: "21 123 4567" },
+  { dial: "+43", code: "AT", example: "664 1234567" },
+  { dial: "+41", code: "CH", example: "78 123 45 67" },
+  { dial: "+420", code: "CZ", example: "601 123 456" },
+  { dial: "+421", code: "SK", example: "903 123 456" },
 ];
 
 export interface DialOption {
@@ -103,6 +106,7 @@ export interface DialOption {
   name: string;
   flag: string;
   dial: string;
+  example: string;
 }
 
 // Country + international dialling prefix, for the phone field's prefix picker.
@@ -112,6 +116,7 @@ export const DIAL_OPTIONS: DialOption[] = NUMBER_COUNTRIES.map((c) => ({
   name: c.name,
   flag: c.flag,
   dial: DIAL_PREFIXES.find((d) => d.code === c.code)?.dial ?? "",
+  example: DIAL_PREFIXES.find((d) => d.code === c.code)?.example ?? "",
 })).filter((d) => d.dial);
 
 // Longest dial first, so "+421" wins over a shorter overlapping prefix.

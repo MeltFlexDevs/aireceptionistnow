@@ -4,6 +4,7 @@ import { authConfigured, devDashboardBypass } from "@/lib/supabase/config";
 import { mergeKnowledge, type AssistantKnowledge } from "../knowledge/sources";
 import { DEFAULT_VOICE_ID } from "../call-engine/voice/catalog";
 import { countryFromPhone } from "../call-engine/voice/phone-language";
+import { LIVE_MAX_AGE_MS, LIVE_STATUSES } from "./calls/format";
 
 let client: SupabaseClient | null = null;
 
@@ -91,16 +92,20 @@ export async function createNumber(input: CreateNumberInput): Promise<string> {
 
 // True while a call is live right now for this owner (drives the yellow "in a
 // call" avatar dot). Bounded to a recent-start window so a row stuck in a live
-// status can't pin the indicator on forever.
-const LIVE_CALL_STATUSES = ["in_progress", "in-progress", "ringing", "queued", "initiated"];
+// status can't pin the indicator on forever. The window is the same age limit
+// the call log and call detail use (calls/format), so a call longer than a few
+// minutes stays live on every surface instead of dropping off here first.
+function liveCutoff(): string {
+  return new Date(Date.now() - LIVE_MAX_AGE_MS).toISOString();
+}
+
 export async function hasActiveCall(ownerId: string): Promise<boolean> {
-  const cutoff = new Date(Date.now() - 15 * 60_000).toISOString();
   const { data, error } = await db()
     .from("calls")
     .select("id")
     .eq("owner_id", ownerId)
-    .in("status", LIVE_CALL_STATUSES)
-    .gte("started_at", cutoff)
+    .in("status", LIVE_STATUSES)
+    .gte("started_at", liveCutoff())
     .limit(1);
   if (error) throw error;
   return (data ?? []).length > 0;
@@ -115,13 +120,12 @@ export async function hasActiveCall(ownerId: string): Promise<boolean> {
  * `hasActiveCall`, whose callers only want the dot.
  */
 export async function activeCallId(ownerId: string): Promise<string | null> {
-  const cutoff = new Date(Date.now() - 15 * 60_000).toISOString();
   const { data, error } = await db()
     .from("calls")
     .select("id")
     .eq("owner_id", ownerId)
-    .in("status", LIVE_CALL_STATUSES)
-    .gte("started_at", cutoff)
+    .in("status", LIVE_STATUSES)
+    .gte("started_at", liveCutoff())
     .order("started_at", { ascending: false })
     .limit(1);
   if (error) throw error;
@@ -170,9 +174,13 @@ export interface Integration {
   owner_id?: string | null;
 }
 
+// Integrations are strictly tenant-scoped: a signed-in owner sees only rows
+// carrying their id. Owner-less rows are the dev-dashboard preview's (no
+// ownerId is passed there, so no filter applies); they used to be shared with
+// every signed-in user, OAuth config included.
 export async function listIntegrations(ownerId?: string | null): Promise<Integration[]> {
   let query = db().from("integrations").select("*");
-  if (ownerId) query = query.or(`owner_id.eq.${ownerId},owner_id.is.null`);
+  if (ownerId) query = query.eq("owner_id", ownerId);
   const { data, error } = await query.order("created_at", { ascending: true });
   if (error) throw error;
   return (data ?? []) as Integration[];
@@ -189,7 +197,7 @@ export async function upsertCalendarIntegration(
     .select("id")
     .eq("type", "calendar")
     .eq("provider", provider);
-  if (ownerId) match = match.or(`owner_id.eq.${ownerId},owner_id.is.null`);
+  if (ownerId) match = match.eq("owner_id", ownerId);
   const existing = await match
     .order("owner_id", { ascending: true, nullsFirst: false })
     .limit(1)
@@ -236,7 +244,7 @@ export async function setPrimaryCalendar(id: string, ownerId?: string | null): P
   // dev-dashboard preview, which manages the shared (null-owner) rows it shows.
   if (authConfigured() && !ownerId && !devDashboardBypass()) throw new Error("Not signed in.");
   let query = db().from("integrations").select("id, config").eq("type", "calendar");
-  if (ownerId) query = query.or(`owner_id.eq.${ownerId},owner_id.is.null`);
+  if (ownerId) query = query.eq("owner_id", ownerId);
   const { data, error } = await query;
   if (error) throw error;
   if (!(data ?? []).some((row) => String(row.id) === id)) throw new Error("Calendar not found.");
@@ -259,7 +267,7 @@ export async function deleteIntegration(id: string, ownerId?: string | null): Pr
   // the dev-dashboard preview (dev-only, inert in production).
   if (authConfigured() && !ownerId && !devDashboardBypass()) throw new Error("Not signed in.");
   let query = db().from("integrations").delete().eq("id", id);
-  if (ownerId) query = query.or(`owner_id.eq.${ownerId},owner_id.is.null`);
+  if (ownerId) query = query.eq("owner_id", ownerId);
   const { error } = await query;
   if (error) throw error;
 }
@@ -679,6 +687,31 @@ export interface OwnedNumber {
   id: string;
   e164: string;
   created_at: string;
+}
+
+/** Reply of reserve_number_slot (0015_number_reservation.sql). */
+export type NumberSlot = "ok" | "busy" | "exists" | "limit";
+
+/** Reserves the one "get a number" run for this assistant, under the owner's
+ * lock and plan limit (null = no limit). After "ok", call releaseNumberSlot. */
+export async function reserveNumberSlot(
+  ownerId: string,
+  assistantId: string,
+  limit: number | null,
+): Promise<NumberSlot> {
+  const { data, error } = await db().rpc("reserve_number_slot", {
+    p_owner: ownerId,
+    p_assistant: assistantId,
+    p_limit: limit,
+  });
+  if (error) throw error;
+  if (data === "ok" || data === "busy" || data === "exists" || data === "limit") return data;
+  throw new Error(`reserve_number_slot returned ${String(data)}`);
+}
+
+export async function releaseNumberSlot(assistantId: string): Promise<void> {
+  const { error } = await db().rpc("release_number_slot", { p_assistant: assistantId });
+  if (error) throw error;
 }
 
 export const getOwnedNumbers = cache(async (ownerId: string): Promise<OwnedNumber[]> => {

@@ -44,6 +44,41 @@ function toStatus(v: unknown): BookingStatus {
   return v === "done" || v === "failed" || v === "cancelled" ? v : "pending";
 }
 
+/**
+ * Written by claimCancellation (booking-cancel.ts) to payload.cancelClaim:
+ * when a cancel request took the row, and the status the row had before.
+ */
+export interface CancelClaim {
+  at: string;
+  status: string;
+}
+
+/**
+ * A claim older than this belongs to a request that died between its claim
+ * and its save: no route sets maxDuration, so no request runs past 300 s.
+ */
+export const CANCEL_CLAIM_STALE_MS = 10 * 60_000;
+
+/**
+ * The claim a dead cancel request left behind: status "cancelled", no saved
+ * cancellation, and a claim older than CANCEL_CLAIM_STALE_MS. The customer was
+ * never told, so the row reads as its old status and may be claimed again.
+ * Null for a saved cancel, a claim still in flight, or a row with no claim.
+ */
+export function staleCancelClaim(
+  status: string,
+  payload: Record<string, unknown>,
+  nowMs: number,
+): CancelClaim | null {
+  if (status !== "cancelled" || payload.cancellation) return null;
+  const claim = payload.cancelClaim as Partial<CancelClaim> | undefined;
+  if (typeof claim?.at !== "string" || typeof claim.status !== "string") return null;
+  if (!claim.status || claim.status === "cancelled") return null;
+  const atMs = Date.parse(claim.at);
+  if (!Number.isFinite(atMs) || nowMs - atMs < CANCEL_CLAIM_STALE_MS) return null;
+  return { at: claim.at, status: claim.status };
+}
+
 function toCancellation(payload: Record<string, unknown>): BookingCancellation | null {
   const c = payload.cancellation as Partial<BookingCancellation> | undefined;
   if (!c || typeof c !== "object") return null;
@@ -69,11 +104,9 @@ export async function listBookings(
     .from("call_actions")
     .select(SELECT)
     .eq("type", "booking");
-  if (ownerId) {
-    query = query.or(`owner_id.eq.${ownerId},owner_id.is.null`, {
-      referencedTable: "call",
-    });
-  }
+  // Strictly the owner's calls (the embed is !inner, so this filters bookings).
+  // Owner-less calls belong to no tenant; they used to show for every user.
+  if (ownerId) query = query.eq("call.owner_id", ownerId);
   const { data, error } = await query
     .order("created_at", { ascending: false })
     .limit(limit);
@@ -93,7 +126,9 @@ export async function listBookings(
       attendeeName: str(payload.attendee_name),
       attendeePhone: str(payload.attendee_phone),
       notes: str(payload.notes),
-      status: toStatus(row.status),
+      // A dead cancel request's claim reads as the status before it, so the
+      // owner gets the cancel button back (see staleCancelClaim).
+      status: toStatus(staleCancelClaim(str(row.status), payload, Date.now())?.status ?? row.status),
       externalId: nullableStr(row.external_id),
       error: nullableStr(row.error),
       bookedAt: str(row.created_at),

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getCallDetail } from "@/lib/dashboard/calls";
 import { currentUserId } from "@/lib/auth";
+import { displayTimezone } from "@/lib/dashboard/display-timezone";
 import { listAssistants } from "@/lib/dashboard/db";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { BackLink } from "../../components/BackLink";
@@ -17,10 +18,11 @@ export const dynamic = "force-dynamic";
 export default async function CallDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const [{ id }, t, locale] = await Promise.all([params, getDictionary(), getLocale()]);
   const ownerId = await currentUserId();
+  const tz = await displayTimezone(ownerId).catch(() => "UTC");
 
   let call: Awaited<ReturnType<typeof getCallDetail>> | null = null;
   try {
-    call = await getCallDetail(id, ownerId, locale);
+    call = await getCallDetail(id, ownerId, locale, tz);
   } catch {
     call = null;
   }

@@ -15,12 +15,15 @@ import {
   listIntegrations,
   updateAssistant,
 } from "@/lib/dashboard/db";
+import { getAccountSettings } from "@/lib/dashboard/account";
 import { buildAssistantPatch, SECTION } from "@/lib/dashboard/assistant-patch";
 import { buildSetupItems, setupProgress, voiceName } from "@/lib/dashboard/assistant-setup";
-import { ownerTimezone } from "@/lib/dashboard/timezone";
+import { isOwnedBy } from "@/lib/dashboard/ownership";
+import { getPlanContext } from "@/lib/dashboard/plan";
 import { readKnowledge } from "@/lib/knowledge/sources";
-import { NUMBER_COUNTRIES } from "@/lib/number-pricing";
-import { mobileUserId } from "@/lib/mobile/auth";
+import { minutesForCredits, NUMBER_COUNTRIES } from "@/lib/number-pricing";
+import { mobileAuth } from "@/lib/mobile/auth";
+import { resolveTimezone } from "@/lib/mobile/timezone-param";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -116,7 +119,7 @@ async function resolveVoiceByLanguage(
 async function ownedAssistant(id: string, userId: string) {
   const assistant = await getAssistant(id).catch(() => null);
   if (!assistant) return null;
-  if (assistant.owner_id && assistant.owner_id !== userId) return null;
+  if (!isOwnedBy(assistant.owner_id, userId)) return null;
   return assistant;
 }
 
@@ -124,18 +127,35 @@ export async function GET(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  const userId = await mobileUserId(req);
+  const auth = await mobileAuth(req, "assistant-detail");
+  if (auth instanceof Response) return auth;
+  const userId = auth;
   if (!userId) return Response.json({ error: "Not signed in." }, { status: 401 });
 
   const { id } = await params;
   const assistant = await ownedAssistant(id, userId);
   if (!assistant) return Response.json({ error: "Not found." }, { status: 404 });
 
-  const [number, integrations, timezone] = await Promise.all([
+  // The plan read is uncached on purpose: this screen is where "Get a number"
+  // lives, and right after a purchase a 30-second-old "no plan" would send the
+  // owner straight back to the paywall they just paid through.
+  const [number, integrations, accountTz, plan] = await Promise.all([
     getAssistantNumber(id).catch(() => null),
     listIntegrations(userId).catch(() => []),
-    ownerTimezone(userId).catch(() => "UTC"),
+    getAccountSettings(userId)
+      .then((a) => a.timezone)
+      .catch(() => ""),
+    getPlanContext(userId).catch(() => null),
   ]);
+  // Display zone for this screen, and the seed for a new transfer schedule.
+  const { timezone, timezoneIsAccount } = resolveTimezone(accountTz, req);
+  const planActive = Boolean(plan?.active);
+  // Talk time is what the plan's included minutes buy at a country's rate -
+  // the same sum the web's GetNumberForm shows. No plan, nothing to estimate.
+  const includedMinutes =
+    planActive && plan && Number.isFinite(plan.limits.minutesIncluded)
+      ? plan.limits.minutesIncluded
+      : null;
 
   const routing = (assistant.routing ?? {}) as Record<string, unknown>;
   const escalation = parseEscalation(routing);
@@ -181,6 +201,13 @@ export async function GET(
     number: number?.e164 ?? "",
     numberId: number?.id ?? "",
     timezone,
+    timezoneIsAccount,
+    planActive,
+    // Whether a number request would pass the plan gate right now.
+    canAddNumber: planActive && Boolean(plan?.canAddNumber),
+    // False only for an agent created on the English-only model; the app shows
+    // the same banner the web does.
+    multilingual: assistant.elevenlabs_multilingual !== false,
     smsAlerts: (routing.smsAlerts as boolean | undefined) ?? true,
     emailTranscripts: { enabled: emailCfg.enabled ?? false, to: emailCfg.to ?? "" },
     voice: {
@@ -220,12 +247,16 @@ export async function GET(
       params: t.params,
     })),
     calendars: calendarIntegrations
-      .map((i) => ({
-        id: i.id,
-        provider: i.provider,
-        name: providerName(i.provider),
-        level: calAccess.find((a) => a.integrationId === i.id)?.level ?? "none",
-      })),
+      .map((i) => {
+        const level = calAccess.find((a) => a.integrationId === i.id)?.level ?? "none";
+        // Legacy 'busy' is read access under its old name - same mapping as the web page.
+        return {
+          id: i.id,
+          provider: i.provider,
+          name: providerName(i.provider),
+          level: level === "busy" ? "read" : level,
+        };
+      }),
     setup: {
       items: setup.map((i) => ({ key: i.key, done: i.done })),
       percent: setupProgress(setup).percent,
@@ -236,6 +267,9 @@ export async function GET(
       code: c.code,
       name: c.name,
       flag: c.flag,
+      creditsPerMinute: c.creditsPerMinute,
+      estMinutes:
+        includedMinutes === null ? null : minutesForCredits(includedMinutes, c.creditsPerMinute),
     })),
   });
 }
@@ -244,7 +278,9 @@ export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  const userId = await mobileUserId(req);
+  const auth = await mobileAuth(req, "assistant-patch");
+  if (auth instanceof Response) return auth;
+  const userId = auth;
   if (!userId) return Response.json({ error: "Not signed in." }, { status: 401 });
 
   const { id } = await params;
@@ -269,7 +305,7 @@ export async function PATCH(
   // The app does not edit custom-action credentials (an auth header typed on a
   // phone is a support ticket waiting to happen), so no secret exchange runs
   // here - an unchanged row keeps its stored secret id via buildAssistantPatch.
-  const { top, routing } = buildAssistantPatch(
+  const { top, routing, phoneErrors, greetingEmpty, languageInvalid, emailInvalid } = buildAssistantPatch(
     form,
     {
       name: existing.name,
@@ -286,6 +322,36 @@ export async function PATCH(
     voices.byLanguage,
     {},
   );
+  // Same rule as the web editor: a stored number the call engine cannot dial
+  // turns transfers off without a word. The app shows `error` to the owner.
+  if (phoneErrors.length) {
+    return Response.json(
+      {
+        error: "Enter each phone number with its country code, starting with +.",
+        code: "invalid_phone",
+        fields: phoneErrors,
+      },
+      { status: 400 },
+    );
+  }
+  if (greetingEmpty) {
+    return Response.json(
+      { error: "Write an opening line for callers to hear.", code: "greeting_required", fields: ["greeting"] },
+      { status: 400 },
+    );
+  }
+  if (languageInvalid) {
+    return Response.json(
+      { error: "Pick a language from the list.", code: "invalid_language", fields: ["language"] },
+      { status: 400 },
+    );
+  }
+  if (emailInvalid) {
+    return Response.json(
+      { error: "Enter a full email address, like you@business.com.", code: "invalid_email", fields: ["email_to"] },
+      { status: 400 },
+    );
+  }
 
   try {
     await updateAssistant(id, {
@@ -326,7 +392,9 @@ export async function DELETE(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  const userId = await mobileUserId(req);
+  const auth = await mobileAuth(req, "assistant-delete");
+  if (auth instanceof Response) return auth;
+  const userId = auth;
   if (!userId) return Response.json({ error: "Not signed in." }, { status: 401 });
 
   const { id } = await params;

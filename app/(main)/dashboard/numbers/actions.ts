@@ -28,6 +28,7 @@ import { syncAssistantAgent } from "@/lib/call-engine/agent/sync";
 import { currentUserId } from "@/lib/auth";
 import { authConfigured } from "@/lib/supabase/config";
 import { canAssignNumber } from "@/lib/dashboard/plan";
+import { isOwnedBy } from "@/lib/dashboard/ownership";
 import { getDictionary } from "@/lib/i18n/server";
 import { ok, fail, type ActionState } from "@/lib/dashboard/action-state";
 
@@ -45,7 +46,7 @@ async function requireNumberOwner(id: string): Promise<void> {
   if (
     !number ||
     assistant === undefined ||
-    (assistant?.owner_id && assistant.owner_id !== userId)
+    (assistant !== null && !isOwnedBy(assistant.owner_id, userId))
   ) {
     redirect(`/dashboard/assistant?error=${encodeURIComponent("Not authorized.")}`);
   }
@@ -140,7 +141,7 @@ export async function setAssistantAction(
   if (assistantId) {
     const target = await getAssistant(assistantId).catch(() => null);
     if (!target) return fail(a.saveFailed);
-    if (authConfigured() && target.owner_id && target.owner_id !== (await currentUserId())) {
+    if (!isOwnedBy(target.owner_id, await currentUserId())) {
       return fail(a.notYours);
     }
     const current = await getNumber(id).catch(() => null);

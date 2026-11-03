@@ -6,8 +6,19 @@ export function publicSupabaseEnv(): { url: string; key: string } | null {
   return url && key ? { url, key } : null;
 }
 
+// Auth-off mode: no public Supabase env during local development (`npm run
+// dev`). Pages and actions then run unscoped on the service-role client, and
+// the dashboard opens as the guest "Workspace" user. Outside development a
+// missing env is a broken deploy, never this mode (prod-web-03): the proxy
+// answers 503 and authConfigured() stays true, so every auth check fails closed.
+export function authOff(): boolean {
+  return publicSupabaseEnv() === null && process.env.NODE_ENV === "development";
+}
+
+// Whether sign-in is enforced: true everywhere except auth-off mode. It does
+// not promise that the env is there; publicSupabaseEnv() tells that.
 export function authConfigured(): boolean {
-  return publicSupabaseEnv() !== null;
+  return !authOff();
 }
 
 // Dev-only bypass: `DEV_DASHBOARD=1 npm run dev` opens /dashboard as the guest

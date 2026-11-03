@@ -1,6 +1,6 @@
 import { getCallDetail } from "@/lib/dashboard/calls";
 import { serviceClient } from "@/lib/dashboard/supabase";
-import { mobileUserId } from "@/lib/mobile/auth";
+import { mobileAuth } from "@/lib/mobile/auth";
 import { MAX_MESSAGE_CHARS } from "@/app/(main)/dashboard/calls/[id]/report-limits";
 
 export const runtime = "nodejs";
@@ -18,7 +18,9 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  const userId = await mobileUserId(req);
+  const auth = await mobileAuth(req, "call-report");
+  if (auth instanceof Response) return auth;
+  const userId = auth;
   if (!userId) return Response.json({ error: "Not signed in." }, { status: 401 });
 
   const { id } = await params;

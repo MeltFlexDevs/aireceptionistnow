@@ -85,6 +85,19 @@ function clampPositive(n: number): number {
   return Math.max(0, n);
 }
 
+/** Upper bound for the customer value field, in EUR. Stops 1e9 from producing a nonsense total. */
+export const MAX_CUSTOMER_VALUE = 1_000_000;
+
+/**
+ * Reads the raw text of the customer value field. Accepts "2,5" as well as
+ * "2.5". Empty, invalid or negative text counts as 0; large values are capped.
+ */
+export function parseCustomerValue(raw: string): number {
+  const n = Number(raw.trim().replace(",", "."));
+  if (!Number.isFinite(n) || n < 0) return 0;
+  return Math.min(MAX_CUSTOMER_VALUE, n);
+}
+
 /**
  * The plan that FITS `minutes` - the smallest one whose included allowance
  * covers the volume, or the largest plus overage if none does.

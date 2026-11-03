@@ -1,10 +1,11 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { useT } from "@/lib/i18n/client";
 import { IDLE, type ActionState } from "@/lib/dashboard/action-state";
 import { SavePill } from "../components/SavePill";
 import { SubmitButton } from "../components/SubmitButton";
+import { Modal, MODAL_PANEL } from "../components/Modal";
 import { unlinkNumberAction, testCallAction } from "./actions";
 import { setAssistantAction } from "../numbers/actions";
 import { MathLoader } from "@/app/components/MathLoader";
@@ -54,17 +55,52 @@ export function UnlinkNumber({
   assistantId: string;
   numberId: string;
 }) {
-  const a = useT().assistants;
-  const [state, formAction] = useActionState<ActionState, FormData>(unlinkNumberAction, IDLE);
+  const t = useT();
+  const a = t.assistants;
+  const [open, setOpen] = useState(false);
+  const [state, formAction, pending] = useActionState<ActionState, FormData>(unlinkNumberAction, IDLE);
+  // Unlinking takes the receptionist off the phone at once, so it asks first (W6).
+  // On success the page revalidates without a number and this component unmounts.
   return (
-    <form action={formAction} className="flex items-center gap-2">
-      <input type="hidden" name="number_id" value={numberId} />
-      <input type="hidden" name="assistant_id" value={assistantId} />
-      <SubmitButton variant="secondary" pendingText={a.unlinking} className="h-8 px-2.5 text-xs">
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="press inline-flex h-8 items-center justify-center rounded-lg border border-neutral-300 bg-white px-2.5 text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-50"
+      >
         {a.unlink}
-      </SubmitButton>
-      <SavePill state={state} />
-    </form>
+      </button>
+
+      <Modal open={open} onClose={() => setOpen(false)} busy={pending}>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={a.unlinkConfirmTitle}
+          className={`${MODAL_PANEL} w-full max-w-md p-6`}
+        >
+          <h3 className="text-base font-medium text-neutral-900">{a.unlinkConfirmTitle}</h3>
+          <p className="mt-1 text-sm text-neutral-500">{a.unlinkConfirmBody}</p>
+          <div className="mt-5 flex flex-wrap items-center justify-end gap-2">
+            <SavePill state={state} />
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              disabled={pending}
+              className="press inline-flex h-9 items-center rounded-lg border border-neutral-200 bg-white px-4 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50"
+            >
+              {t.common.cancel}
+            </button>
+            <form action={formAction}>
+              <input type="hidden" name="number_id" value={numberId} />
+              <input type="hidden" name="assistant_id" value={assistantId} />
+              <SubmitButton variant="danger" pendingText={a.unlinking}>
+                {a.unlink}
+              </SubmitButton>
+            </form>
+          </div>
+        </div>
+      </Modal>
+    </>
   );
 }
 

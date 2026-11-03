@@ -1,9 +1,14 @@
 import Link from "next/link";
+import { billingPanelMode, billingPeriodLine } from "@/lib/dashboard/billing-panel";
 import type { PlanContext } from "@/lib/dashboard/plan";
-import { getDictionary } from "@/lib/i18n/server";
+import { getDictionary, getLocale } from "@/lib/i18n/server";
+import { plural, type PluralForms } from "@/lib/i18n/plural";
+import { localizedHref } from "@/lib/i18n/marketing/href";
 
 interface Props {
   ctx: PlanContext;
+  /** Display zone for the renewal date (displayTimezone). */
+  tz: string;
 }
 
 function fmtLimit(n: number): string {
@@ -20,7 +25,7 @@ function Meter({ label, used, limit }: { label: string; used: number; limit: num
         <span className="text-neutral-600">{label}</span>
         <span className="font-medium text-neutral-900">
           {used}
-          <span className="text-neutral-400"> / {fmtLimit(limit)}</span>
+          <span className="text-neutral-500"> / {fmtLimit(limit)}</span>
         </span>
       </div>
       <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-neutral-100">
@@ -33,10 +38,18 @@ function Meter({ label, used, limit }: { label: string; used: number; limit: num
   );
 }
 
-export async function PlanUsage({ ctx }: Props) {
+export async function PlanUsage({ ctx, tz }: Props) {
   const s = (await getDictionary()).settings;
-  const showUpgrade = !ctx.active || !ctx.canAddNumber;
+  const locale = await getLocale();
+  const mode = billingPanelMode(ctx);
+  // A store plan is changed on the phone; Stripe checkout refuses it (409).
+  const store = mode === "store-apple" || mode === "store-google";
+  const showUpgrade = !store && (!ctx.active || !ctx.canAddNumber);
+  const period = mode === "stripe" ? billingPeriodLine(ctx.billing, s, locale, tz) : "";
   const fill = (tpl: string, n: string) => tpl.replace("{n}", n);
+  // A real number picks its plural form; an unlimited limit keeps today's "∞" text.
+  const count = (forms: PluralForms, n: number) =>
+    Number.isFinite(n) ? plural(locale, n, forms) : fill(forms.other, "∞");
 
   return (
     <div>
@@ -45,16 +58,17 @@ export async function PlanUsage({ ctx }: Props) {
           <div className="flex items-center gap-2">
             <h2 className="text-sm font-medium text-neutral-900">{s.plan}</h2>
             <span className="rounded-full bg-neutral-900 px-2 py-0.5 text-xs font-medium text-white">
-              {ctx.planName}
+              {ctx.planId ? ctx.planName : s.noPlan}
             </span>
           </div>
           <p className="mt-0.5 text-xs text-neutral-500">
             {ctx.active ? s.planActive : s.planInactive}
           </p>
+          {period && <p className="mt-0.5 text-xs text-neutral-500">{period}</p>}
         </div>
         {showUpgrade && (
           <Link
-            href="/pricing"
+            href={localizedHref(locale, "pricing")}
             className="inline-flex h-8 shrink-0 items-center rounded-lg bg-neutral-900 px-3 text-xs font-medium text-white transition-colors hover:bg-neutral-800"
           >
             {ctx.active ? s.upgrade : s.choosePlan}
@@ -73,12 +87,10 @@ export async function PlanUsage({ ctx }: Props) {
       </div>
 
       <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 border-t border-neutral-100 pt-3 text-xs text-neutral-500">
-        <span>{fill(s.limitConcurrent, fmtLimit(ctx.limits.concurrentCalls))}</span>
-        <span>{fill(s.limitMinutes, ctx.limits.minutesIncluded.toLocaleString())}</span>
-        <span>{fill(s.limitContacts, ctx.limits.contacts.toLocaleString())}</span>
-        <span>
-          {ctx.limits.users === 1 ? s.limitUsersOne : fill(s.limitUsers, fmtLimit(ctx.limits.users))}
-        </span>
+        <span>{count(s.limitConcurrent, ctx.limits.concurrentCalls)}</span>
+        <span>{fill(s.limitMinutes, ctx.limits.minutesIncluded.toLocaleString(locale))}</span>
+        <span>{count(s.limitContacts, ctx.limits.contacts)}</span>
+        <span>{count(s.limitUsers, ctx.limits.users)}</span>
       </div>
     </div>
   );

@@ -1,7 +1,8 @@
 import { revalidatePath } from "next/cache";
 
 import { getAssistant, setAssistantEnabled } from "@/lib/dashboard/db";
-import { mobileUserId } from "@/lib/mobile/auth";
+import { isOwnedBy } from "@/lib/dashboard/ownership";
+import { mobileAuth } from "@/lib/mobile/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,12 +18,14 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  const userId = await mobileUserId(req);
+  const auth = await mobileAuth(req, "assistant-power");
+  if (auth instanceof Response) return auth;
+  const userId = auth;
   if (!userId) return Response.json({ error: "Not signed in." }, { status: 401 });
 
   const { id } = await params;
   const assistant = await getAssistant(id).catch(() => null);
-  if (!assistant || (assistant.owner_id && assistant.owner_id !== userId)) {
+  if (!assistant || !isOwnedBy(assistant.owner_id, userId)) {
     return Response.json({ error: "Not found." }, { status: 404 });
   }
 

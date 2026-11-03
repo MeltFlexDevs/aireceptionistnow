@@ -140,21 +140,32 @@ export default function SiteHeader({
           .site-header { padding-left: 14px !important; padding-right: 14px !important; }
           .site-header-left { gap: 14px !important; }
           .site-header-logo { font-size: 15px !important; }
+          .site-header-right { gap: 12px !important; }
           .site-header-cta { padding: 0 13px !important; letter-spacing: 0.02em !important; }
-          /* Mobile: show only the logo + the CTA so the header always fits. */
+          /* Mobile: no Pricing link. Sign in stays as a compact text link, so a
+             returning owner on a phone can still sign in. Log out lives in the
+             dashboard, so a signed-in phone header shows only the Dashboard CTA. */
           .site-header-pricing { display: none !important; }
-          .site-header-signin { display: none !important; }
+          .site-header-logout { display: none !important; }
+          .site-header-signin { padding: 0 4px !important; font-size: 11px !important; letter-spacing: 0.02em !important; }
+        }
+        @media (max-width: 480px) {
+          /* The logo word, language, Sign in and the CTA need about 450px with
+             the longest labels (sk, de, es, pt). Below that, keep the logo mark
+             and hide the word visually; the link keeps it as its name. */
+          .site-header-logo { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+          .site-header-home { min-width: 24px; min-height: 44px; }
         }
       `}</style>
       <div className="site-header-left" style={{ display: "flex", alignItems: "center", gap: "22px" }}>
-        <Link href={nav.home} style={{ display: "flex", alignItems: "center", gap: "6px", textDecoration: "none", color: "#1D1D1D" }}>
+        <Link href={nav.home} className="site-header-home" style={{ display: "flex", alignItems: "center", gap: "6px", textDecoration: "none", color: "#1D1D1D" }}>
           <PauseLogo color="#1D1D1D" />
           <span className="site-header-logo" style={{ fontFamily: "var(--font-inter), Inter, sans-serif", fontWeight: 500, fontSize: "18px", letterSpacing: "-0.02em", whiteSpace: "nowrap" }}>
             AI RECEPTIONIST
           </span>
         </Link>
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+      <div className="site-header-right" style={{ display: "flex", alignItems: "center", gap: "20px" }}>
         <LocaleSwitcher options={localeOptions} label={ui.footer.language} />
         <Link
           href={nav.pricing}
@@ -173,7 +184,7 @@ export default function SiteHeader({
               type="button"
               onClick={signOut}
               disabled={signingOut}
-              className="site-header-signin"
+              className="site-header-signin site-header-logout"
               style={ghostBtnStyle}
             >
               {ui.nav.logout}

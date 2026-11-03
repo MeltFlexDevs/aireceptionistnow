@@ -1,16 +1,9 @@
 import { unstable_cache } from "next/cache";
 import twilio from "twilio";
+import { SetupMissingError, twilioConfigured } from "@/lib/call-engine/setup-check";
 import { CNAM_POLICY_SID, sanitizeCnam } from "./cnam";
 
 // Dashboard-side Twilio: provision numbers, place calls, and read call logs.
-
-function twilioConfigured(): boolean {
-  return Boolean(
-    process.env.TWILIO_ACCOUNT_SID &&
-      (process.env.TWILIO_AUTH_TOKEN ||
-        (process.env.TWILIO_API_KEY_SID && process.env.TWILIO_API_KEY_SECRET)),
-  );
-}
 
 // Prefer a scoped API Key (SK…) for REST calls; fall back to the auth token.
 function twilioClient() {
@@ -76,7 +69,7 @@ export async function buyTwilioNumbers(
   buyOpts: { configureWebhook?: boolean } = {},
 ): Promise<BoughtNumber[]> {
   if (!twilioConfigured()) {
-    throw new Error("Twilio credentials are not set on the server.");
+    throw new SetupMissingError("Twilio credentials are not set on the server.");
   }
   if (count < 1) return [];
   const configureWebhook = buyOpts.configureWebhook === true;

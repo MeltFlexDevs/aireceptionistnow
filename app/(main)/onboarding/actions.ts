@@ -1,6 +1,7 @@
 "use server";
 
 import { randomUUID } from "node:crypto";
+import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { currentUserId } from "@/lib/auth";
@@ -8,16 +9,19 @@ import { getBilling } from "@/lib/billing";
 import {
   getOnboardingProfile,
   saveOnboardingConfig,
+  updateOnboardingConfig,
 } from "@/lib/dashboard/onboarding-profile";
 import { provisionOnboarding } from "@/lib/dashboard/provision";
 import { parsePdfMarkdown } from "@/lib/knowledge/pdf";
-import { MAX_SOURCE_CHARS, MAX_SOURCES, type KnowledgeSource } from "@/lib/knowledge/sources";
+import { MAX_SOURCE_CHARS, MAX_SOURCES, noteTitle, type KnowledgeSource } from "@/lib/knowledge/sources";
 import { summarizeSourceMarkdown } from "@/lib/dashboard/ai-knowledge";
-import { getDictionary } from "@/lib/i18n/server";
+import { getDictionary, getLocale } from "@/lib/i18n/server";
+import { loginHomePath } from "@/lib/i18n/marketing/login-redirect";
+import { normalizePhone } from "@/lib/phone";
+import { normalizeWebsite } from "@/lib/onboarding/website";
 import { createClient } from "@/lib/supabase/server";
 import { ONB_STEP_COOKIE } from "./progress";
 
-const PHONE_RE = /^\+[1-9]\d{6,15}$/;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const str = (v: FormDataEntryValue | null): string => (typeof v === "string" ? v.trim() : "");
@@ -38,11 +42,14 @@ async function reauth(): Promise<never> {
   } catch {
     // Best effort - the login page still lets them re-authenticate.
   }
-  redirect(`/?auth=login&next=${encodeURIComponent("/onboarding")}`);
+  redirect(`${loginHomePath({ cookieLocale: await getLocale() })}?auth=login&next=${encodeURIComponent("/onboarding")}`);
 }
 
 function toStep(step: number | string, error?: string): never {
   const query = error ? `?step=${step}&error=${encodeURIComponent(error)}` : `?step=${step}`;
+  // next.config.ts keeps dynamic pages in the client Router Cache for 30s, so a
+  // redirect to the same URL (Knowledge add/remove) would show the old step.
+  revalidatePath("/onboarding");
   redirect(`/onboarding${query}`);
 }
 
@@ -77,12 +84,13 @@ export async function saveBasicsAction(formData: FormData): Promise<void> {
   const alertsEmail = str(formData.get("alerts_email"));
   const alertPhone = str(formData.get("alert_phone")).replace(/[\s().-]/g, "");
 
-  const phoneOk = !alertPhone || PHONE_RE.test(alertPhone);
+  const phoneOk = !alertPhone || normalizePhone(alertPhone) !== null;
   const emailOk = !alertsEmail || EMAIL_RE.test(alertsEmail);
+  const websiteOk = normalizeWebsite(companyWebsite) !== null;
 
   // Persist BEFORE validating so a validation error never wipes the form -
   // the step re-renders every field from the saved config. The provisioner
-  // re-validates and ignores an invalid phone/email, so a draft with a bad
+  // re-validates and ignores an invalid phone, email or website, so a draft with a bad
   // value can never drive transfers or alerts.
   const userId = await currentUserId();
   if (userId) {
@@ -105,31 +113,35 @@ export async function saveBasicsAction(formData: FormData): Promise<void> {
       );
     } catch (err) {
       if (isStaleSessionError(err)) await reauth();
-      toStep(1, (err as Error).message);
+      console.error("[onboarding] save failed", err);
+      toStep(1, "save_failed");
     }
     // The website is intentionally NOT scraped here. It's read after payment,
     // inside the provisioning loading screen (lib/dashboard/provision.ts), so
     // the funnel stays instant and the whole setup happens in one place.
   }
 
-  if (!phoneOk || !emailOk) {
-    const dict = await t();
-    toStep(1, !phoneOk ? dict.invalidPhone : dict.invalidEmail);
+  if (!websiteOk || !phoneOk || !emailOk) {
+    // Codes, not text: the page maps them to the visitor's language.
+    toStep(1, !websiteOk ? "website" : !phoneOk ? "phone" : "email");
   }
   await unlockStep(2);
   toStep(2);
 }
 
 async function appendSource(userId: string, source: KnowledgeSource): Promise<void> {
-  const profile = await getOnboardingProfile(userId);
-  const sources = [...(profile?.config.sources ?? []), source].slice(-MAX_SOURCES);
-  await saveOnboardingConfig(userId, { sources }, 2);
+  // Compare-and-swap, so a PDF and a note added at once (or two tabs) both stay.
+  await updateOnboardingConfig(
+    userId,
+    (config) => ({ ...config, sources: [...(config.sources ?? []), source].slice(-MAX_SOURCES) }),
+    2,
+  );
 }
 
 export async function importPdfAction(formData: FormData): Promise<void> {
   const file = formData.get("file");
   if (!(file instanceof File) || file.size === 0) toStep(2);
-  if (file.type && file.type !== "application/pdf") toStep(2, "Please upload a PDF file.");
+  if (file.type && file.type !== "application/pdf") toStep(2, "not_pdf");
   const userId = await currentUserId();
   if (!userId) toStep(2);
 
@@ -147,8 +159,8 @@ export async function importPdfAction(formData: FormData): Promise<void> {
       addedAt: new Date().toISOString(),
       ...(summary ? { summary } : {}),
     });
-  } catch (err) {
-    toStep(2, (err as Error).message);
+  } catch {
+    toStep(2, "pdf_failed");
   }
   toStep(2);
 }
@@ -161,8 +173,7 @@ export async function importTextAction(formData: FormData): Promise<void> {
 
   try {
     const markdown = text.slice(0, MAX_SOURCE_CHARS);
-    const firstLine = markdown.split("\n").map((l) => l.trim()).find(Boolean) ?? "";
-    const title = firstLine ? firstLine.slice(0, 50) : (await t()).ownKnowledgeTitle;
+    const title = noteTitle(markdown, (await t()).ownKnowledgeTitle);
     const summary = await summarizeSourceMarkdown(title, markdown).catch(() => null);
     await appendSource(userId, {
       id: randomUUID(),
@@ -173,8 +184,8 @@ export async function importTextAction(formData: FormData): Promise<void> {
       addedAt: new Date().toISOString(),
       ...(summary ? { summary } : {}),
     });
-  } catch (err) {
-    toStep(2, (err as Error).message);
+  } catch {
+    toStep(2, "save_failed");
   }
   toStep(2);
 }
@@ -183,9 +194,10 @@ export async function removeSourceAction(formData: FormData): Promise<void> {
   const id = str(formData.get("id"));
   const userId = await currentUserId();
   if (userId && id) {
-    const profile = await getOnboardingProfile(userId);
-    const sources = (profile?.config.sources ?? []).filter((s) => s.id !== id);
-    await saveOnboardingConfig(userId, { sources }).catch(() => {});
+    await updateOnboardingConfig(userId, (config) => ({
+      ...config,
+      sources: (config.sources ?? []).filter((s) => s.id !== id),
+    })).catch(() => {});
   }
   toStep(2);
 }
@@ -225,7 +237,6 @@ export interface ProvisionPoll {
     | "done"
     | "error";
   e164?: string;
-  error?: string;
 }
 
 // Called by the provisioning screen. The Stripe webhook normally starts the
@@ -246,5 +257,5 @@ export async function ensureProvisioningAction(): Promise<ProvisionPoll> {
 
   const outcome = await provisionOnboarding(userId);
   if (outcome.status === "nothing") return { status: "nothing" };
-  return { status: outcome.status, e164: outcome.e164, error: outcome.error };
+  return { status: outcome.status, e164: outcome.e164 };
 }

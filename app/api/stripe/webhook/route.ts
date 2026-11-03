@@ -1,16 +1,28 @@
 import { NextResponse } from "next/server";
 import { after } from "next/server";
+import { revalidateTag } from "next/cache";
 import type Stripe from "stripe";
 
 import { getStripe } from "@/lib/stripe";
+import { planCacheTag } from "@/lib/dashboard/plan";
 import { provisionOnboarding } from "@/lib/dashboard/provision";
 import {
+  BillingRpcError,
+  StoreActiveError,
+  claimConflictResponse,
   claimEvent,
+  markStripeEventProcessed,
   releaseEvent,
   saveSubscription,
   getUserIdByCustomer,
 } from "@/lib/billing";
-import { getPlanByPriceId, type BillingCycle, type PlanId } from "@/lib/plans";
+import {
+  cancelsAtPeriodEnd,
+  grantsPlanStatus,
+  periodEndOf,
+  planFromSubscription,
+  siblingToFollow,
+} from "@/lib/stripe-subscription";
 
 export const runtime = "nodejs";
 // Stripe signature verification needs the raw, unparsed body.
@@ -35,6 +47,39 @@ function isoFrom(seconds: number | null | undefined): string | null {
   return new Date(seconds * 1000).toISOString();
 }
 
+// Writes the row and expires the dashboard's cached plan so the new state is
+// visible on the next read. Two outcomes are terminal, not retryable, so they
+// log (the subscription id, never the email) and return normally - the route
+// answers 200 and Stripe stops retrying:
+//   (a) the account is billed by the App Store / Google Play: set_subscription
+//       refuses to overwrite that row (it would lose the store ref and
+//       double-bill), so the Stripe subscription needs a manual refund;
+//   (b) the account no longer exists (deleted after the subscription was
+//       cancelled): the SQL function is already a no-op, and a foreign key
+//       violation (23503) is caught here as the second line of defence.
+async function persistSubscription(
+  params: Parameters<typeof saveSubscription>[0],
+): Promise<void> {
+  try {
+    await saveSubscription(params);
+  } catch (err) {
+    if (err instanceof StoreActiveError) {
+      console.error(
+        `[webhook] stripe subscription ${params.subscriptionId} ignored: user has an active App Store / Google Play subscription`,
+      );
+      return;
+    }
+    if (err instanceof BillingRpcError && err.code === "23503") {
+      console.error(
+        `[webhook] stripe subscription ${params.subscriptionId} ignored: user no longer exists`,
+      );
+      return;
+    }
+    throw err;
+  }
+  revalidateTag(planCacheTag(params.userId), { expire: 0 });
+}
+
 async function applySubscription(sub: Stripe.Subscription): Promise<void> {
   const customerId = customerIdOf(sub.customer);
   const userId = await resolveUserId(
@@ -48,23 +93,11 @@ async function applySubscription(sub: Stripe.Subscription): Promise<void> {
     return;
   }
 
-  const priceId = sub.items?.data?.[0]?.price?.id;
-  const match = priceId ? getPlanByPriceId(priceId) : undefined;
-  const active = sub.status === "active" || sub.status === "trialing";
+  const { plan, cycle } = planFromSubscription(sub);
 
-  const plan: PlanId | null = active
-    ? match?.plan.id ?? ((sub.metadata?.plan as PlanId) || null)
-    : null;
-  const cycle: BillingCycle | null = active
-    ? match?.cycle ?? ((sub.metadata?.cycle as BillingCycle) || null)
-    : null;
+  const periodEnd = periodEndOf(sub);
 
-  const periodEnd =
-    (sub as unknown as { current_period_end?: number }).current_period_end ??
-    sub.items?.data?.[0]?.current_period_end ??
-    null;
-
-  await saveSubscription({
+  await persistSubscription({
     userId,
     customerId,
     subscriptionId: sub.id,
@@ -72,7 +105,34 @@ async function applySubscription(sub: Stripe.Subscription): Promise<void> {
     cycle,
     status: sub.status,
     currentPeriodEnd: isoFrom(periodEnd),
+    cancelAtPeriodEnd: cancelsAtPeriodEnd(sub, periodEnd),
   });
+}
+
+// Call after the write of a subscription that grants no plan: deleted, updated
+// to a status that is not live, or one Stripe still collects for (past_due,
+// unpaid, incomplete). set_subscription ignores the events of another
+// subscription while the stored one is live (0013), so a second live
+// subscription of the customer may have been dropped, and Stripe sends nothing
+// new for it until it renews. An ended write made the row not live, so any
+// live sibling's write now goes through. A stored one that Stripe still
+// collects for gives way only to a sibling that grants a plan
+// (siblingToFollow). A Stripe error throws: the route answers 500 and Stripe
+// retries the event.
+async function applyLiveSibling(from: Stripe.Subscription): Promise<void> {
+  const customerId = customerIdOf(from.customer);
+  if (!customerId) return;
+  // No status filter: Stripe returns every subscription that is not canceled.
+  const { data } = await getStripe().subscriptions.list({
+    customer: customerId,
+    limit: 100,
+  });
+  const live = siblingToFollow(data, from);
+  if (!live) return;
+  console.log(
+    `[webhook] subscription ${from.id} is ${from.status}: following subscription ${live.id}`,
+  );
+  await applySubscription(live);
 }
 
 export async function POST(req: Request) {
@@ -99,16 +159,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid signature." }, { status: 400 });
   }
 
-  const fresh = await claimEvent(event.id).catch((err) => {
+  const claim = await claimEvent(event.id).catch((err) => {
     console.error(`[webhook] claim failed: ${err}`);
     return null;
   });
-  if (fresh === null) {
+  if (claim === null) {
     return NextResponse.json({ error: "Claim failed." }, { status: 500 });
   }
-  if (!fresh) {
-    return NextResponse.json({ received: true, duplicate: true });
-  }
+  // Processed: 200 duplicate. Busy (another run holds the claim): 409, so Stripe retries later.
+  const early = claimConflictResponse(claim);
+  if (early) return early;
 
   try {
     switch (event.type) {
@@ -140,7 +200,12 @@ export async function POST(req: Request) {
       case "customer.subscription.created":
       case "customer.subscription.updated": {
         const sub = event.data.object as Stripe.Subscription;
-        await applySubscription(await stripe.subscriptions.retrieve(sub.id));
+        const current = await stripe.subscriptions.retrieve(sub.id);
+        await applySubscription(current);
+        // Grants no plan: ended without a delete event (incomplete_expired,
+        // paused), or Stripe still collects for it (past_due, unpaid). Follow
+        // another subscription of the customer that bills, if any.
+        if (!grantsPlanStatus(current.status)) await applyLiveSibling(current);
         break;
       }
 
@@ -152,7 +217,7 @@ export async function POST(req: Request) {
           customerId,
         );
         if (userId && customerId) {
-          await saveSubscription({
+          await persistSubscription({
             userId,
             customerId,
             subscriptionId: sub.id,
@@ -161,6 +226,8 @@ export async function POST(req: Request) {
             status: "canceled",
             currentPeriodEnd: null,
           });
+          // Another live subscription of the customer may still bill.
+          await applyLiveSibling(sub);
         }
         break;
       }
@@ -170,6 +237,8 @@ export async function POST(req: Request) {
         break;
     }
 
+    // Mark the claim processed so a later retry of this id is skipped (0014).
+    await markStripeEventProcessed(event.id);
     return NextResponse.json({ received: true });
   } catch (err) {
     const message =

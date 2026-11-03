@@ -1,8 +1,16 @@
 import type { NextConfig } from "next";
 import { RETIRED_ANSWERS, RETIRED_BLOG_POSTS } from "./lib/marketing/retired-posts";
 
+// Long cache for files served from public/. It skips /_next/: Next already
+// sends "public, max-age=31536000, immutable" for hashed build files (fonts,
+// images, chunks), and a custom header there would replace it with this one.
 const STATIC_ASSET_MATCHER =
-  "/:path*\\.(ico|png|jpg|jpeg|gif|svg|webp|avif|woff|woff2)";
+  "/:path((?!_next/).*)\\.(ico|png|jpg|jpeg|gif|svg|webp|avif|woff|woff2)";
+
+// The native app opens these pages with ?app=1 (see lib/legal.ts). A rewrite
+// sends that request to the page's static in-app copy, so the public page does
+// not read searchParams and is prerendered instead of rendered per request.
+const APP_MODE_PAGES = ["support", "privacy-policy", "terms-of-service"];
 
 const nextConfig: NextConfig = {
   // Lets a verification build target a throwaway dir (NEXT_DIST_DIR) without
@@ -10,6 +18,7 @@ const nextConfig: NextConfig = {
   distDir: process.env.NEXT_DIST_DIR || ".next",
   experimental: {
     serverActions: { bodySizeLimit: "16mb" },
+    globalNotFound: true,
     // Every dashboard route is force-dynamic, so the client Router Cache TTL is
     // 0 by default and revisiting a tab within seconds re-hits the server. Cache
     // the dynamic page-segment payload briefly so quick back-and-forth between
@@ -61,6 +70,17 @@ const nextConfig: NextConfig = {
         permanent: true,
       })),
     ];
+  },
+  async rewrites() {
+    return {
+      // beforeFiles: the plain array form runs after the filesystem routes,
+      // so it could never replace an existing page such as /support.
+      beforeFiles: APP_MODE_PAGES.map((page) => ({
+        source: `/${page}`,
+        has: [{ type: "query", key: "app", value: "1" }],
+        destination: `/${page}/in-app`,
+      })),
+    };
   },
   async headers() {
     return [

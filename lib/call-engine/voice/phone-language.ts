@@ -81,6 +81,16 @@ export const SUPPORTED_LANGUAGES: string[] = Array.from(
   new Set(Object.values(CODE_TO_LANGUAGE)),
 ).filter((l) => ELEVENLABS_LANGUAGES.has(l));
 
+const ELEVENLABS_BASES = new Set([...ELEVENLABS_LANGUAGES].map(baseLanguage));
+
+/**
+ * True when ElevenLabs speaks the language, region ignored ("en-US" -> "en").
+ * Gates the voice-library search, so a made-up code cannot start a new paid call.
+ */
+export function isSupportedLanguageBase(language: string): boolean {
+  return ELEVENLABS_BASES.has(baseLanguage(language));
+}
+
 const LANGUAGE_NAMES: Record<string, string> = {
   en: "English",
   de: "German",

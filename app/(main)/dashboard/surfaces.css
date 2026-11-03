@@ -53,15 +53,16 @@
   overflow: visible;
   line-height: 1;
   user-select: none;
-  animation: ava-pop 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation: ava-pop 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
 }
 .ai-avatar[data-wave="true"] {
   transform-origin: 70% 80%;
-  animation: ava-pop 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) both,
+  animation: ava-pop 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) backwards,
     ava-wave 1.6s ease-in-out 0.4s 2;
 }
-.ai-float {
-  animation: ai-float 5s ease-in-out infinite;
+/* DeferredAvatar swaps in the live avatar after first paint: skip the second pop. */
+.ai-avatar.no-pop {
+  animation: none;
 }
 .ai-eyes {
   transform-box: fill-box;
@@ -138,10 +139,14 @@
   line-height: 1;
 }
 
-@keyframes ai-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-2px); }
-}
+.rx-voice { transform-box: fill-box; transform-origin: center; }
+.rx-voice[data-on="true"] { animation: rx-glow 0.9s ease-in-out infinite alternate; }
+.rx-ring path { opacity: 0; animation: rx-ring 0.9s ease-out 2; }
+.rx-ring path + path { animation-delay: 0.12s; }
+.rx-badge { transform-box: fill-box; transform-origin: center; animation: rx-pop 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+@keyframes rx-glow { from { opacity: 0.75; transform: scale(0.9); } to { opacity: 1; transform: scale(1.15); } }
+@keyframes rx-ring { 0% { opacity: 0; } 30% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes rx-pop { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: scale(1); } }
 @keyframes ai-blink {
   0%, 92%, 100% { transform: scaleY(1); }
   95% { transform: scaleY(0.12); }
@@ -166,8 +171,8 @@
   30% { transform: rotate(-8deg); }
 }
 @keyframes ava-breathe {
-  0%, 100% { transform: scale(1); box-shadow: 0 12px 30px -10px rgb(24 24 27 / 0.4); }
-  50% { transform: scale(1.035); box-shadow: 0 18px 40px -10px rgb(24 24 27 / 0.5); }
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.035); }
 }
 
 /* Frosted-glass surface: translucent white + blur + a top inner highlight, so
@@ -209,7 +214,6 @@
 @media (prefers-reduced-motion: reduce) {
   .ai-avatar,
   .ai-avatar[data-wave="true"],
-  .ai-float,
   .ai-eyes,
   .ai-spark,
   .ai-mouth[data-talk="true"],
@@ -217,4 +221,6 @@
   .ava-breathe {
     animation: none;
   }
+  .rx-voice[data-on="true"], .rx-badge { animation: none; }
+  .rx-ring path { animation: none; opacity: 1; }
 }

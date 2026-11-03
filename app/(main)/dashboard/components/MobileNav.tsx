@@ -90,8 +90,7 @@ export function MobileNav() {
                     <X className="h-5 w-5" />
                   </button>
                   <Brand />
-                  {/* onNavigate closes the drawer - Help opens an overlay without
-                      changing the route, so the drawer has to close itself. */}
+                  {/* onNavigate closes the drawer after a tap. */}
                   <DashboardNav onNavigate={() => setOpen(false)} />
                 </>
               )}

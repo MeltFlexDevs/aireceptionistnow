@@ -1,6 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
+
+import { useT } from "@/lib/i18n/client";
 
 interface Props {
   value: string;
@@ -21,20 +23,32 @@ function label(zone: string): string {
   }
 }
 
+function browserZone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone ?? "";
+  } catch {
+    return "";
+  }
+}
+
+// Nothing to subscribe to: the browser zone and "mounted" do not change after load.
+const subscribe = () => () => {};
+
 export function TimezoneSelect({ value, className, disabled, zones }: Props) {
-  const [detected] = useState(() => {
-    try {
-      return Intl.DateTimeFormat().resolvedOptions().timeZone ?? "";
-    } catch {
-      return "";
-    }
-  });
+  const t = useT();
+  // The browser zone and the clock exist only in the browser. The server and
+  // the hydration render use "" and no clock, so the HTML matches (React threw
+  // #418 when it did not); React swaps in the real values right after hydration.
+  const detected = useSyncExternalStore(subscribe, browserZone, () => "");
+  const mounted = useSyncExternalStore(subscribe, () => true, () => false);
 
   const valid = useMemo(() => new Set(zones), [zones]);
-  const initial = valid.has(value) ? value : valid.has(detected) ? detected : "UTC";
-  const [selected, setSelected] = useState(initial);
+  // null until the user picks a zone, so the detected zone can still apply after hydration.
+  const [picked, setPicked] = useState<string | null>(null);
+  const selected = picked ?? (valid.has(value) ? value : valid.has(detected) ? detected : "UTC");
 
   const now = useMemo(() => {
+    if (!mounted) return "";
     try {
       return new Intl.DateTimeFormat("en-GB", {
         timeZone: selected,
@@ -44,7 +58,7 @@ export function TimezoneSelect({ value, className, disabled, zones }: Props) {
     } catch {
       return "";
     }
-  }, [selected]);
+  }, [selected, mounted]);
 
   const repaired = Boolean(value) && !valid.has(value);
 
@@ -54,7 +68,7 @@ export function TimezoneSelect({ value, className, disabled, zones }: Props) {
         id="timezone"
         name="timezone"
         value={selected}
-        onChange={(e) => setSelected(e.target.value)}
+        onChange={(e) => setPicked(e.target.value)}
         disabled={disabled}
         className={className}
       >
@@ -64,14 +78,14 @@ export function TimezoneSelect({ value, className, disabled, zones }: Props) {
           </option>
         ))}
       </select>
-      <p className="mt-1 text-xs text-neutral-400">
+      <p className="mt-1 text-xs text-neutral-500">
         {repaired ? (
-          <span className="text-amber-600">
-            &quot;{value}&quot; isn&apos;t a valid time zone, so times were showing in UTC. Save to
-            fix them.{" "}
+          <span className="text-amber-700">
+            {t.settings.tzInvalid.replace("{value}", value)}{" "}
           </span>
         ) : null}
-        {now && `It's ${now} there now.`} Used for call times, your calendar, and analytics.
+        {now && `${t.settings.tzNow.replace("{time}", now)} `}
+        {t.settings.tzUsage}
       </p>
     </>
   );

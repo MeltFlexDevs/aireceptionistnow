@@ -33,7 +33,7 @@ export function ActivityFeed({ rows }: { rows: ActivityRow[] }) {
               <span className="font-medium">{row.headline}</span>
               {row.caller ? <span className="text-neutral-500"> · {row.caller}</span> : null}
             </p>
-            <p className="text-xs text-neutral-400">{row.when}</p>
+            <p className="text-xs text-neutral-500">{row.when}</p>
           </Link>
         </li>
       ))}

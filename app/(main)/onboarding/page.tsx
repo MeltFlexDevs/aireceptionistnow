@@ -5,7 +5,9 @@ import { currentUserId } from "@/lib/auth";
 import { authConfigured } from "@/lib/supabase/config";
 import { getBilling } from "@/lib/billing";
 import { getDictionary } from "@/lib/i18n/server";
+import { connectErrorCode, connectErrorKey } from "@/lib/integrations/connect-error";
 import { getOnboardingProfile } from "@/lib/dashboard/onboarding-profile";
+import { normalizeWebsite } from "@/lib/onboarding/website";
 import { listIntegrations } from "@/lib/dashboard/db";
 import { DEFAULT_COUNTRY } from "@/lib/number-pricing";
 import { Logo } from "../dashboard/icons";
@@ -20,6 +22,28 @@ import { ProvisioningView } from "./steps/ProvisioningView";
 
 export const dynamic = "force-dynamic";
 
+type Dict = Awaited<ReturnType<typeof getDictionary>>;
+
+// The step actions send codes in ?error=; anything else is a calendar connect error.
+function stepErrorText(raw: string, t: Dict): string {
+  switch (raw) {
+    case "website":
+      return t.onboarding.websiteInvalid;
+    case "phone":
+      return t.assistants.badPhoneFormat;
+    case "email":
+      return t.onboarding.invalidEmail;
+    case "not_pdf":
+      return t.knowledge.errorNotPdf;
+    case "pdf_failed":
+      return t.knowledge.errorPdfFailed;
+    case "save_failed":
+      return t.onboarding.somethingWrong;
+    default:
+      return t.calendar[connectErrorKey(connectErrorCode(raw)!)];
+  }
+}
+
 const TOTAL_STEPS = 4;
 // The plan/payment step is no longer a numbered stop in the funnel - the
 // progress indicator only counts the three setup steps. Payment and
@@ -33,7 +57,7 @@ export default async function OnboardingPage({
 }) {
   const sp = await searchParams;
   const stepParam = typeof sp.step === "string" ? sp.step : undefined;
-  const error = typeof sp.error === "string" ? sp.error : undefined;
+  const rawError = typeof sp.error === "string" ? sp.error : undefined;
   const connected = sp.connected === "1";
 
   const [t, ownerId] = await Promise.all([getDictionary(), currentUserId()]);
@@ -51,7 +75,7 @@ export default async function OnboardingPage({
   // provisioning screen itself).
   if (profile?.status === "done" && stepParam !== "go") redirect("/dashboard");
 
-  const firstIncomplete = !((cfg.companyName || cfg.companyWebsite) && cfg.assistantName)
+  const firstIncomplete = !((cfg.companyName || normalizeWebsite(cfg.companyWebsite ?? "")) && cfg.assistantName)
     ? 1
     : !cfg.knowledgeDone
       ? 2
@@ -111,7 +135,9 @@ export default async function OnboardingPage({
       </header>
 
       <main
-        className={`mx-auto flex w-full flex-1 flex-col px-5 sm:px-6 ${
+        id="main"
+        tabIndex={-1}
+        className={`mx-auto flex w-full flex-1 flex-col px-5 sm:px-6 focus:outline-none ${
           goView
             ? "max-w-2xl pb-12 pt-4"
             : step === 1
@@ -123,9 +149,12 @@ export default async function OnboardingPage({
                   : "max-w-2xl justify-center pb-4 pt-2"
         }`}
       >
-        {error && (
-          <div className="rise mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-            {error.slice(0, 200)}
+        {rawError && (
+          <div
+            role="alert"
+            className="rise mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
+          >
+            {stepErrorText(rawError, t)}
           </div>
         )}
         {goView ? (

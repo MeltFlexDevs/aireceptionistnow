@@ -43,7 +43,7 @@ export function PostToc({
 
   return (
     <nav aria-label={label}>
-      <p className="mb-3 text-[10px] font-semibold tracking-[0.08em] text-[#999] uppercase">
+      <p className="mb-3 text-[10px] font-semibold tracking-[0.08em] text-[#6f6f6f] uppercase">
         {heading}
       </p>
       <ul className="max-h-[18vh] overflow-y-auto border-l border-[#e5e5e5] pr-1 [scrollbar-width:thin]">
@@ -62,7 +62,7 @@ export function PostToc({
                 "-ml-px block border-l py-[5px] pl-3.5 text-[12px] leading-snug transition-colors",
                 activeId === s.id
                   ? "border-[#1D1D1D] font-normal text-[#1D1D1D]"
-                  : "border-transparent font-light text-[#888] hover:text-[#333]"
+                  : "border-transparent font-light text-[#6f6f6f] hover:text-[#333]"
               )}
             >
               {s.title}

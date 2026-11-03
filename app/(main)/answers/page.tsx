@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
-import { siteUrl, siteName, getAuthor } from "@/lib/site";
+import { siteUrl, siteName, getAuthor, ogCardImage } from "@/lib/site";
 import { answers } from "./_answers";
 
 const description =
@@ -19,12 +19,14 @@ export const metadata: Metadata = {
     type: "website",
     url: `${siteUrl}/answers`,
     siteName,
+    images: [ogCardImage],
   },
   // See pricing: an absent twitter block inherits the root homepage card.
   twitter: {
     card: "summary_large_image",
     title: `Answers · ${siteName}`,
     description,
+    images: [ogCardImage],
   },
 };
 

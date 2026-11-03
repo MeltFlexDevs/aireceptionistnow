@@ -12,6 +12,7 @@ import {
   type ReactNode,
 } from "react";
 import { useFormStatus } from "react-dom";
+import { useOptionalT } from "@/lib/i18n/client";
 
 /**
  * Dependency-free inline form validation built on the browser's Constraint
@@ -183,9 +184,10 @@ export function RequiredMark() {
   );
 }
 
-/** Muted "(optional)" for optional fields. */
+/** Muted "(optional)" for optional fields: localized inside an I18nProvider, English outside it. */
 export function OptionalMark() {
-  return <span className="font-normal text-neutral-400"> (optional)</span>;
+  const t = useOptionalT();
+  return <span className="font-normal text-neutral-500">{` (${t?.common.optional ?? "optional"})`}</span>;
 }
 
 /**
@@ -218,7 +220,7 @@ export function Field({
         {required ? <RequiredMark /> : <OptionalMark />}
       </label>
       {children}
-      {hint && <p className="mt-1.5 text-xs text-neutral-400">{hint}</p>}
+      {hint && <p className="mt-1.5 text-xs text-neutral-500">{hint}</p>}
       <FieldError name={name} />
     </div>
   );

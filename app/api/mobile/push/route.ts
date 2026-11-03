@@ -4,7 +4,8 @@ import {
   registerPushDevice,
   setPushDeviceEnabled,
 } from "@/lib/mobile/push";
-import { mobileUserId } from "@/lib/mobile/auth";
+import { mobileAuth } from "@/lib/mobile/auth";
+import { isDeviceId } from "@/lib/mobile/devices";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,8 +28,21 @@ async function body(req: Request): Promise<Record<string, unknown> | null> {
   }
 }
 
+/**
+ * The install id the app sends on every request (see the devices route). It
+ * is stored beside the token so revoking the device can drop the token too.
+ * Optional here: an install without the header still gets alerts, it just
+ * cannot be silenced by revoking it from the dashboard.
+ */
+function deviceIdOf(req: Request): string | null {
+  const header = (req.headers.get("x-device-id") ?? "").trim();
+  return isDeviceId(header) ? header : null;
+}
+
 export async function POST(req: Request): Promise<Response> {
-  const userId = await mobileUserId(req);
+  const auth = await mobileAuth(req, "push-register");
+  if (auth instanceof Response) return auth;
+  const userId = auth;
   if (!userId) return Response.json({ error: "Not signed in." }, { status: 401 });
 
   const payload = await body(req);
@@ -42,7 +56,12 @@ export async function POST(req: Request): Promise<Response> {
     if (payload.enabled === false) {
       await setPushDeviceEnabled(userId, payload.token, false);
     } else {
-      await registerPushDevice(userId, payload.token, String(payload.platform ?? "unknown"));
+      await registerPushDevice(
+        userId,
+        payload.token,
+        String(payload.platform ?? "unknown"),
+        deviceIdOf(req),
+      );
     }
     return Response.json({ ok: true });
   } catch (err) {
@@ -52,7 +71,9 @@ export async function POST(req: Request): Promise<Response> {
 }
 
 export async function DELETE(req: Request): Promise<Response> {
-  const userId = await mobileUserId(req);
+  const auth = await mobileAuth(req, "push-unregister");
+  if (auth instanceof Response) return auth;
+  const userId = auth;
   if (!userId) return Response.json({ error: "Not signed in." }, { status: 401 });
 
   const payload = await body(req);

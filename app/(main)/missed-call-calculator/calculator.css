@@ -34,7 +34,7 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #999;
+  color: #6f6f6f;
   margin-bottom: 14px;
 }
 
@@ -59,7 +59,7 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #999;
+  color: #6f6f6f;
   margin-bottom: 20px;
 }
 
@@ -136,7 +136,7 @@
 }
 
 .mcc-money-input span {
-  color: #999;
+  color: #6f6f6f;
   font-size: 15px;
 }
 
@@ -157,7 +157,7 @@
 .mcc-hint {
   font-size: 12.5px;
   line-height: 1.5;
-  color: #888;
+  color: #6f6f6f;
   margin: 8px 0 0;
 }
 

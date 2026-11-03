@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
-import { siteUrl, siteName, getAuthor } from "@/lib/site";
+import { ogCardImage, siteUrl, siteName, getAuthor } from "@/lib/site";
 import SiteHeader from "@/app/components/SiteHeader";
 import SiteFooter from "@/app/components/SiteFooter";
 import { CompareCta, CompareToc, type TocItem } from "../_compare/compare-client";
@@ -41,13 +41,13 @@ export const metadata: Metadata = {
     type: "article",
     url,
     siteName,
-    images: [{ url: `${siteUrl}/opengraph-image.png`, width: 1200, height: 630, alt: title }],
+    images: [ogCardImage],
   },
   twitter: {
     card: "summary_large_image",
     title,
     description,
-    images: [`${siteUrl}/opengraph-image.png`],
+    images: [ogCardImage],
   },
 };
 

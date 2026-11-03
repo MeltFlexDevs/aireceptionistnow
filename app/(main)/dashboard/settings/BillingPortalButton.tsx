@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useT } from "@/lib/i18n/client";
 
@@ -7,6 +8,8 @@ export function BillingPortalButton() {
   const s = useT().settings;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  // "{support}" marks where the support link sits in the sentence.
+  const [retryBefore, retryAfter = ""] = s.manageBillingRetry.split("{support}");
 
   async function open() {
     setLoading(true);
@@ -37,7 +40,16 @@ export function BillingPortalButton() {
       >
         {loading ? s.manageBillingPending : s.manageBilling}
       </button>
-      {error && <span className="text-xs text-rose-600">{error}</span>}
+      <span className="text-right text-xs text-neutral-500">{s.manageBillingHint}</span>
+      {error && (
+        <span role="alert" className="text-right text-xs text-rose-600">
+          {error} {retryBefore}
+          <Link href="/support" className="underline underline-offset-2">
+            {s.manageBillingSupport}
+          </Link>
+          {retryAfter}
+        </span>
+      )}
     </div>
   );
 }
