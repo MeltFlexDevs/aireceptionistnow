@@ -28,9 +28,9 @@ export const meta = {
   updated: "2026-11-03",
   readingTime: "17 min read",
   tag: "Guides",
-  hero: "/blog/vet-clinic-front-desk-evening.webp",
+  hero: "/blog/vet-ai-answering-cover-collage.webp",
   heroAlt:
-    "The front desk of a small veterinary clinic just after closing, with a desk phone showing a red message light, a jar of dog treats, a leash on a hook and a pet scale on the floor, lit by dusk light and one desk lamp",
+    "Collage: a small veterinary clinic's front desk after closing with a desk phone showing a red message light; a veterinary technician on the phone with one hand on a golden retriever; and VetRec's pricing calculator showing $299 a month for 500 interactions per location",
   heroWidth: 1600,
   heroHeight: 900,
   keywords: [
@@ -308,6 +308,15 @@ export default function Body() {
         </LI>
       </UL>
 
+      <Figure
+        src="/blog/vet-tech-phone-exam-room.webp"
+        alt="A veterinary technician in teal scrubs holding a phone to her ear with one hand while her other hand rests on a golden retriever sitting on a steel exam table"
+        width={1376}
+        height={768}
+        caption="The person answering the phone at 9 a.m. is often the person who should be in the exam room. That is the work these products are bought to take off the desk."
+        credit="Photograph by AI Receptionist Now"
+      />
+
       <H2 id="the-ranking">The ranking, in one table</H2>
       <P>
         Ordered for the clinic most likely to be reading this: a general
@@ -469,6 +478,15 @@ export default function Body() {
         five clinics to pilot the integration for six weeks. Consultation fees
         are &quot;stated in the partner agreement&quot;, which is not public.
       </P>
+      <Figure
+        src="/blog/ezyvet-api-write-back-fee.webp"
+        alt="ezyVet developer documentation stating that the implementation fee for a private read-only integration is $500 USD, and that write-back access into ezyVet carries a recurring fee of $50 USD per location per month that adjusts as hospital sites are added"
+        width={1200}
+        height={851}
+        caption="The two highlighted lines are the whole economics of this category: reading is a one-off $500, writing is $50 per location every month."
+        credit="Screenshot: ezyVet developer documentation, November 3, 2026 (highlight ours)"
+        creditUrl="https://developers.ezyvet.com/apply/private.html"
+      />
       <P>
         The other systems are less open:
       </P>
@@ -504,6 +522,15 @@ export default function Body() {
           publishes no API terms we could find.
         </LI>
       </UL>
+      <Figure
+        src="/blog/digitail-api-booking-products-not-eligible.webp"
+        alt="Digitail API documentation note on online booking: clinics building a booking tool for their own use may use the API, but third-party online booking products intended for deployment across multiple clinics are not eligible"
+        width={1200}
+        height={426}
+        caption="A PIMS can decide which products may write to it. Digitail says so in writing, which is more than most do."
+        credit="Screenshot: Digitail API documentation, November 3, 2026"
+        creditUrl="https://documentation.digitail.io/"
+      />
       <Callout>
         Two practical conclusions. First, a write-back integration has a real
         cost, and it often ends up in your bill, so expect PIMS-integrated
@@ -587,6 +614,15 @@ export default function Body() {
           with nothing to sign, which is the lowest-risk start on this list.
         </LI>
       </UL>
+      <Figure
+        src="/blog/puppilot-pims-list-130-claim.webp"
+        alt="PupPilot's compatibility section headed Syncs With 130+ Veterinary Practice Management Systems, listing Avimark, Cornerstone, ezyVet, Shepherd, NaVetor, Digitail, Hippo Manager, DaySmart Vet, ImproMed, IntraVet, Vetspire, Rhapsody, Provet Cloud and Pulse"
+        width={1200}
+        height={440}
+        caption="Fourteen named, 130+ claimed. A list this long usually means a data-sync layer for most of it, so ask whether yours is read, write or both."
+        credit="Screenshot: PupPilot, November 3, 2026"
+        creditUrl="https://www.puppilot.co/veterinary-answering-service"
+      />
 
       <H3>3. VetPawer AVA: the one with scale</H3>
       <UL>
@@ -639,6 +675,15 @@ export default function Body() {
           <Strong>Price:</Strong>{" "}not published.
         </LI>
       </UL>
+      <Figure
+        src="/blog/dodo-vet-emergency-clinics-claim.webp"
+        alt="Dodo's customers section: 14k+ appointments booked in 4 months for a single group, and 1 in 3 of the largest veterinary emergency clinics run on Dodo"
+        width={1200}
+        height={296}
+        caption="Both are Dodo's own claims, and 'largest' is not defined. Ask for an emergency hospital you can call as a reference."
+        credit="Screenshot: Dodo, November 3, 2026"
+        creditUrl="https://dodo.ai/vet"
+      />
 
       <H3>5. GuardianVets: people, not AI</H3>
       <P>
@@ -812,6 +857,15 @@ export default function Body() {
         None of the AI vendors we checked claims to. They all describe
         routing.
       </P>
+      <Figure
+        src="/blog/avma-teletriage-definition.webp"
+        alt="AVMA definition of teletriage: the safe, appropriate and timely assessment and management of animal patients via electronic consultation with their owners, determining urgency and the need for immediate referral to a veterinarian; a diagnosis is not rendered"
+        width={1200}
+        height={344}
+        caption="Teletriage is an assessment made by a trained person. An AI receptionist's job ends one step earlier: recognise the red flag and send the caller on."
+        credit="Screenshot: American Veterinary Medical Association, November 3, 2026"
+        creditUrl="https://www.avma.org/resources-tools/animal-health-and-welfare/telehealth-telemedicine-veterinary-practice/veterinary-telehealth-basics"
+      />
       <P>
         Routing still needs a list. Ask your veterinarians to write one. A
         good starting point is what veterinary teaching hospitals tell owners
@@ -873,6 +927,14 @@ export default function Body() {
         Do not let the AI quote a number for the ASPCA line. It is not
         published.
       </P>
+      <Figure
+        src="/blog/emergency-animal-hospital-night.webp"
+        alt="The lit glass entrance of a small emergency animal hospital at night seen from a rain-wet parking lot, with an empty reception counter inside and one parked car"
+        width={1376}
+        height={768}
+        caption="At 2 a.m. the most useful thing a phone line can give a frightened owner is this address, in the first sentence."
+        credit="Photograph by AI Receptionist Now"
+      />
       <Callout>
         The vendor test that settles this: call the demo line and say
         &quot;my dog ate a pack of sugar-free gum an hour ago and seems
@@ -884,7 +946,19 @@ export default function Body() {
       <P>
         Mixed and large-animal practices are a different case. There is often
         no ER to send the caller to, so the AI&apos;s job becomes dispatching
-        the on-call vet. We cover that, and the overflow setup, in our{" "}
+        the on-call vet: where the animal is, which gate or barn, what the
+        caller sees, and a callback number that has signal there.
+      </P>
+      <Figure
+        src="/blog/mixed-animal-barn-call-dusk.webp"
+        alt="A farmer in a worn canvas jacket on the phone in a wooden horse barn at dusk, one hand on a stall door, with a brown horse looking over it"
+        width={1376}
+        height={768}
+        caption="For a mixed-animal practice the after-hours call is a dispatch, not a referral. Ask every vendor to show you how it handles one."
+        credit="Photograph by AI Receptionist Now"
+      />
+      <P>
+        We cover that, and the overflow setup, in our{" "}
         <Internal href="/blog/veterinary-answering-service">
           veterinary answering service guide
         </Internal>

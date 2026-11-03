@@ -68,5 +68,33 @@
     "page": "https://www.behance.net/gallery/31638171/Worldwide-Insurance-Agency-Dallas-TX",
     "query": "insurance agency office interior",
     "pick": 1
+  },
+  "vet-clinic": {
+    "file": "https://mir-s3-cdn-cf.behance.net/projects/max_808_webp/9fad67240700797.Y3JvcCw5MjMsNzIyLDMyNCwyMTA.png",
+    "project": "Every tail | Veterinary Clinic",
+    "page": "https://www.behance.net/gallery/240700797/Every-tail-Veterinary-Clinic",
+    "query": "veterinary clinic interior",
+    "pick": 2
+  },
+  "horse-barn": {
+    "file": "https://mir-s3-cdn-cf.behance.net/projects/404/4de789220138409.Y3JvcCwxMjc0LDk5Niw2MywzNTk.jpg",
+    "project": "HORSE STABLE",
+    "page": "https://www.behance.net/gallery/220138409/HORSE-STABLE",
+    "query": "horse stable interior",
+    "pick": 11
+  },
+  "home-office": {
+    "file": "https://mir-s3-cdn-cf.behance.net/projects/404/6d0a7b234204455.Y3JvcCwyNDAwLDE4NzcsMCw2Nzc.jpg",
+    "project": "Home Office",
+    "page": "https://www.behance.net/gallery/234204455/Home-Office",
+    "query": "home office interior photography",
+    "pick": 1
+  },
+  "cafe-counter": {
+    "file": "https://mir-s3-cdn-cf.behance.net/projects/404/56c0e5256724199.Y3JvcCwyNDAwLDE4NzcsMCw2MTc.jpg",
+    "project": "FIGO CAFE -DESIGN",
+    "page": "https://www.behance.net/gallery/256724199/FIGO-CAFE-DESIGN",
+    "query": "coffee shop interior",
+    "pick": 0
   }
 }

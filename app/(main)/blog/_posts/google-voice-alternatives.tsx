@@ -28,9 +28,9 @@ export const meta = {
   updated: "2026-11-03",
   readingTime: "15 min read",
   tag: "Guides",
-  hero: "/blog/google-voice-alternatives-desk-phones.webp",
+  hero: "/blog/google-voice-alternatives-cover-collage.webp",
   heroAlt:
-    "Three phones side by side on a wooden office desk, an old white desk phone, a modern black VoIP desk phone and a smartphone lying face down, with a closed laptop and a notepad",
+    "Collage: an old desk phone, a VoIP desk phone and a smartphone side by side on an office desk; RingCentral's AI Receptionist add-on card showing Starts at $39; and a cafe owner steaming milk while a phone lies lit on the counter",
   heroWidth: 1600,
   heroHeight: 900,
   keywords: [
@@ -137,7 +137,7 @@ export const meta = {
     },
     {
       q: "Why are so many Google Voice alternatives lists written by AI companies?",
-      a: "Because it is an easy keyword to rank for, and the companies writing the lists sell something nearby. Of the three vendor listicles near the top of Google for 'google voice alternative' on November 3, 2026, Brilo ranks itself first, Upfirst inserts itself between its fourth and fifth picks, and Ringly ranks itself seventh while selling only to Shopify stores. We sell an AI receptionist too, which is why we put it in a separate section, last, and say what it isn't: a phone system.",
+      a: "Because it is an easy keyword to rank for, and the companies writing the lists sell something nearby. Of the three vendor listicles near the top of Google for 'google voice alternative' on November 3, 2026, Brilo ranks itself first (for AI-automated inbound calls), Upfirst inserts itself between its fourth and fifth picks, and Ringly ranks itself seventh while selling only to Shopify stores. We sell an AI receptionist too, which is why we put it in a separate section, last, and say what it isn't: a phone system.",
     },
   ] satisfies FaqItem[],
 };
@@ -361,6 +361,15 @@ export default function Body() {
           , and it needs no Workspace subscription. Trial: 7 days.
         </LI>
       </UL>
+      <Figure
+        src="/blog/quo-pricing-plans-screenshot.webp"
+        alt="Quo pricing page on yearly billing: Starter $15 per user per month billed annually at $180, Business $23 billed at $276, Scale $35 billed at $420; all plans include one new or ported phone number per user, US and Canada calling, voicemail transcripts and the Sona AI agent"
+        width={1200}
+        height={680}
+        caption="The yearly toggle is on. On monthly billing the same plans are $19, $33 and $47. Phone menus and auto call recording start at Business."
+        credit="Screenshot: Quo pricing, November 3, 2026"
+        creditUrl="https://www.quo.com/pricing"
+      />
 
       <H3>2. Dialpad Connect: for businesses outside North America</H3>
       <UL>
@@ -400,6 +409,17 @@ export default function Body() {
           per number or per month. AIR is sold standalone in the US and
           Canada, and as an add-on only in the UK, Australia and the EU.
         </LI>
+      </UL>
+      <Figure
+        src="/blog/ringcentral-ai-receptionist-starts-at-39.webp"
+        alt="RingCentral pricing page section Extend any RingEX plan, with an AI Receptionist card saying Answer and route calls on any phone system, Starts at $39, next to Conversational Intelligence starting at $60"
+        width={1200}
+        height={947}
+        caption="'Starts at $39', with no unit. Ask whether that is per month, per user or per number, and what it includes."
+        credit="Screenshot: RingCentral pricing, November 3, 2026"
+        creditUrl="https://www.ringcentral.com/pricing/business-phone"
+      />
+      <UL>
         <LI>
           <Strong>Watch:</Strong>{" "}&quot;Phone rental available only with
           multi-year contract.&quot; The 14-day trial excludes SMS.
@@ -533,6 +553,14 @@ export default function Body() {
         ($1.50 per conversation). Ask each one what it does with a caller
         it can&apos;t help, and how you get the details.
       </P>
+      <Figure
+        src="/blog/cafe-owner-phone-rush.webp"
+        alt="A cafe owner steaming milk at an espresso machine during the morning rush while a smartphone lies lit with a call on the counter next to the till and a queue of customers waits"
+        width={1376}
+        height={768}
+        caption="Switching phone systems does not change this moment. Something still has to answer the call."
+        credit="Photograph by AI Receptionist Now"
+      />
       <H3>A standalone AI receptionist</H3>
       <P>
         These answer on their own number, or take forwarded calls from a
@@ -577,6 +605,14 @@ export default function Body() {
       </P>
 
       <H2 id="porting">Taking your Google Voice number with you</H2>
+      <Figure
+        src="/blog/home-office-phone-setup.webp"
+        alt="A small home office desk by a window with a smartphone lying face down, a USB headset, a notepad with a pen and a mug"
+        width={1376}
+        height={768}
+        caption="A port is an afternoon of paperwork and a few days of waiting. Do it before the number matters, not during a busy week."
+        credit="Photograph by AI Receptionist Now"
+      />
       <OL>
         <LI>
           <Strong>Open the account at the new provider first.</Strong>{" "}Keep
@@ -624,9 +660,9 @@ export default function Body() {
       </P>
       <UL>
         <LI>
-          <Strong>Brilo</Strong>{" "}ranks itself first (&quot;the #1 Google
-          Voice alternative&quot;). Its disclosure is that a team member uses
-          it as a paying customer.
+          <Strong>Brilo</Strong>{" "}ranks itself first, as the &quot;Overall
+          Best Google Voice Alternative for AI-Automated Inbound Calls&quot;.
+          Its disclosure is that a team member uses it as a paying customer.
         </LI>
         <LI>
           <Strong>Upfirst</Strong>{" "}ranks TextNow first, then adds itself
@@ -639,6 +675,15 @@ export default function Body() {
           Shopify stores.
         </LI>
       </UL>
+      <Figure
+        src="/blog/brilo-ranks-itself-first-google-voice-alternatives.webp"
+        alt="Heading from Brilo's own Google Voice alternatives article: 1. Brilo.ai, Overall Best Google Voice Alternative for AI-Automated Inbound Calls"
+        width={1200}
+        height={198}
+        caption="Number one on its own list, with a qualifier. The qualifier is accurate. The ranking is a sales page."
+        credit="Screenshot: brilo.ai, November 3, 2026"
+        creditUrl="https://www.brilo.ai/resources/google-voice-alternatives"
+      />
       <P>
         None of this makes those lists wrong. It does mean that an AI
         receptionist ranked as the &quot;best Google Voice alternative&quot; is

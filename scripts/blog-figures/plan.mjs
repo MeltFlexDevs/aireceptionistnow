@@ -19,6 +19,10 @@ export const REFS = {
   "accounting-office": { query: "accounting firm office interior", want: "accounting firm office interior", pick: 0 },
   "insurance-office": { query: "insurance agency office interior", want: "insurance agency office", pick: 0 },
   "small-office": { query: "insurance agency office interior", want: "office design", pick: 0 },
+  "vet-clinic": { query: "veterinary clinic interior", want: "veterinary clinic vet", pick: 0 },
+  "horse-barn": { query: "horse stable interior", want: "stable barn equestrian", pick: 0 },
+  "home-office": { query: "home office interior photography", want: "home office workspace", pick: 0 },
+  "cafe-counter": { query: "coffee shop interior", want: "coffee shop cafe", pick: 0 },
 }
 
 export const PLAN = [
@@ -157,5 +161,53 @@ export const PLAN = [
     height: 900,
     subject:
       "a real photograph, not a 3D render: a plain wooden desk in a small office seen from slightly above at a three-quarter angle, with three phones side by side as if being compared: an older white desk phone with a coiled cord, a modern black VoIP desk phone with a small blank grey screen, and a smartphone lying face-down; a closed laptop at the edge of the frame, a notepad with a pen and a short handwritten list whose words are NOT readable; soft daylight from a side window; NO logos, NO readable text anywhere, nobody in frame; calm, ordinary, slightly lived-in",
+  },
+  {
+    out: "vet-tech-phone-exam-room",
+    ref: "vet-clinic",
+    width: 1376,
+    height: 768,
+    subject:
+      "a real photograph, not a 3D render: a veterinary technician in plain teal scrubs standing in a small exam room, holding a cordless clinic phone to her ear with ONE hand while her OTHER hand rests on the back of a calm golden retriever sitting on the stainless exam table (exactly two hands, the dog has four legs); she is listening and looking down, three-quarter profile, face partly turned away; a blank clipboard on the counter, a jar of cotton swabs; soft overhead clinic light; NO readable text, NO logos; candid, not posed",
+  },
+  {
+    out: "emergency-animal-hospital-night",
+    ref: "vet-clinic",
+    width: 1376,
+    height: 768,
+    subject:
+      "a real photograph, not a 3D render: the glass entrance of a small 24-hour emergency animal hospital at night seen from the parking lot, warm light spilling out of the lobby onto wet asphalt, an empty reception counter visible through the glass, one parked car with its headlights off; the sign above the door is a plain glowing panel with NO readable letters; NO people, NO animals; rain-wet, quiet, a little lonely",
+  },
+  {
+    out: "mixed-animal-barn-call-dusk",
+    ref: "horse-barn",
+    width: 1376,
+    height: 768,
+    subject:
+      "a real photograph, not a 3D render: inside a working wooden horse barn at dusk on a family farm, a farmer in a worn canvas jacket stands in the aisle beside a stall holding a smartphone to his ear with ONE hand, his OTHER hand on the stall door (exactly two hands), a brown horse looking over the stall door; straw on the floor, a single bare bulb, blue dusk light at the far barn door; the phone screen is not visible; muddy, ordinary, not luxurious",
+  },
+  {
+    out: "contractor-missed-call-ladder",
+    ref: "home-office",
+    width: 1376,
+    height: 768,
+    subject:
+      "a real photograph, not a 3D render: a painter-contractor on a stepladder in a half-painted living room with drop cloths on the floor, holding a paint roller with BOTH hands (exactly two hands), while a smartphone lies on the top shelf of the ladder lit up with an incoming call that he cannot reach; the phone screen shows only a soft glow with NO readable text; paint tray, tape, morning daylight; candid, mid-task",
+  },
+  {
+    out: "cafe-owner-phone-rush",
+    ref: "cafe-counter",
+    width: 1376,
+    height: 768,
+    subject:
+      "a real photograph, not a 3D render, documentary style: behind the counter of a small independent cafe during the morning rush, the owner in a dark apron is steaming milk at the espresso machine with BOTH hands (exactly two hands), and next to the till a plain smartphone lies flat on the wooden counter with its screen lit; there are NO vibration lines, NO motion symbols, NO graphic overlays or icons of any kind, it is an ordinary photo; a short queue of customers is out of focus in the background; NO logos, NO readable menu boards or text; warm light, steam, busy",
+  },
+  {
+    out: "home-office-phone-setup",
+    ref: "home-office",
+    width: 1376,
+    height: 768,
+    subject:
+      "a real photograph, not a 3D render: a small home office desk by a window in the late afternoon, seen from the side at desk height: a plain black smartphone lying face-down, a simple USB headset, a paper notepad with a pen lying on it, and a ceramic mug; there is NO laptop and NO computer on the desk; NO people and NO hands in frame; NO logos and NO readable text anywhere; soft side light from the window, a plant on the sill; calm, ordinary, slightly lived-in",
   },
 ]

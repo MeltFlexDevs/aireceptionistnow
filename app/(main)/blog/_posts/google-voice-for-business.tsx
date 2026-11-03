@@ -28,9 +28,9 @@ export const meta = {
   updated: "2026-11-03",
   readingTime: "14 min read",
   tag: "Guides",
-  hero: "/blog/google-voice-business-counter-phone.webp",
+  hero: "/blog/google-voice-business-cover-collage.webp",
   heroAlt:
-    "A florist wrapping a bouquet in brown paper with both hands while a smartphone lights up with an incoming call on the shop counter beside a ball of twine and scissors",
+    "Collage: a florist wrapping a bouquet while a smartphone lights up with a call on the counter; Google's Voice plan table showing $0, $10, $20 and $30 plans; and a painter on a stepladder with his phone ringing out of reach",
   heroWidth: 1600,
   heroHeight: 900,
   keywords: [
@@ -283,6 +283,15 @@ export default function Body() {
         page from Europe you may see lower Standard and Premier prices. The
         page marks those as EMEA-only promotions.
       </P>
+      <Figure
+        src="/blog/google-voice-plan-table-screenshot.webp"
+        alt="Google Voice Help plan comparison table showing Google Voice at $0, Voice Starter and Standard standalone at $10 and $20 a month, and Workspace add-ons Starter, Standard and Premier at $10, $20 and $30 per user per month, with rows for maximum users, subscription requirements, call recording, 911 emergency support, auto attendants and ring groups"
+        width={1200}
+        height={1157}
+        caption="Google's own table, with only the rows a small business usually asks about shown. Note the two crosses under Voice Starter (Workspace add-on): no auto attendant, no ring groups."
+        credit="Screenshot: Google Voice Help, November 3, 2026 (rows filtered by us)"
+        creditUrl="https://support.google.com/voice/answer/9249103?hl=en"
+      />
 
       <H2 id="free-for-business">Using free Google Voice for a business</H2>
       <P>
@@ -299,13 +308,13 @@ export default function Body() {
           . It needs another phone number to link to, and it is US only.
         </LI>
         <LI>
-          <Strong>An unused number gets taken back.</Strong>{" "}The acceptable
-          use policy expects you to keep the number active by{" "}
+          <Strong>An unused number gets taken back.</Strong>{" "}Google&apos;s{" "}
           <Ext href="https://support.google.com/voice/answer/9230450?hl=en">
-            placing calls or sending text messages for a period of 3 months
-          </Ext>
-          . After Google reclaims a number you have 45 days to get it back. For
-          a seasonal business, that is a real risk.
+            acceptable use policy
+          </Ext>{" "}
+          says it may reclaim a number that isn&apos;t used for calls or texts
+          for 3 months. After that you have 45 days to get it back. For a
+          seasonal business, that is a real risk.
         </LI>
         <LI>
           <Strong>No 911.</Strong>{" "}Google says{" "}
@@ -340,6 +349,15 @@ export default function Body() {
         , not bulk sends, and that some banks and subscription services
         won&apos;t send codes to Voice numbers at all.
       </P>
+      <Figure
+        src="/blog/google-voice-reclaim-3-months-policy.webp"
+        alt="Google Voice Acceptable Use Policy, Account Inactivity: Google may reclaim your Google Voice number if you do not appear to be making use of the service as it was intended, such as placing calls or sending text messages for a period of 3 months"
+        width={1200}
+        height={274}
+        caption="Three months without a call or a text is enough. Google advises watching your email for reclaim notices, so check the inbox the number is tied to."
+        credit="Screenshot: Google Voice Acceptable Use Policy, November 3, 2026 (highlight ours)"
+        creditUrl="https://support.google.com/voice/answer/9230450?hl=en"
+      />
       <Callout>
         Our honest read: free Google Voice is fine as a second number for a
         one-person business that answers its own phone. It is a poor choice for
@@ -428,6 +446,15 @@ export default function Body() {
         </Internal>{" "}
         guide compares where the number can go.
       </P>
+      <Figure
+        src="/blog/google-voice-port-in-20-fee.webp"
+        alt="Google Voice Help porting page: to port-in your mobile number, Google Voice charges a $20 fee; users based in the US are restricted to port requests with an active US mobile phone number"
+        width={1200}
+        height={540}
+        caption="The $20 fee and the 'active US mobile number' rule are on the same page. Google also says not to cancel your old plan until Voice confirms the port."
+        credit="Screenshot: Google Voice Help, November 3, 2026 (highlight ours)"
+        creditUrl="https://support.google.com/voice/answer/1065667?hl=en"
+      />
 
       <H2 id="missed-calls">What no plan does: answer the call you miss</H2>
       <P>
@@ -442,6 +469,14 @@ export default function Body() {
         they want, answer a question about your hours or prices, or book them
         in.
       </P>
+      <Figure
+        src="/blog/contractor-missed-call-ladder.webp"
+        alt="A painter on a stepladder rolling paint onto a wall with both hands while a smartphone on the top of the ladder lights up with an incoming call he cannot reach"
+        width={1376}
+        height={768}
+        caption="The call Google Voice can't help with: the one that comes in while both hands are busy."
+        credit="Photograph by AI Receptionist Now"
+      />
       <P>
         That gap is what an answering service or an AI receptionist fills, and
         the plan you are on decides whether you can connect one:

@@ -10,6 +10,7 @@ import {
   Ext,
   Internal,
   Callout,
+  Figure,
   KeyTakeaways,
   FAQList,
   Table,
@@ -463,6 +464,14 @@ export default function Body() {
           called.
         </LI>
       </OL>
+      <Figure
+        src="/blog/emergency-animal-hospital-night.webp"
+        alt="The lit glass entrance of a small emergency animal hospital at night seen from a rain-wet parking lot, with an empty reception counter inside"
+        width={1376}
+        height={768}
+        caption="Most general practices refer overnight emergencies out. The after-hours script exists to get the caller to this door fast."
+        credit="Photograph by AI Receptionist Now"
+      />
       <H3>Mixed-animal and large-animal practices</H3>
       <P>
         The referral script above assumes a small-animal clinic with an
@@ -471,6 +480,14 @@ export default function Body() {
         and the on-call veterinarian drives to the animal. After hours, the
         service&apos;s job changes from referral to dispatch:
       </P>
+      <Figure
+        src="/blog/mixed-animal-barn-call-dusk.webp"
+        alt="A farmer in a worn canvas jacket on the phone in a wooden horse barn at dusk, one hand on a stall door, with a brown horse looking over it"
+        width={1376}
+        height={768}
+        caption="Where the animal is matters more than where the owner lives. The script has to capture the gate, the barn and a number with signal."
+        credit="Photograph by AI Receptionist Now"
+      />
       <UL>
         <LI>
           <Strong>Where the animal is, not where the owner lives.</Strong>{" "}
