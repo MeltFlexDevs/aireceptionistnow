@@ -902,9 +902,13 @@ export default function Body() {
         <Internal href="/blog/best-ai-phone-answering-for-restaurants">
           restaurants, where the write-back is a POS
         </Internal>
-        , and{" "}
+        ,{" "}
         <Internal href="/blog/best-ai-receptionist-for-home-services">
           home services, where the platform vendors now ship their own agent
+        </Internal>
+        , and{" "}
+        <Internal href="/blog/best-ai-answering-service-for-veterinary-clinics">
+          veterinary clinics, where ezyVet charges per location to write
         </Internal>
         .
       </P>

@@ -1,0 +1,54 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" role="img" aria-label="Four things a veterinary AI phone product can do with a booking call, from least to most useful. Rung one, it takes a message: the request is emailed or texted to the front desk, which still has to call the client back. Rung two, it books into a calendar such as Google Calendar or Outlook, and the front desk re-keys the appointment into the practice management system; general AI receptionists, including ours, stop here. Rung three, it reads the practice management system: it recognises the client and the pet and sees live availability, but still hands the booking to staff. Rung four, it writes the appointment into the practice management system by species, visit type and provider; VetRec, PupPilot, VetPawer and Dodo all claim this rung on their own pages. A side note gives the price of the gate at one system, ezyVet's private integration route: read-only access is a one-time 500 dollar fee, and write-back access is 50 dollars per location per month.">
+  <rect width="1200" height="630" fill="#fbfaff"/>
+  <rect x="0.5" y="0.5" width="1199" height="629" fill="none" stroke="#ece7f6"/>
+
+  <text x="60" y="58" font-size="26" font-weight="600" fill="#1a1a1a">Four things a vet AI can do with a booking call</text>
+  <text x="60" y="88" font-size="15.5" fill="#8a8398">Only the top rung removes work from the front desk. Ask every vendor which rung, for your PIMS, in writing.</text>
+
+  <!-- Rung 4 (top) -->
+  <rect x="60" y="126" width="760" height="92" rx="12" fill="#5b3ef0"/>
+  <text x="88" y="160" font-size="12" font-weight="600" fill="#d9d0ff" letter-spacing="0.08em">RUNG 4</text>
+  <text x="160" y="160" font-size="18" font-weight="600" fill="#ffffff">Writes the appointment into the PIMS</text>
+  <text x="88" y="188" font-size="13.5" fill="#ece7ff">By species, visit type and doctor. Nobody re-keys anything the next morning.</text>
+  <text x="88" y="207" font-size="12.5" fill="#d9d0ff">Claimed on their own pages by VetRec, PupPilot, VetPawer and Dodo</text>
+
+  <!-- Rung 3 -->
+  <rect x="60" y="232" width="660" height="92" rx="12" fill="#ffffff" stroke="#b9acf0" stroke-width="1.5"/>
+  <text x="88" y="266" font-size="12" font-weight="600" fill="#7a6fa8" letter-spacing="0.08em">RUNG 3</text>
+  <text x="160" y="266" font-size="18" font-weight="600" fill="#1a1a1a">Reads the PIMS</text>
+  <text x="88" y="294" font-size="13.5" fill="#55506a">Knows the client, the pet and live availability, but staff still confirm the booking.</text>
+  <text x="88" y="313" font-size="12.5" fill="#8a8398">Better calls, same follow-up work</text>
+
+  <!-- Rung 2 -->
+  <rect x="60" y="338" width="560" height="92" rx="12" fill="#ffffff" stroke="#d6cff0" stroke-width="1.5"/>
+  <text x="88" y="372" font-size="12" font-weight="600" fill="#7a6fa8" letter-spacing="0.08em">RUNG 2</text>
+  <text x="160" y="372" font-size="18" font-weight="600" fill="#1a1a1a">Books into a calendar</text>
+  <text x="88" y="400" font-size="13.5" fill="#55506a">Google Calendar or Outlook. The desk re-keys it into the PIMS.</text>
+  <text x="88" y="419" font-size="12.5" fill="#8a8398">General AI receptionists, including ours</text>
+
+  <!-- Rung 1 -->
+  <rect x="60" y="444" width="460" height="92" rx="12" fill="#ffffff" stroke="#e6e1f3" stroke-width="1.5"/>
+  <text x="88" y="478" font-size="12" font-weight="600" fill="#a49dba" letter-spacing="0.08em">RUNG 1</text>
+  <text x="160" y="478" font-size="18" font-weight="600" fill="#1a1a1a">Takes a message</text>
+  <text x="88" y="506" font-size="13.5" fill="#55506a">Emailed or texted to the desk.</text>
+  <text x="88" y="525" font-size="12.5" fill="#8a8398">Phone tag moves to tomorrow morning</text>
+
+  <!-- arrow -->
+  <line x1="40" y1="530" x2="40" y2="140" stroke="#c3b8e6" stroke-width="2"/>
+  <path d="M33 150 L40 134 L47 150 Z" fill="#c3b8e6"/>
+
+  <!-- side card -->
+  <rect x="860" y="232" width="290" height="304" rx="12" fill="#ffffff" stroke="#ece7f6" stroke-width="1.5"/>
+  <text x="884" y="266" font-size="12" font-weight="600" fill="#5b3ef0" letter-spacing="0.08em">WHAT THE GATE COSTS</text>
+  <text x="884" y="290" font-size="13.5" fill="#55506a">ezyVet, private integration</text>
+  <text x="884" y="309" font-size="13.5" fill="#55506a">route, published fees:</text>
+  <text x="884" y="352" font-size="30" font-weight="600" fill="#1a1a1a">$500</text>
+  <text x="884" y="376" font-size="13.5" fill="#55506a">one time, to read</text>
+  <text x="884" y="426" font-size="30" font-weight="600" fill="#5b3ef0">$50</text>
+  <text x="884" y="450" font-size="13.5" fill="#55506a">per location, per month,</text>
+  <text x="884" y="469" font-size="13.5" fill="#55506a">to write back</text>
+  <text x="884" y="512" font-size="12" fill="#a49dba">Writing costs more than reading.</text>
+  <text x="884" y="528" font-size="12" fill="#a49dba">That is the whole category.</text>
+
+  <text x="60" y="590" font-size="12.5" fill="#a49dba">Sources: vendor product pages and developers.ezyvet.com/apply/private.html, read November 3, 2026.</text>
+</svg>

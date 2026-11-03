@@ -1,0 +1,80 @@
+<svg width="1200" height="660" viewBox="0 0 1200 660" fill="none" xmlns="http://www.w3.org/2000/svg" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" role="img" aria-label="Google Voice plans compared, from Google's own subscription table as of November 3, 2026. Free Google Voice costs nothing, allows one user, is for personal consumer use, has no auto attendant, no ring groups, no call recording and no 911 support, and Google says forwarding its calls to an automated system is unsupported. Voice Starter as a Workspace add-on is 10 dollars per user per month for up to 10 users, needs a paid Workspace plan, has call recording and 911 but no auto attendant and no ring groups. Voice Standard is 20 dollars per user per month, unlimited users, and adds auto attendant and ring groups. Voice Premier is 30 dollars per user per month and adds automatic call recording. On every plan, including the paid ones, a call nobody picks up goes to voicemail: no plan answers the caller with AI or books an appointment.">
+  <rect width="1200" height="660" fill="#fbfaff"/>
+  <rect x="0.5" y="0.5" width="1199" height="659" fill="none" stroke="#ece7f6"/>
+
+  <text x="60" y="58" font-size="26" font-weight="600" fill="#1a1a1a">What each Google Voice plan actually gives a business</text>
+  <text x="60" y="88" font-size="15.5" fill="#8a8398">From Google's own subscription table, read November 3, 2026. Workspace add-ons also need a paid Google Workspace plan.</text>
+
+  <!-- header -->
+  <g font-size="13" font-weight="600">
+    <text x="340" y="134" fill="#a49dba" text-anchor="middle">FREE</text>
+    <text x="545" y="134" fill="#7a6fa8" text-anchor="middle">STARTER</text>
+    <text x="750" y="134" fill="#5b3ef0" text-anchor="middle">STANDARD</text>
+    <text x="955" y="134" fill="#7a6fa8" text-anchor="middle">PREMIER</text>
+  </g>
+  <g font-size="22" font-weight="600" fill="#1a1a1a" text-anchor="middle">
+    <text x="340" y="164">$0</text>
+    <text x="545" y="164">$10</text>
+    <text x="750" y="164">$20</text>
+    <text x="955" y="164">$30</text>
+  </g>
+  <g font-size="12" fill="#8a8398" text-anchor="middle">
+    <text x="340" y="184">personal use only</text>
+    <text x="545" y="184">per user / month</text>
+    <text x="750" y="184">per user / month</text>
+    <text x="955" y="184">per user / month</text>
+  </g>
+
+  <!-- highlight standard column -->
+  <rect x="660" y="110" width="180" height="390" rx="12" fill="#5b3ef0" fill-opacity="0.06" stroke="#c3b8e6"/>
+
+  <!-- rows -->
+  <g font-size="14.5" fill="#1a1a1a">
+    <text x="60" y="232">Users</text>
+    <text x="60" y="280">Auto attendant (press 1, press 2)</text>
+    <text x="60" y="328">Ring groups</text>
+    <text x="60" y="376">Call recording</text>
+    <text x="60" y="424">911 emergency calling</text>
+    <text x="60" y="472">Forward to an automated system</text>
+    <text x="60" y="532" font-weight="600">Answers a missed</text><text x="60" y="552" font-weight="600">call for you</text>
+  </g>
+  <g stroke="#ece7f6"><line x1="60" y1="250" x2="1140" y2="250"/><line x1="60" y1="298" x2="1140" y2="298"/><line x1="60" y1="346" x2="1140" y2="346"/><line x1="60" y1="394" x2="1140" y2="394"/><line x1="60" y1="442" x2="1140" y2="442"/><line x1="60" y1="500" x2="1140" y2="500"/></g>
+
+  <g font-size="14" text-anchor="middle">
+    <!-- users -->
+    <text x="340" y="232" fill="#55506a">1</text>
+    <text x="545" y="232" fill="#55506a">up to 10</text>
+    <text x="750" y="232" fill="#55506a">unlimited</text>
+    <text x="955" y="232" fill="#55506a">unlimited</text>
+    <!-- auto attendant -->
+    <text x="340" y="280" fill="#c0392b">no</text>
+    <text x="545" y="280" fill="#c0392b">no</text>
+    <text x="750" y="280" fill="#2e7d4f">yes</text>
+    <text x="955" y="280" fill="#2e7d4f">yes</text>
+    <!-- ring groups -->
+    <text x="340" y="328" fill="#c0392b">no</text>
+    <text x="545" y="328" fill="#c0392b">no</text>
+    <text x="750" y="328" fill="#2e7d4f">yes</text>
+    <text x="955" y="328" fill="#2e7d4f">yes</text>
+    <!-- recording -->
+    <text x="340" y="376" fill="#c0392b">no</text>
+    <text x="545" y="376" fill="#55506a">manual</text>
+    <text x="750" y="376" fill="#55506a">manual</text>
+    <text x="955" y="376" fill="#2e7d4f">automatic</text>
+    <!-- 911 -->
+    <text x="340" y="424" fill="#c0392b">no</text>
+    <text x="545" y="424" fill="#2e7d4f">yes</text>
+    <text x="750" y="424" fill="#2e7d4f">yes</text>
+    <text x="955" y="424" fill="#2e7d4f">yes</text>
+    <!-- automated -->
+    <text x="340" y="472" fill="#c0392b">unsupported</text>
+    <text x="545" y="472" fill="#8a8398">not stated</text>
+    <text x="750" y="472" fill="#55506a">via attendant or group</text>
+    <text x="955" y="472" fill="#55506a">via attendant or group</text>
+  </g>
+  <!-- last row -->
+  <rect x="250" y="516" width="890" height="44" rx="10" fill="#fff4f2" stroke="#f3cfc8"/>
+  <text x="695" y="544" font-size="14.5" font-weight="600" fill="#c0392b" text-anchor="middle">No plan. A call nobody picks up goes to voicemail, with a transcript.</text>
+
+  <text x="60" y="612" font-size="12.5" fill="#a49dba">Source: support.google.com/voice/answer/9249103 (plan table) and /answer/165221 (forwarding). Single-user standalone plans ($10, $20) exist in the US only.</text>
+</svg>

@@ -24,7 +24,7 @@ export const meta = {
   description:
     "How a vet answering service handles after-hours emergencies, daytime overflow and mixed-animal on-call - and when you need a vet-tech triage line instead.",
   date: "2026-07-28",
-  updated: "2026-10-04",
+  updated: "2026-11-03",
   readingTime: "14 min read",
   tag: "Industries",
   hero: "/blog/veterinary-answering-service-hero.webp",
@@ -67,7 +67,7 @@ export const meta = {
     },
     {
       q: "How much does a veterinary answering service cost?",
-      a: "AI-based services list plans from about $20 to $300 a month; live operator services publish plans of $149 to $395 for 100 minutes - about $1.20 to $5 a minute depending on plan size - and land at several hundred a month for a busy clinic. Lines staffed by veterinary technicians are priced for clinical time, so ask them for per-call rates. Compare that to the alternative uses of your team: every hour a credentialed technician spends on hold-and-schedule calls is an hour of clinical capacity spent on the phone, and new-client calls that hit voicemail often become new clients of the clinic across town.",
+      a: "It depends on the kind. On prices published November 3, 2026: VetRec, a veterinary AI receptionist that books into the PIMS, charges $299 a month for up to 500 interactions or $499 for up to 1,000, per location, with extra interactions at $0.65. General AI receptionists that book into a calendar start around $99 a month (My AI Front Desk: $99 for 200 minutes). Live operator services bill by the minute or call - Ruby lists $395 for 100 minutes, Smith.ai $300 for 30 calls. Technician-staffed triage lines such as GuardianVets do not publish prices. For scale, the BLS median wage for a veterinary assistant was $38,150 a year in May 2025.",
     },
     {
       q: "Can an answering service give advice about my pet's symptoms?",
@@ -75,11 +75,11 @@ export const meta = {
     },
     {
       q: "What happens when someone calls at 2 a.m. about a poisoned pet?",
-      a: "The script your vets configured runs: the caller is immediately given your designated emergency animal hospital's information, and for suspected poisonings, the ASPCA Animal Poison Control Center's 24/7 hotline as well. The service captures what happened and alerts your team so the morning staff knows. What it must never do is speculate about whether the exposure is serious - that call gets routed in seconds, not triaged by a robot.",
+      a: "The script your vets configured runs: the caller is immediately given your designated emergency animal hospital's information, and for suspected poisonings a poison line as well - the ASPCA Animal Poison Control Center at (888) 426-4435 (a consultation fee may apply) or Pet Poison Helpline at (855) 764-7661 ($99 per incident). The service captures what happened and alerts your team so the morning staff knows. What it must never do is speculate about whether the exposure is serious - that call gets routed in seconds, not triaged by a robot.",
     },
     {
       q: "Can it book into my practice management software?",
-      a: "Ask specifically - this is the make-or-break integration for a clinic. The strongest setups read live availability and write appointments directly into your PIMS or a synced calendar, with appointment type, species, and reason attached. The workable fallback is a shared calendar your front desk reconciles. A service that only takes 'please call back to schedule' messages just moves your phone tag to the morning.",
+      a: "Ask specifically, and ask whether it reads or writes. A few veterinary AI products say they write appointments straight into ezyVet, Cornerstone, AVImark and others; general answering services and general AI receptionists book into a shared calendar your front desk re-keys; a service that only takes 'please call back' messages moves the phone tag to the morning. Write access is gated by the PIMS vendor: ezyVet's published private-integration terms are $500 once for read-only access and $50 per location per month for write-back. Our ranking of the vendors that claim write-back is in 'Best AI answering service for veterinary clinics'.",
     },
     {
       q: "Will pet owners accept talking to an AI?",
@@ -114,6 +114,42 @@ const sources: Source[] = [
   },
   {
     title:
+      "AVMA: Veterinary telehealth, the basics (definition of teletriage)",
+    url: "https://www.avma.org/resources-tools/animal-health-and-welfare/telehealth-telemedicine-veterinary-practice/veterinary-telehealth-basics",
+  },
+  {
+    title: "UW-Madison School of Veterinary Medicine: when to seek emergency care",
+    url: "https://www.vetmed.wisc.edu/when-to-seek-emergency-care-for-your-pet/",
+  },
+  {
+    title:
+      "University of Missouri Veterinary Health Center: recognizing a medical emergency",
+    url: "https://vhc.missouri.edu/emergency-services/recognizing-a-medical-emergency",
+  },
+  {
+    title: "Pet Poison Helpline ($99 per incident fee)",
+    url: "https://www.petpoisonhelpline.com/",
+  },
+  {
+    title:
+      "ezyVet developers: private integration fees ($500 read-only, $50 per location per month for write-back)",
+    url: "https://developers.ezyvet.com/apply/private.html",
+  },
+  {
+    title: "VetRec: AI Receptionist plans",
+    url: "https://vetrec.io/ai-receptionist",
+  },
+  {
+    title: "Ruby: pricing",
+    url: "https://www.ruby.com/pricing/",
+  },
+  {
+    title:
+      "BLS Occupational Outlook Handbook: veterinary assistants (median pay, May 2025)",
+    url: "https://www.bls.gov/ooh/healthcare/veterinary-assistants-and-laboratory-animal-caretakers.htm",
+  },
+  {
+    title:
       "Harvard Business Review: The Short Life of Online Sales Leads (lead response-time research)",
     url: "https://hbr.org/2011/03/the-short-life-of-online-sales-leads",
   },
@@ -143,7 +179,7 @@ export default function Body() {
             veterinarian&apos;s call, not a script&apos;s.
           </>,
           <>
-            Most veterinary calls are <Strong>transactional</Strong> -
+            Most veterinary calls are <Strong>transactional</Strong>{" "}-
             booking, rescheduling, refills, hours - and those are exactly the
             calls drowning your front desk during appointment crush.
           </>,
@@ -162,7 +198,7 @@ export default function Body() {
 
       <H2 id="short-answer">The short answer</H2>
       <P>
-        A <Strong>veterinary answering service</Strong> answers your
+        A <Strong>veterinary answering service</Strong>{" "}answers your
         clinic&apos;s phone when your team can&apos;t - during the morning
         crush, over lunch, and after close. It books, reschedules, and
         confirms appointments against your real schedule, takes refill
@@ -181,19 +217,25 @@ export default function Body() {
         <Internal href="/blog/best-ai-receptionist-for-dental-practices">
           dental guide
         </Internal>{" "}
-        covers the appointment-book economics that vet clinics share.
+        covers the appointment-book economics that vet clinics share. If you
+        already know you want AI and need to choose a vendor, we rank six of
+        them by what they can write into your PIMS in{" "}
+        <Internal href="/blog/best-ai-answering-service-for-veterinary-clinics">
+          best AI answering service for veterinary clinics
+        </Internal>
+        .
       </P>
 
       <H2 id="why-missed">Why vet clinics miss calls</H2>
       <UL>
         <LI>
-          <Strong>The front desk is a bottleneck by design.</Strong> The same
+          <Strong>The front desk is a bottleneck by design.</Strong>{" "}The same
           two people checking patients in, taking payments, and comforting a
           nervous chihuahua are also the phone team. When the lobby is full,
           the phone loses - it has to.
         </LI>
         <LI>
-          <Strong>Staffing is tight across the profession.</Strong> The{" "}
+          <Strong>Staffing is tight across the profession.</Strong>{" "}The{" "}
           <Ext href="https://www.avma.org/news/straight-talk-about-veterinary-workforce-issues">
             AVMA&apos;s workforce analyses
           </Ext>{" "}
@@ -202,12 +244,12 @@ export default function Body() {
           hire another receptionist to solve phone coverage.
         </LI>
         <LI>
-          <Strong>Call volume clusters at the worst times.</Strong> Monday
+          <Strong>Call volume clusters at the worst times.</Strong>{" "}Monday
           mornings, post-holiday, and the hour after school pickup - the
           times the schedule is fullest are the times the phone rings most.
         </LI>
         <LI>
-          <Strong>New clients don&apos;t redial.</Strong> A new-puppy owner
+          <Strong>New clients don&apos;t redial.</Strong>{" "}A new-puppy owner
           calling three clinics from a list books with whoever answers; the{" "}
           <Ext href="https://hbr.org/2011/03/the-short-life-of-online-sales-leads">
             HBR lead-response research
@@ -229,18 +271,18 @@ export default function Body() {
       </P>
       <UL>
         <LI>
-          <Strong>Capture, don&apos;t assess.</Strong> Species, age, what
+          <Strong>Capture, don&apos;t assess.</Strong>{" "}Species, age, what
           happened, when it started, what the pet ate if known - gathered
           precisely, evaluated never.
         </LI>
         <LI>
-          <Strong>Route by your doctors&apos; rules.</Strong> Your
+          <Strong>Route by your doctors&apos; rules.</Strong>{" "}Your
           veterinarians define which reported situations get the emergency
           referral, which get a same-day slot, and which book routinely. The
           service applies the rules; it doesn&apos;t write them.
         </LI>
         <LI>
-          <Strong>Refuse gracefully.</Strong> The scripted answer to
+          <Strong>Refuse gracefully.</Strong>{" "}The scripted answer to
           &quot;is this serious?&quot; is honest and kind:{" "}
           <em>
             &quot;I can&apos;t assess that - but I can get you to the people
@@ -258,6 +300,22 @@ export default function Body() {
       </Callout>
 
       <H2 id="triage">Routing rules for veterinary calls</H2>
+      <P>
+        Your veterinarians should write the emergency list, and the owner
+        guidance from veterinary teaching hospitals is a sensible starting
+        point. The{" "}
+        <Ext href="https://www.vetmed.wisc.edu/when-to-seek-emergency-care-for-your-pet/">
+          UW-Madison School of Veterinary Medicine
+        </Ext>{" "}
+        lists trouble breathing, seizures, ingestion of poisons, trauma,
+        straining to urinate, nonproductive retching, difficult labor and eye
+        injuries; the{" "}
+        <Ext href="https://vhc.missouri.edu/emergency-services/recognizing-a-medical-emergency">
+          University of Missouri Veterinary Health Center
+        </Ext>{" "}
+        adds a belly that has suddenly gone large and tense, and bleeding that
+        will not stop. Every one of those is a referral, not a booking.
+      </P>
       <Table
         caption="A starting routing rule set for a small-animal clinic"
         head={["Caller says", "Classification", "What the service does"]}
@@ -265,10 +323,10 @@ export default function Body() {
           [
             "Suspected poisoning or toxin exposure",
             "Emergency referral",
-            "Emergency hospital info + ASPCA poison control hotline immediately; log and alert the team",
+            "Emergency hospital info + a poison line (ASPCA (888) 426-4435 or Pet Poison Helpline (855) 764-7661) immediately; log and alert the team",
           ],
           [
-            "Hit by car, collapse, trouble breathing, nonstop vomiting",
+            "Hit by car, trouble breathing, seizures, retching with nothing coming up, male cat straining to urinate",
             "Emergency referral",
             "Designated ER info in the first seconds; capture details; alert on-call per your protocol",
           ],
@@ -302,7 +360,7 @@ export default function Body() {
       </P>
       <UL>
         <LI>
-          <Strong>Books and reschedules</Strong> against real availability -
+          <Strong>Books and reschedules</Strong>{" "}against real availability -
           by appointment type and doctor, with confirmations by text. (The
           mechanics are the same as{" "}
           <Internal href="/blog/ai-receptionist-appointment-booking">
@@ -312,21 +370,21 @@ export default function Body() {
           the right room and time block get used.)
         </LI>
         <LI>
-          <Strong>Absorbs the crush in parallel.</Strong> Three callers at
+          <Strong>Absorbs the crush in parallel.</Strong>{" "}Three callers at
           9:05 all get answered at once instead of two of them listening to
           hold music and one hanging up.
         </LI>
         <LI>
-          <Strong>Handles the informational majority</Strong> - hours,
+          <Strong>Handles the informational majority</Strong>{" "}- hours,
           location, whether you take exotics, records requests - without
           consuming a technician.
         </LI>
         <LI>
-          <Strong>Queues refills cleanly</Strong> as structured requests
+          <Strong>Queues refills cleanly</Strong>{" "}as structured requests
           rather than voicemails to decipher.
         </LI>
         <LI>
-          <Strong>Reduces no-shows</Strong> with confirmations and easy
+          <Strong>Reduces no-shows</Strong>{" "}with confirmations and easy
           rescheduling - an unanswered reschedule call often just becomes a
           no-show.
         </LI>
@@ -341,7 +399,7 @@ export default function Body() {
       </P>
       <UL>
         <LI>
-          <Strong>No-answer forwarding.</Strong> The desk phone rings first;
+          <Strong>No-answer forwarding.</Strong>{" "}The desk phone rings first;
           after a set number of rings - four is a common choice - the call
           forwards. Your carrier or phone system sets this, and{" "}
           <Internal href="/blog/how-to-forward-calls-to-an-answering-service">
@@ -350,18 +408,23 @@ export default function Body() {
           walks through the codes.
         </LI>
         <LI>
-          <Strong>Busy forwarding.</Strong> When every line is in use, the next
+          <Strong>Busy forwarding.</Strong>{" "}When every line is in use, the next
           caller goes straight to the service instead of hold music.
         </LI>
         <LI>
-          <Strong>Scheduled blocks.</Strong> Lunch, the first two hours of the
+          <Strong>Scheduled blocks.</Strong>{" "}Lunch, the first two hours of the
           morning, staff meetings - everything forwards for that window, then
           comes back to the desk.
         </LI>
       </UL>
       <P>
         What makes overflow work in a vet clinic is the hand-back. The service
-        has to book into the same schedule your team uses, with species and
+        has to book into the same schedule your team uses - ideally the PIMS
+        itself, which few products can do; ezyVet, for example,{" "}
+        <Ext href="https://developers.ezyvet.com/apply/private.html">
+          charges $50 per location per month for write-back access
+        </Ext>{" "}
+        on its private route - with species and
         reason attached; flag every call it couldn&apos;t resolve for a
         callback; and never offer a slot the desk just filled. Test it the way
         it will fail: two people call at once while the front desk is on a
@@ -376,12 +439,12 @@ export default function Body() {
       </P>
       <OL>
         <LI>
-          <Strong>Emergency info first, not last.</Strong> The designated
+          <Strong>Emergency info first, not last.</Strong>{" "}The designated
           ER&apos;s name, address, and number in the first seconds for any
           urgent-sounding call - before data collection, not after.
         </LI>
         <LI>
-          <Strong>Poison gets both referrals.</Strong> The ER, plus the{" "}
+          <Strong>Poison gets both referrals.</Strong>{" "}The ER, plus the{" "}
           <Ext href="https://www.aspca.org/pet-care/animal-poison-control">
             ASPCA Animal Poison Control Center&apos;s 24/7 hotline
           </Ext>{" "}
@@ -389,12 +452,12 @@ export default function Body() {
           chocolate-and-xylitol calls.
         </LI>
         <LI>
-          <Strong>Everything else books or messages.</Strong> Routine
+          <Strong>Everything else books or messages.</Strong>{" "}Routine
           requests book for tomorrow; the morning team gets a clean log
           instead of a voicemail box.
         </LI>
         <LI>
-          <Strong>The morning report.</Strong> Every after-hours contact
+          <Strong>The morning report.</Strong>{" "}Every after-hours contact
           summarized before opening: who was referred out, who needs a
           callback, who booked. Continuity of care starts with knowing who
           called.
@@ -415,19 +478,19 @@ export default function Body() {
           follow in the dark, and a callback number that has signal there.
         </LI>
         <LI>
-          <Strong>What the caller sees, in their words.</Strong> Species, how
+          <Strong>What the caller sees, in their words.</Strong>{" "}Species, how
           many animals, and the description - a horse that keeps lying down and
           getting up, a cow that has been calving for hours, an animal down and
           unable to rise. Captured precisely, assessed never.
         </LI>
         <LI>
-          <Strong>Page, confirm, escalate.</Strong> The on-call vet gets the
+          <Strong>Page, confirm, escalate.</Strong>{" "}The on-call vet gets the
           summary immediately; if the page isn&apos;t acknowledged within the
           window your practice sets, the backup vet gets it. The ladder is
           written down before anything is configured.
         </LI>
         <LI>
-          <Strong>Tell the caller what happens next.</Strong> Who will call
+          <Strong>Tell the caller what happens next.</Strong>{" "}Who will call
           back and roughly when - without guessing at an arrival time the
           service can&apos;t know.
         </LI>
@@ -483,7 +546,13 @@ export default function Body() {
       <P>
         The two combine well: AI or your front desk for the transactional
         majority, a teletriage line or your own on-call vet for anything
-        clinical. If you are evaluating a teletriage provider, ask who answers
+        clinical. GuardianVets, for example, says every triage call is handled
+        by a U.S.-based credentialed veterinary technician; we compare it with
+        the AI options in our{" "}
+        <Internal href="/blog/best-ai-answering-service-for-veterinary-clinics#shortlist">
+          vendor ranking
+        </Internal>
+        . If you are evaluating a teletriage provider, ask who answers
         and where they are credentialed, whose protocols they follow and
         whether your veterinarians can edit them, how a call becomes a
         referral back to your clinic, and what record of each call you
@@ -555,22 +624,22 @@ export default function Body() {
       <H2 id="limits">Where AI loses (and must not compete)</H2>
       <UL>
         <LI>
-          <Strong>Clinical judgment - permanently.</Strong> Not a current
+          <Strong>Clinical judgment - permanently.</Strong>{" "}Not a current
           limitation that better models will fix, but a boundary: triage
           belongs to licensed professionals, and the service&apos;s design
           should make crossing it impossible.
         </LI>
         <LI>
-          <Strong>Grief.</Strong> End-of-life calls, quality-of-life
+          <Strong>Grief.</Strong>{" "}End-of-life calls, quality-of-life
           conversations, the caller crying before she finishes a sentence -
           instantly human, every time, with no efficiency logic applied.
         </LI>
         <LI>
-          <Strong>Difficult clients and billing disputes.</Strong> These need
+          <Strong>Difficult clients and billing disputes.</Strong>{" "}These need
           authority and empathy the front desk has and a script doesn&apos;t.
         </LI>
         <LI>
-          <Strong>Disclosure.</Strong> Pet owners are trusting you with a
+          <Strong>Disclosure.</Strong>{" "}Pet owners are trusting you with a
           family member; a plain &quot;this is the clinic&apos;s AI
           assistant&quot; up front is the only honest configuration.{" "}
           <Internal href="/answers/do-callers-know-its-an-ai-receptionist">
@@ -583,13 +652,13 @@ export default function Body() {
       <H2 id="setup">Setting it up</H2>
       <OL>
         <LI>
-          <Strong>Have a veterinarian write the routing rules.</Strong> The
+          <Strong>Have a veterinarian write the routing rules.</Strong>{" "}The
           table above is a starting template, but the emergency-referral list
           and same-day criteria are clinical decisions - they come from your
           doctors, on paper, before configuration.
         </LI>
         <LI>
-          <Strong>Load the referral infrastructure.</Strong> Your designated
+          <Strong>Load the referral infrastructure.</Strong>{" "}Your designated
           ER&apos;s current info, the poison-control hotline, your records and
           refill policies. Verify the ER details quarterly.
         </LI>
@@ -599,7 +668,7 @@ export default function Body() {
           safe trial. Expand to overflow once the transcripts earn it.
         </LI>
         <LI>
-          <Strong>Test the hard calls yourself.</Strong> Roleplay the poison
+          <Strong>Test the hard calls yourself.</Strong>{" "}Roleplay the poison
           call, the grief call, and the &quot;is this serious?&quot; call
           before going live - then re-read transcripts weekly for the first
           month and tighten wording with your head technician.

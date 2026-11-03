@@ -25,7 +25,7 @@ export const meta = {
   description:
     "Step-by-step call forwarding setup for an answering service or AI receptionist: the four forwarding rules, carrier codes, and how to test it.",
   date: "2026-07-30",
-  updated: "2026-07-30",
+  updated: "2026-11-03",
   readingTime: "12 min read",
   tag: "Guides",
   hero: "/blog/call-forwarding-setup-hero.webp",
@@ -58,7 +58,7 @@ export const meta = {
   faqs: [
     {
       q: "How do I forward my business phone to an answering service?",
-      a: "You dial a short code on the line you want to forward, followed by the number the service gave you. On Verizon mobile it is *72 plus the number for all calls, or *71 plus the number for unanswered calls only, and *73 to switch forwarding off. On T-Mobile and AT&T it is the GSM-style codes - **21*number# for all calls, **61*number# for unanswered calls, **67*number# when you are on another call - and ##004# to clear all of them. On VoIP systems (RingCentral, Dialpad, Google Voice, 8x8, a hosted PBX) you do not dial codes at all; you set a forwarding or overflow destination in the admin panel, which is better because it can follow a schedule.",
+      a: "You dial a short code on the line you want to forward, followed by the number the service gave you. On Verizon mobile it is *72 plus the number for all calls, or *71 plus the number for unanswered calls only, and *73 to switch forwarding off. On T-Mobile and AT&T it is the GSM-style codes - **21*number# for all calls, **61*number# for unanswered calls, **67*number# when you are on another call - and ##004# to clear all of them. On VoIP systems (RingCentral, Dialpad, 8x8, a hosted PBX) you do not dial codes at all; you set a forwarding or overflow destination in the admin panel, which is better because it can follow a schedule. Free Google Voice is the exception: Google says forwarding its calls to an automated system is unsupported.",
     },
     {
       q: "Should I forward all calls or only the ones I miss?",
@@ -384,6 +384,21 @@ export default function Body() {
           service line, the Spanish line.
         </LI>
       </UL>
+      <Callout>
+        Google Voice is the exception to watch. Google says{" "}
+        <Ext href="https://support.google.com/voice/answer/165221?hl=en">
+          forwarding calls from your Google Voice number to an automated
+          system is unsupported
+        </Ext>{" "}
+        on the free plan, and points you to Workspace Voice&apos;s auto
+        attendant instead. On Voice Standard or Premier, route after-hours
+        calls to the service&apos;s number from the auto attendant or a ring
+        group. The plan-by-plan details are in{" "}
+        <Internal href="/blog/google-voice-for-business">
+          Google Voice for business
+        </Internal>
+        .
+      </Callout>
       <P>
         One warning specific to PBXs: check whether yours rewrites outbound
         caller ID. A PBX that stamps your main number on the forwarded leg makes

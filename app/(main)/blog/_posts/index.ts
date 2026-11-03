@@ -170,6 +170,15 @@ import ProfessionalVoicemailGreeting, {
 import OutsourcedReceptionist, {
   meta as outsourcedReceptionistMeta,
 } from "./outsourced-receptionist";
+import BestAiAnsweringServiceForVeterinaryClinics, {
+  meta as bestAiAnsweringServiceForVeterinaryClinicsMeta,
+} from "./best-ai-answering-service-for-veterinary-clinics";
+import GoogleVoiceForBusiness, {
+  meta as googleVoiceForBusinessMeta,
+} from "./google-voice-for-business";
+import GoogleVoiceAlternatives, {
+  meta as googleVoiceAlternativesMeta,
+} from "./google-voice-alternatives";
 
 export type PostMeta = {
   slug: string;
@@ -285,6 +294,9 @@ const postAuthors: Record<string, AuthorKey> = {
   "best-ai-cad-generator": "matus",
   "professional-voicemail-greeting": "matus",
   "outsourced-receptionist": "matus",
+  "best-ai-answering-service-for-veterinary-clinics": "matus",
+  "google-voice-for-business": "brano",
+  "google-voice-alternatives": "matus",
 };
 
 // Every module, retired ones included. Retired posts stay registered only so
@@ -397,6 +409,12 @@ export const allPosts: Post[] = [
     Body: ProfessionalVoicemailGreeting,
   },
   { ...outsourcedReceptionistMeta, Body: OutsourcedReceptionist },
+  {
+    ...bestAiAnsweringServiceForVeterinaryClinicsMeta,
+    Body: BestAiAnsweringServiceForVeterinaryClinics,
+  },
+  { ...googleVoiceForBusinessMeta, Body: GoogleVoiceForBusiness },
+  { ...googleVoiceAlternativesMeta, Body: GoogleVoiceAlternatives },
 ]
   .map((p) => ({
     ...p,

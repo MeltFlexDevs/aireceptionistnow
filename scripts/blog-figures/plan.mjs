@@ -134,4 +134,28 @@ export const PLAN = [
     subject:
       "a real photograph, not a 3D render: the front desk of a small professional office (an accounting or law practice) at midmorning on a working day, shot from the visitor side: the receptionist chair is empty and pushed in, a desk phone sits on the counter with ONE small green light lit as if a call is being handled elsewhere, a visitor sign-in clipboard and a small bell beside it, a few chairs in the waiting area behind, natural daylight from a side window; the phone and papers have NO readable text, NO logos; calm, ordinary, slightly lived-in, nobody in frame",
   },
+  {
+    out: "vet-clinic-front-desk-evening",
+    ref: "clinic-reception",
+    width: 1600,
+    height: 900,
+    subject:
+      "a real photograph, not a 3D render: the front desk of a small independent veterinary clinic just after closing on a weekday evening, shot handheld at eye level from the client side of the counter: a plain desk phone in its cradle with ONE small red light glowing, a closed appointment book, a jar of dog treats, a coiled leash hanging from a hook, a pet weighing scale on the floor in front of the counter, a couple of client chairs; the overhead lights are off and the room is lit by blue dusk light from the front window and one warm desk lamp; there are NO animals and NO people in frame; the phone, papers and walls have NO readable text and NO logos; lived-in, small imperfections",
+  },
+  {
+    out: "google-voice-business-counter-phone",
+    ref: "local-shop",
+    width: 1600,
+    height: 900,
+    subject:
+      "a real photograph, not a 3D render: the counter of a small independent flower shop on a busy weekday afternoon, shot at counter height from the customer side: a florist in a canvas apron is wrapping a bouquet in brown paper with BOTH hands (exactly two hands, ten fingers), her face out of frame or turned away, while a plain black smartphone lies face-up on the counter beside a roll of twine with its screen lit by an incoming call; the phone screen shows only a soft glow with NO readable text, NO logos and NO app icons; scissors, a few loose stems, a card reader; natural window light, shallow depth of field, focus on the phone; lived-in, slightly messy",
+  },
+  {
+    out: "google-voice-alternatives-desk-phones",
+    ref: "small-office",
+    width: 1600,
+    height: 900,
+    subject:
+      "a real photograph, not a 3D render: a plain wooden desk in a small office seen from slightly above at a three-quarter angle, with three phones side by side as if being compared: an older white desk phone with a coiled cord, a modern black VoIP desk phone with a small blank grey screen, and a smartphone lying face-down; a closed laptop at the edge of the frame, a notepad with a pen and a short handwritten list whose words are NOT readable; soft daylight from a side window; NO logos, NO readable text anywhere, nobody in frame; calm, ordinary, slightly lived-in",
+  },
 ]

@@ -567,7 +567,13 @@ export default function Body() {
         <Ext href="https://support.google.com/voice/answer/115069?hl=en">
           Google Voice Help
         </Ext>
-        ). Nobody needs either limit.
+        ). Nobody needs either limit. If the number is your business line,
+        check what each plan allows first: the free plan is for personal use,
+        as we explain in{" "}
+        <Internal href="/blog/google-voice-for-business">
+          Google Voice for business
+        </Internal>
+        .
       </P>
 
       <H2 id="ai-voice">Record it yourself or use an AI voice?</H2>

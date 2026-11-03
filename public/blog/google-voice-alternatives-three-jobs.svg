@@ -1,0 +1,63 @@
+<svg width="1200" height="640" viewBox="0 0 1200 640" fill="none" xmlns="http://www.w3.org/2000/svg" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" role="img" aria-label="Three different jobs people mean by a Google Voice alternative, with the lowest published entry prices checked November 3, 2026. Job one, a cheap second number for one person: Line2 from 7.99 dollars a month, iPlum from 8.99, Grasshopper True Solo from 14. Job two, a phone system for a team, priced per user per month: Quo 15, Dialpad 15, Nextiva 15, RingCentral 20. Job three, someone to answer when you can't: either an AI add-on to the phone system, such as Quo's Sona agent with 10 calls included, Ooma AI Answering from 14.99 dollars per account or RingCentral AI Receptionist from 39 dollars, or a standalone AI receptionist with its own number, such as Upfirst from 24.95 dollars for 30 calls, ours at 99 euros for 1,000 minutes, or Brilo at 149 dollars for 600 minutes. Most people need job one or two, and job three on top.">
+  <rect width="1200" height="640" fill="#fbfaff"/>
+  <rect x="0.5" y="0.5" width="1199" height="639" fill="none" stroke="#ece7f6"/>
+
+  <text x="60" y="58" font-size="26" font-weight="600" fill="#1a1a1a">"Google Voice alternative" means one of three jobs</text>
+  <text x="60" y="88" font-size="15.5" fill="#8a8398">Pick the job first. Lowest published entry prices, read on each vendor’s own pricing page, November 3, 2026.</text>
+
+  <!-- column 1 -->
+  <rect x="60" y="120" width="340" height="420" rx="14" fill="#ffffff" stroke="#e6e1f3" stroke-width="1.5"/>
+  <text x="88" y="156" font-size="12" font-weight="600" fill="#a49dba" letter-spacing="0.08em">JOB 1</text>
+  <text x="88" y="186" font-size="19" font-weight="600" fill="#1a1a1a">A cheap second number</text>
+  <text x="88" y="210" font-size="13.5" fill="#55506a">One person, answers their own phone,</text>
+  <text x="88" y="229" font-size="13.5" fill="#55506a">wants business calls off the personal line.</text>
+  <g font-size="15">
+    <text x="88" y="284" fill="#1a1a1a">Line2</text><text x="372" y="284" fill="#55506a" text-anchor="end">$7.99/mo</text>
+    <line x1="88" y1="300" x2="372" y2="300" stroke="#f0ecf8"/>
+    <text x="88" y="330" fill="#1a1a1a">iPlum Standard</text><text x="372" y="330" fill="#55506a" text-anchor="end">$8.99/mo</text>
+    <line x1="88" y1="346" x2="372" y2="346" stroke="#f0ecf8"/>
+    <text x="88" y="376" fill="#1a1a1a">Grasshopper True Solo</text><text x="372" y="376" fill="#55506a" text-anchor="end">$14/mo</text>
+  </g>
+  <text x="88" y="500" font-size="12.5" fill="#8a8398">US and Canada numbers only.</text>
+  <text x="88" y="518" font-size="12.5" fill="#8a8398">Missed calls still go to voicemail.</text>
+
+  <!-- column 2 -->
+  <rect x="430" y="120" width="340" height="420" rx="14" fill="#ffffff" stroke="#c3b8e6" stroke-width="1.5"/>
+  <text x="458" y="156" font-size="12" font-weight="600" fill="#7a6fa8" letter-spacing="0.08em">JOB 2</text>
+  <text x="458" y="186" font-size="19" font-weight="600" fill="#1a1a1a">A phone system for a team</text>
+  <text x="458" y="210" font-size="13.5" fill="#55506a">Shared numbers, phone menus, ring</text>
+  <text x="458" y="229" font-size="13.5" fill="#55506a">groups, an app for everyone.</text>
+  <g font-size="15">
+    <text x="458" y="284" fill="#1a1a1a">Quo Starter</text><text x="742" y="284" fill="#55506a" text-anchor="end">$15/user</text>
+    <line x1="458" y1="300" x2="742" y2="300" stroke="#f0ecf8"/>
+    <text x="458" y="330" fill="#1a1a1a">Dialpad Standard</text><text x="742" y="330" fill="#55506a" text-anchor="end">$15/user</text>
+    <line x1="458" y1="346" x2="742" y2="346" stroke="#f0ecf8"/>
+    <text x="458" y="376" fill="#1a1a1a">Nextiva Core</text><text x="742" y="376" fill="#55506a" text-anchor="end">$15/user</text>
+    <line x1="458" y1="392" x2="742" y2="392" stroke="#f0ecf8"/>
+    <text x="458" y="422" fill="#1a1a1a">RingCentral Core</text><text x="742" y="422" fill="#55506a" text-anchor="end">$20/user</text>
+  </g>
+  <text x="458" y="500" font-size="12.5" fill="#8a8398">Compare: Google Voice Standard is</text>
+  <text x="458" y="518" font-size="12.5" fill="#8a8398">$20/user plus a paid Workspace plan.</text>
+
+  <!-- column 3 -->
+  <rect x="800" y="120" width="340" height="420" rx="14" fill="#5b3ef0"/>
+  <text x="828" y="156" font-size="12" font-weight="600" fill="#d9d0ff" letter-spacing="0.08em">JOB 3</text>
+  <text x="828" y="186" font-size="19" font-weight="600" fill="#ffffff">Someone to answer for you</text>
+  <text x="828" y="210" font-size="13.5" fill="#ece7ff">The calls you miss at lunch, on a job</text>
+  <text x="828" y="229" font-size="13.5" fill="#ece7ff">or after hours. No plan above does this.</text>
+  <text x="828" y="268" font-size="11.5" font-weight="600" fill="#d9d0ff" letter-spacing="0.06em">AI ADD-ON TO YOUR PHONE SYSTEM</text>
+  <g font-size="14.5" fill="#ffffff">
+    <text x="828" y="296">Quo Sona</text><text x="1112" y="296" text-anchor="end" fill="#ece7ff">10 calls included</text>
+    <text x="828" y="322">Ooma AI Answering</text><text x="1112" y="322" text-anchor="end" fill="#ece7ff">from $14.99</text>
+    <text x="828" y="348">RingCentral AIR</text><text x="1112" y="348" text-anchor="end" fill="#ece7ff">from $39</text>
+  </g>
+  <text x="828" y="388" font-size="11.5" font-weight="600" fill="#d9d0ff" letter-spacing="0.06em">STANDALONE, WITH ITS OWN NUMBER</text>
+  <g font-size="14.5" fill="#ffffff">
+    <text x="828" y="416">Upfirst</text><text x="1112" y="416" text-anchor="end" fill="#ece7ff">$24.95 / 30 calls</text>
+    <text x="828" y="442">AI Receptionist Now (us)</text><text x="1112" y="442" text-anchor="end" fill="#ece7ff">€99 / 1,000 min</text>
+    <text x="828" y="468">Brilo</text><text x="1112" y="468" text-anchor="end" fill="#ece7ff">$149 / 600 min</text>
+  </g>
+  <text x="828" y="518" font-size="12.5" fill="#d9d0ff">Usually bought on top of job 1 or 2.</text>
+
+  <text x="60" y="590" font-size="12.5" fill="#a49dba">Jobs 1 and 2: per month, billed annually. Job 3: billed monthly. We sell one of the AI receptionists in job 3.</text>
+</svg>
