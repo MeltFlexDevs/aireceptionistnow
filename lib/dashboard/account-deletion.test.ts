@@ -77,6 +77,7 @@ function fakes(overrides: Partial<AccountDeletionDeps> = {}, billing: DeletionBi
       log.push("revoke-apple");
       return true;
     },
+    hasAppleIdentity: step("apple-identity", false),
     deleteAuthUser: step("delete-auth-user"),
     deleteRevenueCatSubscriber: step("revenuecat"),
     revalidate: () => {
@@ -265,6 +266,72 @@ test("an account with nothing in it deletes cleanly", async () => {
   });
   const result = await runAccountDeletion(USER, deps);
   assert.deepEqual(result, { storeSubscription: null, warnings: [] });
+});
+
+test("an Apple sign-in user with no stored token is a logged warning, read before the auth user goes", async (t) => {
+  const warns = t.mock.method(console, "warn", () => {});
+  const { deps, log } = fakes({
+    revokeAppleToken: async () => {
+      log.push("revoke-apple");
+      return false;
+    },
+    hasAppleIdentity: async (userId) => {
+      log.push(`apple-identity:${userId}`);
+      return true;
+    },
+  });
+
+  const result = await runAccountDeletion(USER, deps);
+
+  assert.deepEqual(result, { storeSubscription: null, warnings: ["apple-token-revocation"] });
+  assert.deepEqual(log.slice(log.indexOf("revoke-apple"), log.indexOf("delete-auth-user") + 1), [
+    "revoke-apple",
+    `apple-identity:${USER}`,
+    "delete-auth-user",
+  ]);
+  assert.deepEqual(
+    warns.mock.calls.map((c) => c.arguments),
+    [["[account-deletion] apple revoke skipped: no stored token"]],
+  );
+});
+
+test("no token and no Apple identity is no warning and no log", async (t) => {
+  const warns = t.mock.method(console, "warn", () => {});
+  const { deps, log } = fakes({
+    revokeAppleToken: async () => {
+      log.push("revoke-apple");
+      return false;
+    },
+  });
+
+  const result = await runAccountDeletion(USER, deps);
+
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(log.slice(log.indexOf("revoke-apple"), log.indexOf("delete-auth-user") + 1), [
+    "revoke-apple",
+    "apple-identity",
+    "delete-auth-user",
+  ]);
+  assert.equal(warns.mock.callCount(), 0);
+});
+
+test("a failed Apple identity read is a logged warning, not a stop", async (t) => {
+  const warns = t.mock.method(console, "warn", () => {});
+  const { deps, log } = fakes({
+    revokeAppleToken: async () => false,
+    hasAppleIdentity: async () => {
+      throw new Error("auth admin down");
+    },
+  });
+
+  const result = await runAccountDeletion(USER, deps);
+
+  assert.deepEqual(result.warnings, ["apple-token-revocation"]);
+  assert.ok(log.includes("delete-auth-user"));
+  assert.deepEqual(
+    warns.mock.calls.map((c) => c.arguments),
+    [["[account-deletion] apple revoke failed", "auth admin down"]],
+  );
 });
 
 test("a failed conversation list stops the deletion before the call rows go", async () => {

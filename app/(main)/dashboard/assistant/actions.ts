@@ -33,6 +33,8 @@ import {
   routeNumberToAgent,
 } from "@/lib/call-engine/elevenlabs";
 import { pickDemoCallerId } from "@/lib/call-engine/demo-caller";
+import { isServedCountry, reserveTestCall, testCallCountry } from "@/lib/call-engine/test-call-limit";
+import { supabaseTestCallStore } from "@/lib/call-engine/test-call-store";
 import { isSetupMissing, voiceConfigured } from "@/lib/call-engine/setup-check";
 import { syncAssistantAgent, deleteAssistantAgent } from "@/lib/call-engine/agent/sync";
 import { checkToolUrl, isBlockedHost } from "@/lib/call-engine/agent/custom-tools";
@@ -306,6 +308,9 @@ export async function getAgentNumberAction(
     return ok(a.numberReady);
   }
 
+  // Only the countries we serve and price can be bought (the select offers no others).
+  if (!isServedCountry(country)) return fail(a.numberUnavailable);
+
   const ownerId = await currentUserId();
   const allowance = await canAssignNumber(ownerId);
   if (!allowance.ok) return fail(allowance.reason || a.saveFailed);
@@ -382,16 +387,52 @@ export async function testCallAction(
   await requireAssistantOwner(assistantId);
   // "E.164" is a spec name, not something to put in front of a business owner.
   if (!to) return fail(a.badPhoneFormat);
+  // Served countries only: a test call to any number is a toll-fraud route.
+  const country = testCallCountry(to);
+  if (!country) return fail(a.testCallCountry);
+  // No ElevenLabs key: calls cannot be placed at all, so a retry cannot help.
+  // Checked before the slot is taken, so there is nothing to give back.
+  if (!voiceConfigured()) return fail(a.testCallUnavailable);
+
+  // Daily limit, taken before the call and given back when it is not placed.
+  // No owner or a store error fails closed: no unmetered calls.
+  const ownerId = await currentUserId();
+  if (!ownerId) return fail(a.testCallUnavailable);
+  let slot;
+  let free = true;
+  try {
+    free = (await getPlanContext(ownerId)).planId === null;
+    slot = await reserveTestCall(supabaseTestCallStore, {
+      owner: ownerId,
+      assistant: assistantId,
+      free,
+      country,
+    });
+  } catch (err) {
+    console.error("[assistant] test call limit failed", err);
+    return fail(a.testCallFailed);
+  }
+  if (!slot.ok) {
+    return fail(
+      slot.reason === "free_limit"
+        ? a.testCallLimitShared
+        : free
+          ? a.testCallLimitFree
+          : a.testCallLimitPaid,
+    );
+  }
+  const release = () => slot.release().catch((err) => console.error("[assistant] test call release", err));
 
   try {
     await assertUnderCallCaps();
   } catch (err) {
+    await release();
     // Over the hourly/daily cap - surface the friendly message it throws.
     return fail((err as Error).message);
   }
-  // No ElevenLabs key: calls cannot be placed at all, so a retry cannot help.
-  if (!voiceConfigured()) return fail(a.testCallUnavailable);
 
+  // Every exit below that does not place the call gives the slot back (finally).
+  let placed = false;
   try {
     const assistant = await getAssistant(assistantId).catch(() => null);
     const agentId = assistant?.elevenlabs_agent_id ?? (await syncAssistantAgent(assistantId));
@@ -413,9 +454,12 @@ export async function testCallAction(
     if (!agentPhoneNumberId) return fail(a.testCallUnavailable);
 
     await placeAgentCall(to, { agentId: agentId ?? undefined, agentPhoneNumberId });
+    placed = true;
   } catch (err) {
     console.error("[assistant] test call failed", err);
     return fail(a.testCallFailed);
+  } finally {
+    if (!placed) await release();
   }
 
   return ok(a.callingYou);

@@ -12,9 +12,10 @@ import {
 } from "@/lib/call-engine/caller-context";
 import { escalationPolicyLine, parseEscalation } from "@/lib/call-engine/escalation";
 import { getRepository } from "@/lib/call-engine/persistence/supabase";
+import { PAUSED_TRANSFER_POLICY, pausedGreeting, pausedPrompt } from "@/lib/call-engine/paused";
 import { TRANSFER_POLICY_OPEN } from "@/lib/call-engine/transfer-hours";
 import { withDeadline } from "@/lib/call-engine/net";
-import { voiceForLanguage, baseLanguage } from "@/lib/call-engine/voice/catalog";
+import { voiceForLanguage, baseLanguage, isAllowedVoice } from "@/lib/call-engine/voice/catalog";
 import { languageFromPhone } from "@/lib/call-engine/voice/phone-language";
 import { maskPhone } from "@/lib/log-mask";
 
@@ -140,6 +141,7 @@ export async function POST(req: Request): Promise<Response> {
     caller: maskPhone(callerId),
     language: language ?? "(agent default)",
     multilingual: config.multilingual,
+    paused: config.paused,
   });
   const routing = (config.routing ?? {}) as {
     voiceByLanguage?: Record<string, string>;
@@ -151,24 +153,47 @@ export async function POST(req: Request): Promise<Response> {
     language && m ? ((m[language] ?? m[base]) || "").trim() : "";
   // Sync precomputes per-language voices and greeting translations at save
   // time; live Gemini/voice-catalog lookups are cold-path fallbacks only.
-  const storedVoice = fromMap(routing.voiceByLanguage) || fromMap(routing.autoVoiceByLanguage);
+  // The owner's own pick is trusted. A stored auto voice was chosen from a shared
+  // account, so it plays only if it is allowlisted; otherwise the receptionist's
+  // own voice speaks (the multilingual models speak every language with it).
+  // The check runs inside the Promise.all below, next to the greeting lookup.
+  const ownVoice = fromMap(routing.voiceByLanguage);
+  const autoVoice = fromMap(routing.autoVoiceByLanguage);
+  // Paused: a fixed closed line replaces the owner's greeting. The stored
+  // translations are of the owner's greeting, so they never apply to it.
+  const greeting = config.paused ? pausedGreeting(config.businessName) : config.greeting;
   const storedGreeting =
-    routing.greetingByLanguage?._source === config.greeting
+    !config.paused && routing.greetingByLanguage?._source === config.greeting
       ? fromMap(routing.greetingByLanguage)
       : "";
   const [firstMessage, voiceId] = language
     ? await Promise.all([
         storedGreeting
           ? Promise.resolve(storedGreeting)
-          : withDeadline(localizeGreeting(config.greeting, language), OVERRIDE_BUDGET_MS, config.greeting),
-        storedVoice
-          ? Promise.resolve(storedVoice)
-          : withDeadline(voiceForLanguage(language, config.voiceId, true), OVERRIDE_BUDGET_MS, config.voiceId),
+          : withDeadline(localizeGreeting(greeting, language), OVERRIDE_BUDGET_MS, greeting),
+        ownVoice
+          ? Promise.resolve(ownVoice)
+          : autoVoice
+            ? withDeadline(isAllowedVoice(autoVoice), OVERRIDE_BUDGET_MS, false).then((ok) =>
+                ok ? autoVoice : config.voiceId,
+              )
+            : withDeadline(voiceForLanguage(language, config.voiceId, true), OVERRIDE_BUDGET_MS, config.voiceId),
       ])
-    : [config.greeting, null];
+    : [
+        // Caller language unknown: the owner's greeting already fits the agent's
+        // language, but the closed line is English, so translate it into the
+        // agent's own language with the same deadline and fallback.
+        config.paused
+          ? await withDeadline(localizeGreeting(greeting, config.language), OVERRIDE_BUDGET_MS, greeting)
+          : greeting,
+        null,
+      ];
 
   const agentOverride: Record<string, unknown> = { first_message: firstMessage };
   if (language) agentOverride.language = language;
+  // Paused: take messages only. Owner agents allow-list agent.prompt.prompt
+  // for override (sync.ts platformSettings).
+  if (config.paused) agentOverride.prompt = { prompt: pausedPrompt(config, callerId) };
 
   const overrides: Record<string, unknown> = { agent: agentOverride };
   if (language && voiceId) {
@@ -180,7 +205,9 @@ export async function POST(req: Request): Promise<Response> {
   // Which destinations can take a hand-off right now. Evaluated per call because
   // the answer changes with the clock; the synced prompt only carries the
   // placeholder. Fails open on a malformed schedule - see escalation.ts.
-  const transferPolicy = escalationPolicyLine(parseEscalation(config.routing), new Date());
+  const transferPolicy = config.paused
+    ? PAUSED_TRANSFER_POLICY
+    : escalationPolicyLine(parseEscalation(config.routing), new Date());
 
   return json({
     type: "conversation_initiation_client_data",

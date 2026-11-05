@@ -2,7 +2,7 @@
 
 import { revalidatePath, revalidateTag } from "next/cache";
 import { currentUserId } from "@/lib/auth";
-import { getAccountSettings, saveAccountProfile, saveNotificationSettings } from "@/lib/dashboard/account";
+import { getAccountSettings, saveAccountProfile } from "@/lib/dashboard/account";
 import {
   listOrganizationAssistants,
   listOrganizations,
@@ -95,27 +95,6 @@ export async function saveAccountAction(
       console.error("[settings] business rename failed", err);
       return fail(s.saveFailed);
     }
-  }
-
-  revalidatePath("/dashboard/settings");
-  return ok();
-}
-
-export async function saveNotificationsAction(
-  _prev: ActionState,
-  formData: FormData,
-): Promise<ActionState> {
-  const s = (await getDictionary()).settings;
-  const userId = await currentUserId();
-  if (!userId) return fail(s.signInToSave);
-
-  try {
-    await saveNotificationSettings(userId, {
-      notify_email: formData.get("notify_email") === "on",
-      notify_sms: formData.get("notify_sms") === "on",
-    });
-  } catch {
-    return fail(s.saveFailed);
   }
 
   revalidatePath("/dashboard/settings");

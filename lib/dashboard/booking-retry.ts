@@ -28,20 +28,40 @@ export function bookingSyncState(payload: Record<string, unknown>): BookingSyncS
   return { attempts: typeof s?.attempts === "number" ? s.attempts : 0, lastAt: s?.lastAt, lastError: s?.lastError };
 }
 
+/**
+ * Why a retry cannot work as things stand. A plain retry would fail the same
+ * way, so the owner must act first (call the customer, connect, refresh).
+ */
+export const RETRY_FAILURE_CODES = [
+  "slot_taken",
+  "not_connected",
+  "no_calendar",
+  "past",
+  "no_time",
+  "not_failed",
+] as const;
+export type RetryFailureCode = (typeof RETRY_FAILURE_CODES)[number];
+
 export interface RetryResult {
   ok: boolean;
   /** No such booking, or not this owner's: a retry can never work. */
   notFound?: boolean;
+  /** Set only for a failure that a plain retry cannot fix. */
+  code?: RetryFailureCode;
   message: string;
 }
 
 /**
- * The HTTP status for a retry result. Not found is 404, not the 502 "try again"
- * of a failed sync, so the app stops retrying a booking it can never reach.
+ * The HTTP status for a retry result. Not found is 404 and a failure with a
+ * code is 409, not the 502 "try again" of a provider error or timeout, so the
+ * app stops retrying a booking that a retry cannot fix.
  */
-export function retryResponseStatus(res: Pick<RetryResult, "ok" | "notFound">): 200 | 404 | 502 {
+export function retryResponseStatus(
+  res: Pick<RetryResult, "ok" | "notFound" | "code">,
+): 200 | 404 | 409 | 502 {
   if (res.ok) return 200;
-  return res.notFound ? 404 : 502;
+  if (res.notFound) return 404;
+  return res.code ? 409 : 502;
 }
 
 function str(v: unknown): string {
@@ -94,10 +114,10 @@ async function retry(
     return { ok: false, notFound: true, message: "booking not found" };
   }
   if (data.status !== "failed") {
-    return { ok: false, message: "only failed bookings can be retried" };
+    return { ok: false, code: "not_failed", message: "only failed bookings can be retried" };
   }
   if (!data.integration_id) {
-    return { ok: false, message: "no calendar was attached to this booking" };
+    return { ok: false, code: "no_calendar", message: "no calendar was attached to this booking" };
   }
 
   const payload = ((data.payload as Record<string, unknown>) ?? {}) as Record<string, unknown>;
@@ -126,24 +146,29 @@ async function retry(
     if (upErr) console.error("[booking-retry] recording attempt failed", actionId, upErr);
   };
 
+  // undefined: the lookup threw, which is transient, so no code (a plain 502
+  // retry). null: the number is gone, and its calendar with it.
   const config = await getRepository()
     .resolveInboundNumber(str(call.to_number))
-    .catch(() => null);
+    .catch(() => undefined);
+  if (config === undefined) {
+    return { ok: false, message: "the calendar lookup failed" };
+  }
   const resolved = config
     ? resolveCalendarById(config.integrations, String(data.integration_id))
     : null;
   if (!config || !resolved) {
-    return { ok: false, message: "the calendar integration is no longer connected" };
+    return { ok: false, code: "not_connected", message: "the calendar integration is no longer connected" };
   }
 
   const req = bookingRequestFromPayload(payload, str(call.from_number));
   const startMs = Date.parse(req.startTime);
   const endMs = Date.parse(req.endTime);
   if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs <= startMs) {
-    return { ok: false, message: "the booking has no valid time to sync" };
+    return { ok: false, code: "no_time", message: "the booking has no valid time to sync" };
   }
   if (endMs < Date.now()) {
-    return { ok: false, message: "the appointment time has already passed" };
+    return { ok: false, code: "past", message: "the appointment time has already passed" };
   }
 
   // The slot may have been taken since the call - never sync over a conflict.
@@ -154,7 +179,7 @@ async function retry(
   if (check?.ok && !check.requestedFree) {
     const message = "the time slot is no longer free - rebook with the caller";
     await recordAttempt({ error: message });
-    return { ok: false, message };
+    return { ok: false, code: "slot_taken", message };
   }
 
   const result = await withDeadline(resolved.provider.createEvent(req), BOOKING_TIMEOUT_MS, {

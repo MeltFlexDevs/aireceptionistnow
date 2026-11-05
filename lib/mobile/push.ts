@@ -1,6 +1,7 @@
 import "server-only";
 
 import { serviceClient } from "@/lib/dashboard/supabase";
+import { readTickets, type ExpoTicket, type PushTarget, type PushTicketRow } from "@/lib/mobile/push-receipts";
 
 /**
  * Expo push delivery for the native app.
@@ -46,17 +47,6 @@ export interface PushMessage {
   category?: PushCategory;
 }
 
-interface ExpoTicket {
-  status?: "ok" | "error";
-  id?: string;
-  message?: string;
-  details?: { error?: string };
-}
-
-interface DeviceRow {
-  token: string;
-}
-
 /**
  * Whether the failure is "migration 0012 has not added push_devices.device_id".
  * Postgres answers 42703 for an undefined column; PostgREST wraps it as PGRST204.
@@ -85,18 +75,23 @@ function isMissingDeviceColumn(err: unknown): boolean {
  * what lets `revokeDevice` (lib/mobile/devices.ts) find and drop this row. Only
  * written when given, so an older build without the header does not blank a
  * value a newer build stored.
+ *
+ * `enabled` is the app's stored mute (see `enabledOnRegister` in
+ * lib/mobile/push-register.ts). Writing it in this same upsert is what stops a
+ * cold-start register from un-muting the phone.
  */
 export async function registerPushDevice(
   ownerId: string,
   token: string,
   platform: string,
   deviceId?: string | null,
+  enabled = true,
 ): Promise<void> {
   const row: Record<string, unknown> = {
     owner_id: ownerId,
     token,
     platform: platform === "ios" || platform === "android" ? platform : "unknown",
-    enabled: true,
+    enabled,
     last_seen_at: new Date().toISOString(),
   };
   if (deviceId) row.device_id = deviceId;
@@ -130,6 +125,34 @@ export async function deletePushDevicesByDeviceId(ownerId: string, deviceId: str
   if (!error) return;
   if (isMissingDeviceColumn(error)) {
     // Nothing to match on yet; the revoke of the account_devices row stands.
+    console.warn("[push] push_devices.device_id is missing - run migration 0012");
+    return;
+  }
+  throw error;
+}
+
+/**
+ * Drop every push row this owner has except the ones from `keepDeviceId`: the
+ * push half of "sign out everywhere else" (`revokeOtherDevices`). `neq` never
+ * matches a null `device_id`, so those rows get their own delete. They come
+ * from a build that did not send `X-Device-Id` and cannot be matched to the
+ * caller; if one was the caller's, its app registers again on the next cold
+ * start. Scoped by owner: a device id is client-supplied.
+ */
+export async function deletePushDevicesExceptDeviceId(ownerId: string, keepDeviceId: string): Promise<void> {
+  const client = serviceClient();
+  const others = await client
+    .from("push_devices")
+    .delete()
+    .eq("owner_id", ownerId)
+    .neq("device_id", keepDeviceId);
+  const error =
+    others.error ??
+    (await client.from("push_devices").delete().eq("owner_id", ownerId).is("device_id", null)).error;
+  if (!error) return;
+  if (isMissingDeviceColumn(error)) {
+    // No row can be told apart from the caller's yet; the account_devices
+    // delete stands, as in deletePushDevicesByDeviceId.
     console.warn("[push] push_devices.device_id is missing - run migration 0012");
     return;
   }
@@ -184,10 +207,21 @@ async function pruneDeadTokens(tokens: string[]): Promise<void> {
   if (error) console.error("[push] prune failed", error);
 }
 
+/**
+ * Store the ok tickets so the push-receipts cron can read their receipts
+ * (lib/mobile/push-receipts.ts). Best-effort like the send: before migration
+ * 0018 the insert fails and only logs.
+ */
+async function recordTickets(rows: PushTicketRow[]): Promise<void> {
+  if (rows.length === 0) return;
+  const { error } = await serviceClient().from("push_tickets").insert(rows);
+  if (error) console.error("[push] storing tickets failed", error);
+}
+
 async function postChunk(
-  tokens: string[],
+  targets: PushTarget[],
   message: PushMessage,
-): Promise<string[]> {
+): Promise<{ dead: string[]; pending: PushTicketRow[] }> {
   const abort = new AbortController();
   const timer = setTimeout(() => abort.abort(), TIMEOUT_MS);
   try {
@@ -199,8 +233,8 @@ async function postChunk(
         accept: "application/json",
       },
       body: JSON.stringify(
-        tokens.map((to) => ({
-          to,
+        targets.map(({ token }) => ({
+          to: token,
           title: message.title,
           body: message.body,
           sound: "default",
@@ -214,19 +248,17 @@ async function postChunk(
     });
     if (!res.ok) {
       console.error(`[push] expo responded ${res.status}`);
-      return [];
+      return { dead: [], pending: [] };
     }
     const body = (await res.json()) as { data?: ExpoTicket[] };
-    const dead: string[] = [];
-    (body.data ?? []).forEach((ticket, i) => {
-      if (ticket.status !== "error") return;
-      if (ticket.details?.error === "DeviceNotRegistered") dead.push(tokens[i]);
-      else console.error(`[push] ticket error: ${ticket.message ?? ticket.details?.error}`);
-    });
-    return dead;
+    // Dead tokens in tickets are pruned now. The ok tickets wait for their
+    // receipts, which report most dead tokens (lib/mobile/push-receipts.ts).
+    const { dead, pending, errors } = readTickets(targets, body.data ?? []);
+    for (const error of errors) console.error(`[push] ticket error: ${error}`);
+    return { dead, pending };
   } catch (err) {
     console.error("[push] send failed", err);
-    return [];
+    return { dead: [], pending: [] };
   } finally {
     clearTimeout(timer);
   }
@@ -247,20 +279,24 @@ export async function sendPushToOwner(
   try {
     const { data, error } = await serviceClient()
       .from("push_devices")
-      .select("token")
+      .select("id, token")
       .eq("owner_id", ownerId)
       .eq("enabled", true);
     if (error) throw error;
 
-    const tokens = ((data ?? []) as DeviceRow[]).map((d) => d.token).filter(Boolean);
-    if (tokens.length === 0) return 0;
+    const targets = ((data ?? []) as PushTarget[]).filter((d) => Boolean(d.token));
+    if (targets.length === 0) return 0;
 
     const dead: string[] = [];
-    for (let i = 0; i < tokens.length; i += CHUNK) {
-      dead.push(...(await postChunk(tokens.slice(i, i + CHUNK), message)));
+    const pending: PushTicketRow[] = [];
+    for (let i = 0; i < targets.length; i += CHUNK) {
+      const sent = await postChunk(targets.slice(i, i + CHUNK), message);
+      dead.push(...sent.dead);
+      pending.push(...sent.pending);
     }
+    await recordTickets(pending);
     await pruneDeadTokens(dead);
-    return tokens.length;
+    return targets.length;
   } catch (err) {
     console.error("[push] sendPushToOwner failed", err);
     return 0;

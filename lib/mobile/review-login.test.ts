@@ -1,8 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
+import type { SupabaseClient } from "@supabase/supabase-js";
+
 import {
   MIN_MISS_MS,
+  REVIEW_SAMPLE_CALLS,
   isReviewEmail,
   normalizeCode,
   normalizeEmail,
@@ -10,6 +13,7 @@ import {
   reviewCredentialsMatch,
   reviewLogin,
   safeEqual,
+  seedReviewAccount,
 } from "./review-login";
 
 const expected = { email: "review@example.com", code: "123456" };
@@ -60,6 +64,31 @@ test("reviewCredentials is null unless both env vars are set", () => {
 
     process.env.APP_REVIEW_CODE = " 123456 ";
     assert.deepEqual(reviewCredentials(), { email: "review@example.com", code: "123456" });
+  } finally {
+    if (saved.email === undefined) delete process.env.APP_REVIEW_EMAIL;
+    else process.env.APP_REVIEW_EMAIL = saved.email;
+    if (saved.code === undefined) delete process.env.APP_REVIEW_CODE;
+    else process.env.APP_REVIEW_CODE = saved.code;
+  }
+});
+
+test("reviewCredentials rejects a code that is not exactly 6 digits and never logs it", (t) => {
+  const saved = { email: process.env.APP_REVIEW_EMAIL, code: process.env.APP_REVIEW_CODE };
+  const logged = t.mock.method(console, "error", () => {});
+  try {
+    process.env.APP_REVIEW_EMAIL = "review@example.com";
+    for (const bad of ["12345", "1234567", "12a456", "12 3456", "abcdef"]) {
+      process.env.APP_REVIEW_CODE = bad;
+      assert.equal(reviewCredentials(), null, bad);
+    }
+    assert.equal(logged.mock.callCount(), 5);
+    for (const call of logged.mock.calls) {
+      assert.deepEqual(call.arguments, ["[review-login] APP_REVIEW_CODE must be exactly 6 digits"]);
+    }
+
+    process.env.APP_REVIEW_CODE = "654321";
+    assert.deepEqual(reviewCredentials(), { email: "review@example.com", code: "654321" });
+    assert.equal(logged.mock.callCount(), 5);
   } finally {
     if (saved.email === undefined) delete process.env.APP_REVIEW_EMAIL;
     else process.env.APP_REVIEW_EMAIL = saved.email;
@@ -152,4 +181,197 @@ test("reviewLogin only waits for the rest of the floor, and not at all once it h
     if (saved.code === undefined) delete process.env.APP_REVIEW_CODE;
     else process.env.APP_REVIEW_CODE = saved.code;
   }
+});
+
+type Row = Record<string, unknown>;
+
+/** In-memory stand-in for the service-role client: only what seedReviewAccount calls. */
+function fakeAdmin(users: { id: string; email: string }[] = []) {
+  const tables: Record<string, Row[]> = {
+    organizations: [],
+    assistants: [],
+    account_settings: [],
+    onboarding_profiles: [],
+    calls: [],
+    call_turns: [],
+  };
+  const billing: Row[] = [];
+  const rpcCalls: string[] = [];
+  let next = 0;
+  const newId = () => `id-${++next}`;
+
+  function from(table: string) {
+    const rows = tables[table];
+    if (!rows) throw new Error(`unexpected table ${table}`);
+    const filters: [string, unknown][] = [];
+    let limit = Infinity;
+    let written: Row[] | null = null;
+    const result = () => ({
+      data: written ?? rows.filter((row) => filters.every(([key, value]) => (row[key] ?? null) === value)).slice(0, limit),
+      error: null,
+    });
+    const builder = {
+      select: () => builder,
+      order: () => builder,
+      eq: (key: string, value: unknown) => {
+        filters.push([key, value]);
+        return builder;
+      },
+      is: (key: string, value: unknown) => {
+        filters.push([key, value]);
+        return builder;
+      },
+      limit: (count: number) => {
+        limit = count;
+        return builder;
+      },
+      insert: (input: Row | Row[]) => {
+        written = (Array.isArray(input) ? input : [input]).map((row) => ({ id: newId(), ...row }));
+        rows.push(...written);
+        return builder;
+      },
+      upsert: (row: Row, options: { onConflict: string }) => {
+        const index = rows.findIndex((existing) => existing[options.onConflict] === row[options.onConflict]);
+        if (index >= 0) rows[index] = { ...rows[index], ...row };
+        else rows.push({ ...row });
+        written = [];
+        return builder;
+      },
+      single: async () => ({ data: written?.[0] ?? null, error: null }),
+      then: (resolve: (value: { data: Row[]; error: null }) => unknown) => Promise.resolve(result()).then(resolve),
+    };
+    return builder;
+  }
+
+  const auth = {
+    admin: {
+      listUsers: async ({ page, perPage }: { page: number; perPage: number }) => ({
+        data: { users: users.slice((page - 1) * perPage, page * perPage) },
+        error: null,
+      }),
+      createUser: async ({ email }: { email: string }) => {
+        const user = { id: newId(), email };
+        users.push(user);
+        return { data: { user }, error: null };
+      },
+    },
+  };
+
+  async function rpc(name: string, params: Row) {
+    rpcCalls.push(name);
+    if (name === "get_billing") {
+      return { data: billing.filter((row) => row.user_id === params.p_user), error: null };
+    }
+    if (name === "set_subscription") {
+      const row: Row = {
+        user_id: params.p_user,
+        stripe_customer_id: params.p_customer,
+        plan: params.p_plan,
+        status: params.p_status,
+        current_period_end: params.p_current_period_end,
+      };
+      const index = billing.findIndex((existing) => existing.user_id === params.p_user);
+      if (index >= 0) billing[index] = row;
+      else billing.push(row);
+      return { data: null, error: null };
+    }
+    throw new Error(`unexpected rpc ${name}`);
+  }
+
+  const client = { from, auth, rpc } as unknown as SupabaseClient;
+  return { client, tables, users, billing, rpcCalls };
+}
+
+test("seedReviewAccount fills an empty account with a receptionist, a plan and sample calls", async () => {
+  const fake = fakeAdmin();
+  const now = new Date("2026-11-04T10:00:00Z");
+  const turnCount = REVIEW_SAMPLE_CALLS.reduce((sum, call) => sum + call.turns.length, 0);
+
+  const result = await seedReviewAccount(fake.client, " Review@Example.com ", now);
+
+  assert.deepEqual(result, {
+    userCreated: true,
+    organizationCreated: true,
+    assistantCreated: true,
+    subscriptionSet: true,
+    callsInserted: REVIEW_SAMPLE_CALLS.length,
+    turnsInserted: turnCount,
+  });
+  assert.ok(REVIEW_SAMPLE_CALLS.length >= 3 && REVIEW_SAMPLE_CALLS.length <= 5);
+
+  const [user] = fake.users;
+  const [org] = fake.tables.organizations;
+  const [assistant] = fake.tables.assistants;
+  const [profile] = fake.tables.onboarding_profiles;
+  const [plan] = fake.billing;
+  assert.ok(user && org && assistant && profile && plan);
+  assert.equal(fake.users.length, 1);
+  assert.equal(user.email, "review@example.com");
+  assert.equal(org.owner_id, user.id);
+  assert.equal(assistant.owner_id, user.id);
+  assert.equal(assistant.organization_id, org.id);
+  assert.equal(assistant.elevenlabs_agent_id, undefined);
+  assert.equal(profile.user_id, user.id);
+  assert.equal(profile.status, "done");
+  assert.deepEqual(profile.result, { orgId: org.id, assistantId: assistant.id });
+  assert.equal(fake.tables.account_settings[0]?.user_id, user.id);
+  assert.equal(plan.user_id, user.id);
+  assert.equal(plan.stripe_customer_id, `comp:${user.id}`);
+  assert.equal(plan.plan, "solo");
+  assert.equal(plan.status, "active");
+
+  const calls = fake.tables.calls;
+  assert.equal(calls.length, REVIEW_SAMPLE_CALLS.length);
+  for (const call of calls) {
+    assert.equal(call.owner_id, user.id);
+    assert.equal(call.assistant_id, assistant.id);
+    assert.equal(call.status, "completed");
+    assert.ok(Number(call.duration_seconds) > 0);
+    assert.ok(Date.parse(String(call.started_at)) < now.getTime());
+    assert.equal(call.twilio_call_sid, undefined);
+    assert.equal(call.elevenlabs_conversation_id, undefined);
+  }
+  const callIds = new Set(calls.map((call) => call.id));
+  assert.equal(fake.tables.call_turns.length, turnCount);
+  for (const turn of fake.tables.call_turns) {
+    assert.ok(callIds.has(turn.call_id));
+    assert.ok(turn.role === "caller" || turn.role === "assistant");
+  }
+});
+
+test("seedReviewAccount adds nothing on a second run", async () => {
+  const fake = fakeAdmin();
+  await seedReviewAccount(fake.client, "review@example.com");
+  const counts = () => Object.fromEntries(Object.entries(fake.tables).map(([name, rows]) => [name, rows.length]));
+  const before = counts();
+
+  const second = await seedReviewAccount(fake.client, "review@example.com");
+
+  assert.deepEqual(second, {
+    userCreated: false,
+    organizationCreated: false,
+    assistantCreated: false,
+    subscriptionSet: false,
+    callsInserted: 0,
+    turnsInserted: 0,
+  });
+  assert.deepEqual(counts(), before);
+  assert.equal(fake.users.length, 1);
+  assert.equal(fake.rpcCalls.filter((name) => name === "set_subscription").length, 1);
+});
+
+test("seedReviewAccount finds the user on a later page and keeps an active plan", async () => {
+  const others = Array.from({ length: 1000 }, (_, i) => ({ id: `other-${i}`, email: `user${i}@example.com` }));
+  const fake = fakeAdmin([...others, { id: "user-1", email: "Review@Example.com" }]);
+  const plan = { user_id: "user-1", plan: "solo", status: "active", stripe_customer_id: "cus_test" };
+  fake.billing.push({ ...plan });
+
+  const result = await seedReviewAccount(fake.client, "review@example.com");
+
+  assert.equal(result.userCreated, false);
+  assert.equal(result.subscriptionSet, false);
+  assert.equal(fake.users.length, 1001);
+  assert.equal(fake.tables.organizations[0]?.owner_id, "user-1");
+  assert.deepEqual(fake.billing, [plan]);
+  assert.deepEqual(fake.rpcCalls, ["get_billing"]);
 });

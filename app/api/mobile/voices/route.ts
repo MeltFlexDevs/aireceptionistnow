@@ -1,5 +1,10 @@
 import { LANGUAGES } from "@/app/(main)/dashboard/numbers/languages";
-import { FALLBACK_VOICES, FUNNEL_VOICES } from "@/app/(main)/dashboard/numbers/voices";
+import {
+  CURATED_VOICES,
+  FUNNEL_VOICES,
+  LIBRARY_VOICES,
+  libraryPickValue,
+} from "@/app/(main)/dashboard/numbers/voices";
 import { voicePreviewUrls } from "@/lib/call-engine/voice/catalog";
 import { mobileRoute } from "@/lib/mobile/auth";
 
@@ -15,16 +20,23 @@ export const dynamic = "force-dynamic";
  * ElevenLabs key of its own.
  */
 export const GET = mobileRoute(async () => {
-  const ids = [...new Set([...FUNNEL_VOICES, ...FALLBACK_VOICES].map((v) => v.voiceId))];
+  const ids = [
+    ...new Set([...FUNNEL_VOICES, ...CURATED_VOICES, ...LIBRARY_VOICES].map((v) => v.voiceId)),
+  ];
   const previews = await voicePreviewUrls(ids).catch(() => ({}) as Record<string, string>);
 
-  const voices = FALLBACK_VOICES.map((v) => {
+  // Curated plain-id voices first, then the library voices. A library voice
+  // arrives as a "lib:" pick value: saving it adds the voice to the account.
+  const voices = [
+    ...CURATED_VOICES.map((v) => ({ ...v, pick: v.voiceId })),
+    ...LIBRARY_VOICES.map((v) => ({ ...v, pick: libraryPickValue(v) })),
+  ].map((v) => {
     const funnel = FUNNEL_VOICES.find((f) => f.voiceId === v.voiceId);
     return {
-      voiceId: v.voiceId,
+      voiceId: v.pick,
       name: v.name,
       description: v.description ?? "",
-      gender: funnel?.gender ?? null,
+      gender: v.gender ?? funnel?.gender ?? null,
       previewUrl: previews[v.voiceId] ?? null,
     };
   });

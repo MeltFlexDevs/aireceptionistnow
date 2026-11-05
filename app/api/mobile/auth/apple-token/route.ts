@@ -9,9 +9,9 @@ export const dynamic = "force-dynamic";
  *
  * The app is already signed in (bearer) by the time it calls this; the code
  * is only for the refresh token that account deletion needs to revoke the
- * Apple grant. `ok: false` is the normal answer when the SIWA env is unset,
- * and the app never shows it to anyone - a missed token here costs nothing the
- * user can see.
+ * Apple grant. `ok: false` is the answer when the SIWA env is unset, and the
+ * app never shows it to anyone. Deletion then has no token to revoke, which
+ * App Review 5.1.1(v) requires, so that case logs an error on every call.
  *
  * A code from an Apple account that is not this user's Apple sign-in answers
  * 403 and stores nothing, so deletion never revokes someone else's grant.
@@ -32,7 +32,12 @@ export async function POST(req: Request): Promise<Response> {
   }
   // Apple's native response can carry a null authorizationCode. The contract
   // is `{ ok }` and nothing the user sees, so that is a soft no, not a 400.
-  if (!code || !appleSignInConfigured()) return Response.json({ ok: false });
+  if (!code) return Response.json({ ok: false });
+  if (!appleSignInConfigured()) {
+    // No ids or tokens in this log line.
+    console.error("[mobile:apple-token] SIWA not configured");
+    return Response.json({ ok: false });
+  }
 
   try {
     const result = await storeAppleToken(userId, code);

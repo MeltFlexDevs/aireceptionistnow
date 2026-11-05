@@ -6,7 +6,8 @@ import { parseEscalation } from "@/lib/call-engine/escalation";
 import { parseDisclosure, parseGuardrails } from "@/lib/call-engine/policy";
 import { SUPPORTED_LANGUAGES } from "@/lib/call-engine/voice/phone-language";
 import { providerName } from "@/lib/calendar/providers";
-import { addSharedVoice } from "@/lib/call-engine/voice/catalog";
+import { addSharedVoice, resolvePickedVoiceId } from "@/lib/call-engine/voice/catalog";
+import { LIBRARY_VOICES } from "@/app/(main)/dashboard/numbers/voices";
 import {
   deleteAssistant,
   freeAssistantNumbers,
@@ -195,7 +196,11 @@ export async function GET(
     systemPrompt: assistant.system_prompt ?? "",
     language: assistant.language ?? "multi",
     voiceId: assistant.voice_id ?? "",
-    voiceName: voiceName(assistant.voice_id ?? ""),
+    // A library voice picked in the app is on the account under its library id.
+    voiceName:
+      voiceName(assistant.voice_id ?? "") ||
+      LIBRARY_VOICES.find((v) => v.voiceId === assistant.voice_id)?.name ||
+      "",
     enabled: assistant.enabled,
     connected: Boolean(assistant.elevenlabs_agent_id),
     number: number?.e164 ?? "",
@@ -296,6 +301,18 @@ export async function PATCH(
 
   const form = toFormData(body);
   if (!form) return Response.json({ error: "Nothing to save." }, { status: 400 });
+
+  // The voice list offers library voices as "lib:" values: add the voice to the
+  // account and store its id. A failed add must not store the raw value.
+  const pickedVoice = String(form.get("voice_id") ?? "").trim();
+  if (pickedVoice.startsWith("lib:")) {
+    const accountId = await resolvePickedVoiceId(pickedVoice);
+    if (!accountId) {
+      // 503: the app shows a 5xx message only on a 503 (app lib/api.ts).
+      return Response.json({ error: "Could not add that voice. Try another one." }, { status: 503 });
+    }
+    form.set("voice_id", accountId);
+  }
 
   const [integrations, voices] = await Promise.all([
     listIntegrations(userId).catch(() => []),
@@ -402,8 +419,10 @@ export async function DELETE(
   if (!existing) return Response.json({ error: "Not found." }, { status: 404 });
 
   try {
-    await deleteAssistant(id);
+    // Free the number first: if hiding the assistant then fails, a retry still
+    // finds it, and no number stays linked to a deleted assistant.
     await freeAssistantNumbers(id);
+    await deleteAssistant(id);
   } catch (err) {
     console.error("[mobile:assistant-delete]", err);
     return Response.json({ error: "Could not delete." }, { status: 500 });

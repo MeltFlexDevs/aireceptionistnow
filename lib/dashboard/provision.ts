@@ -28,6 +28,7 @@ import { routeNumberToAgent } from "@/lib/call-engine/elevenlabs";
 import { buyTwilioNumber, listOwnedTwilioNumbers } from "./twilio";
 import { devDashboardBypass } from "@/lib/supabase/config";
 import { DEFAULT_COUNTRY } from "@/lib/number-pricing";
+import { provisionCountry } from "./provision-country";
 import { randomUUID } from "node:crypto";
 import { domainToUnicode } from "node:url";
 import { fetchWebsiteMarkdown } from "@/lib/knowledge/website";
@@ -224,7 +225,7 @@ async function runProvisioning(
   const cfg = profile.config;
   const result = { ...profile.result };
   const assistantName = (cfg.assistantName ?? "").trim() || "Receptionist";
-  const country = (cfg.country ?? DEFAULT_COUNTRY).toUpperCase();
+  const country = provisionCountry(cfg.country);
 
   // 0. Learn from the company website now, inside this loading screen. Deferred
   //    here from step 1 so the funnel stays instant and the whole setup runs in

@@ -96,9 +96,47 @@ function nullableStr(v: unknown): string | null {
   return typeof v === "string" && v !== "" ? v : null;
 }
 
-export async function listBookings(
-  ownerId?: string | null,
+const DAY_MS = 86_400_000;
+
+/**
+ * The PostgREST or() filter behind listBookingsInWindow: bookings that start
+ * inside the window, plus undated ones (no start_time, or ""), which wait on
+ * a person whatever the window. start_time is the agent's ISO text with its
+ * own UTC offset (agent/tools.ts) and is compared as text, so each bound is
+ * padded by a day: no offset moves a wall time more than 14 h from UTC.
+ * A null timeMax leaves the window open at the end.
+ */
+export function bookingWindowFilter(timeMin: string, timeMax: string | null): string {
+  const min = `payload->>start_time.gte.${new Date(Date.parse(timeMin) - DAY_MS).toISOString()}`;
+  const dated = timeMax
+    ? `and(${min},payload->>start_time.lte.${new Date(Date.parse(timeMax) + DAY_MS).toISOString()})`
+    : min;
+  return `payload->>start_time.is.null,payload->>start_time.eq."",${dated}`;
+}
+
+export function listBookings(ownerId?: string | null, limit = 500): Promise<Booking[]> {
+  return selectBookings(ownerId, limit, null);
+}
+
+/**
+ * listBookings for one time window, for the mobile Calendar and Home tabs.
+ * The cap counts the newest-made first, so without a window a busy account's
+ * booking made weeks ago for next week fell out of it. The cap stays as a
+ * safety net. Undated bookings always come back.
+ */
+export function listBookingsInWindow(
+  ownerId: string,
+  timeMin: string,
+  timeMax: string | null,
   limit = 500,
+): Promise<Booking[]> {
+  return selectBookings(ownerId, limit, bookingWindowFilter(timeMin, timeMax));
+}
+
+async function selectBookings(
+  ownerId: string | null | undefined,
+  limit: number,
+  window: string | null,
 ): Promise<Booking[]> {
   let query = serviceClient()
     .from("call_actions")
@@ -107,6 +145,7 @@ export async function listBookings(
   // Strictly the owner's calls (the embed is !inner, so this filters bookings).
   // Owner-less calls belong to no tenant; they used to show for every user.
   if (ownerId) query = query.eq("call.owner_id", ownerId);
+  if (window) query = query.or(window);
   const { data, error } = await query
     .order("created_at", { ascending: false })
     .limit(limit);

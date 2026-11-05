@@ -9,6 +9,10 @@
     {
       "path": "/api/cron/demand-digest",
       "schedule": "0 7 * * 1"
+    },
+    {
+      "path": "/api/cron/push-receipts",
+      "schedule": "*/15 * * * *"
     }
   ]
 }

@@ -85,6 +85,12 @@ export interface AccountDeletionDeps {
   deleteCalls(userId: string): Promise<void>;
   /** Resolves false when the user had no Apple token; throws when the revoke failed. */
   revokeAppleToken(userId: string): Promise<boolean>;
+  /**
+   * True when the auth user has an identity with provider "apple". Read only
+   * when no token was revoked, and before the auth user goes. False for a user
+   * that is already gone; throws on any other error.
+   */
+  hasAppleIdentity(userId: string): Promise<boolean>;
   deleteAuthUser(userId: string): Promise<void>;
   /** Best-effort; throws on anything but "done" / "already gone". */
   deleteRevenueCatSubscriber(userId: string): Promise<void>;
@@ -294,10 +300,19 @@ export async function runAccountDeletion(
   }
   await deps.deleteCalls(userId);
 
-  // f. Sign in with Apple token.
+  // f. Sign in with Apple token. Apple requires the revoke (App Review
+  // 5.1.1(v)), so a skip is never silent. No stored token for a user with an
+  // Apple identity means the SIWA env was unset when they signed in, or they
+  // signed in before it was set. The identity read must come before step g.
+  // A failed read is a warning too, never a stop. No ids in these log lines.
   try {
-    await deps.revokeAppleToken(userId);
-  } catch {
+    const revoked = await deps.revokeAppleToken(userId);
+    if (!revoked && (await deps.hasAppleIdentity(userId))) {
+      console.warn("[account-deletion] apple revoke skipped: no stored token");
+      warnings.push("apple-token-revocation");
+    }
+  } catch (err) {
+    console.warn("[account-deletion] apple revoke failed", err instanceof Error ? err.message : String(err));
     warnings.push("apple-token-revocation");
   }
 
@@ -527,6 +542,16 @@ async function realDeps(): Promise<AccountDeletionDeps> {
     },
 
     revokeAppleToken: (userId) => revokeAppleToken(userId),
+
+    hasAppleIdentity: async (userId) => {
+      const { data, error } = await createAdminClient().auth.admin.getUserById(userId);
+      if (error) {
+        // A retry after a run that got past step g: the user is already gone.
+        if (error.status === 404 || error.code === "user_not_found") return false;
+        throw new Error(error.message);
+      }
+      return (data.user?.identities ?? []).some((identity) => identity.provider === "apple");
+    },
 
     deleteAuthUser: async (userId) => {
       const { error } = await createAdminClient().auth.admin.deleteUser(userId);

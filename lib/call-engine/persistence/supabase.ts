@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { getEnv } from "../env";
+import { LEGACY_DEFAULT_VOICE_ID } from "../voice/catalog";
 import { mergeKnowledge } from "../../knowledge/sources";
 import { accountKnowledgeNotes, type AccountSettings } from "../../dashboard/account";
 import { mintReceiptToken, receiptExpiry, type ReceiptKind } from "../receipts";
@@ -56,7 +57,7 @@ export class SupabaseCallRepository implements CallRepository {
     const { data: num, error } = await db()
       .from("phone_numbers")
       .select(
-        "id, e164, elevenlabs_phone_number_id, assistant:assistants(owner_id, name, greeting, system_prompt, voice_id, language, elevenlabs_multilingual, elevenlabs_agent_id, knowledge, routing, organization:organizations(name, knowledge))",
+        "id, e164, elevenlabs_phone_number_id, assistant:assistants(owner_id, name, enabled, greeting, system_prompt, voice_id, language, elevenlabs_multilingual, elevenlabs_agent_id, knowledge, routing, organization:organizations(name, knowledge))",
       )
       .eq("e164", toE164)
       .eq("enabled", true)
@@ -116,7 +117,7 @@ export class SupabaseCallRepository implements CallRepository {
       e164: String(num.e164),
       greeting: String(cfg.greeting ?? "Hello, thanks for calling. How can I help?"),
       systemPrompt: String(cfg.system_prompt ?? ""),
-      voiceId: String(cfg.voice_id ?? "21m00Tcm4TlvDq8ikWAM"),
+      voiceId: String(cfg.voice_id ?? LEGACY_DEFAULT_VOICE_ID),
       language: String(cfg.language ?? "en"),
       multilingual: cfg.elevenlabs_multilingual !== false,
       ownerLocale,
@@ -125,6 +126,8 @@ export class SupabaseCallRepository implements CallRepository {
       integrations: (integrations ?? []).map(mapIntegration),
       agentId: String(cfg.elevenlabs_agent_id ?? ""),
       agentPhoneNumberId: String(num.elevenlabs_phone_number_id ?? ""),
+      // Fails open: only an explicit false pauses (the column is not null, default true).
+      paused: cfg.enabled === false,
     };
   }
 

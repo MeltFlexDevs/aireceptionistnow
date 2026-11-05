@@ -12,6 +12,7 @@ import { provisionOnboarding } from "@/lib/dashboard/provision";
 import { summarizeSourceMarkdown } from "@/lib/dashboard/ai-knowledge";
 import { MAX_SOURCE_CHARS, MAX_SOURCES, noteTitle } from "@/lib/knowledge/sources";
 import { NUMBER_COUNTRIES } from "@/lib/number-pricing";
+import { isServedCountry } from "@/lib/call-engine/test-call-limit";
 import { mobilePlans, planTerms } from "@/lib/mobile/plans";
 import { mobileAuth } from "@/lib/mobile/auth";
 import { normalizePhone } from "@/lib/phone";
@@ -185,7 +186,10 @@ export async function POST(req: Request): Promise<Response> {
           assistantName: str(body.assistantName) || "Receptionist",
           voiceId: str(body.voiceId),
           voiceGender: str(body.voiceGender) === "m" ? "m" : "f",
-          country: str(body.country).toUpperCase(),
+          // An unserved code is dropped (the key stays unset), as a bad format is.
+          ...(isServedCountry(str(body.country).toUpperCase())
+            ? { country: str(body.country).toUpperCase() }
+            : {}),
           alertsEmail,
           alertPhone,
           companyWebsite,
@@ -251,7 +255,7 @@ export async function POST(req: Request): Promise<Response> {
 
     if (action === "country") {
       const c = str(body.country).toUpperCase();
-      if (/^[A-Z]{2}$/.test(c)) await saveOnboardingConfig(userId, { country: c });
+      if (isServedCountry(c)) await saveOnboardingConfig(userId, { country: c });
       return Response.json({ ok: true });
     }
 

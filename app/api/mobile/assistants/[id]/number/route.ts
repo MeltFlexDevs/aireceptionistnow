@@ -1,6 +1,7 @@
 import { revalidatePath } from "next/cache";
 
 import { syncAssistantAgent } from "@/lib/call-engine/agent/sync";
+import { isServedCountry } from "@/lib/call-engine/test-call-limit";
 import { releaseNumberFromAgent, routeNumberToAgent } from "@/lib/call-engine/elevenlabs";
 import {
   getAssistant,
@@ -55,6 +56,14 @@ export async function POST(
 
   const existing = await getAssistantNumber(id).catch(() => null);
   if (existing) return Response.json({ e164: existing.e164, id: existing.id });
+
+  // Any two letters parse above; only the countries we serve and price can be bought.
+  if (!isServedCountry(country)) {
+    return Response.json(
+      { error: "We do not offer numbers in that country yet.", code: "unsupported_country" },
+      { status: 400 },
+    );
+  }
 
   const allowance = await canAssignNumber(userId);
   if (!allowance.ok) {

@@ -1,7 +1,8 @@
 import "server-only";
 
 import { serviceClient } from "@/lib/dashboard/supabase";
-import { deletePushDevicesByDeviceId } from "@/lib/mobile/push";
+import { deletePushDevicesByDeviceId, deletePushDevicesExceptDeviceId } from "@/lib/mobile/push";
+export { isDeviceId } from "@/lib/mobile/device-id";
 
 /**
  * The account's signed-in app installs.
@@ -36,15 +37,6 @@ export function isMissingTable(err: unknown): boolean {
     /relation .*account_devices.* does not exist/i.test(message) ||
     /Could not find the table/i.test(message)
   );
-}
-
-/**
- * A keychain UUID. Validated rather than trusted - it is a primary key input.
- * The one rule for the `X-Device-Id` header, shared by the devices and push
- * routes so both tables key on the same shape.
- */
-export function isDeviceId(value: unknown): value is string {
-  return typeof value === "string" && /^[A-Za-z0-9._:-]{8,64}$/.test(value);
 }
 
 function label(value: unknown): string | null {
@@ -140,4 +132,22 @@ export async function revokeDevice(ownerId: string, deviceId: string): Promise<v
     .eq("device_id", deviceId);
   if (error) throw new Error(error.message);
   await deletePushDevicesByDeviceId(ownerId, deviceId);
+}
+
+/**
+ * Forget every install but the caller's, and stop their call alerts: the
+ * server half of "Sign out everywhere else". Unlike `revokeDevice` this follows
+ * an auth action. The app first ends its other sessions with
+ * `signOut({ scope: "others" })`, so the phones dropped here fail `mobileAuth`
+ * and cannot register themselves again. Scoped by owner. `device_id` is
+ * `not null` in account_devices (migration 0010), so `neq` covers every other row.
+ */
+export async function revokeOtherDevices(ownerId: string, keepDeviceId: string): Promise<void> {
+  const { error } = await serviceClient()
+    .from("account_devices")
+    .delete()
+    .eq("owner_id", ownerId)
+    .neq("device_id", keepDeviceId);
+  if (error) throw new Error(error.message);
+  await deletePushDevicesExceptDeviceId(ownerId, keepDeviceId);
 }

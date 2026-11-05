@@ -1,4 +1,5 @@
 import { CALENDAR_PROVIDERS } from "@/lib/calendar/providers";
+import { isOAuthConfigured } from "@/lib/dashboard/oauth";
 import { mobileAuth } from "@/lib/mobile/auth";
 import {
   APP_RETURN_URL,
@@ -67,6 +68,10 @@ export async function POST(req: Request): Promise<Response> {
   if (target === "calendar") {
     const provider = CALENDAR_PROVIDERS.find((p) => p.oauth && p.id === body.provider);
     if (!provider) return Response.json({ error: "Unsupported calendar." }, { status: 400 });
+    // Known but not configured on this server: 409 with text the app shows as is.
+    if (!isOAuthConfigured(provider.id)) {
+      return Response.json({ error: "This calendar can't be connected right now." }, { status: 409 });
+    }
     const returnUrl = safeAppReturnUrl(body.returnUrl) ?? APP_RETURN_URL;
     const done = `/mobile/done?return=${encodeURIComponent(returnUrl)}`;
     next = `/api/integrations/${provider.id}/connect?next=${encodeURIComponent(done)}`;

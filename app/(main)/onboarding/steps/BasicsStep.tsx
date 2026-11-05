@@ -16,7 +16,7 @@ export async function BasicsStep({ config }: { config: OnboardingConfig }) {
   ]);
   const claims = rawClaims as { email?: string } | null;
   const emailDefault = config.alertsEmail || (typeof claims?.email === "string" ? claims.email : "");
-  // Default to the saved voice or Rachel (American English). The picker filters
+  // Default to the saved voice or Hope (American English). The picker filters
   // the rest by country language; these two are always offered as defaults.
   const voiceDefault = config.voiceId || DEFAULT_VOICE_ID;
   const countryDefault = config.country || countryForLocale(locale);

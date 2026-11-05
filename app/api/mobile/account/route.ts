@@ -91,9 +91,11 @@ export async function DELETE(req: Request): Promise<Response> {
   } catch (err) {
     // The message may name a Stripe object; it never names the user.
     console.error("[mobile:account-delete] failed", err instanceof Error ? err.message : err);
+    // 503: the app shows a 5xx message only on a 503 (app lib/api.ts), and it
+    // reads a 503 like a 500 here: the account still exists, so Delete can run again.
     return Response.json(
       { error: "Your account could not be fully deleted. Nothing was charged. Try again to finish, or contact support." },
-      { status: 500 },
+      { status: 503 },
     );
   }
 }

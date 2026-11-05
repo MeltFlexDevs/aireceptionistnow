@@ -2,7 +2,8 @@ import { cache } from "react";
 import { createHash } from "node:crypto";
 import { unstable_cache } from "next/cache";
 import { resolveCalendarById } from "@/lib/call-engine/integrations/registry";
-import type { ConnectionCheck } from "@/lib/call-engine/integrations/types";
+import { withDeadline } from "@/lib/call-engine/net";
+import type { CalendarProvider, ConnectionCheck, EventsResult } from "@/lib/call-engine/integrations/types";
 import type { IntegrationConfig } from "@/lib/call-engine/types";
 import { providerName } from "@/lib/calendar/providers";
 import { listIntegrations, type Integration } from "./db";
@@ -43,47 +44,99 @@ function calendarsOf(integrations: Integration[]): Integration[] {
   return integrations.filter((i) => i.type === "calendar");
 }
 
-export async function fetchExternalEvents(
+export interface ExternalEventsStatus {
+  events: ExternalEvent[];
+  // Provider labels ("Google Calendar") of enabled calendars whose events
+  // could not be read: too slow, an error, or a refused token. Deduped, in
+  // integration order. The app names them in its warning.
+  unavailable: string[];
+}
+
+type ListEvents = NonNullable<CalendarProvider["listEvents"]>;
+
+function providerListEvents(integration: Integration): ListEvents | undefined {
+  return resolveCalendarById([integration as IntegrationConfig], integration.id)?.provider
+    .listEvents;
+}
+
+/**
+ * The events of every enabled calendar in the window, and which calendars
+ * could not be read. With perCalendarMs set, each calendar gets its own
+ * deadline, so one slow calendar counts as unavailable instead of holding up
+ * (or, under an outer deadline, dropping) the others. A calendar with no
+ * listEvents (webhook) has no events to show and is not unavailable.
+ * `listFor` is the seam the tests use; it defaults to the real provider.
+ */
+export async function fetchExternalEventsStatus(
   integrations: Integration[],
   timeMin: string,
   timeMax: string,
-): Promise<ExternalEvent[]> {
+  perCalendarMs?: number,
+  listFor: (integration: Integration) => ListEvents | undefined = providerListEvents,
+): Promise<ExternalEventsStatus> {
   const enabled = calendarsOf(integrations).filter((i) => i.enabled);
   const perCalendar = await Promise.all(
-    enabled.map(async (integration): Promise<ExternalEvent[]> => {
-      const resolved = resolveCalendarById([integration as IntegrationConfig], integration.id);
-      const list = resolved?.provider.listEvents;
-      if (!list) return [];
-      const res = await list({ timeMin, timeMax }).catch(() => ({ ok: false as const, events: [] }));
-      if (!res.ok) return [];
+    enabled.map(async (integration): Promise<{ label: string; events: ExternalEvent[] | null }> => {
       const label = providerName(integration.provider);
-      return res.events.map((e) => ({
-        id: `${integration.id}:${e.id}`,
-        integrationId: integration.id,
-        provider: integration.provider,
-        providerLabel: label,
-        title: e.title.trim(),
-        start: e.start,
-        end: e.end,
-        allDay: e.allDay,
-        location: (e.location ?? "").trim(),
-        url: e.url ?? "",
-      }));
+      const failed: EventsResult = { ok: false, events: [] };
+      let call: Promise<EventsResult>;
+      try {
+        const list = listFor(integration);
+        if (!list) return { label, events: [] };
+        call = list({ timeMin, timeMax }).catch(() => failed);
+      } catch {
+        // A provider that throws while it is set up (a broken config) is unavailable too.
+        return { label, events: null };
+      }
+      const res =
+        perCalendarMs === undefined ? await call : await withDeadline(call, perCalendarMs, failed);
+      if (!res.ok) return { label, events: null };
+      return {
+        label,
+        events: res.events.map((e) => ({
+          id: `${integration.id}:${e.id}`,
+          integrationId: integration.id,
+          provider: integration.provider,
+          providerLabel: label,
+          title: e.title.trim(),
+          start: e.start,
+          end: e.end,
+          allDay: e.allDay,
+          location: (e.location ?? "").trim(),
+          url: e.url ?? "",
+        })),
+      };
     }),
   );
+
+  const unavailable = [
+    ...new Set(perCalendar.filter((c) => c.events === null).map((c) => c.label)),
+  ];
 
   // Cheap guard against a provider echoing the same event id twice in one
   // response. Collapsing an event shared across two connected calendars would
   // need the provider's iCalUID; that is intentionally not attempted - each
   // calendar's copy is a distinct entry and renders as its own row.
   const seen = new Set<string>();
-  const events = perCalendar.flat().filter((e) => {
-    if (seen.has(e.id)) return false;
-    seen.add(e.id);
-    return true;
-  });
+  const events = perCalendar
+    .flatMap((c) => c.events ?? [])
+    .filter((e) => {
+      if (seen.has(e.id)) return false;
+      seen.add(e.id);
+      return true;
+    });
   events.sort((a, b) => Date.parse(a.start) - Date.parse(b.start));
-  return events;
+  return { events, unavailable };
+}
+
+// The web calendar page: no deadline, and a calendar that fails just shows no
+// events (its health shows in the connections panel).
+export async function fetchExternalEvents(
+  integrations: Integration[],
+  timeMin: string,
+  timeMax: string,
+): Promise<ExternalEvent[]> {
+  return (await fetchExternalEventsStatus(integrations, timeMin, timeMax)).events;
 }
 
 export function groupEventsByDay(

@@ -6,6 +6,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { currentUserId } from "@/lib/auth";
 import { getBilling } from "@/lib/billing";
+import { isServedCountry } from "@/lib/call-engine/test-call-limit";
 import {
   getOnboardingProfile,
   saveOnboardingConfig,
@@ -104,7 +105,8 @@ export async function saveBasicsAction(formData: FormData): Promise<void> {
           assistantName: assistantName || "Receptionist",
           voiceId,
           voiceGender,
-          country,
+          // An unserved code is dropped (the key stays unset), as a bad format is.
+          ...(isServedCountry(country) ? { country } : {}),
           alertsEmail,
           alertPhone,
           companyWebsite,
@@ -209,7 +211,7 @@ export async function removeSourceAction(formData: FormData): Promise<void> {
 export async function setNumberCountryAction(country: string): Promise<void> {
   const userId = await currentUserId();
   const c = country.trim().toUpperCase();
-  if (userId && /^[A-Z]{2}$/.test(c)) {
+  if (userId && isServedCountry(c)) {
     await saveOnboardingConfig(userId, { country: c }).catch(() => {});
   }
 }

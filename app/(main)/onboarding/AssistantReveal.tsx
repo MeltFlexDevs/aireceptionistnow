@@ -12,12 +12,11 @@ import { AiAvatar } from "./AiAvatar";
 // Reduced-motion users skip the theatrics and see the assistant immediately.
 export function AssistantReveal({ ready }: { ready: boolean }) {
   const [revealed, setRevealed] = useState(false);
+  // Hidden again the moment `ready` drops, during render, so a later reveal waits for the bars.
+  if (!ready && revealed) setRevealed(false);
 
   useEffect(() => {
-    if (!ready) {
-      setRevealed(false);
-      return;
-    }
+    if (!ready) return;
     // Reduced-motion users get the assistant on the next tick (the CSS gate is
     // disabled for them too); everyone else waits for the bars to part.
     const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;

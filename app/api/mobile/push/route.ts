@@ -6,6 +6,7 @@ import {
 } from "@/lib/mobile/push";
 import { mobileAuth } from "@/lib/mobile/auth";
 import { isDeviceId } from "@/lib/mobile/devices";
+import { enabledOnRegister } from "@/lib/mobile/push-register";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -56,11 +57,14 @@ export async function POST(req: Request): Promise<Response> {
     if (payload.enabled === false) {
       await setPushDeviceEnabled(userId, payload.token, false);
     } else {
+      // A register carries the app's stored mute as `muted`, so a cold start
+      // cannot turn alerts back on (older builds omit it and stay enabled).
       await registerPushDevice(
         userId,
         payload.token,
         String(payload.platform ?? "unknown"),
         deviceIdOf(req),
+        enabledOnRegister(payload),
       );
     }
     return Response.json({ ok: true });

@@ -23,7 +23,7 @@ import {
 import { localizeGreeting } from "../llm/greeting";
 import { MAX_SOURCE_CHARS, type AssistantKnowledge } from "../../knowledge/sources";
 import { ELEVENLABS_LANGUAGES, SUPPORTED_LANGUAGES } from "../voice/phone-language";
-import { DEFAULT_VOICE_ID, voiceForLanguage } from "../voice/catalog";
+import { DEFAULT_VOICE_ID, LEGACY_DEFAULT_VOICE_ID, voiceForLanguage } from "../voice/catalog";
 import { routeNumberToAgent } from "../elevenlabs";
 import { ensureInitWebhook } from "./workspace";
 import {
@@ -80,15 +80,17 @@ const KB_PROMPT_INJECT_MAX_CHARS = 15_000;
 const TTS_MODEL_MULTILINGUAL = "eleven_flash_v2_5";
 const TTS_MODEL_ENGLISH = "eleven_flash_v2";
 /**
- * Opt-in warmer voice. The flash models exist to hit the latency budget; v3
- * conversational sounds noticeably more human and costs time to first audio.
+ * Warmer voice tier. The flash models exist to hit the latency budget; v4
+ * turbo (the model ElevenLabs recommends for Agents) sounds noticeably more
+ * human and starts speaking a little later (about 100ms in their docs).
  *
- * That is a real trade, not a free upgrade, so it stays off by default and the
+ * That is a real trade, so a receptionist uses it only when routing.voiceTier
+ * is "natural" (new receptionists start there, see createAssistant) and the
  * dashboard states the cost. A relationship-driven business (a clinic, a law
  * practice) will happily pay 100ms for a voice that doesn't sound budget; a
  * dispatcher taking 200 calls a day will not.
  */
-const TTS_MODEL_NATURAL = "eleven_v3_conversational";
+const TTS_MODEL_NATURAL = "eleven_v4_turbo";
 
 const ttsModelForBase = (base: string, natural = false): ElevenLabs.TtsConversationalModel => {
   if (natural) return TTS_MODEL_NATURAL;
@@ -562,7 +564,8 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
     timezone,
     hasVerified,
   );
-  const voiceId = (assistant.voice_id ?? "").trim() || DEFAULT_VOICE_ID;
+  // A row with no voice keeps the voice it always had on calls (the legacy default).
+  const voiceId = (assistant.voice_id ?? "").trim() || LEGACY_DEFAULT_VOICE_ID;
 
   const voiceOpts = (assistant.routing ?? {}) as {
     voice?: { speed?: number; stability?: number };
@@ -665,7 +668,7 @@ export async function syncAssistantAgent(assistantId: string): Promise<string | 
     },
     turn: TURN_CONFIG,
     // Pinned to the known-good flash model, natural tier or not: if the newer
-    // v3 model is what the workspace rejected, this is the rung that has to
+    // v4 model is what the workspace rejected, this is the rung that has to
     // still work. A warmer voice is worth less than a working agent.
     tts: { ...baseTts, modelId: TTS_MODEL_ENGLISH },
   };
@@ -846,8 +849,8 @@ export async function provisionDemoAgent(): Promise<{
       },
     },
     turn: TURN_CONFIG,
-    // Demo agent's base is English, so flash_v2 - see ttsModelForBase.
-    tts: { voiceId: DEFAULT_VOICE_ID, modelId: ttsModelForBase("en") },
+    // The demo uses the natural tier, like a new receptionist.
+    tts: { voiceId: DEFAULT_VOICE_ID, modelId: ttsModelForBase("en", true) },
     languagePresets,
   };
 

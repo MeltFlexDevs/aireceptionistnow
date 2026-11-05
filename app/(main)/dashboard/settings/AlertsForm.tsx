@@ -1,70 +1,55 @@
 "use client";
 
-import { useActionState } from "react";
+import type { ReactNode } from "react";
+import Link from "next/link";
 import { useT } from "@/lib/i18n/client";
-import { IDLE, type ActionState } from "@/lib/dashboard/action-state";
 import type { AccountSettings } from "@/lib/dashboard/account";
-import { SavePill } from "../components/SavePill";
-import { SubmitButton } from "../components/SubmitButton";
-import { saveNotificationsAction } from "./actions";
+import { ChevronRight } from "../icons";
 
-const toggle =
-  "relative h-5 w-9 shrink-0 rounded-full bg-neutral-200 transition-colors peer-checked:bg-neutral-900 after:absolute after:left-0.5 after:top-0.5 after:h-4 after:w-4 after:rounded-full after:bg-white after:shadow-sm after:transition-all after:content-[''] peer-checked:after:translate-x-4";
+type Props = { account: AccountSettings | null; canEdit: boolean };
 
-export function AlertsForm({
-  account,
-  canEdit,
-}: {
-  account: AccountSettings | null;
-  canEdit: boolean;
-}) {
+// The account-wide email and SMS switches are gone: the call engine never reads
+// the account notify columns, so they changed nothing. Texts and
+// recaps are set on each receptionist, so this tab links there. page.tsx still
+// passes account and canEdit; this component takes no parameters, which the
+// props type allows, so nothing unused is declared.
+export const AlertsForm: (props: Props) => ReactNode = () => {
   const t = useT();
-  const s = t.settings;
-  const [state, formAction] = useActionState<ActionState, FormData>(saveNotificationsAction, IDLE);
+  const a = t.assistants;
 
   const rows = [
     {
-      name: "notify_email",
-      title: s.emailNotif,
-      body: s.emailNotifSub,
-      checked: account?.notify_email ?? true,
+      key: "sms",
+      title: a.textAlerts,
+      body: a.textAlertsSub,
+      where: a.topicEscalationTitle,
     },
     {
-      name: "notify_sms",
-      title: s.smsNotif,
-      body: s.smsNotifSub,
-      checked: account?.notify_sms ?? false,
+      key: "email",
+      title: a.sendEmailTranscripts,
+      body: a.sendEmailTranscriptsSub,
+      where: a.topicTuneTitle,
     },
   ];
 
   return (
-    <form action={formAction} className="space-y-4">
-      <p className="text-xs leading-relaxed text-neutral-500">{s.alertsSub}</p>
-
+    <div className="space-y-4">
       {rows.map((row) => (
-        <label
-          key={row.name}
-          className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-neutral-200 px-4 py-3 transition-colors hover:border-neutral-300"
+        <Link
+          key={row.key}
+          href="/dashboard/assistant"
+          className="flex items-center justify-between gap-4 rounded-xl border border-neutral-200 px-4 py-3 transition-colors hover:border-neutral-300"
         >
           <span>
             <span className="block text-sm font-medium text-neutral-800">{row.title}</span>
             <span className="block text-xs text-neutral-500">{row.body}</span>
           </span>
-          <input
-            type="checkbox"
-            name={row.name}
-            defaultChecked={row.checked}
-            className="peer sr-only"
-            disabled={!canEdit}
-          />
-          <span className={toggle} />
-        </label>
+          <span className="flex shrink-0 items-center gap-1 text-xs font-medium text-neutral-700">
+            {t.nav.assistants} / {row.where}
+            <ChevronRight className="h-4 w-4" />
+          </span>
+        </Link>
       ))}
-
-      <div className="flex items-center justify-end gap-3">
-        <SavePill state={state} />
-        <SubmitButton disabled={!canEdit}>{t.common.save}</SubmitButton>
-      </div>
-    </form>
+    </div>
   );
-}
+};

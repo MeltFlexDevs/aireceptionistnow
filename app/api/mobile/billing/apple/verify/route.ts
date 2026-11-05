@@ -7,11 +7,11 @@ import {
 import { mobileAuth } from "@/lib/mobile/auth";
 import {
   VerificationException,
-  VerificationStatus,
   appleBundleId,
   isCompactJws,
   verifyTransaction,
 } from "@/lib/store-billing/apple";
+import { NOT_CONFIGURED, verificationFailure } from "@/lib/store-billing/apple-verify-errors";
 import {
   applyStoreUpdate,
   purchaseContext,
@@ -82,15 +82,16 @@ export async function POST(req: Request): Promise<Response> {
         return json({ error: "Billing is not configured yet. Please try again later." }, 503);
       }
       if (err instanceof VerificationException) {
-        if (err.status === VerificationStatus.RETRYABLE_VERIFICATION_FAILURE) {
-          // The OCSP check could not complete (responder down, network). The
-          // payload may well be fine, so keep the app on its 5xx retry path:
-          // a 400 would make it finish the transaction as rejected.
-          console.error("[mobile:billing:apple] verification could not complete", err.cause ?? err);
-          return json({ error: "We could not verify this purchase right now. Please try again." }, 503);
+        const failure = verificationFailure(err.status);
+        if (failure.status === 503) {
+          // Not the purchase's fault (OCSP could not complete, or the bundle id
+          // does not match APPLE_BUNDLE_ID), so keep the app on its 5xx retry
+          // path: a 400 would make it finish the transaction as rejected.
+          console.error(`[mobile:billing:apple] verification could not complete (status ${err.status})`, err.cause ?? err);
+        } else {
+          console.warn(`[mobile:billing:apple] verification rejected (status ${err.status})`);
         }
-        console.warn(`[mobile:billing:apple] verification rejected (status ${err.status})`);
-        return json({ error: "We could not verify this purchase." }, 400);
+        return json(failure.body, failure.status);
       }
       throw err;
     }
@@ -101,7 +102,12 @@ export async function POST(req: Request): Promise<Response> {
       return json({ error: "We could not verify this purchase." }, 400);
     }
     const product = tx.type === "Auto-Renewable Subscription" ? productToPlan("apple", tx.productId) : null;
-    if (!product) return json({ error: "Unknown product." }, 400);
+    if (!product) {
+      // Live in App Store Connect but missing from the catalog: a server setup
+      // error. A 503 keeps the transaction for StoreKit to send again.
+      console.error(`[mobile:billing:apple] no plan for product ${tx.productId} (${tx.type})`);
+      return json(NOT_CONFIGURED.body, NOT_CONFIGURED.status);
+    }
     if (tx.revocationDate != null) return json({ error: "This purchase was refunded." }, 400);
     if (typeof tx.expiresDate !== "number" || tx.expiresDate <= Date.now()) {
       return json({ error: "This subscription has expired." }, 400);

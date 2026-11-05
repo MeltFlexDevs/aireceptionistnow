@@ -4,7 +4,7 @@ import { getOwnedNumbers } from "./db";
 import { serviceClient } from "./supabase";
 import { dayKeyFn, ownerTimezone, timeFmt } from "./timezone";
 import { dashboardCacheTag } from "./cache-tags";
-import { fmtDuration } from "./calls/format";
+import { fmtDuration, normalizeDirection, showInCallLog, statusBucket } from "./calls/format";
 import { countryFromPhone, flagEmoji } from "../call-engine/voice/phone-language";
 
 // Dashboard analytics from the calls / call_turns tables (read-only, one business).
@@ -125,6 +125,7 @@ interface CallRow {
   sentiment: string | null;
   from_number: string | null;
   to_number: string | null;
+  direction: string | null;
   median_latency_ms: number | null;
   summary: string | null;
   phone_number_id: string | null;
@@ -294,7 +295,7 @@ const fetchCallsMemo = cache(async function fetchCallsPaged(
     let query = serviceClient()
       .from("calls")
       .select(
-        "id,started_at,duration_seconds,status,outcome,sentiment,from_number,to_number,median_latency_ms,summary,phone_number_id,assistant_id",
+        "id,started_at,duration_seconds,status,outcome,sentiment,from_number,to_number,direction,median_latency_ms,summary,phone_number_id,assistant_id",
       )
       .gte("started_at", sinceIso);
     if (scope) query = query.or(scopeFilter(scope));
@@ -312,6 +313,50 @@ const fetchCallsMemo = cache(async function fetchCallsPaged(
   }
   return rows;
 });
+
+/**
+ * The calls Home counts and lists: the rows the call log shows (the web list
+ * and the app's Calls tab). Inbound only, so test calls and call backs stay
+ * out, and the log's own visibility rule (showInCallLog), so the numbers match.
+ */
+export function homeCalls<
+  T extends {
+    direction: string | null;
+    assistant_id: string | null;
+    duration_seconds: number | null;
+    status: string;
+    started_at: string;
+  },
+>(calls: T[]): T[] {
+  return calls.filter(
+    (c) =>
+      normalizeDirection(c.direction) === "inbound" &&
+      showInCallLog({
+        assistant: c.assistant_id,
+        durationSec: c.duration_seconds ?? 0,
+        status: c.status ?? "",
+        date: c.started_at,
+      }),
+  );
+}
+
+/**
+ * Today's call tiles. Answered and missed use the call list's status buckets,
+ * so a live call is neither, and a row stuck "live" past LIVE_MAX_AGE_MS reads
+ * missed, as it does in the list.
+ */
+export function todayCounts(
+  calls: { status: string; started_at: string }[],
+): { calls: number; answered: number; missed: number } {
+  let answered = 0;
+  let missed = 0;
+  for (const c of calls) {
+    const bucket = statusBucket(c.status ?? "", c.started_at);
+    if (bucket === "completed") answered++;
+    else if (bucket === "unanswered") missed++;
+  }
+  return { calls: calls.length, answered, missed };
+}
 
 let regionNames: Intl.DisplayNames | null = null;
 function regionName(iso: string): string {
@@ -477,21 +522,20 @@ export async function getOverview(ownerId?: string | null, displayTz?: string): 
     bookings: booked(monthCalls),
   };
 
-  // Today, in the owner's timezone. "answered" mirrors the answer-rate rule
-  // (status === "completed"); everything else counts as missed.
+  // Today, in the owner's timezone, from the rows the call log shows
+  // (homeCalls: inbound only). Answered and missed use the log's status
+  // buckets (todayCounts), so a call that is live now is neither.
   const todayKey = toKey(now);
-  const todayCalls = calls.filter((c) => dayKey(c) === todayKey);
-  const answeredToday = todayCalls.filter((c) => c.status === "completed").length;
+  const logCalls = homeCalls(calls);
+  const todayCalls = logCalls.filter((c) => dayKey(c) === todayKey);
   const today: TodayUsage = {
-    calls: todayCalls.length,
-    answered: answeredToday,
-    missed: todayCalls.length - answeredToday,
+    ...todayCounts(todayCalls),
     booked: booked(todayCalls),
   };
 
   // 20, not 6: the Home activity feed is a scroll region now, so it needs
-  // enough rows to be worth scrolling.
-  const recentCalls: Call[] = calls.slice(0, 20).map((c) => ({
+  // enough rows to be worth scrolling. Same rows as the call log.
+  const recentCalls: Call[] = logCalls.slice(0, 20).map((c) => ({
     id: c.id,
     name: c.from_number || "",
     number: c.from_number || "",

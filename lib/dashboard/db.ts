@@ -74,6 +74,8 @@ export async function getNumber(id: string): Promise<PhoneNumber | null> {
 
 // Defaults applied to a freshly created assistant so it can take a call right away.
 const DEFAULT_ROUTING = { sttProvider: "elevenlabs" };
+// New receptionists start on the Natural voice tier; existing ones keep theirs.
+const NEW_ASSISTANT_ROUTING = { ...DEFAULT_ROUTING, voiceTier: "natural" };
 const DEFAULT_LANGUAGE = "multi";
 
 export async function createNumber(input: CreateNumberInput): Promise<string> {
@@ -362,7 +364,7 @@ export async function createAssistant(
       name: name || "My assistant",
       voice_id: DEFAULT_VOICE_ID,
       language: DEFAULT_LANGUAGE,
-      routing: DEFAULT_ROUTING,
+      routing: NEW_ASSISTANT_ROUTING,
     })
     .select("id")
     .single();

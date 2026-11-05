@@ -1,5 +1,6 @@
 import { CALENDAR_PROVIDERS } from "@/lib/calendar/providers";
 import { fetchCalendarConnections, loadIntegrations } from "@/lib/dashboard/calendar-events";
+import { isOAuthConfigured } from "@/lib/dashboard/oauth";
 import { mobileRoute } from "@/lib/mobile/auth";
 
 export const runtime = "nodejs";
@@ -22,7 +23,11 @@ export const GET = mobileRoute(async (userId) => {
   const connections = await fetchCalendarConnections(integrations).catch(() => []);
 
   const connectedProviders = new Set(connections.map((c) => c.provider));
-  const connectable = CALENDAR_PROVIDERS.filter((p) => p.oauth && !connectedProviders.has(p.id));
+  // Same filter as the web dashboard: a provider without OAuth keys on this
+  // server would open a browser sheet that bounces straight back.
+  const connectable = CALENDAR_PROVIDERS.filter(
+    (p) => p.oauth && isOAuthConfigured(p.id) && !connectedProviders.has(p.id),
+  );
 
   return {
     connected: connections.map((c) => ({

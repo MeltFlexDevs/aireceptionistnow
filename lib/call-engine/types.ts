@@ -55,6 +55,11 @@ export interface NumberConfig {
    */
   agentId: string;
   agentPhoneNumberId: string;
+  /**
+   * The owner switched this receptionist off (assistants.enabled = false). It
+   * still answers, but only takes messages - see ./paused.ts.
+   */
+  paused: boolean;
 }
 
 // ── Tool / action payloads ──────────────────────────────────────────────────

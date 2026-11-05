@@ -32,6 +32,7 @@ import {
   parseVerifiedLines,
   readKnowledge,
   removeSource,
+  type AssistantKnowledge,
   type KnowledgeSource,
 } from "@/lib/knowledge/sources";
 import { mobileAuth } from "@/lib/mobile/auth";
@@ -70,9 +71,28 @@ async function ensureOrganization(userId: string, requestedId: string): Promise<
   return await getOrganization(id).catch(() => null);
 }
 
-/** Persist, then re-sync every agent in the org so the change reaches live calls. */
-async function saveKnowledge(orgId: string, next: Record<string, unknown>): Promise<void> {
-  await updateOrganizationKnowledge(orgId, next);
+/**
+ * Write one request's change to the business's knowledge, then re-sync every
+ * agent in the org so the change reaches live calls.
+ *
+ * The org row is read again here, right before the update, and `change` runs
+ * on that fresh copy, as in app/(main)/dashboard/knowledge/actions.ts. Callers
+ * do their slow work (fetch a site, summarize) before they call this. Each
+ * request used to write back the copy it read at its start, so a website
+ * import that finished after a gap was answered dropped the answer. Not
+ * atomic: a save that lands between this read and the update can still be
+ * lost, but that window is one query, not a website fetch. `change` returns
+ * null to refuse (the source limit); nothing is written and this returns false.
+ */
+async function saveKnowledge(
+  orgId: string,
+  change: (fresh: AssistantKnowledge) => AssistantKnowledge | null,
+): Promise<boolean> {
+  const current = await getOrganization(orgId);
+  if (!current) throw new Error("Business not found.");
+  const next = change(readKnowledge(current.knowledge));
+  if (!next) return false;
+  await updateOrganizationKnowledge(orgId, { ...next });
   after(async () => {
     const assistants = await listOrganizationAssistants(orgId).catch(() => []);
     await Promise.all(
@@ -85,6 +105,7 @@ async function saveKnowledge(orgId: string, next: Record<string, unknown>): Prom
   });
   after(() => warmDigest(orgId));
   revalidatePath("/dashboard/knowledge");
+  return true;
 }
 
 /**
@@ -239,8 +260,6 @@ export async function POST(req: Request): Promise<Response> {
   const org = await ensureOrganization(userId, String(body.business ?? "")).catch(() => null);
   if (!org) return Response.json({ error: "Business not found." }, { status: 404 });
 
-  const knowledge = readKnowledge(org.knowledge);
-
   try {
     if (gap) {
       // As in answerKnowledgeGapAction, the signal is claimed before anything
@@ -254,24 +273,24 @@ export async function POST(req: Request): Promise<Response> {
           { status: 404 },
         );
       }
-      const verified = mergeVerifiedAnswer(
-        knowledge.verified ?? [],
-        signal.topic,
-        gap.answer,
-        MAX_VERIFIED,
-      );
-      await saveKnowledge(org.id, { ...knowledge, verified });
+      const { answer } = gap;
+      await saveKnowledge(org.id, (fresh) => ({
+        ...fresh,
+        verified: mergeVerifiedAnswer(fresh.verified ?? [], signal.topic, answer, MAX_VERIFIED),
+      }));
       return Response.json({ ok: true, businessId: org.id });
     }
 
     if (action === "notes") {
-      knowledge.notes = String(body.notes ?? "").trim();
-      // Guarded on presence, not on the submit: a screen that carries only the
-      // notes must not wipe the verified answers.
-      if (Object.hasOwn(body, "verified")) {
-        knowledge.verified = parseVerifiedLines(String(body.verified ?? ""));
-      }
-      await saveKnowledge(org.id, { ...knowledge });
+      await saveKnowledge(org.id, (fresh) => {
+        fresh.notes = String(body.notes ?? "").trim();
+        // Guarded on presence, not on the submit: a screen that carries only the
+        // notes must not wipe the verified answers.
+        if (Object.hasOwn(body, "verified")) {
+          fresh.verified = parseVerifiedLines(String(body.verified ?? ""));
+        }
+        return fresh;
+      });
       return Response.json({ ok: true, businessId: org.id });
     }
 
@@ -298,9 +317,11 @@ export async function POST(req: Request): Promise<Response> {
       }
 
       source.summary = (await summarizeSourceMarkdown(source.title, source.markdown)) ?? undefined;
-      const added = addSource(knowledge, source);
-      if (!added.ok) return Response.json({ error: "That is as much as it can hold." }, { status: 400 });
-      await saveKnowledge(org.id, { ...added.knowledge });
+      const saved = await saveKnowledge(org.id, (fresh) => {
+        const added = addSource(fresh, source);
+        return added.ok ? added.knowledge : null;
+      });
+      if (!saved) return Response.json({ error: "That is as much as it can hold." }, { status: 400 });
       return Response.json({
         ok: true,
         businessId: org.id,
@@ -313,7 +334,7 @@ export async function POST(req: Request): Promise<Response> {
       if (!markdown) return Response.json({ error: "Type something to teach first." }, { status: 400 });
       const title = noteTitle(markdown, "Note");
       const summary = await summarizeSourceMarkdown(title, markdown).catch(() => null);
-      const added = addSource(knowledge, {
+      const source: KnowledgeSource = {
         id: randomUUID(),
         kind: "text",
         title,
@@ -321,9 +342,12 @@ export async function POST(req: Request): Promise<Response> {
         charCount: markdown.length,
         addedAt: new Date().toISOString(),
         ...(summary ? { summary } : {}),
+      };
+      const saved = await saveKnowledge(org.id, (fresh) => {
+        const added = addSource(fresh, source);
+        return added.ok ? added.knowledge : null;
       });
-      if (!added.ok) return Response.json({ error: "That is as much as it can hold." }, { status: 400 });
-      await saveKnowledge(org.id, { ...added.knowledge });
+      if (!saved) return Response.json({ error: "That is as much as it can hold." }, { status: 400 });
       return Response.json({ ok: true, businessId: org.id });
     }
   } catch (err) {
@@ -348,7 +372,7 @@ export async function DELETE(req: Request): Promise<Response> {
   if (!org) return Response.json({ error: "Business not found." }, { status: 404 });
 
   try {
-    await saveKnowledge(org.id, { ...removeSource(readKnowledge(org.knowledge), sourceId) });
+    await saveKnowledge(org.id, (fresh) => removeSource(fresh, sourceId));
   } catch (err) {
     console.error("[mobile:knowledge-remove]", err);
     return Response.json({ error: "Could not remove." }, { status: 500 });

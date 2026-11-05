@@ -185,7 +185,7 @@ export default function TermsContent({ app }: { app: boolean }) {
             </p>
             <p>
               On termination, your right to use the Service ends and your assistants stop answering calls.
-              You may export your call data before termination. You may delete your account at any time in
+              You may ask us for a copy of your call data before termination by emailing us. You may delete your account at any time in
               the app (Settings &gt; Delete account) or at{" "}
               <Link href={withAppMode("/account/delete", app)}>aireceptionistnow.com/account/delete</Link>. We
               retain and delete data as described in the{" "}

@@ -25,10 +25,36 @@ interface DbCallRow {
   outcome: string | null;
   assistant: string | null;
   needsReview: boolean;
+  /** Caller names and summary for search; "" unless the read was a search. */
+  searchText: string;
 }
 
 const SELECT =
   "id,twilio_call_sid,from_number,to_number,direction,status,started_at,duration_seconds,outcome,needs_review,assistant:assistants!assistant_id(name)";
+
+// A search also reads who called: the extracted names and the summary.
+const SEARCH_SELECT = `${SELECT},summary,call_actions(type,payload)`;
+
+/**
+ * Text a search matches on top of the row's numbers: the caller's name from
+ * the extracted fields (a booking's attendee_name, a message's caller_name,
+ * the same pick as the returning-caller lookup) and the summary, which names
+ * the caller when no action did.
+ */
+export function callerSearchText(row: Record<string, unknown>): string {
+  const parts: string[] = [];
+  const actions = Array.isArray(row.call_actions)
+    ? (row.call_actions as { type?: unknown; payload?: unknown }[])
+    : [];
+  for (const a of actions) {
+    const p = (a?.payload ?? {}) as Record<string, unknown>;
+    const name = a?.type === "booking" ? p.attendee_name : p.caller_name;
+    if (typeof name === "string" && name.trim()) parts.push(name.trim());
+  }
+  const summary = str(row.summary);
+  if (summary) parts.push(summary);
+  return parts.join(" ");
+}
 
 async function fetchAllNumbers(): Promise<Map<string, number>> {
   const { data, error } = await serviceClient()
@@ -51,8 +77,9 @@ async function fetchDbCalls(
   limit: number,
   ownerId?: string | null,
   beforeIso?: string,
+  search = false,
 ): Promise<DbCallRow[]> {
-  let query = serviceClient().from("calls").select(SELECT);
+  let query = serviceClient().from("calls").select(search ? SEARCH_SELECT : SELECT);
   // Strictly the owner's rows. Owner-less calls belong to no tenant (the dev
   // preview passes no ownerId and sees them all); they used to be listed for
   // every signed-in user.
@@ -74,6 +101,7 @@ async function fetchDbCalls(
       outcome: str(row.outcome) || null,
       assistant: assistantName(row),
       needsReview: row.needs_review === true,
+      searchText: callerSearchText(row),
     };
   });
 }
@@ -121,13 +149,19 @@ function dbOnlyRow(c: DbCallRow, fmtDateTime: (iso: string) => string): CallLogR
   };
 }
 
-function applyFilters(rows: CallLogRow[], f: CallFilters): CallLogRow[] {
+export function applyFilters(
+  rows: CallLogRow[],
+  f: CallFilters,
+  /** Extra search text per DB call id (callerSearchText). */
+  searchText?: Map<string, string>,
+): CallLogRow[] {
   const q = (f.q ?? "").trim().toLowerCase();
   return rows.filter((r) => {
     if (f.direction && f.direction !== "all" && r.direction !== f.direction) return false;
     if (f.status && f.status !== "all" && statusBucket(r.status, r.date) !== f.status) return false;
     if (q) {
-      const hay = `${r.from} ${r.to} ${r.sid} ${r.assistant ?? ""} ${r.outcome ?? ""}`.toLowerCase();
+      const extra = r.dbId ? (searchText?.get(r.dbId) ?? "") : "";
+      const hay = `${r.from} ${r.to} ${r.sid} ${r.assistant ?? ""} ${r.outcome ?? ""} ${extra}`.toLowerCase();
       if (!hay.includes(q)) return false;
     }
     return true;
@@ -191,6 +225,7 @@ export async function getCallLog(
       scan,
       ownerId,
       paged ? new Date(beforeMs + CURSOR_SLACK_MS).toISOString() : undefined,
+      Boolean((filters.q ?? "").trim()),
     ),
     ownedNumberMap(ownerId),
     listTwilioCallsCached(Math.max(scan, 500)).catch(() => [] as TwilioCallLog[]),
@@ -232,7 +267,8 @@ export async function getCallLog(
   );
 
   cleaned.sort((a, b) => (b.date > a.date ? 1 : b.date < a.date ? -1 : 0));
-  const all = applyFilters(cleaned, filters);
+  const searchText = new Map(dbCalls.map((c) => [c.id, c.searchText]));
+  const all = applyFilters(cleaned, filters, searchText);
   const twilioConnected = twilioCalls.length > 0;
 
   const size = paging.limit;

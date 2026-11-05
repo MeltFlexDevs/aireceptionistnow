@@ -63,7 +63,9 @@ export default function SiteHeader({
       // effect above); onAuthStateChange flips signedIn back to false.
       const { createClient } = await import("@/lib/supabase/client");
       const supabase = createClient();
-      if (supabase) await supabase.auth.signOut();
+      // Local scope ends only this browser's session: the user's phone stays
+      // signed in and keeps its call alerts (Signed-in devices revokes a phone).
+      if (supabase) await supabase.auth.signOut({ scope: "local" });
       router.refresh();
     } finally {
       setSigningOut(false);

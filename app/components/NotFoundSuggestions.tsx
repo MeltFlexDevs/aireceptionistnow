@@ -75,6 +75,7 @@ export function NotFoundSuggestions({
         .map((s) => s.link);
 
     if (links) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- the match reads window.location, which exists only after hydration.
       setMatches(closest(links));
       return;
     }

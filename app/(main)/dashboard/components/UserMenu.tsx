@@ -59,7 +59,8 @@ export function UserMenu({ user }: { user: AppUser }) {
     setSigningOut(true);
     const { createClient } = await import("@/lib/supabase/client");
     const supabase = createClient();
-    if (supabase) await supabase.auth.signOut();
+    // Local scope, as in SiteHeader: only this browser signs out, not the phone.
+    if (supabase) await supabase.auth.signOut({ scope: "local" });
     router.push("/");
     router.refresh();
   }

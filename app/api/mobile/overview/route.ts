@@ -1,5 +1,5 @@
 import { getAnalyticsCached, getOverviewCached } from "@/lib/dashboard/analytics";
-import { listBookings, undatedBookings } from "@/lib/dashboard/calendar";
+import { listBookingsInWindow, undatedBookings } from "@/lib/dashboard/calendar";
 import { getOwnedNumbers, listAssistants, listIntegrations } from "@/lib/dashboard/db";
 import { getPlanContextCached } from "@/lib/dashboard/plan";
 import { ownerTimezone } from "@/lib/dashboard/timezone";
@@ -24,6 +24,9 @@ export const GET = mobileRoute(async (userId, req) => {
   // The phone's `?tz=`, used only when the account has no zone of its own.
   const phoneTz = resolveTimezone(null, req).timezone;
 
+  // Home lists what is coming up, so it reads bookings from a day back (plus
+  // undated ones) instead of the newest 500 made.
+  const since = new Date(Date.now() - 86_400_000).toISOString();
   const [overview, analytics, assistants, numbers, integrations, plan, tz, bookings] =
     await Promise.all([
       getOverviewCached(userId, phoneTz),
@@ -33,7 +36,7 @@ export const GET = mobileRoute(async (userId, req) => {
       listIntegrations(userId).catch(() => []),
       getPlanContextCached(userId).catch(() => null),
       ownerTimezone(userId, phoneTz),
-      listBookings(userId).catch(() => []),
+      listBookingsInWindow(userId, since, null).catch(() => []),
     ]);
 
   const now = Date.now();

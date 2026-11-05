@@ -1,10 +1,12 @@
 import { mobileAuth } from "@/lib/mobile/auth";
+import { deviceRevokeOf } from "@/lib/mobile/device-id";
 import {
   isDeviceId,
   isMissingTable,
   listDevices,
   registerDevice,
   revokeDevice,
+  revokeOtherDevices,
 } from "@/lib/mobile/devices";
 
 export const runtime = "nodejs";
@@ -16,6 +18,7 @@ export const dynamic = "force-dynamic";
  * GET    list every device signed into this account
  * POST   register / refresh this install
  * DELETE forget one install (and stop push to it - see revokeDevice)
+ *        ?others=1: forget every install but the caller's X-Device-Id (revokeOtherDevices)
  *
  * The `device_id` is what links a handset to the website account: the app mints
  * it once, keeps it in the keychain, and sends it on every `/api/mobile/*` call
@@ -105,16 +108,22 @@ export async function DELETE(req: Request): Promise<Response> {
   const userId = auth;
   if (!userId) return Response.json({ error: "Not signed in." }, { status: 401 });
 
-  const target = new URL(req.url).searchParams.get("deviceId") ?? "";
-  if (!isDeviceId(target)) {
+  const action = deviceRevokeOf(new URL(req.url).searchParams, deviceIdOf(req));
+  if (!action) {
     return Response.json({ error: "Bad request." }, { status: 400 });
   }
 
   try {
-    await revokeDevice(userId, target);
+    if (action.scope === "others") {
+      await revokeOtherDevices(userId, action.keepDeviceId);
+    } else {
+      await revokeDevice(userId, action.deviceId);
+    }
     return Response.json({ ok: true });
   } catch (err) {
     console.error("[mobile:devices-revoke]", err);
-    return Response.json({ error: "Could not remove this device." }, { status: 500 });
+    const error =
+      action.scope === "others" ? "Could not sign out your other devices." : "Could not remove this device.";
+    return Response.json({ error }, { status: 500 });
   }
 }

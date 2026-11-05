@@ -2,12 +2,20 @@ import { syncAssistantAgent } from "@/lib/call-engine/agent/sync";
 import { pickDemoCallerId } from "@/lib/call-engine/demo-caller";
 import { assertUnderCallCaps, placeAgentCall } from "@/lib/call-engine/elevenlabs";
 import {
+  TEST_CALL_COUNTRY_MESSAGE,
+  reserveTestCall,
+  testCallCountry,
+  testCallRefusalMessage,
+} from "@/lib/call-engine/test-call-limit";
+import { supabaseTestCallStore } from "@/lib/call-engine/test-call-store";
+import {
   assignedElevenLabsNumberIds,
   getAssistant,
   getAssistantNumber,
   listImportedFreeNumbers,
 } from "@/lib/dashboard/db";
 import { isOwnedBy } from "@/lib/dashboard/ownership";
+import { getPlanContext } from "@/lib/dashboard/plan";
 import { normalizePhone } from "@/lib/phone";
 import { mobileAuth } from "@/lib/mobile/auth";
 
@@ -48,9 +56,40 @@ export async function POST(
     );
   }
 
+  // Served countries only: a test call to any number is a toll-fraud route.
+  const country = testCallCountry(to);
+  if (!country) {
+    return Response.json({ error: TEST_CALL_COUNTRY_MESSAGE, code: "test_call_country" }, { status: 400 });
+  }
+
+  // Daily limit, taken before the call and given back when the call is not placed.
+  // A store error fails closed (500): no unmetered calls.
+  let slot;
+  let free = true;
+  try {
+    free = (await getPlanContext(userId)).planId === null;
+    slot = await reserveTestCall(supabaseTestCallStore, {
+      owner: userId,
+      assistant: id,
+      free,
+      country,
+    });
+  } catch (err) {
+    console.error("[mobile:test-call] limit", err);
+    return Response.json({ error: "The test call could not be placed." }, { status: 500 });
+  }
+  if (!slot.ok) {
+    return Response.json(
+      { error: testCallRefusalMessage(slot.reason, free), code: "test_call_limit", upgrade: free },
+      { status: 429 },
+    );
+  }
+  const release = () => slot.release().catch((err) => console.error("[mobile:test-call] release", err));
+
   try {
     await assertUnderCallCaps();
   } catch (err) {
+    await release();
     // Over the hourly/daily cap - this one throws a message worth showing.
     return Response.json({ error: (err as Error).message }, { status: 429 });
   }
@@ -69,12 +108,14 @@ export async function POST(
         pickDemoCallerId(to, pool, inUse, process.env.ELEVENLABS_AGENT_PHONE_NUMBER_ID) ?? "";
     }
     if (!agentPhoneNumberId) {
+      await release();
       return Response.json({ error: "Calling is not set up yet." }, { status: 400 });
     }
 
     await placeAgentCall(to, { agentId: agentId ?? undefined, agentPhoneNumberId });
   } catch (err) {
     console.error("[mobile:test-call]", err);
+    await release();
     return Response.json({ error: "The test call could not be placed." }, { status: 500 });
   }
 

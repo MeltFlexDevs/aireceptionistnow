@@ -69,7 +69,7 @@ export default function PrivacyContent({ app }: { app: boolean }) {
             <p><strong>3.2 Information Collected Automatically:</strong></p>
             <ul>
               <li>Call metadata (call duration, timestamps, originating and destination numbers)</li>
-              <li>Call recordings and transcripts (only if you enable this in your account settings)</li>
+              <li>Call recordings and transcripts (every call is recorded and transcribed)</li>
               <li>Device information (browser type, operating system)</li>
               <li>IP address and approximate geographic location</li>
               <li>Pages visited and actions taken on our website</li>
@@ -129,7 +129,7 @@ export default function PrivacyContent({ app }: { app: boolean }) {
               <li>Phone number (caller ID)</li>
               <li>Call duration and timestamp</li>
               <li>Spoken content processed in real-time by our AI to generate a response</li>
-              <li>Call recording and transcript (only if the business customer has enabled this feature)</li>
+              <li>Call recording and transcript (every call is recorded and transcribed)</li>
             </ul>
             <p><strong>Caller consent and transparency:</strong></p>
             <p>

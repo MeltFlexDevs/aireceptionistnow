@@ -1,10 +1,14 @@
 
 function isBlockedV4(octets: [number, number, number, number]): boolean {
-  const [a, b] = octets;
+  const [a, b, c] = octets;
   if (a === 10 || a === 127 || a === 0) return true;
   if (a === 169 && b === 254) return true; // link-local + 169.254.169.254 metadata
   if (a === 172 && b >= 16 && b <= 31) return true;
   if (a === 192 && b === 168) return true;
+  if (a === 100 && b >= 64 && b <= 127) return true; // 100.64.0.0/10 carrier-grade NAT
+  if (a === 198 && (b === 18 || b === 19)) return true; // 198.18.0.0/15 benchmarking
+  if (a === 192 && b === 0 && c === 0) return true; // 192.0.0.0/24 IETF protocol use
+  if (a >= 224) return true; // 224.0.0.0/4 multicast, 240.0.0.0/4 reserved and broadcast
   return false;
 }
 
@@ -65,9 +69,12 @@ function isBlockedV6(g: number[]): boolean {
   if (zeroThrough(7) && g[7] <= 1) return true; // :: unspecified, ::1 loopback
   if ((g[0] & 0xfe00) === 0xfc00) return true; // fc00::/7 unique-local
   if ((g[0] & 0xffc0) === 0xfe80) return true; // fe80::/10 link-local
+  if ((g[0] & 0xff00) === 0xff00) return true; // ff00::/8 multicast
   const embedsV4 =
     (zeroThrough(5) && (g[5] === 0 || g[5] === 0xffff)) ||
-    (zeroThrough(4) && g[4] === 0xffff && g[5] === 0);
+    (zeroThrough(4) && g[4] === 0xffff && g[5] === 0) ||
+    // 64:ff9b::/96 NAT64: the gateway forwards to the wrapped IPv4 address.
+    (g[0] === 0x64 && g[1] === 0xff9b && g.slice(2, 6).every((x) => x === 0));
   if (embedsV4) {
     return isBlockedV4([g[6] >> 8, g[6] & 0xff, g[7] >> 8, g[7] & 0xff]);
   }

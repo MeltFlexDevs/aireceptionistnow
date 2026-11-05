@@ -3,11 +3,26 @@ import { after } from "next/server";
 
 import { cancelBooking, isUndatedBooking, loadBookingForCancel } from "@/lib/dashboard/booking-cancel";
 import { notifyCancelledCustomer } from "@/lib/dashboard/booking-notify";
-import { retryBookingSync, retryResponseStatus } from "@/lib/dashboard/booking-retry";
+import {
+  retryBookingSync,
+  retryResponseStatus,
+  type RetryFailureCode,
+  type RetryResult,
+} from "@/lib/dashboard/booking-retry";
 import { mobileAuth } from "@/lib/mobile/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+// What the owner should do instead when a plain retry cannot fix the sync.
+const RETRY_ERRORS: Record<RetryFailureCode, string> = {
+  slot_taken: "That time is no longer free. Call the customer to pick another time.",
+  not_connected: "No calendar is connected for this booking. Connect one, then retry.",
+  no_calendar: "No calendar is connected for this booking. Connect one, then retry.",
+  past: "This appointment time has passed.",
+  no_time: "This appointment time has passed.",
+  not_failed: "This appointment already changed. Pull down to refresh.",
+};
 
 /**
  * Cancel an appointment, or retry a calendar sync that failed.
@@ -41,7 +56,7 @@ export async function POST(
   }
 
   if (body.action === "retry") {
-    const res = await retryBookingSync(actionId, userId).catch((err: Error) => ({
+    const res: RetryResult = await retryBookingSync(actionId, userId).catch((err: Error) => ({
       ok: false as const,
       message: err.message,
     }));
@@ -51,6 +66,10 @@ export async function POST(
     const status = retryResponseStatus(res);
     // Gone or not this user's: 404, since "try again" would make the app retry forever.
     if (status === 404) return Response.json({ error: "Appointment not found." }, { status });
+    // A retry cannot fix it (slot taken, no calendar, time passed, row changed):
+    // 409 with what to do instead. The app shows `error` as is.
+    if (status === 409 && res.code) return Response.json({ error: RETRY_ERRORS[res.code] }, { status });
+    // Only a provider error or a timeout is worth another try.
     if (status === 502) return Response.json({ error: "That did not sync. Try again shortly." }, { status });
     return Response.json({ ok: true });
   }

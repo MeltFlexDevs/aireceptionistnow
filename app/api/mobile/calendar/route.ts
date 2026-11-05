@@ -1,6 +1,5 @@
-import { withDeadline } from "@/lib/call-engine/net";
-import { fetchExternalEvents } from "@/lib/dashboard/calendar-events";
-import { listBookings } from "@/lib/dashboard/calendar";
+import { fetchExternalEventsStatus } from "@/lib/dashboard/calendar-events";
+import { listBookingsInWindow } from "@/lib/dashboard/calendar";
 import { getAccountSettings } from "@/lib/dashboard/account";
 import { listIntegrations } from "@/lib/dashboard/db";
 import { mobileRoute } from "@/lib/mobile/auth";
@@ -10,6 +9,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const DAY_MS = 86_400_000;
+// Per calendar, so one slow calendar costs only its own events.
+const PER_CALENDAR_MS = 4000;
 
 /**
  * The Calendar tab: what the receptionist booked AND what is already on the
@@ -26,6 +27,8 @@ const DAY_MS = 86_400_000;
  * Window: the web fetches whatever its month grid spans. The app renders a
  * rolling agenda instead, so it asks for a week back (recent past stays
  * readable) and sixty days forward, which covers anything an agenda scrolls to.
+ * Bookings use the same window (plus undated ones), so the cap on how many
+ * come back never drops a booking that is on screen.
  */
 export const GET = mobileRoute(async (userId, req) => {
   const now = Date.now();
@@ -33,7 +36,7 @@ export const GET = mobileRoute(async (userId, req) => {
   const timeMax = new Date(now + 60 * DAY_MS).toISOString();
 
   const [bookings, accountTz, integrations] = await Promise.all([
-    listBookings(userId),
+    listBookingsInWindow(userId, timeMin, timeMax),
     getAccountSettings(userId)
       .then((a) => a.timezone)
       .catch(() => ""),
@@ -41,16 +44,17 @@ export const GET = mobileRoute(async (userId, req) => {
   ]);
   const { timezone, timezoneIsAccount } = resolveTimezone(accountTz, req);
 
-  // Each provider is a network call that can hang or 401 on a stale token.
-  // `fetchExternalEvents` already swallows a per-calendar failure into an empty
-  // list, but not a slow one - and unlike the web page, which renders this once
-  // per navigation, the app refetches whenever the Calendar tab comes forward.
-  // A deadline keeps somebody else's calendar API off the critical path: the
-  // user's own bookings are already in hand and must not wait on it.
-  const events = await withDeadline(
-    fetchExternalEvents(integrations, timeMin, timeMax),
-    4000,
-    [] as Awaited<ReturnType<typeof fetchExternalEvents>>,
+  // Each provider is a network call that can hang or 401 on a stale token,
+  // and the app refetches whenever the Calendar tab comes forward. Each
+  // calendar gets its own deadline, so one slow calendar no longer drops the
+  // others' events, and the user's own bookings never wait past it. A
+  // calendar that could not be read is named in `eventsUnavailable`, so the
+  // app warns instead of showing a free afternoon.
+  const { events, unavailable } = await fetchExternalEventsStatus(
+    integrations,
+    timeMin,
+    timeMax,
+    PER_CALENDAR_MS,
   );
 
   return {
@@ -58,6 +62,7 @@ export const GET = mobileRoute(async (userId, req) => {
       .slice()
       .sort((a, b) => Date.parse(b.startTime) - Date.parse(a.startTime)),
     events,
+    eventsUnavailable: unavailable,
     timezone,
     timezoneIsAccount,
   };

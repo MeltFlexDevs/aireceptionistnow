@@ -87,29 +87,63 @@ async function guardedFetch(start: URL, signal: AbortSignal): Promise<Response> 
   throw new Error("That page redirects too many times.");
 }
 
+// res.text() would wait for the whole body with no limit and hold all of it in
+// memory. This stops at maxBytes, and the deadline signal stops a body that
+// trickles in.
+export async function readCappedText(
+  body: ReadableStream<Uint8Array> | null,
+  maxBytes: number,
+  signal: AbortSignal,
+): Promise<string> {
+  if (!body) return "";
+  const reader = body.getReader();
+  // Cancelling resolves a pending read() as done, so the loop below ends.
+  const stop = () => void reader.cancel().catch(() => {});
+  signal.addEventListener("abort", stop, { once: true });
+  const decoder = new TextDecoder();
+  let text = "";
+  let size = 0;
+  try {
+    while (size < maxBytes) {
+      signal.throwIfAborted();
+      const { done, value } = await reader.read();
+      if (done) break;
+      const part = value.subarray(0, maxBytes - size);
+      size += part.byteLength;
+      text += decoder.decode(part, { stream: true });
+    }
+    signal.throwIfAborted();
+    if (size >= maxBytes) stop();
+  } finally {
+    signal.removeEventListener("abort", stop);
+  }
+  return text + decoder.decode();
+}
+
 export async function fetchWebsiteMarkdown(input: string): Promise<WebsiteResult> {
   const url = parseUrl(input.trim());
 
+  // One deadline for the headers and the body: a server can send headers fast
+  // and then the body very slowly.
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-  let res: Response;
+  let html: string;
   try {
-    res = await guardedFetch(url, controller.signal);
+    const res = await guardedFetch(url, controller.signal);
+    if (!res.ok) throw new Error(`The page returned ${res.status}.`);
+    const contentType = res.headers.get("content-type") ?? "";
+    if (!contentType.includes("html") && !contentType.includes("text")) {
+      throw new Error("That URL isn't an HTML page.");
+    }
+    html = await readCappedText(res.body, MAX_BYTES, controller.signal);
   } catch (err) {
     if ((err as Error).name === "AbortError") throw new Error("The page took too long to load.");
-    // Everything else guardedFetch throws is already a user-facing message.
+    // Everything else thrown here is already a user-facing message.
     throw err;
   } finally {
     clearTimeout(timer);
   }
 
-  if (!res.ok) throw new Error(`The page returned ${res.status}.`);
-  const contentType = res.headers.get("content-type") ?? "";
-  if (!contentType.includes("html") && !contentType.includes("text")) {
-    throw new Error("That URL isn't an HTML page.");
-  }
-
-  const html = (await res.text()).slice(0, MAX_BYTES);
   const markdown = truncate(htmlToMarkdown(html), MAX_SOURCE_CHARS);
   if (!markdown.trim()) throw new Error("No readable text found on that page.");
 

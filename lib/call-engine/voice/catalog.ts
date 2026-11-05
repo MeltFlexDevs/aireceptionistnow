@@ -1,12 +1,20 @@
 
+import { CURATED_VOICES, LIBRARY_VOICES } from "@/app/(main)/dashboard/numbers/voices";
+
 export function baseLanguage(code: string): string {
   return (code || "").split("-")[0].toLowerCase();
 }
 
-// Default voice: ElevenLabs "Rachel" - a professional-sounding female voice.
+// Voice a receptionist row with no voice_id has always spoken with. On this
+// account it is a copied voice named "Janet". Kept so a re-sync does not change
+// the live voice of an old row; new receptionists use DEFAULT_VOICE_ID.
+export const LEGACY_DEFAULT_VOICE_ID = "21m00Tcm4TlvDq8ikWAM";
+
+// Default voice for new receptionists: "Hope", a female American voice on the
+// platform account, tuned for eleven_v4_turbo, live moderation off.
 // Voice policy: default to a female voice with a professional tone; the
 // auto-resolvers below rank candidates with voicePreferenceScore.
-export const DEFAULT_VOICE_ID = "21m00Tcm4TlvDq8ikWAM";
+export const DEFAULT_VOICE_ID = "zGjIP4SZlMnY9m93k97r";
 
 const PROFESSIONAL_RE =
   /\b(professional|business|corporate|formal|polished|news|announcer|articulate|confident|office)\b/i;
@@ -37,51 +45,100 @@ function envVoiceOverrides(): Record<string, string> {
   return envOverrides;
 }
 
-let voiceMapPromise: Promise<Record<string, string> | null> | null = null;
+// What one account scan found: the best allowed voice per language, and every
+// allowed voice id (isAllowedVoice reads it).
+interface AccountScan {
+  byLanguage: Record<string, string>;
+  allowed: Set<string>;
+}
+let voiceMapPromise: Promise<AccountScan | null> | null = null;
 
 interface RawVoice {
   voice_id: string;
+  name?: string;
+  category?: string;
   labels?: Record<string, string>;
   verified_languages?: Array<{ language?: string }>;
+  sharing?: { live_moderation_enabled?: boolean };
 }
 
-// null = fetch failed (retryable); {} = the account genuinely has no voices.
-async function accountVoicesByLanguage(): Promise<Record<string, string> | null> {
+// The ElevenLabs account is shared with other projects (cloned and library
+// voices that are not ours). Only these may be picked automatically: the
+// curated voices, premade voices, and voices that importSharedVoiceForLanguage
+// added (named "<name> (<language code>)"). A voice with live moderation on
+// cannot be used in ElevenAgents, so it is never allowed.
+const CURATED_IDS = new Set([...CURATED_VOICES, ...LIBRARY_VOICES].map((v) => v.voiceId));
+const IMPORTED_NAME = /\s\([a-z]{2,3}\)$/;
+
+function isAllowedAccountVoice(v: RawVoice): boolean {
+  if (!v.voice_id || v.sharing?.live_moderation_enabled) return false;
+  return v.category === "premade" || CURATED_IDS.has(v.voice_id) || IMPORTED_NAME.test(v.name ?? "");
+}
+
+export function scanAccountVoices(voices: RawVoice[]): AccountScan {
+  // Best-scoring voice per language per tier (female/professional preferred);
+  // ties keep the first seen, so the stable API order stays deterministic.
+  const native: Record<string, { id: string; score: number }> = {};
+  const verified: Record<string, { id: string; score: number }> = {};
+  const allowed = new Set<string>();
+  for (const v of voices) {
+    if (!isAllowedAccountVoice(v)) continue;
+    allowed.add(v.voice_id);
+    const score = voicePreferenceScore(
+      v.labels?.gender,
+      `${v.labels?.description ?? ""} ${v.labels?.use_case ?? ""}`,
+    );
+    if (v.labels?.language) {
+      const l = baseLanguage(v.labels.language);
+      if (!native[l] || score > native[l].score) native[l] = { id: v.voice_id, score };
+    }
+    for (const vl of v.verified_languages ?? []) {
+      if (!vl.language) continue;
+      const l = baseLanguage(vl.language);
+      if (!verified[l] || score > verified[l].score) verified[l] = { id: v.voice_id, score };
+    }
+  }
+  const byLanguage: Record<string, string> = {};
+  for (const [l, v] of Object.entries(verified)) byLanguage[l] = v.id;
+  for (const [l, v] of Object.entries(native)) byLanguage[l] = v.id;
+  return { byLanguage, allowed };
+}
+
+// null = fetch failed (retryable); an empty scan = the account genuinely has no voices.
+async function accountVoicesByLanguage(): Promise<AccountScan | null> {
   const key = process.env.ELEVENLABS_API_KEY;
-  if (!key) return {};
+  if (!key) return { byLanguage: {}, allowed: new Set() };
   try {
     const res = await fetch("https://api.elevenlabs.io/v1/voices", {
       headers: { "xi-api-key": key },
     });
     if (!res.ok) return null;
     const data = (await res.json()) as { voices?: RawVoice[] };
-    // Best-scoring voice per language per tier (female/professional preferred);
-    // ties keep the first seen, so the stable API order stays deterministic.
-    const native: Record<string, { id: string; score: number }> = {};
-    const verified: Record<string, { id: string; score: number }> = {};
-    for (const v of data.voices ?? []) {
-      if (!v.voice_id) continue;
-      const score = voicePreferenceScore(
-        v.labels?.gender,
-        `${v.labels?.description ?? ""} ${v.labels?.use_case ?? ""}`,
-      );
-      if (v.labels?.language) {
-        const l = baseLanguage(v.labels.language);
-        if (!native[l] || score > native[l].score) native[l] = { id: v.voice_id, score };
-      }
-      for (const vl of v.verified_languages ?? []) {
-        if (!vl.language) continue;
-        const l = baseLanguage(vl.language);
-        if (!verified[l] || score > verified[l].score) verified[l] = { id: v.voice_id, score };
-      }
-    }
-    const out: Record<string, string> = {};
-    for (const [l, v] of Object.entries(verified)) out[l] = v.id;
-    for (const [l, v] of Object.entries(native)) out[l] = v.id;
-    return out;
+    return scanAccountVoices(data.voices ?? []);
   } catch {
     return null;
   }
+}
+
+// A failed scan (null) must not be cached for the life of the instance -
+// reset so the next lookup retries instead of losing account voices forever.
+function accountScan(): Promise<AccountScan | null> {
+  voiceMapPromise ??= accountVoicesByLanguage().then((scan) => {
+    if (!scan) voiceMapPromise = null;
+    return scan;
+  });
+  return voiceMapPromise;
+}
+
+// True when a stored voice id may be played without the owner having picked it:
+// a curated voice, one set in ELEVENLABS_VOICE_OVERRIDES, or one the allowlist
+// above accepts on the account.
+export async function isAllowedVoice(voiceId: string): Promise<boolean> {
+  if (!voiceId) return false;
+  if (CURATED_IDS.has(voiceId)) return true;
+  if (Object.values(envVoiceOverrides()).includes(voiceId)) return true;
+  const scan = await accountScan();
+  return !!scan?.allowed.has(voiceId);
 }
 
 const XI_API = "https://api.elevenlabs.io";
@@ -95,6 +152,8 @@ interface SharedVoiceHit {
   gender?: string;
   descriptive?: string;
   use_case?: string;
+  preview_url?: string;
+  live_moderation_enabled?: boolean;
 }
 
 async function searchSharedVoices(
@@ -107,7 +166,10 @@ async function searchSharedVoices(
   const res = await fetch(`${XI_API}/v1/shared-voices?${q}`, { headers: { "xi-api-key": key } });
   if (!res.ok) return [];
   const data = (await res.json()) as { voices?: SharedVoiceHit[] };
-  return (data.voices ?? []).filter((v) => v.public_owner_id && v.voice_id);
+  // Voices with live moderation on cannot be used in ElevenAgents.
+  return (data.voices ?? []).filter(
+    (v) => v.public_owner_id && v.voice_id && !v.live_moderation_enabled,
+  );
 }
 
 async function importSharedVoiceForLanguage(base: string, key: string): Promise<string | null> {
@@ -140,6 +202,20 @@ async function importSharedVoiceForLanguage(base: string, key: string): Promise<
 // ("..", "%2e%2e", "/", "?", "#") is refused before the fetch (cr-mobile-api-11).
 const XI_ID = /^[A-Za-z0-9]{1,64}$/;
 
+// The id when this voice is already on the account and usable in ElevenAgents.
+async function accountVoiceId(voiceId: string, key: string): Promise<string | null> {
+  try {
+    const res = await fetch(`${XI_API}/v1/voices/${encodeURIComponent(voiceId)}`, {
+      headers: { "xi-api-key": key },
+    });
+    if (!res.ok) return null;
+    const v = (await res.json()) as RawVoice;
+    return v.voice_id && !v.sharing?.live_moderation_enabled ? v.voice_id : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function addSharedVoice(
   ownerId: string,
   voiceId: string,
@@ -155,7 +231,9 @@ export async function addSharedVoice(
       headers: { "xi-api-key": key, "content-type": "application/json" },
       body: JSON.stringify({ new_name: newName }),
     });
-    if (!res.ok) return null;
+    // The add fails when the voice is already on the account (an earlier pick):
+    // a copied voice keeps its library id, so use it from there.
+    if (!res.ok) return (await accountVoiceId(voiceId, key)) ?? null;
     const added = (await res.json()) as { voice_id?: string };
     if (added.voice_id) voiceMapPromise = null; // let the next account scan see it
     return added.voice_id ?? null;
@@ -189,6 +267,15 @@ export async function resolvePickedVoiceId(raw: string): Promise<string | null> 
 // so the next call retries instead of hiding the preview forever.
 const previewCache = new Map<string, Promise<string | null>>();
 
+async function sharedPreviewUrl(voiceId: string, key: string): Promise<string | null> {
+  if (!XI_ID.test(voiceId)) return null;
+  const q = new URLSearchParams({ search: voiceId, page_size: "5" });
+  const res = await fetch(`${XI_API}/v1/shared-voices?${q}`, { headers: { "xi-api-key": key } });
+  if (!res.ok) return null;
+  const data = (await res.json()) as { voices?: SharedVoiceHit[] };
+  return (data.voices ?? []).find((v) => v.voice_id === voiceId)?.preview_url ?? null;
+}
+
 export async function voicePreviewUrls(ids: string[]): Promise<Record<string, string>> {
   const key = process.env.ELEVENLABS_API_KEY;
   if (!key || ids.length === 0) return {};
@@ -196,9 +283,13 @@ export async function voicePreviewUrls(ids: string[]): Promise<Record<string, st
   await Promise.all(
     ids.map(async (id) => {
       if (!previewCache.has(id)) {
+        // A library voice that is not on the account has no /v1/voices entry:
+        // look it up in the shared library instead.
         const pending = fetch(`${XI_API}/v1/voices/${id}`, { headers: { "xi-api-key": key } })
           .then(async (res) =>
-            res.ok ? (((await res.json()) as { preview_url?: string }).preview_url ?? null) : null,
+            res.ok
+              ? (((await res.json()) as { preview_url?: string }).preview_url ?? null)
+              : sharedPreviewUrl(id, key),
           )
           .catch(() => null);
         previewCache.set(id, pending);
@@ -226,13 +317,7 @@ export async function voiceForLanguage(
   // English uses the assistant's own configured voice; no key → nothing to query.
   if (!key || base === "en") return fallbackVoiceId;
 
-  // A failed scan (null) must not be cached for the life of the instance -
-  // reset so the next lookup retries instead of losing account voices forever.
-  voiceMapPromise ??= accountVoicesByLanguage().then((map) => {
-    if (!map) voiceMapPromise = null;
-    return map;
-  });
-  const onAccount = ((await voiceMapPromise) ?? {})[base];
+  const onAccount = ((await accountScan())?.byLanguage ?? {})[base];
   if (onAccount) return onAccount;
 
   if (!importFromLibrary) return fallbackVoiceId;
