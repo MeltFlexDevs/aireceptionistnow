@@ -2,6 +2,8 @@ import { cache } from "react";
 
 import { siteName, siteUrl } from "@/lib/site";
 
+import { PreferredSourceLink } from "./preferred-source-link";
+
 /**
  * The Google "preferred source" card, printed under the opening paragraph of
  * every English article.
@@ -54,16 +56,16 @@ export function PreferredSource() {
           {/* The one word the card is actually about, in the site's signature
               emphasis: semibold uppercase with open tracking. One word only, so
               the tracking reads as emphasis rather than as a label. */}
-          <span className="font-semibold tracking-[0.06em] uppercase">humans!</span>
+          <span className="font-semibold tracking-[0.06em] uppercase">
+            humans!
+          </span>
         </p>
         <p className="mt-1 text-[14px] leading-[1.5] text-[#6f6f6f]">
           Get human written articles in your Google feed.
         </p>
       </div>
-      <a
+      <PreferredSourceLink
         href={PREFERENCES_URL}
-        target="_blank"
-        rel="noopener nofollow"
         className="inline-flex shrink-0 items-center justify-center gap-2.5 rounded-full border border-[#d4d4d4] bg-white px-5 py-2.5 text-[14px] font-semibold whitespace-nowrap text-[#1D1D1D] no-underline transition-colors hover:border-[#1D1D1D] hover:bg-[#fafafa] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1D1D1D]"
       >
         <GoogleMark />
@@ -71,7 +73,7 @@ export function PreferredSource() {
         {/* The button text alone says neither what is being added nor that the
             link leaves the page. Hidden from the page, still read out. */}
         <span className="sr-only"> {siteName}, opens in a new window</span>
-      </a>
+      </PreferredSourceLink>
     </div>
   );
 }
