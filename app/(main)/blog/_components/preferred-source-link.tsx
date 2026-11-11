@@ -10,8 +10,8 @@ import { useEffect, useRef, type ReactNode } from "react";
 //
 // The link stays the fallback on purpose: until the script is ready, or when an
 // ad blocker or a consent tool stops it, the click simply follows the href as
-// before. The script (~140 KB) is requested only once the button is near the
-// viewport, so it never competes with the first paint.
+// before. The script (~140 KB) is requested only after the reader's first
+// interaction, so it never competes with the first paint.
 
 type PreferredSourceApi = {
   init: (options?: { theme?: string; lang?: string }) => void;
@@ -66,22 +66,31 @@ export function PreferredSourceLink({
       });
     };
 
-    let observer: IntersectionObserver | null = null;
-    if (typeof IntersectionObserver === "function") {
-      observer = new IntersectionObserver(
-        (entries) => {
-          if (entries.some((entry) => entry.isIntersecting)) {
-            observer?.disconnect();
-            observer = null;
-            load();
-          }
-        },
-        { rootMargin: "600px 0px" },
+    // The card sits under the first paragraph, so "near the viewport" would mean
+    // "on every page view". Wait for the first sign of a real reader instead
+    // (scroll, pointer, touch, key): bots and lab performance runs never pay for
+    // the script, and a reader has it long before they reach for the button.
+    const wakeEvents = [
+      "scroll",
+      "pointermove",
+      "pointerdown",
+      "touchstart",
+      "keydown",
+    ] as const;
+    const stopWaiting = () => {
+      wakeEvents.forEach((type) =>
+        window.removeEventListener(type, wake, {
+          capture: true,
+        } as EventListenerOptions),
       );
-      observer.observe(button);
-    } else {
+    };
+    const wake = () => {
+      stopWaiting();
       load();
-    }
+    };
+    wakeEvents.forEach((type) =>
+      window.addEventListener(type, wake, { capture: true, passive: true }),
+    );
 
     const onClick = (event: MouseEvent) => {
       // Not ready, or a modified click (new tab etc.): keep the plain link.
@@ -108,7 +117,7 @@ export function PreferredSourceLink({
     button.addEventListener("click", onClick);
     return () => {
       cancelled = true;
-      observer?.disconnect();
+      stopWaiting();
       button.removeEventListener("click", onClick);
     };
   }, [lang]);
